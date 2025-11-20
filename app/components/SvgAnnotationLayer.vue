@@ -132,8 +132,8 @@ function handleClick(e: MouseEvent) {
   const target = e.target as SVGElement
   const annotationId = target.dataset?.annotationId || target.closest('[data-annotation-id]')?.getAttribute('data-annotation-id')
 
-  if (annotationId && (tool === 'selection' || tool === '')) {
-    // Click on annotation while in selection mode
+  if (annotationId && (tool === 'selection' || tool === '') && !annotationStore.isDrawing) {
+    // Click on annotation while in selection mode (and not actively drawing)
     annotationStore.selectAnnotation(annotationId)
     return
   }
