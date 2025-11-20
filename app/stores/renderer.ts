@@ -37,6 +37,14 @@ export const useRendererStore = defineStore("renderer", () => {
   const getCurrentPage = computed(() => currentPage.value)
   const getPdfInitialised = computed(() => pdfInitialised.value)
 
+  // Transform getters - single source of truth for rotation/scale/position
+  const getCanvasTransform = computed(() =>
+    `translate(${canvasPos.value.scrollLeft}px, ${canvasPos.value.scrollTop}px) scale(${scale.value}) rotate(${rotation.value}deg)`
+  )
+
+  const getSvgTransform = (offsetX: number = 0, offsetY: number = 0) =>
+    `translate(${canvasPos.value.scrollLeft - offsetX}px, ${canvasPos.value.scrollTop - offsetY}px) rotate(${rotation.value}deg)`
+
   /**
    * Actions
    */
@@ -121,6 +129,9 @@ export const useRendererStore = defineStore("renderer", () => {
     getPdfInitialised,
     setPdfInitialised,
     resetState,
+    // Transform getters
+    getCanvasTransform,
+    getSvgTransform,
   }
 })
 if (import.meta.hot) {

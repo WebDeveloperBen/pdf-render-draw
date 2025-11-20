@@ -15,7 +15,7 @@ const canvasStyle = computed(() => ({
   position: 'absolute' as const,
   top: '0',
   left: '0',
-  transform: `translate(${rendererStore.getCanvasPos.scrollLeft}px, ${rendererStore.getCanvasPos.scrollTop}px) scale(${rendererStore.getScale}) rotate(${rendererStore.getRotation}deg)`,
+  transform: rendererStore.getCanvasTransform,
   transformOrigin: 'center center' as const,
   // Use will-change for smooth scaling and rotation
   willChange: 'transform' as const,
