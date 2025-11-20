@@ -12,13 +12,13 @@ const rendererStore = useRendererStore()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const canvasStyle = computed(() => ({
-  position: 'absolute',
+  position: 'absolute' as const,
   top: '0',
   left: '0',
   transform: `translate(${rendererStore.getCanvasPos.scrollLeft}px, ${rendererStore.getCanvasPos.scrollTop}px) scale(${rendererStore.getScale})`,
-  transformOrigin: 'center center',
+  transformOrigin: 'center center' as const,
   // Use will-change for smooth scaling
-  willChange: 'transform',
+  willChange: 'transform' as const,
 }))
 
 async function renderPage(pageNum: number, renderScale?: number) {
@@ -82,6 +82,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
     await page.render({
       canvasContext: context,
       viewport,
+      canvas: canvasRef.value,
     }).promise
 
     console.log('PDF rendered successfully:', {

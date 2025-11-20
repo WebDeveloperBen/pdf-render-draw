@@ -48,16 +48,16 @@ const svgStyle = computed(() => {
   const offsetY = (scaledHeight - pdfHeight.value) / 2
 
   return {
-    position: 'absolute',
+    position: 'absolute' as const,
     top: '0',
     left: '0',
     width: `${scaledWidth}px`,
     height: `${scaledHeight}px`,
     transform: `translate(${rendererStore.getCanvasPos.scrollLeft - offsetX}px, ${rendererStore.getCanvasPos.scrollTop - offsetY}px)`,
-    transformOrigin: 'center center',
-    pointerEvents: 'all',
+    transformOrigin: 'center center' as const,
+    pointerEvents: 'all' as const,
     zIndex: 10,
-    willChange: 'width, height, transform',
+    willChange: 'width, height, transform' as const,
   }
 })
 
