@@ -12,6 +12,7 @@ export function useTextTool() {
   )
 
   const editingId = ref<string | null>(null)
+  const editingContent = ref<string>('')
 
   function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
@@ -40,15 +41,29 @@ export function useTextTool() {
 
     annotationStore.addAnnotation(text)
     editingId.value = text.id
+    editingContent.value = text.content
   }
 
   function handleDoubleClick(id: string) {
-    editingId.value = id
+    const annotation = annotationStore.getAnnotationById(id) as TextAnnotation | undefined
+    if (annotation) {
+      editingId.value = id
+      editingContent.value = annotation.content
+    }
   }
 
   function updateText(id: string, content: string) {
     annotationStore.updateAnnotation(id, { content })
     editingId.value = null
+    editingContent.value = ''
+  }
+
+  function finishEditing() {
+    if (editingId.value && editingContent.value !== undefined) {
+      annotationStore.updateAnnotation(editingId.value, { content: editingContent.value })
+    }
+    editingId.value = null
+    editingContent.value = ''
   }
 
   function deleteText(id: string) {
@@ -58,9 +73,11 @@ export function useTextTool() {
   return {
     completed,
     editingId,
+    editingContent,
     handleClick,
     handleDoubleClick,
     updateText,
+    finishEditing,
     deleteText,
   }
 }

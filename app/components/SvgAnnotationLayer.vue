@@ -135,12 +135,14 @@ function handleMove(e: MouseEvent) {
 }
 
 function handleDoubleClick(e: MouseEvent) {
-  // Text editing
-  if (annotationStore.activeTool === "text") {
-    const target = e.target as SVGElement
-    const id = target.dataset.annotationId
-    if (id) {
+  // Text editing - allow editing text regardless of active tool
+  const target = e.target as SVGElement
+  const id = target.dataset.annotationId
+  if (id) {
+    const annotation = annotationStore.getAnnotationById(id)
+    if (annotation?.type === 'text') {
       textTool.handleDoubleClick(id)
+      e.stopPropagation()
     }
   }
 }

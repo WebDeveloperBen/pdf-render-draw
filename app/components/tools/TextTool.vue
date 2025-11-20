@@ -17,7 +17,9 @@
           opacity="0.8"
           rx="3"
           class="text-background"
-          @dblclick="handleDoubleClick(text.id)"
+          :data-annotation-id="text.id"
+          @dblclick.stop="handleDoubleClick(text.id)"
+          @click.stop
         />
 
         <!-- Text content -->
@@ -28,7 +30,8 @@
           :fill="text.color"
           class="text-annotation"
           :data-annotation-id="text.id"
-          @dblclick="handleDoubleClick(text.id)"
+          @dblclick.stop="handleDoubleClick(text.id)"
+          @click.stop
         >
           {{ text.content }}
         </text>
@@ -68,21 +71,27 @@
         :y="text.y - text.fontSize - 2"
         :width="text.width + 10"
         :height="text.height + 4"
+        style="pointer-events: all;"
+        @click.stop
+        @mousedown.stop
       >
         <div xmlns="http://www.w3.org/1999/xhtml" class="text-editor-wrapper">
           <textarea
-            :ref="el => { if (el && editingId === text.id) (el as HTMLTextAreaElement).focus() }"
-            :value="text.content"
+            :ref="el => { if (el) { nextTick(() => (el as HTMLTextAreaElement).focus()); (el as HTMLTextAreaElement).select() } }"
+            v-model="editingContent"
             class="text-editor"
+            autofocus
             :style="{
               fontSize: text.fontSize + 'px',
               color: text.color,
               width: text.width + 'px',
               height: text.height + 'px',
             }"
-            @blur="(e) => updateText(text.id, (e.target as HTMLTextAreaElement).value)"
-            @keydown.enter.exact.prevent="(e) => updateText(text.id, (e.target as HTMLTextAreaElement).value)"
-            @keydown.escape="() => { editingId = null }"
+            @blur="finishEditing"
+            @keydown.enter.exact.prevent="finishEditing"
+            @keydown.escape="finishEditing"
+            @click.stop
+            @mousedown.stop
           />
         </div>
       </foreignObject>
@@ -94,8 +103,10 @@
 const {
   completed,
   editingId,
+  editingContent,
   handleDoubleClick,
   updateText,
+  finishEditing,
   deleteText,
 } = useTextTool()
 </script>
