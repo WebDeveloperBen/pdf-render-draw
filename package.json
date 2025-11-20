@@ -1,0 +1,30 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "generate-api": "orval",
+    "clean-api": "orval --clean",
+    "format": "npx prettier --write '**/*.{ts,tsx,vue, js}'"
+  },
+  "dependencies": {
+    "@pinia/nuxt": "0.11.3",
+    "nuxt": "^4.2.1",
+    "pdfjs-dist": "^5.4.394",
+    "pinia": "^3.0.4",
+    "uuid": "^13.0.0",
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.20.1",
+    "@types/uuid": "^11.0.0",
+    "vitest": "^4.0.12"
+  },
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
+}

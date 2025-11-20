@@ -1,0 +1,48 @@
+import type { Fill } from '~/types/annotations'
+import type { Point } from '~/types'
+import { v4 as uuidv4 } from 'uuid'
+
+export function useFillTool() {
+  const annotationStore = useAnnotationStore()
+  const rendererStore = useRendererStore()
+  const settings = useSettingStore()
+
+  const completed = computed(() =>
+    annotationStore.getAnnotationsByType('fill') as Fill[]
+  )
+
+  function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
+    const pt = svg.createSVGPoint()
+    pt.x = e.clientX
+    pt.y = e.clientY
+    const transformed = pt.matrixTransform(svg.getScreenCTM()!.inverse())
+    return { x: transformed.x, y: transformed.y }
+  }
+
+  function handleClick(e: MouseEvent) {
+    const svg = e.currentTarget as SVGSVGElement
+    const point = getSvgPoint(e, svg)
+
+    const fill: Fill = {
+      id: uuidv4(),
+      type: 'fill',
+      pageNum: rendererStore.currentPage,
+      x: point.x,
+      y: point.y,
+      color: settings.fillFillColor,
+      opacity: settings.fillOpacity,
+    }
+
+    annotationStore.addAnnotation(fill)
+  }
+
+  function deleteFill(id: string) {
+    annotationStore.deleteAnnotation(id)
+  }
+
+  return {
+    completed,
+    handleClick,
+    deleteFill,
+  }
+}
