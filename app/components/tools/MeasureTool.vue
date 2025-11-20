@@ -9,7 +9,18 @@
       class="measurement"
       @click.stop="selectAnnotation(measure.id)"
     >
-      <!-- Line -->
+      <!-- Invisible hit area (makes it easier to click thin lines) -->
+      <line
+        :x1="measure.points[0].x"
+        :y1="measure.points[0].y"
+        :x2="measure.points[1].x"
+        :y2="measure.points[1].y"
+        stroke="transparent"
+        stroke-width="15"
+        class="measurement-hit-area"
+      />
+
+      <!-- Visible line -->
       <line
         :x1="measure.points[0].x"
         :y1="measure.points[0].y"
@@ -124,24 +135,40 @@ const {
 </script>
 
 <style scoped>
-.measurement-line {
+.measurement {
   cursor: pointer;
-  transition: stroke-width 0.2s;
+  transition: all 0.15s ease;
 }
 
-.measurement-line:hover {
-  stroke-width: 3;
-  stroke: orange;
+.measurement-hit-area {
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.measurement-line {
+  transition: stroke-width 0.15s, filter 0.15s;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.measurement:hover .measurement-line {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 6px rgba(66, 153, 225, 0.8));
 }
 
 .measurement.selected .measurement-line {
-  stroke: blue;
+  stroke: #4299e1;
   stroke-width: 3;
 }
 
 .measurement-label {
   pointer-events: none;
   user-select: none;
+  transition: font-weight 0.15s;
+}
+
+.measurement:hover .measurement-label {
+  font-weight: bold;
 }
 
 .point-marker {

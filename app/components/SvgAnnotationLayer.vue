@@ -5,7 +5,10 @@
     :style="svgStyle"
     class="svg-annotation-layer"
     @click="handleClick"
+    @mousedown="handleMouseDown"
     @mousemove="handleMove"
+    @mouseup="handleMouseUp"
+    @mouseleave="handleMouseLeave"
     @dblclick="handleDoubleClick"
   >
     <!-- Render active tool + all completed annotations -->
@@ -19,6 +22,21 @@
     <LineTool v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0" />
     <FillTool v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0" />
     <TextTool v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0" />
+
+    <!-- Selection marquee (drag-to-select rectangle) -->
+    <rect
+      v-if="selectionMarquee.isDrawing && selectionMarquee.marqueeBounds"
+      :x="selectionMarquee.marqueeBounds.x"
+      :y="selectionMarquee.marqueeBounds.y"
+      :width="selectionMarquee.marqueeBounds.width"
+      :height="selectionMarquee.marqueeBounds.height"
+      fill="rgba(66, 153, 225, 0.1)"
+      stroke="#4299e1"
+      stroke-width="2"
+      stroke-dasharray="4 4"
+      class="selection-marquee"
+      pointer-events="none"
+    />
 
     <!-- Transform handles for selected annotation -->
     <TransformHandles />
@@ -74,6 +92,37 @@ const perimeterTool = usePerimeterTool()
 const lineTool = useLineTool()
 const fillTool = useFillTool()
 const textTool = useTextTool()
+const selectionMarquee = useSelectionMarquee()
+
+function handleMouseDown(e: MouseEvent) {
+  const tool = annotationStore.activeTool
+  const target = e.target as SVGElement
+  const annotationId = target.dataset?.annotationId || target.closest('[data-annotation-id]')?.getAttribute('data-annotation-id')
+
+  // Start selection marquee only if:
+  // 1. In selection mode or no tool active
+  // 2. Clicking on empty space (not on annotation)
+  // 3. Not clicking on transform handles
+  if ((tool === 'selection' || tool === '') && !annotationId && svgRef.value) {
+    selectionMarquee.startMarquee(e, svgRef.value)
+  }
+}
+
+function handleMouseUp(e: MouseEvent) {
+  if (selectionMarquee.isDrawing) {
+    selectionMarquee.endMarquee()
+  }
+}
+
+function handleMouseLeave(e: MouseEvent) {
+  // Clear cursor preview for all tools when mouse leaves canvas
+  measureTool.clearPreview?.()
+  areaTool.clearPreview?.()
+  perimeterTool.clearPreview?.()
+  lineTool.clearPreview?.()
+  fillTool.clearPreview?.()
+  textTool.clearPreview?.()
+}
 
 // Event routing
 function handleClick(e: MouseEvent) {
@@ -86,6 +135,13 @@ function handleClick(e: MouseEvent) {
   if (annotationId && (tool === 'selection' || tool === '')) {
     // Click on annotation while in selection mode
     annotationStore.selectAnnotation(annotationId)
+    return
+  }
+
+  // Click outside any annotation - deselect if in selection mode or no tool active
+  // But only if not drawing marquee (to avoid deselecting during drag)
+  if (!annotationId && (tool === 'selection' || tool === '') && !selectionMarquee.isDrawing) {
+    annotationStore.selectAnnotation(null)
     return
   }
 
@@ -130,6 +186,12 @@ function handleClick(e: MouseEvent) {
 function handleMove(e: MouseEvent) {
   const tool = annotationStore.activeTool
   console.debug("SVG handleMove:", { tool, hasTarget: !!e.target })
+
+  // Update selection marquee if dragging (only in selection mode)
+  if (selectionMarquee.isDrawing && (tool === 'selection' || tool === '') && svgRef.value) {
+    selectionMarquee.updateMarquee(e, svgRef.value)
+    return  // Don't process tool moves while selecting
+  }
 
   switch (tool) {
     case "measure":

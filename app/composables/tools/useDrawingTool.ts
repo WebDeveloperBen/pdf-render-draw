@@ -154,6 +154,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     handleKeyDown,
     selectAnnotation,
     deleteAnnotation,
+    clearPreview: base.clearPreview,
     getSvgPoint: base.getSvgPoint,
     toSvgPoints: base.toSvgPoints,
   }

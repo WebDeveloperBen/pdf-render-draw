@@ -84,6 +84,10 @@ export function useBaseTool(options: BaseToolOptions) {
     }
   }
 
+  function clearPreview() {
+    tempEndPoint.value = null
+  }
+
   return {
     // State
     points,
@@ -99,6 +103,7 @@ export function useBaseTool(options: BaseToolOptions) {
     updateTempPoint,
     reset,
     complete,
+    clearPreview,
     getSvgPoint,
     toSvgPoints,
     snapTo45Degrees
