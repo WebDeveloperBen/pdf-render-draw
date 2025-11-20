@@ -2,7 +2,7 @@
 /**
  * Simple PDF Viewer - no Konva, no old stores
  */
-import type { PDFDocumentLoadingTask } from 'pdfjs-dist'
+import type { PDFDocumentLoadingTask } from "pdfjs-dist"
 
 const props = defineProps<{
   pdf?: PDFDocumentLoadingTask
@@ -12,17 +12,17 @@ const rendererStore = useRendererStore()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const canvasStyle = computed(() => ({
-  position: 'absolute' as const,
-  top: '0',
-  left: '0',
+  position: "absolute" as const,
+  top: "0",
+  left: "0",
   transform: rendererStore.getCanvasTransform,
-  transformOrigin: 'center center' as const,
+  transformOrigin: "center center" as const,
   // Use will-change for smooth scaling and rotation
-  willChange: 'transform' as const,
+  willChange: "transform" as const
 }))
 
 async function renderPage(pageNum: number, renderScale?: number) {
-  console.log('renderPage called:', {
+  console.debug("renderPage called:", {
     pageNum,
     renderScale,
     hasPdf: !!props.pdf,
@@ -30,14 +30,14 @@ async function renderPage(pageNum: number, renderScale?: number) {
   })
 
   if (!props.pdf || !canvasRef.value) {
-    console.log('renderPage early return - missing pdf or canvas')
+    console.debug("renderPage early return - missing pdf or canvas")
     return
   }
 
   try {
-    console.log('Getting PDF document from promise...')
+    console.debug("Getting PDF document from promise...")
     const pdfDoc = await props.pdf.promise
-    console.log('Got PDF doc, getting page', pageNum)
+    console.debug("Got PDF doc, getting page", pageNum)
     const page = await pdfDoc.getPage(pageNum)
 
     // Use device pixel ratio AND current zoom scale for crisp rendering
@@ -50,7 +50,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
     const renderDpr = dpr * currentScale
     const viewport = page.getViewport({ scale: renderDpr })
 
-    console.log('Viewport created:', {
+    console.log("Viewport created:", {
       width: viewport.width,
       height: viewport.height,
       dpr,
@@ -62,13 +62,13 @@ async function renderPage(pageNum: number, renderScale?: number) {
     const logicalViewport = page.getViewport({ scale: 1 })
     rendererStore.setCanvasSize({
       width: logicalViewport.width,
-      height: logicalViewport.height,
+      height: logicalViewport.height
     })
 
     // Render to canvas with DPR * scale
-    const context = canvasRef.value.getContext('2d')
+    const context = canvasRef.value.getContext("2d")
     if (!context) {
-      console.log('Failed to get 2d context')
+      console.error("Failed to get 2d context")
       return
     }
 
@@ -80,14 +80,14 @@ async function renderPage(pageNum: number, renderScale?: number) {
     canvasRef.value.style.width = `${logicalViewport.width}px`
     canvasRef.value.style.height = `${logicalViewport.height}px`
 
-    console.log('Starting PDF render...')
+    console.debug("Starting PDF render...")
     await page.render({
       canvasContext: context,
       viewport,
-      canvas: canvasRef.value,
+      canvas: canvasRef.value
     }).promise
 
-    console.log('PDF rendered successfully:', {
+    console.debug("PDF rendered successfully:", {
       bufferWidth: viewport.width,
       bufferHeight: viewport.height,
       displayWidth: logicalViewport.width,
@@ -95,43 +95,50 @@ async function renderPage(pageNum: number, renderScale?: number) {
       scale: currentScale
     })
   } catch (e) {
-    console.error('Failed to render PDF:', e)
+    console.error("Failed to render PDF:", e)
   }
 }
 
 // Debounce timer for scale changes
 let scaleDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
-watch(() => props.pdf, async (newPdf) => {
-  console.log('SimplePdfViewer watch triggered:', {
-    hasPdf: !!newPdf,
-    hasCanvas: !!canvasRef.value
-  })
-  if (newPdf && canvasRef.value) {
-    await renderPage(1) // Render first page
-  }
-}, { immediate: true })
+watch(
+  () => props.pdf,
+  async (newPdf) => {
+    console.debug("SimplePdfViewer watch triggered:", {
+      hasPdf: !!newPdf,
+      hasCanvas: !!canvasRef.value
+    })
+    if (newPdf && canvasRef.value) {
+      await renderPage(1) // Render first page
+    }
+  },
+  { immediate: true }
+)
 
 // Watch for scale changes and re-render at higher resolution
-watch(() => rendererStore.getScale, async (newScale) => {
-  console.log('Scale changed:', newScale)
+watch(
+  () => rendererStore.getScale,
+  async (newScale) => {
+    console.log("Scale changed:", newScale)
 
-  // Debounce re-rendering to avoid too many renders during continuous zoom
-  if (scaleDebounceTimer) {
-    clearTimeout(scaleDebounceTimer)
-  }
-
-  scaleDebounceTimer = setTimeout(async () => {
-    if (props.pdf && canvasRef.value) {
-      await renderPage(rendererStore.getCurrentPage, newScale)
+    // Debounce re-rendering to avoid too many renders during continuous zoom
+    if (scaleDebounceTimer) {
+      clearTimeout(scaleDebounceTimer)
     }
-  }, 100) // Wait 100ms after user stops zooming (reduced for faster response)
-})
+
+    scaleDebounceTimer = setTimeout(async () => {
+      if (props.pdf && canvasRef.value) {
+        await renderPage(rendererStore.getCurrentPage, newScale)
+      }
+    }, 100) // Wait 100ms after user stops zooming (reduced for faster response)
+  }
+)
 
 // Note: No need to watch rotation - it's applied via CSS transform, no re-render needed
 
 onMounted(async () => {
-  console.log('SimplePdfViewer mounted:', {
+  console.debug("SimplePdfViewer mounted:", {
     hasPdf: !!props.pdf,
     hasCanvas: !!canvasRef.value
   })
@@ -163,8 +170,9 @@ onUnmounted(() => {
 
 .pdf-canvas {
   display: block;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
-              0 12px 32px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 12px 32px rgba(0, 0, 0, 0.2);
   background: white;
 }
 </style>

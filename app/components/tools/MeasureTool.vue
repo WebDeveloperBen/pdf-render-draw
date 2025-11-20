@@ -4,6 +4,7 @@
     <g
       v-for="measure in completed"
       :key="measure.id"
+      :data-annotation-id="measure.id"
       :class="{ selected: selected?.id === measure.id }"
       class="measurement"
       @click.stop="selectAnnotation(measure.id)"

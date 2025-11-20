@@ -1,5 +1,5 @@
-import type { Point } from '~/types'
-import { distance } from '~/utils/calculations'
+import type { Point } from "~/types"
+import { distance } from "~/utils/calculations"
 
 export interface BaseToolOptions {
   type: string
@@ -17,9 +17,7 @@ export function useBaseTool(options: BaseToolOptions) {
   const tempEndPoint = ref<Point | null>(null)
 
   // Computed
-  const hasMinimumPoints = computed(() =>
-    points.value.length >= (options.minPoints ?? 2)
-  )
+  const hasMinimumPoints = computed(() => points.value.length >= (options.minPoints ?? 2))
 
   const canSnapToClose = computed(() => {
     if (!options.canClose || points.value.length < (options.minPoints ?? 3)) {
@@ -27,7 +25,7 @@ export function useBaseTool(options: BaseToolOptions) {
     }
     if (!tempEndPoint.value) return false
 
-    const firstPoint = points.value[0]
+    const firstPoint = points.value[0]!
     const dist = distance(tempEndPoint.value, firstPoint)
     const snapDist = options.snapDistance ?? settings.toolSnapDistance
     return dist < snapDist
@@ -45,7 +43,7 @@ export function useBaseTool(options: BaseToolOptions) {
 
   function updateTempPoint(point: Point) {
     tempEndPoint.value = point
-    console.log('updateTempPoint called:', point, 'tempEndPoint.value:', tempEndPoint.value)
+    console.debug("updateTempPoint called:", point, "tempEndPoint.value:", tempEndPoint.value)
   }
 
   function reset() {
@@ -70,19 +68,19 @@ export function useBaseTool(options: BaseToolOptions) {
   }
 
   function toSvgPoints(pts: Point[]): string {
-    return pts.map(p => `${p.x},${p.y}`).join(' ')
+    return pts.map((p) => `${p.x},${p.y}`).join(" ")
   }
 
   function snapTo45Degrees(start: Point, end: Point): Point {
     const dx = end.x - start.x
     const dy = end.y - start.y
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI
     const snappedAngle = Math.round(angle / 45) * 45
     const dist = Math.sqrt(dx * dx + dy * dy)
 
     return {
-      x: start.x + dist * Math.cos(snappedAngle * Math.PI / 180),
-      y: start.y + dist * Math.sin(snappedAngle * Math.PI / 180)
+      x: start.x + dist * Math.cos((snappedAngle * Math.PI) / 180),
+      y: start.y + dist * Math.sin((snappedAngle * Math.PI) / 180)
     }
   }
 
@@ -103,6 +101,6 @@ export function useBaseTool(options: BaseToolOptions) {
     complete,
     getSvgPoint,
     toSvgPoints,
-    snapTo45Degrees,
+    snapTo45Degrees
   }
 }

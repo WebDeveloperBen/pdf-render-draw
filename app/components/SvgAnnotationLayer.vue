@@ -19,6 +19,9 @@
     <LineTool v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0" />
     <FillTool v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0" />
     <TextTool v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0" />
+
+    <!-- Transform handles for selected annotation -->
+    <TransformHandles />
   </svg>
 </template>
 
@@ -29,6 +32,7 @@ import PerimeterTool from "~/components/tools/PerimeterTool.vue"
 import LineTool from "~/components/tools/LineTool.vue"
 import FillTool from "~/components/tools/FillTool.vue"
 import TextTool from "~/components/tools/TextTool.vue"
+import TransformHandles from "~/components/handles/TransformHandles.vue"
 
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
@@ -74,6 +78,17 @@ const textTool = useTextTool()
 // Event routing
 function handleClick(e: MouseEvent) {
   const tool = annotationStore.activeTool
+
+  // Check if clicking on an existing annotation to select it
+  const target = e.target as SVGElement
+  const annotationId = target.dataset?.annotationId || target.closest('[data-annotation-id]')?.getAttribute('data-annotation-id')
+
+  if (annotationId && (tool === 'selection' || tool === '')) {
+    // Click on annotation while in selection mode
+    annotationStore.selectAnnotation(annotationId)
+    return
+  }
+
   console.debug("SVG Layer Click:", {
     tool,
     target: e.target,
