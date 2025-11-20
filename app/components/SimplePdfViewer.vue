@@ -15,9 +15,9 @@ const canvasStyle = computed(() => ({
   position: 'absolute' as const,
   top: '0',
   left: '0',
-  transform: `translate(${rendererStore.getCanvasPos.scrollLeft}px, ${rendererStore.getCanvasPos.scrollTop}px) scale(${rendererStore.getScale})`,
+  transform: `translate(${rendererStore.getCanvasPos.scrollLeft}px, ${rendererStore.getCanvasPos.scrollTop}px) scale(${rendererStore.getScale}) rotate(${rendererStore.getRotation}deg)`,
   transformOrigin: 'center center' as const,
-  // Use will-change for smooth scaling
+  // Use will-change for smooth scaling and rotation
   willChange: 'transform' as const,
 }))
 
@@ -45,6 +45,8 @@ async function renderPage(pageNum: number, renderScale?: number) {
     const currentScale = renderScale ?? rendererStore.getScale
 
     // Render at higher resolution based on zoom level
+    // Note: We don't use viewport rotation here - rotation is applied via CSS transform
+    // This keeps annotations in sync since they rotate with the CSS transform too
     const renderDpr = dpr * currentScale
     const viewport = page.getViewport({ scale: renderDpr })
 
@@ -56,7 +58,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
       renderDpr
     })
 
-    // Store logical dimensions (without DPR/scale)
+    // Store logical dimensions (without DPR/scale, no rotation applied to viewport)
     const logicalViewport = page.getViewport({ scale: 1 })
     rendererStore.setCanvasSize({
       width: logicalViewport.width,
@@ -125,6 +127,8 @@ watch(() => rendererStore.getScale, async (newScale) => {
     }
   }, 100) // Wait 100ms after user stops zooming (reduced for faster response)
 })
+
+// Note: No need to watch rotation - it's applied via CSS transform, no re-render needed
 
 onMounted(async () => {
   console.log('SimplePdfViewer mounted:', {

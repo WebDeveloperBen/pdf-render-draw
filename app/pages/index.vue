@@ -186,6 +186,20 @@ const annotationCount = computed(() => annotationStore.annotations.length);
       </button>
     </div>
 
+    <!-- Rotation Controls -->
+    <div class="rotation-controls">
+      <button @click="rendererStore.rotateCounterClockwise()" title="Rotate Left (90°)">
+        ↶
+      </button>
+      <span>{{ rendererStore.getRotation }}°</span>
+      <button @click="rendererStore.rotateClockwise()" title="Rotate Right (90°)">
+        ↷
+      </button>
+      <button @click="rendererStore.resetRotation()" title="Reset Rotation">
+        0°
+      </button>
+    </div>
+
     <!-- Canvas Area -->
     <div
       class="canvas-area"
@@ -222,11 +236,12 @@ const annotationCount = computed(() => annotationStore.annotations.length);
         <li><strong>Escape:</strong> Cancel drawing</li>
         <li><strong>Delete:</strong> Remove selected annotation</li>
       </ul>
-      <h3>Mouse Controls:</h3>
+      <h3>Controls:</h3>
       <ul>
         <li><strong>Left Click:</strong> Draw with selected tool</li>
         <li><strong>Scroll:</strong> Pan vertically/horizontally</li>
         <li><strong>+/− Buttons:</strong> Zoom controls</li>
+        <li><strong>↶/↷ Buttons:</strong> Rotate PDF 90°</li>
       </ul>
     </div>
   </div>
@@ -338,6 +353,42 @@ const annotationCount = computed(() => annotationStore.annotations.length);
   font-size: 14px;
   font-weight: 500;
   min-width: 50px;
+  text-align: center;
+}
+
+.rotation-controls {
+  position: fixed;
+  bottom: 20px;
+  right: 220px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.rotation-controls button {
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rotation-controls button:hover {
+  background: #f5f5f5;
+}
+
+.rotation-controls span {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 40px;
   text-align: center;
 }
 

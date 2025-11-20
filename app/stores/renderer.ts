@@ -6,8 +6,10 @@ export const useRendererStore = defineStore("renderer", () => {
    */
 
   type PdfLoadingState = "loading" | "loaded" | "error"
+  type Rotation = 0 | 90 | 180 | 270
   const pdfLoadingState = shallowRef<PdfLoadingState>("loading")
   const scale = ref<number>(1)
+  const rotation = ref<Rotation>(0) // Rotation in degrees: 0, 90, 180, 270
   const canvasPos = ref<{ scrollTop: number; scrollLeft: number }>({ scrollTop: 0, scrollLeft: 0 }) //NOTE: canvas and pdf are inverted pos of each other
   const DocumentProxy = ref<PDFDocumentProxy>()
   const totalPages = ref(0)
@@ -20,6 +22,7 @@ export const useRendererStore = defineStore("renderer", () => {
    */
 
   const getScale = computed(() => scale.value)
+  const getRotation = computed(() => rotation.value)
   const getCanvasPos = computed(() => canvasPos.value)
   const getPdfPosition = computed(() => {
     // Calculate the PDF position from the canvas position
@@ -52,9 +55,23 @@ export const useRendererStore = defineStore("renderer", () => {
     setScale(scale.value / 1.25) // 25% zoom out
   }
 
+  const setRotation = (deg: Rotation) => {
+    rotation.value = deg
+  }
+
+  const rotateClockwise = () => {
+    rotation.value = ((rotation.value + 90) % 360) as Rotation
+  }
+
+  const rotateCounterClockwise = () => {
+    rotation.value = ((rotation.value - 90 + 360) % 360) as Rotation
+  }
+
   const resetPageScale = () => (scale.value = 1)
+  const resetRotation = () => (rotation.value = 0)
   const resetState = () => {
     resetPageScale()
+    resetRotation()
     setCanvasPos({ scrollTop: 0, scrollLeft: 0 })
     setTotalPages(0)
     setCanvasSize({ width: 0, height: 0 })
@@ -75,6 +92,12 @@ export const useRendererStore = defineStore("renderer", () => {
     setScale,
     zoomIn,
     zoomOut,
+    rotation,
+    getRotation,
+    setRotation,
+    rotateClockwise,
+    rotateCounterClockwise,
+    resetRotation,
     pdfLoadingState,
     getPDFLoadingState,
     setPDFLoadingState,

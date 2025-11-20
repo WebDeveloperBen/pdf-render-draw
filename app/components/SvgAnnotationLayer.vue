@@ -53,7 +53,7 @@ const svgStyle = computed(() => {
     left: '0',
     width: `${scaledWidth}px`,
     height: `${scaledHeight}px`,
-    transform: `translate(${rendererStore.getCanvasPos.scrollLeft - offsetX}px, ${rendererStore.getCanvasPos.scrollTop - offsetY}px)`,
+    transform: `translate(${rendererStore.getCanvasPos.scrollLeft - offsetX}px, ${rendererStore.getCanvasPos.scrollTop - offsetY}px) rotate(${rendererStore.getRotation}deg)`,
     transformOrigin: 'center center' as const,
     pointerEvents: 'all' as const,
     zIndex: 10,
