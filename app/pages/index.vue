@@ -95,6 +95,7 @@ function updateCursor(element: HTMLElement) {
 
 // Keyboard shortcuts for space bar panning
 function handleKeyDown(e: KeyboardEvent) {
+  // Space bar panning
   if (e.code === 'Space' && !spacePressed.value) {
     e.preventDefault();
     spacePressed.value = true;
@@ -104,6 +105,7 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 function handleKeyUp(e: KeyboardEvent) {
+  // Space bar panning
   if (e.code === 'Space') {
     spacePressed.value = false;
     const canvasArea = document.querySelector('.canvas-area') as HTMLElement;
@@ -130,6 +132,7 @@ const tools = [
   { id: "line", name: "Line", icon: "—" },
   { id: "fill", name: "Fill", icon: "🎨" },
   { id: "text", name: "Text", icon: "T" },
+  { id: "rotate", name: "Rotate", icon: "🔄" },
 ] as const;
 
 // Get annotation count
@@ -137,7 +140,8 @@ const annotationCount = computed(() => annotationStore.annotations.length);
 </script>
 
 <template>
-  <div class="pdf-editor">
+  <PdfEditorProvider>
+    <div class="pdf-editor">
     <!-- Header -->
     <div class="header">
       <h1>PDF Annotation Editor (Minimal)</h1>
@@ -233,6 +237,7 @@ const annotationCount = computed(() => annotationStore.annotations.length);
         <li><strong>Space + Drag:</strong> Pan canvas (like Figma)</li>
         <li><strong>Ctrl/Cmd + Scroll:</strong> Zoom in/out</li>
         <li><strong>Middle Mouse:</strong> Pan canvas</li>
+        <li><strong>Shift:</strong> Modifier (snap, constrain)</li>
         <li><strong>Escape:</strong> Cancel drawing</li>
         <li><strong>Delete:</strong> Remove selected annotation</li>
       </ul>
@@ -242,9 +247,14 @@ const annotationCount = computed(() => annotationStore.annotations.length);
         <li><strong>Scroll:</strong> Pan vertically/horizontally</li>
         <li><strong>+/− Buttons:</strong> Zoom controls</li>
         <li><strong>↶/↷ Buttons:</strong> Rotate PDF 90°</li>
+        <li><strong>🔄 Rotate Tool:</strong> Drag corners (+ Shift for 15°)</li>
       </ul>
     </div>
-  </div>
+
+    <!-- Rotation Handles Component -->
+    <RotationHandles />
+    </div>
+  </PdfEditorProvider>
 </template>
 
 <style scoped>
