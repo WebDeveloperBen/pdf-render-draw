@@ -4,6 +4,7 @@
     <g
       v-for="area in completed"
       :key="area.id"
+      :data-annotation-id="area.id"
       :class="{ selected: selected?.id === area.id }"
       class="area"
       @click.stop="selectAnnotation(area.id)"

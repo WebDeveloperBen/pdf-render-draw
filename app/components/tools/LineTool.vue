@@ -4,6 +4,7 @@
     <g
       v-for="line in completed"
       :key="line.id"
+      :data-annotation-id="line.id"
       :class="{ selected: selected?.id === line.id }"
       class="line"
       @click.stop="selectAnnotation(line.id)"

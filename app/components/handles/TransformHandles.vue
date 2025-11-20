@@ -50,7 +50,7 @@
         :cy="displayBounds.y - rotationHandleDistance"
         :r="handleSize * 0.8"
         fill="white"
-        stroke="#10b981"
+        stroke="#4299e1"
         stroke-width="2"
         class="rotation-handle"
         :class="{ dragging: isDragging && activeHandle === 'rotate' }"
@@ -61,7 +61,7 @@
       <path
         :d="`M ${displayBounds.x + displayBounds.width / 2 - 3} ${displayBounds.y - rotationHandleDistance - 2}
              A 3 3 0 1 1 ${displayBounds.x + displayBounds.width / 2 + 3} ${displayBounds.y - rotationHandleDistance - 2}`"
-        stroke="#10b981"
+        stroke="#4299e1"
         stroke-width="1.5"
         fill="none"
         pointer-events="none"
@@ -390,14 +390,12 @@ onUnmounted(() => {
 }
 
 .rotation-handle:hover {
-  fill: #10b981;
-  stroke: #059669;
+  fill: #2b6cb0;
   stroke-width: 3;
 }
 
 .rotation-handle.dragging {
-  fill: #059669;
-  stroke: #047857;
+  fill: #2563eb;
   stroke-width: 3;
 }
 

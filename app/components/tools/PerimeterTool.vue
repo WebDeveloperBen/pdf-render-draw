@@ -4,6 +4,7 @@
     <g
       v-for="perimeter in completed"
       :key="perimeter.id"
+      :data-annotation-id="perimeter.id"
       :class="{ selected: selected?.id === perimeter.id }"
       class="perimeter"
       @click.stop="selectAnnotation(perimeter.id)"
