@@ -71,9 +71,14 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
   }
 
   function handleMove(e: MouseEvent) {
-    if (!annotationStore.isDrawing) return
-
     const point = base.getSvgPoint(e)
+
+    // Always update temp point for preview, even before first click
+    if (!annotationStore.isDrawing) {
+      base.updateTempPoint(point)
+      return
+    }
+
     const lastPoint = base.points.value[base.points.value.length - 1]
 
     const snappedPoint = e.shiftKey && lastPoint

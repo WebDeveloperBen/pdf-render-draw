@@ -45,20 +45,88 @@
     </g>
 
     <!-- Preview while drawing -->
-    <g v-if="isDrawing" class="preview">
-      <!-- Preview polygon -->
-      <polygon
-        v-if="previewPolygon"
-        :points="previewPolygon"
-        :fill="settings.areaFillColor"
-        :fill-opacity="settings.areaOpacity * 0.5"
+    <g v-if="tempEndPoint" class="preview">
+      <!-- Cursor indicator (before first click) -->
+      <circle
+        v-if="!isDrawing"
+        :cx="tempEndPoint.x"
+        :cy="tempEndPoint.y"
+        r="4"
+        fill="none"
         :stroke="settings.areaStrokeColor"
-        :stroke-width="settings.areaStrokeWidth"
-        stroke-dasharray="5,5"
+        stroke-width="2"
+        opacity="0.6"
       />
 
-      <!-- Snap to close indicator -->
-      <g v-if="canSnapToClose && points.length > 0">
+      <!-- Placed point markers (after starting) -->
+      <g v-if="isDrawing">
+        <circle
+          v-for="(point, index) in points"
+          :key="`point-${index}`"
+          :cx="point.x"
+          :cy="point.y"
+          :r="index === 0 ? 6 : 5"
+          :fill="index === 0 ? 'green' : settings.areaStrokeColor"
+          :stroke="'white'"
+          :stroke-width="2"
+          class="point-marker"
+        />
+
+        <!-- Draw lines between placed points -->
+        <g v-if="points.length > 0">
+        <!-- Lines connecting placed points -->
+        <line
+          v-for="(point, index) in points.slice(0, -1)"
+          :key="`line-${index}`"
+          :x1="point.x"
+          :y1="point.y"
+          :x2="points[index + 1].x"
+          :y2="points[index + 1].y"
+          :stroke="settings.areaStrokeColor"
+          :stroke-width="settings.areaStrokeWidth"
+          stroke-dasharray="5,5"
+          opacity="0.8"
+        />
+
+        <!-- Line from last point to cursor -->
+        <line
+          v-if="tempEndPoint"
+          :x1="points[points.length - 1].x"
+          :y1="points[points.length - 1].y"
+          :x2="tempEndPoint.x"
+          :y2="tempEndPoint.y"
+          :stroke="settings.areaStrokeColor"
+          :stroke-width="settings.areaStrokeWidth"
+          stroke-dasharray="5,5"
+          opacity="0.8"
+        />
+
+        <!-- Preview closing line when hovering near start -->
+        <line
+          v-if="tempEndPoint && points.length >= 2"
+          :x1="tempEndPoint.x"
+          :y1="tempEndPoint.y"
+          :x2="points[0].x"
+          :y2="points[0].y"
+          :stroke="settings.areaStrokeColor"
+          :stroke-width="settings.areaStrokeWidth"
+          stroke-dasharray="5,5"
+          opacity="0.5"
+        />
+        </g>
+
+        <!-- Preview polygon fill -->
+        <polygon
+          v-if="previewPolygon"
+          :points="previewPolygon"
+          :fill="settings.areaFillColor"
+          :fill-opacity="settings.areaOpacity * 0.3"
+          fill-rule="evenodd"
+          pointer-events="none"
+        />
+
+        <!-- Snap to close indicator -->
+        <g v-if="canSnapToClose && points.length > 0">
         <circle
           :cx="points[0].x"
           :cy="points[0].y"
@@ -79,27 +147,37 @@
         </text>
       </g>
 
-      <!-- Preview area -->
-      <text
-        v-if="previewArea && points.length >= 2"
-        :x="(points[0].x + points[points.length - 1].x) / 2"
-        :y="(points[0].y + points[points.length - 1].y) / 2"
-        fill="blue"
-        font-size="12"
-        text-anchor="middle"
-      >
-        {{ previewArea }}m²
-      </text>
+        <!-- Preview area -->
+        <text
+          v-if="previewArea && points.length >= 2"
+          :x="(points[0].x + points[points.length - 1].x) / 2"
+          :y="(points[0].y + points[points.length - 1].y) / 2"
+          fill="blue"
+          font-size="12"
+          text-anchor="middle"
+        >
+          {{ previewArea }}m²
+        </text>
+      </g>
     </g>
   </g>
 </template>
 
 <script setup lang="ts">
+import { useAreaToolState } from '~/composables/tools/useAreaTool'
+
 const settings = useSettingStore()
+
+// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+const tool = useAreaToolState()
+if (!tool) {
+  throw new Error('AreaTool must be used within SvgAnnotationLayer')
+}
 
 const {
   isDrawing,
   points,
+  tempEndPoint,
   canSnapToClose,
   completed,
   selected,
@@ -107,7 +185,7 @@ const {
   previewPolygon,
   selectAnnotation,
   toSvgPoints,
-} = useAreaTool()
+} = tool
 </script>
 
 <style scoped>
@@ -139,5 +217,10 @@ const {
     r: 12;
     opacity: 0.5;
   }
+}
+
+.point-marker {
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 </style>

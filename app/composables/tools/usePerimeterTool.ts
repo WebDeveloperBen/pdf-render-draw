@@ -1,8 +1,9 @@
 import type { Perimeter, PerimeterSegment } from '~/types/annotations'
 import type { Point } from '~/types'
 import { calculateDistance, calculateMidpoint, calculateCentroid } from '~/utils/calculations'
+import { createInjectionState } from '@vueuse/core'
 
-export function usePerimeterTool() {
+const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   const tool = useDrawingTool<Perimeter>({
     type: 'perimeter',
     minPoints: 3,
@@ -81,4 +82,9 @@ export function usePerimeterTool() {
     ...tool,
     previewSegments,
   }
-}
+})
+
+export { useProvidePerimeterTool, usePerimeterToolState }
+
+// Keep the original export name for provider for backwards compatibility
+export const usePerimeterTool = useProvidePerimeterTool

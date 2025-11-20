@@ -37,7 +37,21 @@
     </g>
 
     <!-- Preview while drawing -->
-    <g v-if="isDrawing" class="preview">
+    <g v-if="tempEndPoint" class="preview">
+      <!-- Cursor indicator (before first click) -->
+      <circle
+        v-if="!isDrawing"
+        :cx="tempEndPoint.x"
+        :cy="tempEndPoint.y"
+        r="4"
+        fill="none"
+        :stroke="settings.lineStrokeColor"
+        stroke-width="2"
+        opacity="0.6"
+      />
+
+      <!-- After first click -->
+      <g v-if="isDrawing">
       <!-- Completed segments -->
       <polyline
         v-if="points.length >= 1"
@@ -68,12 +82,21 @@
         fill="blue"
         opacity="0.5"
       />
+      </g>
     </g>
   </g>
 </template>
 
 <script setup lang="ts">
+import { useLineToolState } from '~/composables/tools/useLineTool'
+
 const settings = useSettingStore()
+
+// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+const tool = useLineToolState()
+if (!tool) {
+  throw new Error('LineTool must be used within SvgAnnotationLayer')
+}
 
 const {
   isDrawing,
@@ -83,7 +106,7 @@ const {
   selected,
   selectAnnotation,
   toSvgPoints,
-} = useLineTool()
+} = tool
 </script>
 
 <style scoped>

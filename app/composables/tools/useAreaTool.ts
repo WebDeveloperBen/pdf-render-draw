@@ -1,8 +1,9 @@
 import type { Area } from '~/types/annotations'
 import type { Point } from '~/types'
 import { calculatePolygonArea, calculateCentroid } from '~/utils/calculations'
+import { createInjectionState } from '@vueuse/core'
 
-export function useAreaTool() {
+const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
   const tool = useDrawingTool<Area>({
     type: 'area',
     minPoints: 3,
@@ -55,4 +56,9 @@ export function useAreaTool() {
     previewArea,
     previewPolygon,
   }
-}
+})
+
+export { useProvideAreaTool, useAreaToolState }
+
+// Keep the original export name for provider for backwards compatibility
+export const useAreaTool = useProvideAreaTool

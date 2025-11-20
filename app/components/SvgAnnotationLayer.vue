@@ -8,13 +8,13 @@
     @mousemove="handleMove"
     @dblclick="handleDoubleClick"
   >
-    <!-- All tools render here -->
-    <MeasureTool v-if="showMeasurements" />
-    <AreaTool v-if="showAreas" />
-    <PerimeterTool v-if="showPerimeters" />
-    <LineTool v-if="showLines" />
-    <FillTool v-if="showFills" />
-    <TextTool v-if="showTexts" />
+    <!-- Render active tool + all completed annotations -->
+    <MeasureTool v-if="annotationStore.activeTool === 'measure' || annotationStore.getAnnotationsByType('measure').length > 0" />
+    <AreaTool v-if="annotationStore.activeTool === 'area' || annotationStore.getAnnotationsByType('area').length > 0" />
+    <PerimeterTool v-if="annotationStore.activeTool === 'perimeter' || annotationStore.getAnnotationsByType('perimeter').length > 0" />
+    <LineTool v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0" />
+    <FillTool v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0" />
+    <TextTool v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0" />
   </svg>
 </template>
 
@@ -69,7 +69,20 @@ const showLines = computed(() => settings.showAnnotations)
 const showFills = computed(() => settings.showAnnotations)
 const showTexts = computed(() => settings.showAnnotations)
 
-// Tool instances
+// Debug: Log SVG dimensions
+watch([pdfWidth, pdfHeight, () => rendererStore.getScale], ([w, h, scale]) => {
+  console.log('SVG Layer dimensions:', {
+    pdfWidth: w,
+    pdfHeight: h,
+    scale,
+    scaledWidth: w * scale,
+    scaledHeight: h * scale,
+    activeTool: annotationStore.activeTool
+  })
+}, { immediate: true })
+
+// Tool instances (shared via createInjectionState from VueUse)
+// The useTool() calls automatically provide the state for child components
 const measureTool = useMeasureTool()
 const areaTool = useAreaTool()
 const perimeterTool = usePerimeterTool()
@@ -120,6 +133,7 @@ function handleClick(e: MouseEvent) {
 
 function handleMove(e: MouseEvent) {
   const tool = annotationStore.activeTool
+  console.log('SVG handleMove:', { tool, hasTarget: !!e.target })
 
   switch (tool) {
     case 'measure':
@@ -134,6 +148,8 @@ function handleMove(e: MouseEvent) {
     case 'line':
       lineTool.handleMove(e)
       break
+    default:
+      console.log('No matching tool for handleMove:', tool)
   }
 }
 

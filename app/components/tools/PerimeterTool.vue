@@ -71,7 +71,34 @@
     </g>
 
     <!-- Preview while drawing -->
-    <g v-if="isDrawing" class="preview">
+    <g v-if="tempEndPoint" class="preview">
+      <!-- Cursor indicator (before first click) -->
+      <circle
+        v-if="!isDrawing"
+        :cx="tempEndPoint.x"
+        :cy="tempEndPoint.y"
+        r="4"
+        fill="none"
+        :stroke="settings.perimeterStrokeColor"
+        stroke-width="2"
+        opacity="0.6"
+      />
+
+      <!-- After first click -->
+      <g v-if="isDrawing">
+      <!-- Placed point markers -->
+      <circle
+        v-for="(point, index) in points"
+        :key="`point-${index}`"
+        :cx="point.x"
+        :cy="point.y"
+        :r="index === 0 ? 6 : 5"
+        :fill="index === 0 ? 'green' : settings.perimeterStrokeColor"
+        :stroke="'white'"
+        :stroke-width="2"
+        class="point-marker"
+      />
+
       <!-- Preview polygon (if we have enough points) -->
       <polygon
         v-if="points.length >= 2"
@@ -141,12 +168,21 @@
           Click to close
         </text>
       </g>
+      </g>
     </g>
   </g>
 </template>
 
 <script setup lang="ts">
+import { usePerimeterToolState } from '~/composables/tools/usePerimeterTool'
+
 const settings = useSettingStore()
+
+// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+const tool = usePerimeterToolState()
+if (!tool) {
+  throw new Error('PerimeterTool must be used within SvgAnnotationLayer')
+}
 
 const {
   isDrawing,
@@ -158,7 +194,7 @@ const {
   previewSegments,
   selectAnnotation,
   toSvgPoints,
-} = usePerimeterTool()
+} = tool
 </script>
 
 <style scoped>
@@ -196,5 +232,10 @@ const {
     r: 12;
     opacity: 0.5;
   }
+}
+
+.point-marker {
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 </style>

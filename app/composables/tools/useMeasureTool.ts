@@ -1,8 +1,9 @@
 import type { Measurement } from '~/types/annotations'
 import type { Point } from '~/types'
 import { calculateDistance, calculateMidpoint } from '~/utils/calculations'
+import { createInjectionState } from '@vueuse/core'
 
-export function useMeasureTool() {
+const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => {
   const rendererStore = useRendererStore()
 
   const tool = useDrawingTool<Measurement>({
@@ -48,4 +49,9 @@ export function useMeasureTool() {
     ...tool,
     previewDistance,
   }
-}
+})
+
+export { useProvideMeasureTool, useMeasureToolState }
+
+// Keep the original export name for provider for backwards compatibility
+export const useMeasureTool = useProvideMeasureTool

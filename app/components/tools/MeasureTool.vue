@@ -46,36 +46,70 @@
     </g>
 
     <!-- Preview while drawing -->
-    <g v-if="isDrawing && points.length === 1 && tempEndPoint" class="preview">
-      <!-- Temp line -->
-      <line
-        :x1="points[0].x"
-        :y1="points[0].y"
-        :x2="tempEndPoint.x"
-        :y2="tempEndPoint.y"
+    <g v-if="tempEndPoint" class="preview">
+      <!-- Cursor indicator (before first click) -->
+      <circle
+        v-if="!isDrawing"
+        :cx="tempEndPoint.x"
+        :cy="tempEndPoint.y"
+        r="4"
+        fill="none"
         :stroke="settings.measureStrokeColor"
-        :stroke-width="settings.measureStrokeWidth"
-        stroke-dasharray="5,5"
-        opacity="0.7"
+        stroke-width="2"
+        opacity="0.6"
       />
 
-      <!-- Preview distance -->
-      <text
-        v-if="previewDistance"
-        :x="(points[0].x + tempEndPoint.x) / 2"
-        :y="(points[0].y + tempEndPoint.y) / 2 - 10"
-        fill="blue"
-        font-size="12"
-        text-anchor="middle"
-      >
-        {{ previewDistance }}mm
-      </text>
+      <!-- After first click -->
+      <g v-if="isDrawing && points.length === 1">
+        <!-- Start point marker -->
+        <circle
+          :cx="points[0].x"
+          :cy="points[0].y"
+          r="6"
+          fill="green"
+          stroke="white"
+          stroke-width="2"
+          class="point-marker"
+        />
+
+        <!-- Temp line -->
+        <line
+          :x1="points[0].x"
+          :y1="points[0].y"
+          :x2="tempEndPoint.x"
+          :y2="tempEndPoint.y"
+          :stroke="settings.measureStrokeColor"
+          :stroke-width="settings.measureStrokeWidth"
+          stroke-dasharray="5,5"
+          opacity="0.7"
+        />
+
+        <!-- Preview distance -->
+        <text
+          v-if="previewDistance"
+          :x="(points[0].x + tempEndPoint.x) / 2"
+          :y="(points[0].y + tempEndPoint.y) / 2 - 10"
+          fill="blue"
+          font-size="12"
+          text-anchor="middle"
+        >
+          {{ previewDistance }}mm
+        </text>
+      </g>
     </g>
   </g>
 </template>
 
 <script setup lang="ts">
+import { useMeasureToolState } from '~/composables/tools/useMeasureTool'
+
 const settings = useSettingStore()
+
+// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+const tool = useMeasureToolState()
+if (!tool) {
+  throw new Error('MeasureTool must be used within SvgAnnotationLayer')
+}
 
 const {
   isDrawing,
@@ -85,7 +119,7 @@ const {
   selected,
   previewDistance,
   selectAnnotation,
-} = useMeasureTool()
+} = tool
 </script>
 
 <style scoped>
@@ -107,5 +141,10 @@ const {
 .measurement-label {
   pointer-events: none;
   user-select: none;
+}
+
+.point-marker {
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 </style>

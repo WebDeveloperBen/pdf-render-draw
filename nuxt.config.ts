@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   // Disable SSR - PDF.js requires browser APIs
   ssr: false,
 
-  modules: ["@pinia/nuxt"],
+  modules: ["@pinia/nuxt", "@vueuse/nuxt"],
   pinia: {
     storesDirs: ["./stores/**"]
   },
