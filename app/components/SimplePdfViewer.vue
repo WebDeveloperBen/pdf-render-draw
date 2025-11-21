@@ -23,15 +23,22 @@ const isRendering = ref(false)
 const renderError = ref<string | null>(null)
 const retryCount = ref(0)
 
-const canvasStyle = computed(() => ({
-  position: "absolute" as const,
-  top: "0",
-  left: "0",
-  transform: rendererStore.getCanvasTransform,
-  transformOrigin: "center center" as const,
-  // Use will-change for smooth scaling and rotation
-  willChange: "transform" as const
-}))
+const canvasStyle = computed(() => {
+  const style = {
+    position: "absolute" as const,
+    top: "0",
+    left: "0",
+    transform: rendererStore.getCanvasTransform,
+    transformOrigin: "center center" as const,
+    // Use will-change for smooth scaling and rotation
+    willChange: "transform" as const
+  }
+  debugLog("SimplePdfViewer", "canvasStyle updated:", {
+    transform: style.transform,
+    rotation: rendererStore.rotation
+  })
+  return style
+})
 
 async function renderPage(pageNum: number, renderScale?: number) {
   debugLog("SimplePdfViewer", "renderPage called:", {
@@ -253,8 +260,6 @@ watch(
     }, RENDERING.SCALE_DEBOUNCE_MS)
   }
 )
-
-// Note: No need to watch rotation - it's applied via CSS transform, no re-render needed
 
 onMounted(async () => {
   debugLog("SimplePdfViewer", "SimplePdfViewer mounted:", {

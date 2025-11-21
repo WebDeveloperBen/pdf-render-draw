@@ -29,40 +29,48 @@ const colorBlueDarker = COLORS.SELECTION_BLUE_DARKER
 // Show handles when rotate tool is active
 const showHandles = computed(() => annotationStore.activeTool === 'rotate')
 
-const pdfWidth = computed(() => rendererStore.getCanvasSize.width)
-const pdfHeight = computed(() => rendererStore.getCanvasSize.height)
-
 // Calculate screen positions of corners
 const screenCorners = computed(() => {
-  const w = pdfWidth.value
-  const h = pdfHeight.value
+  const width = rendererStore.getCanvasSize.width
+  const height = rendererStore.getCanvasSize.height
+  const rotation = rendererStore.rotation
   const scale = rendererStore.getScale
-  const rotation = rendererStore.rotation * (Math.PI / 180)
-  const centerX = w / 2
-  const centerY = h / 2
 
-  // Original corners in PDF space
+  if (!width || !height) return []
+
+  // Get the canvas element's actual transformed position
+  const canvas = document.querySelector('.pdf-canvas') as HTMLCanvasElement
+  if (!canvas) return []
+
+  const rect = canvas.getBoundingClientRect()
+
+  // Center of the transformed canvas
+  const centerX = rect.left + rect.width / 2
+  const centerY = rect.top + rect.height / 2
+
+  // Half dimensions (scaled)
+  const halfWidth = (width * scale) / 2
+  const halfHeight = (height * scale) / 2
+
+  const rotRad = rotation * (Math.PI / 180)
+
+  // Calculate corners relative to center, accounting for rotation
   const corners = [
-    { x: 0, y: 0 },
-    { x: w, y: 0 },
-    { x: w, y: h },
-    { x: 0, y: h },
+    { dx: -halfWidth, dy: -halfHeight },  // top-left
+    { dx: halfWidth, dy: -halfHeight },   // top-right
+    { dx: halfWidth, dy: halfHeight },    // bottom-right
+    { dx: -halfWidth, dy: halfHeight },   // bottom-left
   ]
 
-  // Transform each corner: rotate, then scale, then translate
-  return corners.map(corner => {
-    // Rotate around center
-    const dx = corner.x - centerX
-    const dy = corner.y - centerY
-    const rotatedX = centerX + dx * Math.cos(rotation) - dy * Math.sin(rotation)
-    const rotatedY = centerY + dx * Math.sin(rotation) + dy * Math.cos(rotation)
+  return corners.map(({ dx, dy }) => {
+    // Rotate the offset around center
+    const rotatedX = dx * Math.cos(rotRad) - dy * Math.sin(rotRad)
+    const rotatedY = dx * Math.sin(rotRad) + dy * Math.cos(rotRad)
 
-    // Apply scale and get screen position
-    // Note: This assumes the PDF viewer is at 0,0 - adjust if needed
-    const screenX = rotatedX * scale + rendererStore.canvasPos.scrollLeft
-    const screenY = rotatedY * scale + rendererStore.canvasPos.scrollTop
-
-    return { x: screenX, y: screenY }
+    return {
+      x: centerX + rotatedX,
+      y: centerY + rotatedY
+    }
   })
 })
 
@@ -82,9 +90,12 @@ function startRotate(e: MouseEvent, cornerIndex: number) {
   accumulatedRotation.value = 0
 
   // Calculate initial angle from center to mouse in screen space
-  const scale = rendererStore.getScale
-  const centerScreenX = (pdfWidth.value / 2) * scale + rendererStore.canvasPos.scrollLeft
-  const centerScreenY = (pdfHeight.value / 2) * scale + rendererStore.canvasPos.scrollTop
+  const canvas = document.querySelector('.pdf-canvas') as HTMLCanvasElement
+  if (!canvas) return
+
+  const rect = canvas.getBoundingClientRect()
+  const centerScreenX = rect.left + rect.width / 2
+  const centerScreenY = rect.top + rect.height / 2
 
   const initialAngle = Math.atan2(e.clientY - centerScreenY, e.clientX - centerScreenX)
   startMouseAngle.value = initialAngle
@@ -103,9 +114,12 @@ function handleRotate(e: MouseEvent) {
   if (!isDragging.value) return
 
   // Calculate current angle from center to mouse in screen space
-  const scale = rendererStore.getScale
-  const centerScreenX = (pdfWidth.value / 2) * scale + rendererStore.canvasPos.scrollLeft
-  const centerScreenY = (pdfHeight.value / 2) * scale + rendererStore.canvasPos.scrollTop
+  const canvas = document.querySelector('.pdf-canvas') as HTMLCanvasElement
+  if (!canvas) return
+
+  const rect = canvas.getBoundingClientRect()
+  const centerScreenX = rect.left + rect.width / 2
+  const centerScreenY = rect.top + rect.height / 2
 
   const currentMouseAngle = Math.atan2(e.clientY - centerScreenY, e.clientX - centerScreenX)
 
