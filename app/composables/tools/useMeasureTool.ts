@@ -5,6 +5,7 @@ import { createInjectionState } from '@vueuse/core'
 
 const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => {
   const rendererStore = useRendererStore()
+  const settingsStore = useSettingStore()
 
   const tool = useDrawingTool<Measurement>({
     type: 'measure',
@@ -16,7 +17,7 @@ const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => 
       const distance = calculateDistance(
         start,
         end,
-        '1:100' // TODO: Get from PDF metadata
+        settingsStore.getPdfScale
       )
       const midpoint = calculateMidpoint(start, end)
 
@@ -41,7 +42,7 @@ const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => 
     return calculateDistance(
       tool.points.value[0],
       tool.tempEndPoint.value,
-      '1:100' // TODO: Get from PDF metadata
+      settingsStore.getPdfScale
     )
   })
 

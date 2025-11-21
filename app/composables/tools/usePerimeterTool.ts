@@ -4,14 +4,14 @@ import { calculateDistance, calculateMidpoint, calculateCentroid } from '~/utils
 import { createInjectionState } from '@vueuse/core'
 
 const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
+  const settingsStore = useSettingStore()
+
   const tool = useDrawingTool<Perimeter>({
     type: 'perimeter',
     minPoints: 3,
     canClose: true,
 
     calculate: (points: Point[]) => {
-      const scale = '1:100'
-
       // Calculate segments for closed perimeter
       const segments: PerimeterSegment[] = []
       for (let i = 0; i < points.length; i++) {
@@ -21,7 +21,7 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
         segments.push({
           start,
           end,
-          length: calculateDistance(start, end, scale),
+          length: calculateDistance(start, end, settingsStore.getPdfScale),
           midpoint: calculateMidpoint(start, end),
         })
       }
@@ -48,7 +48,6 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
       return []
     }
 
-    const scale = '1:100'
     const segments: PerimeterSegment[] = []
 
     // Completed segments
@@ -59,7 +58,7 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
       segments.push({
         start,
         end,
-        length: calculateDistance(start, end, scale),
+        length: calculateDistance(start, end, settingsStore.getPdfScale),
         midpoint: calculateMidpoint(start, end),
       })
     }
@@ -70,7 +69,7 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
       segments.push({
         start: lastPoint,
         end: tool.tempEndPoint.value,
-        length: calculateDistance(lastPoint, tool.tempEndPoint.value, scale),
+        length: calculateDistance(lastPoint, tool.tempEndPoint.value, settingsStore.getPdfScale),
         midpoint: calculateMidpoint(lastPoint, tool.tempEndPoint.value),
       })
     }

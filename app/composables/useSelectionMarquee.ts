@@ -6,9 +6,12 @@
  */
 
 import type { Point } from '~/types'
+import { calculateBounds, boundsIntersect, type Bounds } from '~/utils/bounds'
+import { useSvgCoordinates } from '~/composables/useSvgCoordinates'
 
 export function useSelectionMarquee() {
   const annotationStore = useAnnotationStore()
+  const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
 
   const isDrawing = ref(false)
   const startPoint = ref<Point | null>(null)
@@ -31,16 +34,13 @@ export function useSelectionMarquee() {
     }
   })
 
-  function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
-    const pt = svg.createSVGPoint()
-    pt.x = e.clientX
-    pt.y = e.clientY
-    const transformed = pt.matrixTransform(svg.getScreenCTM()!.inverse())
-    return { x: transformed.x, y: transformed.y }
+  function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point | null {
+    return getSvgPointUtil(e, svg)
   }
 
   function startMarquee(e: MouseEvent, svg: SVGSVGElement) {
     const point = getSvgPoint(e, svg)
+    if (!point) return
     isDrawing.value = true
     startPoint.value = point
     endPoint.value = point
@@ -48,7 +48,10 @@ export function useSelectionMarquee() {
 
   function updateMarquee(e: MouseEvent, svg: SVGSVGElement) {
     if (!isDrawing.value || !startPoint.value) return
-    endPoint.value = getSvgPoint(e, svg)
+    const point = getSvgPoint(e, svg)
+    if (point) {
+      endPoint.value = point
+    }
   }
 
   function endMarquee() {
@@ -59,13 +62,14 @@ export function useSelectionMarquee() {
       return
     }
 
-    const bounds = marqueeBounds.value
+    const marquee = marqueeBounds.value
 
     // Find all annotations that intersect with the marquee
     const selectedIds: string[] = []
 
     annotationStore.annotations.forEach(annotation => {
-      if (intersectsMarquee(annotation, bounds)) {
+      const annoBounds = calculateBounds(annotation)
+      if (annoBounds && boundsIntersect(marquee, annoBounds)) {
         selectedIds.push(annotation.id)
       }
     })
@@ -81,45 +85,6 @@ export function useSelectionMarquee() {
     endPoint.value = null
   }
 
-  function intersectsMarquee(annotation: any, marquee: { x: number; y: number; width: number; height: number }): boolean {
-    // Calculate annotation bounds
-    let annoBounds: { x: number; y: number; width: number; height: number } | null = null
-
-    if ('x' in annotation && 'y' in annotation && 'width' in annotation && 'height' in annotation) {
-      // Text annotation
-      annoBounds = {
-        x: annotation.x,
-        y: annotation.y,
-        width: annotation.width,
-        height: annotation.height
-      }
-    } else if ('points' in annotation && Array.isArray(annotation.points) && annotation.points.length > 0) {
-      // Point-based annotation
-      const xs = annotation.points.map((p: Point) => p.x)
-      const ys = annotation.points.map((p: Point) => p.y)
-      const minX = Math.min(...xs)
-      const maxX = Math.max(...xs)
-      const minY = Math.min(...ys)
-      const maxY = Math.max(...ys)
-
-      annoBounds = {
-        x: minX,
-        y: minY,
-        width: maxX - minX,
-        height: maxY - minY
-      }
-    }
-
-    if (!annoBounds) return false
-
-    // Check if rectangles intersect
-    return !(
-      marquee.x + marquee.width < annoBounds.x ||
-      marquee.x > annoBounds.x + annoBounds.width ||
-      marquee.y + marquee.height < annoBounds.y ||
-      marquee.y > annoBounds.y + annoBounds.height
-    )
-  }
 
   return {
     isDrawing,

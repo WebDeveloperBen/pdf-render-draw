@@ -7,7 +7,7 @@
       :width="displayBounds.width"
       :height="displayBounds.height"
       fill="transparent"
-      stroke="#4299e1"
+      :stroke="COLORS.SELECTION_BLUE"
       stroke-width="2"
       stroke-dasharray="4 4"
       class="selection-outline moveable"
@@ -23,7 +23,7 @@
       :width="handleSize"
       :height="handleSize"
       fill="white"
-      stroke="#4299e1"
+      :stroke="COLORS.SELECTION_BLUE"
       stroke-width="2"
       class="corner-handle"
       :class="{ dragging: isDragging && activeHandle === `corner-${index}` }"
@@ -39,7 +39,7 @@
         :y1="displayBounds.y"
         :x2="displayBounds.x + displayBounds.width / 2"
         :y2="displayBounds.y - rotationHandleDistance"
-        stroke="#4299e1"
+        :stroke="COLORS.SELECTION_BLUE"
         stroke-width="2"
         stroke-dasharray="2 2"
       />
@@ -50,7 +50,7 @@
         :cy="displayBounds.y - rotationHandleDistance"
         :r="handleSize * 0.8"
         fill="white"
-        stroke="#4299e1"
+        :stroke="COLORS.SELECTION_BLUE"
         stroke-width="2"
         class="rotation-handle"
         :class="{ dragging: isDragging && activeHandle === 'rotate' }"
@@ -61,7 +61,7 @@
       <path
         :d="`M ${displayBounds.x + displayBounds.width / 2 - 3} ${displayBounds.y - rotationHandleDistance - 2}
              A 3 3 0 1 1 ${displayBounds.x + displayBounds.width / 2 + 3} ${displayBounds.y - rotationHandleDistance - 2}`"
-        stroke="#4299e1"
+        :stroke="COLORS.SELECTION_BLUE"
         stroke-width="1.5"
         fill="none"
         pointer-events="none"
@@ -71,74 +71,44 @@
 </template>
 
 <script setup lang="ts">
-import type { Annotation } from '~/types/annotations'
+import type { Annotation } from "~/types/annotations"
+import { TRANSFORM, COLORS } from "~/constants/ui"
+import { calculateBounds, type Bounds } from "~/utils/bounds"
+import { useSvgCoordinates } from "~/composables/useSvgCoordinates"
+import { debugLog } from "~/utils/debug"
 
 const annotationStore = useAnnotationStore()
 const rendererStore = useRendererStore()
+const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
 const svgRef = ref<SVGGElement | null>(null)
 
-const handleSize = 10
-const rotationHandleDistance = 30
+const handleSize = TRANSFORM.HANDLE_SIZE
+const rotationHandleDistance = TRANSFORM.ROTATION_DISTANCE
+
+// Expose colors for v-bind in styles
+const colorBlueDark = COLORS.SELECTION_BLUE_DARK
+const colorBlueDarker = COLORS.SELECTION_BLUE_DARKER
 
 const isDragging = ref(false)
 const activeHandle = ref<string | null>(null)
-const dragMode = ref<'resize' | 'rotate' | 'move' | null>(null)
+const dragMode = ref<"resize" | "rotate" | "move" | null>(null)
 const dragStart = ref<{ x: number; y: number } | null>(null)
-const originalBounds = ref<{ x: number; y: number; width: number; height: number } | null>(null)
+const originalBounds = ref<Bounds | null>(null)
 const originalPoints = ref<Array<{ x: number; y: number }> | null>(null)
 
 // Convert screen coordinates to SVG coordinates
 function getSvgPoint(e: MouseEvent): { x: number; y: number } | null {
   const svg = svgRef.value?.ownerSVGElement
   if (!svg) return null
-
-  const pt = svg.createSVGPoint()
-  pt.x = e.clientX
-  pt.y = e.clientY
-  const transformed = pt.matrixTransform(svg.getScreenCTM()!.inverse())
-  return { x: transformed.x, y: transformed.y }
+  return getSvgPointUtil(e, svg)
 }
 
 // Calculate bounding box for selected annotation
 const bounds = computed(() => {
   if (!selectedAnnotation.value) return null
-
-  const annotation = selectedAnnotation.value
-
-  // Handle different annotation types
-  if ('x' in annotation && 'y' in annotation && 'width' in annotation && 'height' in annotation) {
-    // Text annotations have explicit bounds
-    return {
-      x: annotation.x,
-      y: annotation.y,
-      width: annotation.width,
-      height: annotation.height
-    }
-  }
-
-  if ('points' in annotation && Array.isArray(annotation.points)) {
-    // Point-based annotations (measure, area, perimeter, line)
-    const points = annotation.points
-    if (points.length === 0) return null
-
-    const xs = points.map(p => p.x)
-    const ys = points.map(p => p.y)
-    const minX = Math.min(...xs)
-    const maxX = Math.max(...xs)
-    const minY = Math.min(...ys)
-    const maxY = Math.max(...ys)
-
-    return {
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY
-    }
-  }
-
-  return null
+  return calculateBounds(selectedAnnotation.value)
 })
 
 // Always use live bounds so handles follow the shape in real-time
@@ -155,32 +125,33 @@ const corners = computed(() => {
     { x: b.x, y: b.y }, // Top-left
     { x: b.x + b.width, y: b.y }, // Top-right
     { x: b.x + b.width, y: b.y + b.height }, // Bottom-right
-    { x: b.x, y: b.y + b.height }, // Bottom-left
+    { x: b.x, y: b.y + b.height } // Bottom-left
   ]
 })
 
-function startDrag(e: MouseEvent, handle: string, mode: 'resize' | 'rotate') {
+function startDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "move") {
   if (!bounds.value || !selectedAnnotation.value) return
 
   const svgPoint = getSvgPoint(e)
   if (!svgPoint) return
 
-  console.log(`[TransformHandles] Starting drag - Handle: ${handle}, Mode: ${mode}`)
+  debugLog("TransformHandles", `Starting drag - Handle: ${handle}, Mode: ${mode}`)
 
   isDragging.value = true
   activeHandle.value = handle
   dragMode.value = mode
   dragStart.value = svgPoint
-  originalBounds.value = { ...bounds.value }
+  originalBounds.value = bounds.value ? { ...bounds.value } : null
 
   // Store original points for point-based annotations
-  if ('points' in selectedAnnotation.value && Array.isArray(selectedAnnotation.value.points)) {
-    originalPoints.value = JSON.parse(JSON.stringify(selectedAnnotation.value.points))
-    console.log(`[TransformHandles] Stored ${originalPoints.value.length} original points`)
+  if ("points" in selectedAnnotation.value && Array.isArray(selectedAnnotation.value.points)) {
+    // Manual clone to avoid issues with reactive proxies
+    originalPoints.value = selectedAnnotation.value.points.map(p => ({ x: p.x, y: p.y }))
+    debugLog("TransformHandles", `Stored ${originalPoints.value.length} original points`)
   }
 
-  window.addEventListener('mousemove', handleDrag)
-  window.addEventListener('mouseup', endDrag)
+  window.addEventListener("mousemove", handleDrag)
+  window.addEventListener("mouseup", endDrag)
 
   e.preventDefault()
   e.stopPropagation()
@@ -195,11 +166,11 @@ function handleDrag(e: MouseEvent) {
   const deltaX = svgPoint.x - dragStart.value.x
   const deltaY = svgPoint.y - dragStart.value.y
 
-  if (dragMode.value === 'resize') {
+  if (dragMode.value === "resize") {
     handleResize(deltaX, deltaY)
-  } else if (dragMode.value === 'rotate') {
+  } else if (dragMode.value === "rotate") {
     handleRotate(svgPoint.x, svgPoint.y)
-  } else if (dragMode.value === 'move') {
+  } else if (dragMode.value === "move") {
     handleMove(deltaX, deltaY)
   }
 }
@@ -211,10 +182,10 @@ function handleResize(deltaX: number, deltaY: number) {
   const handle = activeHandle.value
 
   // Determine which corner is being dragged
-  const isLeft = handle === 'corner-0' || handle === 'corner-3'
-  const isTop = handle === 'corner-0' || handle === 'corner-1'
-  const isRight = handle === 'corner-1' || handle === 'corner-2'
-  const isBottom = handle === 'corner-2' || handle === 'corner-3'
+  const isLeft = handle === "corner-0" || handle === "corner-3"
+  const isTop = handle === "corner-0" || handle === "corner-1"
+  const isRight = handle === "corner-1" || handle === "corner-2"
+  const isBottom = handle === "corner-2" || handle === "corner-3"
 
   // Calculate new bounds based on corner drag
   let newBounds = { ...originalBounds.value }
@@ -235,7 +206,7 @@ function handleResize(deltaX: number, deltaY: number) {
   }
 
   // Enforce minimum dimensions
-  const minSize = 20
+  const minSize = TRANSFORM.MIN_BOUNDS
   if (newBounds.width < minSize) {
     if (isLeft) newBounds.x = originalBounds.value.x + originalBounds.value.width - minSize
     newBounds.width = minSize
@@ -246,7 +217,7 @@ function handleResize(deltaX: number, deltaY: number) {
   }
 
   // Update annotation based on type
-  if ('x' in annotation && 'y' in annotation && 'width' in annotation && 'height' in annotation) {
+  if ("x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation) {
     // Text annotation - update bounds directly
     annotationStore.updateAnnotation(annotation.id, {
       x: newBounds.x,
@@ -260,7 +231,7 @@ function handleResize(deltaX: number, deltaY: number) {
     const scaleY = newBounds.height / originalBounds.value.height
 
     // CRITICAL FIX: Use originalPoints, not annotation.points!
-    const scaledPoints = originalPoints.value.map(p => ({
+    const scaledPoints = originalPoints.value.map((p) => ({
       x: newBounds.x + (p.x - originalBounds.value!.x) * scaleX,
       y: newBounds.y + (p.y - originalBounds.value!.y) * scaleY
     }))
@@ -271,7 +242,7 @@ function handleResize(deltaX: number, deltaY: number) {
 
 function handleRotate(svgX: number, svgY: number) {
   if (!selectedAnnotation.value || !originalBounds.value || !originalPoints.value || !dragStart.value) {
-    console.log('[TransformHandles] handleRotate early return:', {
+    debugLog("TransformHandles", "handleRotate early return:", {
       hasAnnotation: !!selectedAnnotation.value,
       hasBounds: !!originalBounds.value,
       hasPoints: !!originalPoints.value,
@@ -296,15 +267,15 @@ function handleRotate(svgX: number, svgY: number) {
   // Calculate rotation delta
   const rotationDelta = currentAngle - startAngle
 
-  console.log('[TransformHandles] Rotating:', {
-    currentAngle: (currentAngle * 180 / Math.PI).toFixed(1),
-    startAngle: (startAngle * 180 / Math.PI).toFixed(1),
-    rotationDelta: (rotationDelta * 180 / Math.PI).toFixed(1)
+  debugLog("TransformHandles", "Rotating:", {
+    currentAngle: ((currentAngle * 180) / Math.PI).toFixed(1),
+    startAngle: ((startAngle * 180) / Math.PI).toFixed(1),
+    rotationDelta: ((rotationDelta * 180) / Math.PI).toFixed(1)
   })
 
   // Rotate points around center
-  if ('points' in annotation && originalPoints.value) {
-    const rotatedPoints = originalPoints.value.map(p => {
+  if ("points" in annotation && originalPoints.value) {
+    const rotatedPoints = originalPoints.value.map((p) => {
       // Translate to origin
       const translatedX = p.x - centerX
       const translatedY = p.y - centerY
@@ -331,15 +302,15 @@ function handleMove(deltaX: number, deltaY: number) {
 
   const annotation = selectedAnnotation.value
 
-  if ('points' in annotation && originalPoints.value) {
+  if ("points" in annotation && originalPoints.value) {
     // Point-based annotation - translate all points
-    const movedPoints = originalPoints.value.map(p => ({
+    const movedPoints = originalPoints.value.map((p) => ({
       x: p.x + deltaX,
       y: p.y + deltaY
     }))
 
     annotationStore.updateAnnotation(annotation.id, { points: movedPoints })
-  } else if ('x' in annotation && 'y' in annotation && originalBounds.value) {
+  } else if ("x" in annotation && "y" in annotation && originalBounds.value) {
     // Text annotation - update x, y position
     annotationStore.updateAnnotation(annotation.id, {
       x: originalBounds.value.x + deltaX,
@@ -356,14 +327,14 @@ function endDrag() {
   originalBounds.value = null
   originalPoints.value = null
 
-  window.removeEventListener('mousemove', handleDrag)
-  window.removeEventListener('mouseup', endDrag)
+  window.removeEventListener("mousemove", handleDrag)
+  window.removeEventListener("mouseup", endDrag)
 }
 
 // Cleanup on unmount
 onUnmounted(() => {
-  window.removeEventListener('mousemove', handleDrag)
-  window.removeEventListener('mouseup', endDrag)
+  window.removeEventListener("mousemove", handleDrag)
+  window.removeEventListener("mouseup", endDrag)
 })
 </script>
 
@@ -380,22 +351,22 @@ onUnmounted(() => {
 }
 
 .corner-handle:hover {
-  fill: #2b6cb0;
+  fill: v-bind(colorBlueDark);
   stroke-width: 3;
 }
 
 .corner-handle.dragging {
-  fill: #2563eb;
+  fill: v-bind(colorBlueDarker);
   stroke-width: 3;
 }
 
 .rotation-handle:hover {
-  fill: #2b6cb0;
+  fill: v-bind(colorBlueDark);
   stroke-width: 3;
 }
 
 .rotation-handle.dragging {
-  fill: #2563eb;
+  fill: v-bind(colorBlueDarker);
   stroke-width: 3;
 }
 

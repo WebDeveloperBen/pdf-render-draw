@@ -12,7 +12,7 @@ export const useSettingStore = defineStore("settings", () => {
   const annotationDefaultDistance = ref<number>(15)
   const zoomIncrementsForTrackPad = ref<number>(0.25)
   const zoomModifierKey = ref<ModifierKeys>("ctrl")
-  // const aspectRatio = ref<string>("") //1:100 @ A1
+  const pdfScale = ref<string>("1:100") // PDF drawing scale (e.g., 1:100, 1:50, 1:200)
 
   //General
   const labelFontSize = ref<number>(12)
@@ -77,7 +77,7 @@ export const useSettingStore = defineStore("settings", () => {
   const getAnnotationDefaultDistance = computed(() => annotationDefaultDistance.value)
   const getZoomIncrementsForTrackPad = computed(() => zoomIncrementsForTrackPad.value)
   const getZoomModifierKey = computed(() => zoomModifierKey.value)
-  // const getAspectRatio = computed(() => aspectRatio.value)
+  const getPdfScale = computed(() => pdfScale.value)
   const getLabelFontSize = computed(() => labelFontSize.value)
   const getFontSpacing = computed(() => fontSpacing.value)
   const getFillLabelColor = computed(() => fillLabelColor.value)
@@ -132,7 +132,7 @@ export const useSettingStore = defineStore("settings", () => {
   const setAnnotationDefaultDistance = (n: number) => (annotationDefaultDistance.value = n)
   const setCursorZoomIncrementsForTrackPad = (n: number) => (zoomIncrementsForTrackPad.value = n)
   const setZoomModifierKey = (key: ModifierKeys) => (zoomModifierKey.value = key)
-  // const setAspectRatio = (scale: string) => (aspectRatio.value = scale)
+  const setPdfScale = (scale: string) => (pdfScale.value = scale)
   const setLabelFontSize = (size: number) => (labelFontSize.value = size)
   const setFontSpacing = (size: number) => (fontSpacing.value = size)
   const setFillLabelColor = (color: string) => (fillLabelColor.value = color)
@@ -196,9 +196,9 @@ export const useSettingStore = defineStore("settings", () => {
     zoomModifierKey,
     getZoomModifierKey,
     setZoomModifierKey,
-    // aspectRatio,
-    // getAspectRatio,
-    // setAspectRatio,
+    pdfScale,
+    getPdfScale,
+    setPdfScale,
     labelFontSize,
     getLabelFontSize,
     setLabelFontSize,

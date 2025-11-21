@@ -4,13 +4,15 @@ import { calculatePolygonArea, calculateCentroid } from '~/utils/calculations'
 import { createInjectionState } from '@vueuse/core'
 
 const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
+  const settingsStore = useSettingStore()
+
   const tool = useDrawingTool<Area>({
     type: 'area',
     minPoints: 3,
     canClose: true,
 
     calculate: (points: Point[]) => {
-      const area = calculatePolygonArea(points, '1:100')
+      const area = calculatePolygonArea(points, settingsStore.getPdfScale)
       const center = calculateCentroid(points)
 
       return {
@@ -35,7 +37,7 @@ const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
       previewPoints.push(tool.tempEndPoint.value)
     }
 
-    return calculatePolygonArea(previewPoints, '1:100')
+    return calculatePolygonArea(previewPoints, settingsStore.getPdfScale)
   })
 
   const previewPolygon = computed(() => {

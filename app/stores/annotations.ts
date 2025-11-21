@@ -15,21 +15,25 @@ export const useAnnotationStore = defineStore('annotations', () => {
   // Getters
   // ============================================
 
-  const getAnnotationsByPage = computed(() => (pageNum: number) => {
+  function getAnnotationsByPage(pageNum: number) {
     return annotations.value.filter(a => a.pageNum === pageNum)
-  })
+  }
 
-  const getAnnotationsByType = computed(() => (type: Annotation['type']) => {
+  function getAnnotationsByType(type: Annotation['type']) {
     return annotations.value.filter(a => a.type === type)
-  })
+  }
 
-  const getAnnotationById = computed(() => (id: string) => {
+  function getAnnotationsByTypeAndPage(type: Annotation['type'], pageNum: number) {
+    return annotations.value.filter(a => a.type === type && a.pageNum === pageNum)
+  }
+
+  function getAnnotationById(id: string) {
     return annotations.value.find(a => a.id === id)
-  })
+  }
 
   const selectedAnnotation = computed(() => {
     if (!selectedAnnotationId.value) return null
-    return getAnnotationById.value(selectedAnnotationId.value)
+    return getAnnotationById(selectedAnnotationId.value)
   })
 
   // ============================================
@@ -110,6 +114,35 @@ export const useAnnotationStore = defineStore('annotations', () => {
     annotations.value = data.map(item => item.data as Annotation)
   }
 
+  // ============================================
+  // JSON Export/Import (for local backup/restore)
+  // ============================================
+
+  function exportToJSON(): string {
+    return JSON.stringify(annotations.value, null, 2)
+  }
+
+  function importFromJSON(jsonString: string) {
+    try {
+      const imported = JSON.parse(jsonString) as Annotation[]
+      annotations.value = imported
+    } catch (error) {
+      console.error('Failed to import annotations:', error)
+      throw new Error('Invalid JSON format')
+    }
+  }
+
+  function downloadJSON(filename: string = 'annotations.json') {
+    const json = exportToJSON()
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return {
     // State
     annotations,
@@ -120,6 +153,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     // Getters
     getAnnotationsByPage,
     getAnnotationsByType,
+    getAnnotationsByTypeAndPage,
     getAnnotationById,
     selectedAnnotation,
 
@@ -133,5 +167,8 @@ export const useAnnotationStore = defineStore('annotations', () => {
     setAnnotations,
     saveAnnotations,
     loadAnnotations,
+    exportToJSON,
+    importFromJSON,
+    downloadJSON,
   }
 })

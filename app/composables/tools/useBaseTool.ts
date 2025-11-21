@@ -1,5 +1,6 @@
 import type { Point } from "~/types"
 import { distance } from "~/utils/calculations"
+import { debugLog } from "~/utils/debug"
 
 export interface BaseToolOptions {
   type: string
@@ -43,7 +44,7 @@ export function useBaseTool(options: BaseToolOptions) {
 
   function updateTempPoint(point: Point) {
     tempEndPoint.value = point
-    console.debug("updateTempPoint called:", point, "tempEndPoint.value:", tempEndPoint.value)
+    debugLog("BaseTool", "updateTempPoint called:", point, "tempEndPoint.value:", tempEndPoint.value)
   }
 
   function reset() {
