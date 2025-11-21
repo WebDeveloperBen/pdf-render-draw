@@ -7,7 +7,7 @@ export function useTextTool() {
   const rendererStore = useRendererStore()
 
   const completed = computed(() =>
-    annotationStore.getAnnotationsByType('text') as TextAnnotation[]
+    annotationStore.getAnnotationsByTypeAndPage('text', rendererStore.getCurrentPage) as TextAnnotation[]
   )
 
   const editingId = ref<string | null>(null)
