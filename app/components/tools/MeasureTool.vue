@@ -22,7 +22,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, s
       :data-annotation-id="measure.id"
       :class="{ selected: selected?.id === measure.id }"
       class="measurement"
-      :transform="annotationStore.getRotationTransform(measure.id)"
+      :transform="annotationStore.getRotationTransform(measure)"
       @click.stop="selectAnnotation(measure.id)"
     >
       <!-- Invisible hit area (makes it easier to click thin lines) -->

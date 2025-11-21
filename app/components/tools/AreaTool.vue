@@ -32,7 +32,7 @@ const {
       :data-annotation-id="area.id"
       :class="{ selected: selected?.id === area.id }"
       class="area"
-      :transform="annotationStore.getRotationTransform(area.id)"
+      :transform="annotationStore.getRotationTransform(area)"
       @click.stop="selectAnnotation(area.id)"
     >
       <!-- Polygon -->

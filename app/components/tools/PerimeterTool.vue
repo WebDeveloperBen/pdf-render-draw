@@ -31,7 +31,7 @@ const {
       :data-annotation-id="perimeter.id"
       :class="{ selected: selected?.id === perimeter.id }"
       class="perimeter"
-      :transform="annotationStore.getRotationTransform(perimeter.id)"
+      :transform="annotationStore.getRotationTransform(perimeter)"
       @click.stop="selectAnnotation(perimeter.id)"
     >
       <!-- Polygon -->

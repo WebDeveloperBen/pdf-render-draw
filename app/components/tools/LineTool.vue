@@ -22,7 +22,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, selectAnnotation, 
       :data-annotation-id="line.id"
       :class="{ selected: selected?.id === line.id }"
       class="line"
-      :transform="annotationStore.getRotationTransform(line.id)"
+      :transform="annotationStore.getRotationTransform(line)"
       @click.stop="selectAnnotation(line.id)"
     >
       <!-- Polyline for multi-segment lines -->

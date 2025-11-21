@@ -13,13 +13,8 @@ export const useAnnotationStore = defineStore('annotations', () => {
   const selectedAnnotationId = ref<string | null>(null)
   const isDrawing = ref(false)
 
-  // Visual-only rotation state (applied during drag, cleared on release)
-  const visualRotation = ref<{
-    annotationId: string
-    centerX: number
-    centerY: number
-    rotationDelta: number
-  } | null>(null)
+  // Temporary rotation delta during drag (added to stored rotation)
+  const rotationDragDelta = ref(0)
 
   // ============================================
   // Getters
@@ -47,14 +42,41 @@ export const useAnnotationStore = defineStore('annotations', () => {
   })
 
   /**
-   * Get rotation transform string for an annotation if it's being visually rotated
+   * Get rotation transform string for an annotation
+   * Automatically calculates center based on annotation type
+   * Includes both stored rotation and temporary drag delta
    */
-  function getRotationTransform(annotationId: string): string {
-    if (!visualRotation.value || visualRotation.value.annotationId !== annotationId) {
+  function getRotationTransform(annotation: Annotation): string {
+    const storedRotation = (annotation as any).rotation || 0
+    // Add drag delta if currently selected (being rotated)
+    const rotation = selectedAnnotationId.value === annotation.id
+      ? storedRotation + rotationDragDelta.value
+      : storedRotation
+
+    if (rotation === 0) return ""
+
+    // Calculate center based on annotation type
+    let centerX: number, centerY: number
+
+    if (isMeasurement(annotation)) {
+      centerX = (annotation.points[0].x + annotation.points[1].x) / 2
+      centerY = (annotation.points[0].y + annotation.points[1].y) / 2
+    } else if (isArea(annotation) || isPerimeter(annotation)) {
+      centerX = annotation.center.x
+      centerY = annotation.center.y
+    } else if ('points' in annotation && Array.isArray(annotation.points)) {
+      // Line or other point-based annotation - calculate centroid
+      const sumX = annotation.points.reduce((sum, p) => sum + p.x, 0)
+      const sumY = annotation.points.reduce((sum, p) => sum + p.y, 0)
+      centerX = sumX / annotation.points.length
+      centerY = sumY / annotation.points.length
+    } else {
+      // Fallback for other types
       return ""
     }
-    const angleDeg = (visualRotation.value.rotationDelta * 180) / Math.PI
-    return `rotate(${angleDeg} ${visualRotation.value.centerX} ${visualRotation.value.centerY})`
+
+    const angleDeg = (rotation * 180) / Math.PI
+    return `rotate(${angleDeg} ${centerX} ${centerY})`
   }
 
   // ============================================
@@ -185,6 +207,9 @@ export const useAnnotationStore = defineStore('annotations', () => {
     selectedAnnotationId.value = id
     if (id !== null) {
       activeTool.value = 'selection'
+    } else {
+      // Clear rotation drag delta when deselecting
+      rotationDragDelta.value = 0
     }
   }
 
@@ -288,7 +313,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     activeTool,
     selectedAnnotationId,
     isDrawing,
-    visualRotation,
+    rotationDragDelta,
 
     // Getters
     getAnnotationsByPage,

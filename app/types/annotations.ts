@@ -16,6 +16,7 @@ export interface Measurement extends BaseAnnotation {
   distance: number
   midpoint: Point
   labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
+  rotation?: number // Shape rotation in radians (default 0)
 }
 
 export interface Area extends BaseAnnotation {
@@ -24,6 +25,7 @@ export interface Area extends BaseAnnotation {
   area: number // in m²
   center: Point
   labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
+  rotation?: number // Shape rotation in radians (default 0)
 }
 
 export interface PerimeterSegment {
@@ -40,11 +42,13 @@ export interface Perimeter extends BaseAnnotation {
   totalLength: number
   center: Point
   labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
+  rotation?: number // Shape rotation in radians (default 0)
 }
 
 export interface Line extends BaseAnnotation {
   type: 'line'
   points: Point[] // Min 2 points
+  rotation?: number // Shape rotation in radians (default 0)
 }
 
 export interface Fill extends BaseAnnotation {

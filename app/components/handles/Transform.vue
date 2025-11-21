@@ -2,6 +2,7 @@
 import { TRANSFORM, COLORS } from "~/constants/ui"
 import { useSvgCoordinates } from "@/composables/useSvgCoordinates"
 import { debugLog } from "~/utils/debug"
+import { isMeasurement, isArea, isPerimeter } from "~/types/annotations"
 
 const annotationStore = useAnnotationStore()
 const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
@@ -24,20 +25,9 @@ const originalBounds = ref<Bounds | null>(null)
 const originalPoints = ref<Array<{ x: number; y: number }> | null>(null)
 const startRotationAngle = ref(0)
 const currentRotationDelta = ref(0)
-const cumulativeRotation = ref(0) // Persists after drag, resets on deselect
-const rotationCenter = ref<{ x: number; y: number } | null>(null) // Persists after drag
-const persistedBounds = ref<Bounds | null>(null) // Keep original bounds after rotation
-
 // Set up event listeners with auto-cleanup
 useEventListener(window, "mousemove", handleDrag, { passive: false })
 useEventListener(window, "mouseup", endDrag)
-
-// Reset cumulative rotation when annotation changes
-watch(selectedAnnotation, () => {
-  cumulativeRotation.value = 0
-  rotationCenter.value = null
-  persistedBounds.value = null
-})
 
 // Convert screen coordinates to SVG coordinates
 function getSvgPoint(e: MouseEvent): { x: number; y: number } | null {
@@ -46,25 +36,51 @@ function getSvgPoint(e: MouseEvent): { x: number; y: number } | null {
   return getSvgPointUtil(e, svg)
 }
 
+// Calculate rotation center based on annotation type
+// This matches the logic in annotationStore.getRotationTransform()
+function getRotationCenter(annotation: any, fallbackBounds: Bounds): { x: number; y: number } {
+  if (isMeasurement(annotation)) {
+    return {
+      x: (annotation.points[0].x + annotation.points[1].x) / 2,
+      y: (annotation.points[0].y + annotation.points[1].y) / 2
+    }
+  } else if (isArea(annotation) || isPerimeter(annotation)) {
+    return {
+      x: annotation.center.x,
+      y: annotation.center.y
+    }
+  } else if ('points' in annotation && Array.isArray(annotation.points)) {
+    // Line or other point-based annotation - calculate centroid
+    const sumX = annotation.points.reduce((sum: number, p: any) => sum + p.x, 0)
+    const sumY = annotation.points.reduce((sum: number, p: any) => sum + p.y, 0)
+    return {
+      x: sumX / annotation.points.length,
+      y: sumY / annotation.points.length
+    }
+  } else {
+    // Fallback to bounds center
+    return {
+      x: fallbackBounds.x + fallbackBounds.width / 2,
+      y: fallbackBounds.y + fallbackBounds.height / 2
+    }
+  }
+}
+
 // Calculate bounding box for selected annotation
+// Always use unrotated bounds - rotation is applied via transform
 const bounds = computed(() => {
   if (!selectedAnnotation.value) return null
   return calculateBounds(selectedAnnotation.value)
 })
 
 // Use original bounds during rotation to keep transformer stable
-// After rotation, keep using persisted bounds so transformer doesn't snap
-// Otherwise use live bounds for real-time updates during resize/move
+// Otherwise use live bounds that fit the current shape
 const displayBounds = computed(() => {
-  // During rotation drag: use originalBounds
+  // During rotation drag: use originalBounds to keep transformer stable
   if (isDragging.value && dragMode.value === "rotate" && originalBounds.value) {
     return originalBounds.value
   }
-  // After rotation (has cumulative rotation): use persistedBounds
-  if (cumulativeRotation.value !== 0 && persistedBounds.value) {
-    return persistedBounds.value
-  }
-  // Default: use live bounds
+  // Always use current bounds to fit the shape properly
   return bounds.value
 })
 
@@ -81,30 +97,22 @@ const corners = computed(() => {
   ]
 })
 
-// Transform for rotating the entire transformer with the shape
+// Transform for rotating the entire transformer box
 const transformerTransform = computed(() => {
-  if (!displayBounds.value) return ""
+  if (!displayBounds.value || !selectedAnnotation.value) return ""
 
-  // During drag: use current rotation delta and original bounds center
-  // After drag: use cumulative rotation and stored center
-  const rotation =
-    isDragging.value && dragMode.value === "rotate" ? currentRotationDelta.value : cumulativeRotation.value
+  // Get stored rotation + drag delta
+  const storedRotation = (selectedAnnotation.value as any).rotation || 0
+  const dragDelta = annotationStore.rotationDragDelta
+  const totalRotation = storedRotation + dragDelta
 
-  if (rotation === 0) return ""
+  if (totalRotation === 0) return ""
 
-  // Use stored rotation center if available, otherwise calculate from current bounds
-  let centerX, centerY
-  if (rotationCenter.value) {
-    centerX = rotationCenter.value.x
-    centerY = rotationCenter.value.y
-  } else {
-    centerX = displayBounds.value.x + displayBounds.value.width / 2
-    centerY = displayBounds.value.y + displayBounds.value.height / 2
-  }
+  // Calculate center based on annotation type
+  const center = getRotationCenter(selectedAnnotation.value, displayBounds.value)
+  const angleDeg = (totalRotation * 180) / Math.PI
 
-  const angleDeg = (rotation * 180) / Math.PI
-
-  return `rotate(${angleDeg} ${centerX} ${centerY})`
+  return `rotate(${angleDeg} ${center.x} ${center.y})`
 })
 
 function startDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "move") {
@@ -130,9 +138,10 @@ function startDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "m
 
   // For rotation, calculate the starting angle from center to mouse
   if (mode === "rotate" && originalBounds.value) {
-    const centerX = originalBounds.value.x + originalBounds.value.width / 2
-    const centerY = originalBounds.value.y + originalBounds.value.height / 2
-    startRotationAngle.value = Math.atan2(svgPoint.y - centerY, svgPoint.x - centerX)
+    const center = getRotationCenter(selectedAnnotation.value, originalBounds.value)
+    // Just record where the mouse is - don't account for existing rotation
+    // The delta will be added to existing rotation in handleRotate
+    startRotationAngle.value = Math.atan2(svgPoint.y - center.y, svgPoint.x - center.x)
   }
 
   e.preventDefault()
@@ -223,28 +232,22 @@ function handleResize(deltaX: number, deltaY: number) {
 }
 
 function handleRotate(svgX: number, svgY: number) {
-  if (!selectedAnnotation.value || !originalBounds.value || !originalPoints.value) {
+  if (!selectedAnnotation.value || !originalBounds.value) {
     return
   }
 
-  // Calculate center of original bounds
-  const centerX = originalBounds.value.x + originalBounds.value.width / 2
-  const centerY = originalBounds.value.y + originalBounds.value.height / 2
+  // Calculate center based on annotation type
+  const center = getRotationCenter(selectedAnnotation.value, originalBounds.value)
 
   // Calculate current angle from center to mouse
-  const currentAngle = Math.atan2(svgY - centerY, svgX - centerX)
+  const currentAngle = Math.atan2(svgY - center.y, svgX - center.x)
 
   // Calculate rotation delta from start
   const rotationDelta = currentAngle - startRotationAngle.value
   currentRotationDelta.value = rotationDelta
 
-  // Set visual rotation state so annotation components can render the rotation
-  annotationStore.visualRotation = {
-    annotationId: selectedAnnotation.value.id,
-    centerX,
-    centerY,
-    rotationDelta
-  }
+  // Update visual rotation delta for real-time feedback
+  annotationStore.rotationDragDelta = rotationDelta
 }
 
 function handleMove(deltaX: number, deltaY: number) {
@@ -270,60 +273,18 @@ function handleMove(deltaX: number, deltaY: number) {
 }
 
 function endDrag() {
-  // If we were rotating, apply the final rotation now
-  if (
-    dragMode.value === "rotate" &&
-    selectedAnnotation.value &&
-    originalBounds.value &&
-    originalPoints.value &&
-    currentRotationDelta.value !== 0
-  ) {
-    const annotation = selectedAnnotation.value
-    const centerX = originalBounds.value.x + originalBounds.value.width / 2
-    const centerY = originalBounds.value.y + originalBounds.value.height / 2
-    const rotationDelta = currentRotationDelta.value
+  // Commit rotation on release
+  if (dragMode.value === "rotate" && selectedAnnotation.value && currentRotationDelta.value !== 0) {
+    const existingRotation = (selectedAnnotation.value as any).rotation || 0
+    const newRotation = existingRotation + currentRotationDelta.value
 
-    // Apply final rotation to points
-    if ("points" in annotation && originalPoints.value) {
-      const cos = Math.cos(rotationDelta)
-      const sin = Math.sin(rotationDelta)
-
-      const rotatedPoints = originalPoints.value.map((p) => {
-        // Translate to origin
-        const translatedX = p.x - centerX
-        const translatedY = p.y - centerY
-
-        // Rotate
-        const rotatedX = translatedX * cos - translatedY * sin
-        const rotatedY = translatedX * sin + translatedY * cos
-
-        // Translate back
-        return {
-          x: rotatedX + centerX,
-          y: rotatedY + centerY
-        }
-      })
-
-      debugLog("Transform", "Rotation complete", {
-        rotationDelta: (rotationDelta * 180) / Math.PI + "°",
-        center: { centerX, centerY },
-        originalBounds: originalBounds.value,
-        rotatedPoints
-      })
-
-      // Store cumulative rotation, center, and bounds so transformer stays rotated
-      cumulativeRotation.value += rotationDelta
-      rotationCenter.value = { x: centerX, y: centerY }
-      persistedBounds.value = { ...originalBounds.value }
-
-      // Batch updates to prevent visual jump
-      annotationStore.visualRotation = null
-      annotationStore.updateAnnotation(annotation.id, { points: rotatedPoints })
-    }
-  } else {
-    // Clear visual rotation for non-rotation drags too
-    annotationStore.visualRotation = null
+    annotationStore.updateAnnotation(selectedAnnotation.value.id, {
+      rotation: newRotation
+    })
   }
+
+  // Clear drag delta
+  annotationStore.rotationDragDelta = 0
 
   isDragging.value = false
   activeHandle.value = null

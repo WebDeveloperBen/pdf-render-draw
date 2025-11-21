@@ -198,6 +198,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
   // Global shortcuts
   if (e.key === "Escape") {
+    annotationStore.selectAnnotation(null)
     annotationStore.setActiveTool("selection")
   }
 }
