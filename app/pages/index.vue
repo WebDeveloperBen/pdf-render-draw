@@ -186,7 +186,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
       <div class="header">
         <button class="sidebar-toggle-btn" title="Toggle page sidebar" @click="toggleSidebar">☰</button>
         <h1>PDF Annotation Editor (Minimal)</h1>
-        <input type="file" accept="application/pdf" @change="handleFileUpload" />
+        <input type="file" accept="application/pdf" @change="handleFileUpload">
         <span class="count">{{ annotationCount }} annotations</span>
       </div>
 
@@ -238,7 +238,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
           title="Enter drawing scale (e.g., 1:50, 1:100, 1:200)"
           @blur="updatePdfScale"
           @keyup.enter="updatePdfScale"
-        />
+        >
         <span class="scale-hint">{{ settingsStore.getPdfScale }}</span>
       </div>
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const rendererStore = useRendererStore()
-const annotationStore = useAnnotationStore()
 
 const isVisible = ref(false)
 const position = ref({ x: 0, y: 0 })
@@ -8,7 +7,6 @@ const isDragging = ref(false)
 const currentRotation = ref(0)
 const angleInput = ref(0)
 const startDragAngle = ref(0) // Track the angle offset when drag starts
-const targetRotation = ref(0) // Target angle for smooth interpolation
 
 // Set up event listeners with auto-cleanup
 useEventListener(window, "mousemove", updateRotation, { passive: false })
@@ -28,15 +26,6 @@ function isNearSnap(snapAngle: number): boolean {
   const diff = Math.abs(currentRotation.value - snapAngle)
   return diff < snapThreshold || diff > 360 - snapThreshold
 }
-
-// Snap hint text
-const snapHint = computed(() => {
-  const nearSnap = snapAngles.find((angle) => isNearSnap(angle))
-  if (nearSnap !== undefined) {
-    return `Snap to ${nearSnap}°`
-  }
-  return "Drag to rotate"
-})
 
 // Generate SVG arc path for rotation visualization
 function getArcPath(): string {
@@ -90,15 +79,6 @@ function calculateAngle(mouseX: number, mouseY: number): number {
   if (angle < 0) angle += 360
 
   return angle
-}
-
-// Calculate shortest angle difference (handles 0/360 wrap)
-function angleDifference(target: number, current: number): number {
-  let diff = target - current
-  // Normalize to -180 to 180
-  while (diff > 180) diff -= 360
-  while (diff < -180) diff += 360
-  return diff
 }
 
 // Apply snap if near snap angle

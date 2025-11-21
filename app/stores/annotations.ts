@@ -148,7 +148,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     }
   }
 
-  function setActiveTool(tool: Annotation['type'] | 'selection' | '') {
+  function setActiveTool(tool: Annotation['type'] | 'selection' | 'rotate' | '') {
     activeTool.value = tool
     selectedAnnotationId.value = null
     isDrawing.value = false
