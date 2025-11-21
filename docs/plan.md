@@ -145,18 +145,157 @@
 
 **Transformer Enhancements**
 
-- ⏳ Resize handles (corner handles working, need to implement resize logic)
-- ⏳ Move annotations via drag
-- ⏳ Multi-select
-- ⏳ Group rotation
-- ⏳ Constrain aspect ratio (Shift while resizing)
+- ✅ Resize handles (corner handles working, need to implement resize logic)
+- ✅ Move annotations via drag
+- ✅ Multi-select
+- ✅ Group rotation
+- ✅ Constrain aspect ratio (Shift while resizing)
+- 🔄 Add 4 edge handles (locked horizontal/vertical for easier resizing on specific planes)
+- 🔄 Fix empty selection transformer (select tool shouldn't create transformer when nothing selected)
 
 **Drawing Enhancements**
 
-- ⏳ Undo/Redo
-- ⏳ Copy/Paste annotations
-- ⏳ Duplicate annotation
-- ⏳ Annotation history
+- ✅ Undo/Redo (command pattern implemented)
+- ✅ Copy/Paste annotations (Ctrl+C/Ctrl+V)
+- ✅ Duplicate annotation (Ctrl+D)
+- ⏳ Annotation history UI
+
+**Tool Enhancements**
+
+- 🔄 Convert fill tool from click-dot to draw-rectangle tool (broken/needs redesign)
+- 🔄 Brainstorm and design new annotation tools to implement (see comprehensive list below)
+
+### Future Annotation Tools (Building Plans Focus)
+
+**High Priority - Essential for Construction/Architecture**
+
+- ⏳ **Count Tool** - Click to place numbered markers (1, 2, 3...)
+  - Count windows, doors, fixtures, outlets, columns, etc.
+  - Shows running total per annotation
+  - Group by type (different colors for windows vs doors)
+  - Export count summary
+
+- ⏳ **Angle Tool** - Measure angles between walls, roof slopes, corners
+  - 3-point angle measurement
+  - Display in degrees
+  - Useful for verifying square corners (90°), roof pitches, etc.
+
+- ⏳ **Radius/Circle Tool** - Measure circular elements
+  - Click center + edge point for circles/columns/curved walls
+  - Shows radius, diameter, circumference, and area
+
+- ⏳ **Callout/Arrow Tool** - Point to specific features with arrows
+  - Leader lines with text labels
+  - Color-coded by priority (red = critical, yellow = note, green = approved)
+  - Common in contractor markups
+
+- ⏳ **Cloud Revision Markup** - Industry standard for highlighting revisions
+  - Draw cloud-shaped boundaries around changed areas
+  - Track revision numbers/dates
+  - Essential for construction document management
+
+- ⏳ **Dimension Tool** - Proper architectural dimension style
+  - Extension lines + dimension line + text
+  - Auto-snaps to endpoints
+  - More formal than current measure tool
+
+**Medium Priority - Very Useful**
+
+- ⏳ **Scale Calibration Tool** - Set drawing scale by measuring known distance
+  - "This line is 10 meters" → calibrates entire drawing
+  - Essential when scale isn't labeled or PDF is resized
+
+- ⏳ **Polyline Tool** - Connected line segments (doesn't close like polygon)
+  - Measure wall runs, pipe routes, cable paths
+  - Shows total length and individual segments
+
+- ⏳ **Elevation Marker** - Mark heights/elevations on sections
+  - Triangle or circle with text ("+2.4m", "RL 100.0")
+  - Common in construction drawings
+
+- ⏳ **Slope/Grade Tool** - Measure slope percentage or ratio
+  - For ramps, drainage, roof pitch
+  - Display as ratio (1:12) or percentage (8%)
+
+- ⏳ **Highlighter Tool** - Semi-transparent rectangle/freeform area
+  - Highlight important sections
+  - Different colors for different trades/priorities
+
+- ⏳ **Symbol/Stamp Tool** - Pre-made symbols and stamps
+  - "APPROVED", "REJECTED", "REVIEWED", "SEE NOTE"
+  - Date stamps and custom stamp library
+  - North arrow, material symbols
+
+**Advanced - Nice to Have**
+
+- ⏳ **Room Label Tool** - Auto-calculate enclosed areas
+  - Click room → auto-calculates enclosed area
+  - Label with room name + area
+  - Track room schedule
+
+- ⏳ **Hatch/Pattern Fill** - Industry-standard architectural hatching
+  - Fill areas with patterns (brick, concrete, insulation, earth)
+  - Material identification
+
+- ⏳ **Volume Calculator** - 3D estimation tool
+  - For excavation, concrete pours
+  - Input depth/height → calculates cubic meters
+  - Based on area measurement
+
+- ⏳ **Grid Overlay** - Measurement grid with snap points
+  - Overlay measurement grid
+  - Snap points to grid intersections
+  - Useful for alignment verification
+
+- ⏳ **Wall Thickness Tool** - Measure between parallel lines
+  - Quick wall/slab thickness checks
+
+**Smart Features**
+
+- ⏳ **Takeoff Mode** - Automatic measurement summation
+  - Automatically sum similar measurements
+  - "Total wall length", "Total floor area", "Total window count"
+  - Export to CSV/spreadsheet for estimating
+
+- ⏳ **Layer Management** - Organize annotations by trade
+  - Separate annotations by trade (electrical, plumbing, structural)
+  - Toggle visibility per layer
+  - Color code by layer
+
+- ⏳ **Comparison Tool** - Version comparison
+  - Overlay two versions of same plan
+  - Highlight differences automatically
+  - For revision tracking
+
+**Recommended Implementation Order:**
+
+1. Count Tool (high value, straightforward)
+2. Angle Tool (essential, unique capability)
+3. Callout/Arrow Tool (fills annotation gap)
+4. Cloud Revision Markup (industry standard)
+5. Scale Calibration Tool (solves major pain point)
+
+**UI/UX Improvements**
+
+- 🔄 Center PDF on initial page render (keep subsequent navigation unchanged)
+- 🔄 Change sidebar to start open by default
+- 🔄 Update sidebar colors to match white theme (not black)
+- 🔄 Design and implement utility toolbar for selected annotations (WYSIWYG style - could be floating near selection or side menu on right)
+
+**Code Quality**
+
+- 🔄 Code review and refactor for DRY/KISS principles without breaking functionality
+- 🔄 Keep responsibilities clear and aligned throughout the complex codebase
+
+**Bug Fixes**
+
+- 🔄 Fix Pinia UpdateAnnotationCommand instantiation error for history (`Uncaught TypeError: Class constructor UpdateAnnotationCommand cannot be invoked without 'new'`)
+- 🔄 Fix all type issues throughout codebase
+
+**Testing**
+
+- 🔄 Write tests for undo/redo system
+- 🔄 Write tests for multi-select functionality
 
 ### Phase 7: Integration Features
 
@@ -277,22 +416,32 @@
 
 ### Immediate (Next Session)
 
-1. **Implement Move/Drag** - Transform handle for moving annotations
-2. **Implement Resize** - Corner handles for resizing
-3. **Test Rotation Edge Cases** - Different annotation types, multi-rotation
-4. **Add Multi-Page Support** - Filter annotations by current page
+1. **Fix Pinia UpdateAnnotationCommand Error** - Critical bug blocking history/undo functionality
+2. **Add 4 Edge Handles** - Locked horizontal/vertical resize handles for easier plane-specific resizing
+3. **Convert Fill Tool** - Change from click-dot to draw-rectangle tool
+4. **Fix Empty Selection Transformer** - Prevent transformer from appearing when nothing is selected
 
 ### Short Term
 
-1. **Add Undo/Redo** - Command pattern for history
-2. **Add Copy/Paste** - Clipboard API integration
-3. **Add Keyboard Shortcuts** - Better UX
-4. **Add Toolbar UI** - Tool selection and settings
+1. **UI/UX Polish**
+   - Center PDF on initial render
+   - Sidebar defaults (open, white theme)
+   - Design utility toolbar for selected annotations
+2. **Code Quality Review** - DRY/KISS refactor without breaking functionality
+3. **Fix Type Issues** - Resolve all TypeScript errors throughout codebase
+4. **Testing** - Write tests for undo/redo and multi-select systems
+
+### Medium Term
+
+1. **New Annotation Tools** - Brainstorm and implement additional tools
+2. **Annotation History UI** - Visual undo/redo interface
+3. **Keyboard Shortcuts** - Additional shortcuts for better UX
+4. **Context Menu** - Right-click menu for annotations
 
 ### Long Term (Integration Dependent)
 
 1. **Persistence Layer** - LocalStorage or API
-2. **Real-time Sync** - yjs
+2. **Real-time Sync** - yjs integration
 3. **Export Features** - JSON and PDF export
 4. **Multi-user Collaboration** - Cursors and presence
 
@@ -352,5 +501,5 @@ This PDF annotation engine is now ready to be integrated into larger application
 
 ---
 
-_Last Updated: 2025-01-21_
-_Status: Core Complete, Ready for Enhancement_
+_Last Updated: 2025-01-22_
+_Status: Core Complete + Transform Refactor, Ready for Polish & Enhancement_
