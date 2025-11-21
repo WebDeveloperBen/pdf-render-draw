@@ -7,6 +7,8 @@ const position = ref({ x: 0, y: 0 })
 const isDragging = ref(false)
 const currentRotation = ref(0)
 const angleInput = ref(0)
+const startDragAngle = ref(0) // Track the angle offset when drag starts
+const targetRotation = ref(0) // Target angle for smooth interpolation
 
 // Set up event listeners with auto-cleanup
 useEventListener(window, "mousemove", updateRotation, { passive: false })
@@ -38,12 +40,12 @@ const snapHint = computed(() => {
 
 // Generate SVG arc path for rotation visualization
 function getArcPath(): string {
-  const radius = 70
+  const radius = 28
   const startAngle = 0
   const endAngle = currentRotation.value
 
-  const start = polarToCartesian(90, 90, radius, endAngle)
-  const end = polarToCartesian(90, 90, radius, startAngle)
+  const start = polarToCartesian(35, 35, radius, endAngle)
+  const end = polarToCartesian(35, 35, radius, startAngle)
 
   const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1"
 
@@ -90,6 +92,15 @@ function calculateAngle(mouseX: number, mouseY: number): number {
   return angle
 }
 
+// Calculate shortest angle difference (handles 0/360 wrap)
+function angleDifference(target: number, current: number): number {
+  let diff = target - current
+  // Normalize to -180 to 180
+  while (diff > 180) diff -= 360
+  while (diff < -180) diff += 360
+  return diff
+}
+
 // Apply snap if near snap angle
 function applySnap(angle: number): number {
   for (const snapAngle of snapAngles) {
@@ -103,20 +114,33 @@ function applySnap(angle: number): number {
 
 // Start dragging
 function startDrag(e: MouseEvent) {
+  // Only respond to left click
+  if (e.button !== 0) return
+
   e.preventDefault()
+  e.stopPropagation()
   isDragging.value = true
-  updateRotation(e)
+
+  // Calculate the angle offset when starting drag
+  // This prevents the rotation from jumping to the cursor position
+  const clickAngle = calculateAngle(e.clientX, e.clientY)
+  startDragAngle.value = clickAngle - currentRotation.value
 }
 
 // Update rotation while dragging
 function updateRotation(e: MouseEvent) {
   if (!isDragging.value && e.type === "mousemove") return
 
-  let angle = calculateAngle(e.clientX, e.clientY)
+  // Calculate angle relative to the starting drag offset
+  let angle = calculateAngle(e.clientX, e.clientY) - startDragAngle.value
+
+  // Normalize to 0-360
+  angle = ((angle % 360) + 360) % 360
 
   // Apply snap
   angle = applySnap(angle)
 
+  // Direct assignment - no damping, just proper angle wrapping
   currentRotation.value = angle
   angleInput.value = Math.round(angle)
   rendererStore.setRotation(angle)
@@ -125,24 +149,6 @@ function updateRotation(e: MouseEvent) {
 // Stop dragging
 function stopDrag() {
   isDragging.value = false
-}
-
-// Handle manual angle input
-function handleAngleInput() {
-  let angle = angleInput.value
-  if (angle < 0) angle = 0
-  if (angle > 360) angle = 360
-
-  currentRotation.value = angle
-  rendererStore.setRotation(angle)
-}
-
-// Click outside to close
-function handleOverlayClick(e: MouseEvent) {
-  if (e.target === e.currentTarget) {
-    hideWheel()
-    annotationStore.setActiveTool("selection")
-  }
 }
 
 // Expose methods for parent to call
@@ -154,12 +160,11 @@ defineExpose({
 // Event listeners auto-cleanup via useEventListener
 </script>
 <template>
-  <div v-if="isVisible" class="rotation-wheel-overlay" @mousedown.stop="handleOverlayClick">
-    <div class="rotation-wheel" :style="wheelStyle">
-      <!-- SVG for smooth graphics -->
-      <svg width="180" height="180" viewBox="0 0 180 180" class="wheel-svg" @mousedown.stop="startDrag">
+  <div v-if="isVisible" class="rotation-wheel" :style="wheelStyle">
+    <!-- SVG for smooth graphics -->
+    <svg width="70" height="70" viewBox="0 0 70 70" class="wheel-svg">
         <!-- Outer circle track -->
-        <circle cx="90" cy="90" r="70" fill="none" stroke="rgba(0, 0, 0, 0.06)" stroke-width="1.5" />
+        <circle cx="35" cy="35" r="28" fill="none" stroke="rgba(0, 0, 0, 0.06)" stroke-width="1" />
 
         <!-- Rotation arc (shows swept angle) -->
         <path
@@ -184,74 +189,46 @@ defineExpose({
         <circle
           v-for="angle in snapAngles"
           :key="angle"
-          :cx="90 + 70 * Math.sin((angle * Math.PI) / 180)"
-          :cy="90 - 70 * Math.cos((angle * Math.PI) / 180)"
-          :r="isNearSnap(angle) ? 4 : 2"
+          :cx="35 + 28 * Math.sin((angle * Math.PI) / 180)"
+          :cy="35 - 28 * Math.cos((angle * Math.PI) / 180)"
+          :r="isNearSnap(angle) ? 2 : 1"
           :fill="isNearSnap(angle) ? '#667eea' : 'rgba(0, 0, 0, 0.15)'"
           class="snap-dot"
           :class="{ active: isNearSnap(angle) }"
         />
 
         <!-- Reference line (0° north) -->
-        <line x1="90" y1="25" x2="90" y2="35" stroke="rgba(0, 0, 0, 0.2)" stroke-width="1.5" stroke-linecap="round" />
+        <line x1="35" y1="10" x2="35" y2="14" stroke="rgba(0, 0, 0, 0.2)" stroke-width="1" stroke-linecap="round" />
 
         <!-- Rotation handle -->
-        <g :transform="`rotate(${currentRotation} 90 90)`">
+        <g :transform="`rotate(${currentRotation} 35 35)`">
           <!-- Handle line -->
-          <line x1="90" y1="90" x2="90" y2="25" stroke="#667eea" stroke-width="2" stroke-linecap="round" />
-          <!-- Handle dot -->
-          <circle cx="90" cy="25" r="8" fill="white" stroke="#667eea" stroke-width="2.5" class="handle-dot" />
+          <line x1="35" y1="35" x2="35" y2="10" stroke="#667eea" stroke-width="1.5" stroke-linecap="round" />
+          <!-- Handle dot - click this to drag -->
+          <circle cx="35" cy="10" r="4" fill="white" stroke="#667eea" stroke-width="2" class="handle-dot" @mousedown.stop="startDrag" />
         </g>
 
         <!-- Center point -->
-        <circle cx="90" cy="90" r="3" fill="rgba(0, 0, 0, 0.2)" />
+        <circle cx="35" cy="35" r="1.5" fill="rgba(0, 0, 0, 0.2)" />
+
+        <!-- Angle text in center -->
+        <text
+          x="35"
+          y="35"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          class="angle-text"
+          fill="#667eea"
+          font-size="10"
+          font-weight="600"
+        >
+          {{ Math.round(currentRotation) }}°
+        </text>
       </svg>
-
-      <!-- Angle input -->
-      <div class="angle-input-container">
-        <input
-          v-model.number="angleInput"
-          type="number"
-          min="0"
-          max="360"
-          class="angle-input"
-          @input="handleAngleInput"
-          @keydown.enter="hideWheel"
-          @keydown.esc="hideWheel"
-        />
-        <span class="angle-unit">°</span>
-      </div>
-
-      <!-- Hint text -->
-      <div class="hint-text">
-        {{ snapHint }}
-      </div>
-    </div>
   </div>
 </template>
 
 <style scoped>
-.rotation-wheel-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.15s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 .rotation-wheel {
   position: fixed;
   transform: translate(-50%, -50%);
@@ -259,8 +236,10 @@ defineExpose({
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  gap: 12px;
+  z-index: 1000;
+  pointer-events: all;
+  animation: scaleIn 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes scaleIn {
@@ -275,22 +254,19 @@ defineExpose({
 }
 
 .wheel-svg {
-  cursor: grab;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.12));
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
+  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.15)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
   border-radius: 50%;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  pointer-events: all;
 }
 
-.wheel-svg:active {
-  cursor: grabbing;
-  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.18));
+.wheel-svg:hover {
+  filter: drop-shadow(0 10px 36px rgba(0, 0, 0, 0.18)) drop-shadow(0 3px 10px rgba(0, 0, 0, 0.1));
 }
 
-.rotation-arc {
-  transition: d 0.05s ease-out;
-}
+/* Removed transitions for immediate, responsive feel */
 
 .snap-dot {
   transition: all 0.15s ease;
@@ -316,69 +292,19 @@ defineExpose({
   transition: all 0.15s ease;
 }
 
-.wheel-svg:active .handle-dot {
+.handle-dot:hover {
+  filter: drop-shadow(0 3px 9px rgba(102, 126, 234, 0.4));
+  r: 8;
+}
+
+.handle-dot:active {
   cursor: grabbing;
   filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.5));
 }
 
-.angle-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-radius: 12px;
-  padding: 8px 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.angle-input {
-  width: 60px;
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  font-weight: 600;
-  color: #2d3748;
-  text-align: right;
-  outline: none;
+.angle-text {
+  pointer-events: none;
+  user-select: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.angle-input::-webkit-inner-spin-button,
-.angle-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.angle-unit {
-  font-size: 16px;
-  font-weight: 500;
-  color: #718096;
-  margin-left: 4px;
-}
-
-.hint-text {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  padding: 6px 14px;
-  background: rgba(102, 126, 234, 0.9);
-  backdrop-filter: blur(8px);
-  border-radius: 8px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  animation: hintFade 0.3s ease;
-}
-
-@keyframes hintFade {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>

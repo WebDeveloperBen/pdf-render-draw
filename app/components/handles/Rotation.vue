@@ -1,7 +1,14 @@
 <script setup lang="ts">
+import RotationWheel from '~/components/RotationWheel.vue'
+
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
-const modifierKeys = useModifierKeys()!
+const modifierKeys = useModifierKeys()
+
+// Debug: Check if modifierKeys is available
+if (!modifierKeys) {
+  console.error('[Rotation] modifierKeys is not available! Make sure PdfEditorProvider is wrapping this component.')
+}
 
 // Use shared corner calculation logic
 const { screenCorners, center } = useRotatedPdfCorners()
@@ -11,9 +18,17 @@ const isDragging = ref(false)
 const activeCorner = ref<string | null>(null)
 const currentAngle = ref(0)
 const startAngle = ref(0)
+const mousePosition = ref({ x: 0, y: 0 })
+const rotationWheelRef = ref<InstanceType<typeof RotationWheel> | null>(null)
+
+// Track mouse position globally for wheel positioning
+function trackMousePosition(e: MouseEvent) {
+  mousePosition.value = { x: e.clientX, y: e.clientY }
+}
 
 // Set up event listeners with auto-cleanup
 useEventListener(window, "mousemove", handleDrag, { passive: false })
+useEventListener(window, "mousemove", trackMousePosition, { passive: true })
 useEventListener(window, "mouseup", stopRotation)
 
 // Show handles when rotate tool is active
@@ -23,9 +38,37 @@ watch(
     showHandles.value = tool === "rotate"
     if (!showHandles.value) {
       isDragging.value = false
+      rotationWheelRef.value?.hideWheel()
     }
   }
 )
+
+// Watch for Cmd/Ctrl key to toggle rotation wheel
+if (modifierKeys) {
+  watch(
+    () => modifierKeys.isCmdOrCtrl.value,
+    (isPressed) => {
+      console.log('[Rotation] Cmd/Ctrl pressed:', isPressed, 'showHandles:', showHandles.value, 'isDragging:', isDragging.value, 'mousePos:', mousePosition.value)
+
+      if (!showHandles.value) {
+        console.log('[Rotation] Handles not shown, returning')
+        return
+      }
+
+      if (isPressed && !isDragging.value) {
+        console.log('[Rotation] Showing wheel at', mousePosition.value)
+        // Show rotation wheel at current mouse position
+        rotationWheelRef.value?.showWheel(mousePosition.value.x, mousePosition.value.y)
+      } else if (!isPressed) {
+        console.log('[Rotation] Hiding wheel')
+        // Hide rotation wheel
+        rotationWheelRef.value?.hideWheel()
+      }
+    }
+  )
+} else {
+  console.warn('[Rotation] Cmd/Ctrl key watcher not set up - modifierKeys not available')
+}
 
 // Container positioning - no longer used as container, just for reference
 const containerStyle = computed(() => {
@@ -88,6 +131,11 @@ function calculateAngle(x: number, y: number): number {
 
 // Start rotation
 function startRotation(e: MouseEvent, corner: string) {
+  // If Cmd/Ctrl is pressed, don't start corner rotation - let the wheel handle it
+  if (modifierKeys?.isCmdOrCtrl.value) {
+    return
+  }
+
   e.preventDefault()
   isDragging.value = true
   activeCorner.value = corner
@@ -98,6 +146,9 @@ function startRotation(e: MouseEvent, corner: string) {
 
 // Handle drag
 function handleDrag(e: MouseEvent) {
+  // Always track mouse position for wheel positioning
+  mousePosition.value = { x: e.clientX, y: e.clientY }
+
   if (!isDragging.value) return
 
   let angle = calculateAngle(e.clientX, e.clientY) - startAngle.value
@@ -105,30 +156,16 @@ function handleDrag(e: MouseEvent) {
   // Normalize to 0-360
   angle = ((angle % 360) + 360) % 360
 
-  // Snap behavior based on modifiers
-  // Shift: Snap to 15° increments (tighter snapping)
-  // No modifier: Snap to 45° increments (common angles)
+  // Snap behavior - only for corner handle rotation (not wheel)
+  // No shift modifier needed for snapping anymore (wheel handles shift)
   const snapThreshold = 5
+  const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315]
 
-  if (modifierKeys.isShiftPressed) {
-    // Shift pressed: 15° increments (0, 15, 30, 45, 60, 75, 90, ...)
-    const snapInterval = 15
-    const nearestSnap = Math.round(angle / snapInterval) * snapInterval
-    const diff = Math.abs(angle - nearestSnap)
-
-    if (diff < snapThreshold) {
-      angle = nearestSnap
-    }
-  } else {
-    // No modifier: 45° increments (0, 45, 90, 135, 180, 225, 270, 315)
-    const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315]
-
-    for (const snapAngle of snapAngles) {
-      const diff = Math.abs(angle - snapAngle)
-      if (diff < snapThreshold || diff > 360 - snapThreshold) {
-        angle = snapAngle
-        break
-      }
+  for (const snapAngle of snapAngles) {
+    const diff = Math.abs(angle - snapAngle)
+    if (diff < snapThreshold || diff > 360 - snapThreshold) {
+      angle = snapAngle
+      break
     }
   }
 
@@ -142,9 +179,9 @@ function stopRotation() {
   activeCorner.value = null
 }
 
-// Mouse move to show handles
-function handleMouseMove(_e: MouseEvent) {
-  // Already handled by container visibility
+// Mouse move to track position
+function handleMouseMove(e: MouseEvent) {
+  mousePosition.value = { x: e.clientX, y: e.clientY }
 }
 </script>
 <template>
@@ -179,9 +216,11 @@ function handleMouseMove(_e: MouseEvent) {
     <!-- Angle display -->
     <div v-if="isDragging" class="angle-display" :style="angleDisplayStyle">
       <div class="angle-value">{{ Math.round(currentAngle) }}°</div>
-      <div v-if="modifierKeys.isShiftPressed" class="angle-hint">15° snap</div>
-      <div v-else class="angle-hint">45° snap</div>
+      <div class="angle-hint">45° snap</div>
     </div>
+
+    <!-- Rotation wheel (Shift modifier) -->
+    <RotationWheel ref="rotationWheelRef" />
   </div>
 </template>
 
