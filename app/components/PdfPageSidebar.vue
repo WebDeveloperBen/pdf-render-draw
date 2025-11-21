@@ -101,9 +101,9 @@ function handleScroll() {
 }
 
 // Canvas refs and rendered thumbnails cache
-const canvasRefs = ref<Map<number, HTMLCanvasElement>>(new Map())
-const renderedThumbnails = ref<Map<number, ImageData>>(new Map())
-const currentlyRendering = ref<Set<number>>(new Set())
+const canvasRefs = shallowRef<Map<number, HTMLCanvasElement>>(new Map())
+const renderedThumbnails = shallowRef<Map<number, ImageData>>(new Map())
+const currentlyRendering = shallowRef<Set<number>>(new Set())
 
 // LRU cache configuration
 const MAX_CACHED_THUMBNAILS = DIMENSIONS.MAX_CACHED_THUMBNAILS
