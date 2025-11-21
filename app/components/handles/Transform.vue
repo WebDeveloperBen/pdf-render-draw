@@ -96,6 +96,10 @@ const dragStart = ref<{ x: number; y: number } | null>(null)
 const originalBounds = ref<Bounds | null>(null)
 const originalPoints = ref<Array<{ x: number; y: number }> | null>(null)
 
+// Set up event listeners with auto-cleanup
+useEventListener(window, "mousemove", handleDrag, { passive: false })
+useEventListener(window, "mouseup", endDrag)
+
 // Convert screen coordinates to SVG coordinates
 function getSvgPoint(e: MouseEvent): { x: number; y: number } | null {
   const svg = svgRef.value?.ownerSVGElement
@@ -147,9 +151,6 @@ function startDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "m
     originalPoints.value = selectedAnnotation.value.points.map(p => ({ x: p.x, y: p.y }))
     debugLog("TransformHandles", `Stored ${originalPoints.value.length} original points`)
   }
-
-  window.addEventListener("mousemove", handleDrag)
-  window.addEventListener("mouseup", endDrag)
 
   e.preventDefault()
   e.stopPropagation()
@@ -324,16 +325,7 @@ function endDrag() {
   dragStart.value = null
   originalBounds.value = null
   originalPoints.value = null
-
-  window.removeEventListener("mousemove", handleDrag)
-  window.removeEventListener("mouseup", endDrag)
 }
-
-// Cleanup on unmount
-onUnmounted(() => {
-  window.removeEventListener("mousemove", handleDrag)
-  window.removeEventListener("mouseup", endDrag)
-})
 </script>
 
 <style scoped>

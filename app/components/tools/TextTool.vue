@@ -1,6 +1,11 @@
 <template>
   <g class="text-tool">
-    <g v-for="text in completed" :key="text.id" class="text-annotation-group">
+    <g
+      v-for="text in completed"
+      :key="text.id"
+      class="text-annotation-group"
+      :transform="`rotate(${text.rotation} ${text.x} ${text.y})`"
+    >
       <!-- Non-editing mode: display text -->
       <g v-if="editingId !== text.id">
         <!-- Background for better readability -->
@@ -67,15 +72,7 @@
       >
         <div xmlns="http://www.w3.org/1999/xhtml" class="text-editor-wrapper">
           <textarea
-            :ref="(el) => {
-              if (el && editingId === text.id) {
-                $nextTick(() => {
-                  const textarea = el as HTMLTextAreaElement
-                  textarea.focus()
-                  textarea.select()
-                })
-              }
-            }"
+            :ref="el => setTextareaRef(el, text.id)"
             v-model="editingContent"
             class="text-editor"
             :style="{
@@ -98,6 +95,26 @@
 
 <script setup lang="ts">
 const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText } = useTextTool()
+
+// Store ref to currently editing textarea
+const currentTextarea = ref<HTMLTextAreaElement | null>(null)
+
+function setTextareaRef(el: Element | ComponentPublicInstance | null, textId: string) {
+  // Only store ref for the textarea we're currently editing
+  if (el && editingId.value === textId) {
+    currentTextarea.value = el as HTMLTextAreaElement
+  }
+}
+
+// Watch editingId to focus and select text only when editing starts
+watch(editingId, (newId, oldId) => {
+  if (newId && newId !== oldId && currentTextarea.value) {
+    nextTick(() => {
+      currentTextarea.value?.focus()
+      currentTextarea.value?.select()
+    })
+  }
+})
 </script>
 
 <style scoped>

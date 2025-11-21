@@ -61,6 +61,7 @@ export interface TextAnnotation extends BaseAnnotation {
   content: string
   fontSize: number
   color: string
+  rotation: number // Rotation in degrees, baked in at creation time
 }
 
 // Union type for all annotations
@@ -196,7 +197,8 @@ export function validateAnnotation(ann: unknown): ann is Annotation {
         typeof t.content === 'string' &&
         typeof t.fontSize === 'number' &&
         t.fontSize > 0 &&
-        typeof t.color === 'string'
+        typeof t.color === 'string' &&
+        typeof t.rotation === 'number'
       )
     }
 

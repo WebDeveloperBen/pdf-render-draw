@@ -41,12 +41,18 @@ const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
 const modifierKeys = useModifierKeys()!
 
+// Use shared corner calculation logic
+const { screenCorners, center } = useRotatedPdfCorners()
+
 const showHandles = ref(false)
 const isDragging = ref(false)
 const activeCorner = ref<string | null>(null)
 const currentAngle = ref(0)
 const startAngle = ref(0)
-const pdfBounds = ref({ left: 0, top: 0, width: 0, height: 0, centerX: 0, centerY: 0 })
+
+// Set up event listeners with auto-cleanup
+useEventListener(window, "mousemove", handleDrag, { passive: false })
+useEventListener(window, "mouseup", stopRotation)
 
 // Show handles when rotate tool is active
 watch(
@@ -59,61 +65,58 @@ watch(
   }
 )
 
-// Container positioning
+// Container positioning - no longer used as container, just for reference
 const containerStyle = computed(() => {
-  const bounds = pdfBounds.value
   return {
-    left: `${bounds.left}px`,
-    top: `${bounds.top}px`,
-    width: `${bounds.width}px`,
-    height: `${bounds.height}px`
+    position: 'fixed' as const,
+    inset: '0',
+    pointerEvents: 'none' as const
   }
 })
 
-// Corner positions
+// Map corner positions to styled elements
 const corners = computed(() => {
-  const offset = -16 // Half of size to center
-  return [
-    {
-      position: "top-left",
-      style: { top: `${offset}px`, left: `${offset}px` }
-    },
-    {
-      position: "top-right",
-      style: { top: `${offset}px`, right: `${offset}px` }
-    },
-    {
-      position: "bottom-left",
-      style: { bottom: `${offset}px`, left: `${offset}px` }
-    },
-    {
-      position: "bottom-right",
-      style: { bottom: `${offset}px`, right: `${offset}px` }
+  const positions = ["top-left", "top-right", "bottom-right", "bottom-left"] as const
+
+  return screenCorners.value.map((corner, index) => ({
+    position: positions[index]!,
+    style: {
+      position: 'fixed' as const,
+      left: `${corner.x}px`,
+      top: `${corner.y}px`,
+      transform: 'translate(-50%, -50%)'
     }
-  ]
+  }))
 })
 
 // Center dot position
-const centerStyle = computed(() => ({
-  left: "50%",
-  top: "50%",
-  transform: "translate(-50%, -50%)"
-}))
+const centerStyle = computed(() => {
+  const centerPos = center.value
+  return {
+    position: 'fixed' as const,
+    left: `${centerPos.x}px`,
+    top: `${centerPos.y}px`,
+    transform: "translate(-50%, -50%)"
+  }
+})
 
-// Angle display position (near cursor)
-const angleDisplayStyle = computed(() => ({
-  left: "50%",
-  top: "50%",
-  transform: "translate(-50%, -50%)"
-}))
+// Angle display position (at center)
+const angleDisplayStyle = computed(() => {
+  const centerPos = center.value
+  return {
+    position: 'fixed' as const,
+    left: `${centerPos.x}px`,
+    top: `${centerPos.y}px`,
+    transform: "translate(-50%, -50%)"
+  }
+})
 
 // Calculate angle from center to point
 function calculateAngle(x: number, y: number): number {
-  const centerX = pdfBounds.value.centerX
-  const centerY = pdfBounds.value.centerY
+  const centerPos = center.value
 
-  const deltaX = x - centerX
-  const deltaY = y - centerY
+  const deltaX = x - centerPos.x
+  const deltaY = y - centerPos.y
 
   let angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) + 90
   if (angle < 0) angle += 360
@@ -129,9 +132,6 @@ function startRotation(e: MouseEvent, corner: string) {
 
   startAngle.value = calculateAngle(e.clientX, e.clientY) - rendererStore.getRotation
   currentAngle.value = rendererStore.getRotation
-
-  window.addEventListener("mousemove", handleDrag)
-  window.addEventListener("mouseup", stopRotation)
 }
 
 // Handle drag
@@ -178,57 +178,12 @@ function handleDrag(e: MouseEvent) {
 function stopRotation() {
   isDragging.value = false
   activeCorner.value = null
-  window.removeEventListener("mousemove", handleDrag)
-  window.removeEventListener("mouseup", stopRotation)
 }
 
 // Mouse move to show handles
 function handleMouseMove(_e: MouseEvent) {
   // Already handled by container visibility
 }
-
-// Update PDF bounds
-function updatePdfBounds() {
-  const canvas = document.querySelector(".pdf-canvas") as HTMLCanvasElement
-  if (!canvas) return
-
-  const rect = canvas.getBoundingClientRect()
-  pdfBounds.value = {
-    left: rect.left,
-    top: rect.top,
-    width: rect.width,
-    height: rect.height,
-    centerX: rect.left + rect.width / 2,
-    centerY: rect.top + rect.height / 2
-  }
-}
-
-// Watch for PDF size/position changes
-watch([() => rendererStore.getScale, () => rendererStore.getCanvasPos, () => rendererStore.getCanvasSize], () => {
-  nextTick(updatePdfBounds)
-})
-
-// Update on mount and when visible
-watch(
-  () => showHandles.value,
-  (visible) => {
-    if (visible) {
-      nextTick(updatePdfBounds)
-    }
-  },
-  { immediate: true }
-)
-
-onMounted(() => {
-  updatePdfBounds()
-  window.addEventListener("resize", updatePdfBounds)
-})
-
-onUnmounted(() => {
-  window.removeEventListener("resize", updatePdfBounds)
-  window.removeEventListener("mousemove", handleDrag)
-  window.removeEventListener("mouseup", stopRotation)
-})
 </script>
 
 <style scoped>

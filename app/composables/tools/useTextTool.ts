@@ -36,6 +36,7 @@ export function useTextTool() {
       content: 'Double-click to edit',
       fontSize: 16,
       color: '#000000',
+      rotation: -rendererStore.rotation, // Counter-rotate to appear upright, then "stamp" it
     }
 
     annotationStore.addAnnotation(text)

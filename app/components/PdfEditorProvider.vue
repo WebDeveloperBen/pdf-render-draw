@@ -20,16 +20,8 @@
 const modifierKeys = useProvideModifierKeys()
 
 // Set up global keyboard listeners when PDF editor is active
-onMounted(() => {
-  window.addEventListener('keydown', modifierKeys.handleKeyDown)
-  window.addEventListener('keyup', modifierKeys.handleKeyUp)
-  window.addEventListener('blur', modifierKeys.resetAll)
-})
-
-// Clean up listeners when navigating away from PDF editor
-onUnmounted(() => {
-  window.removeEventListener('keydown', modifierKeys.handleKeyDown)
-  window.removeEventListener('keyup', modifierKeys.handleKeyUp)
-  window.removeEventListener('blur', modifierKeys.resetAll)
-})
+// Auto-cleanup on component unmount via useEventListener
+useEventListener(window, 'keydown', modifierKeys.handleKeyDown)
+useEventListener(window, 'keyup', modifierKeys.handleKeyUp)
+useEventListener(window, 'blur', modifierKeys.resetAll)
 </script>

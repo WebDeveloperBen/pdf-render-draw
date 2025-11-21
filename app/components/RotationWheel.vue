@@ -134,6 +134,10 @@ const isDragging = ref(false)
 const currentRotation = ref(0)
 const angleInput = ref(0)
 
+// Set up event listeners with auto-cleanup
+useEventListener(window, 'mousemove', updateRotation, { passive: false })
+useEventListener(window, 'mouseup', stopDrag)
+
 // Snap angles (common increments)
 const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315]
 const snapThreshold = 5 // degrees
@@ -231,9 +235,6 @@ function startDrag(e: MouseEvent) {
   e.preventDefault()
   isDragging.value = true
   updateRotation(e)
-
-  window.addEventListener('mousemove', updateRotation)
-  window.addEventListener('mouseup', stopDrag)
 }
 
 // Update rotation while dragging
@@ -253,8 +254,6 @@ function updateRotation(e: MouseEvent) {
 // Stop dragging
 function stopDrag() {
   isDragging.value = false
-  window.removeEventListener('mousemove', updateRotation)
-  window.removeEventListener('mouseup', stopDrag)
 }
 
 // Handle manual angle input
@@ -281,11 +280,7 @@ defineExpose({
   hideWheel,
 })
 
-// Cleanup on unmount
-onUnmounted(() => {
-  window.removeEventListener('mousemove', updateRotation)
-  window.removeEventListener('mouseup', stopDrag)
-})
+// Event listeners auto-cleanup via useEventListener
 </script>
 
 <style scoped>
