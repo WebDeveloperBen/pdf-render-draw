@@ -2,6 +2,7 @@
 import { useLineToolState } from "@/composables/tools/useLineTool"
 
 const settings = useSettingStore()
+const annotationStore = useAnnotationStore()
 
 // Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
 const tool = useLineToolState()
@@ -21,6 +22,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, selectAnnotation, 
       :data-annotation-id="line.id"
       :class="{ selected: selected?.id === line.id }"
       class="line"
+      :transform="annotationStore.getRotationTransform(line.id)"
       @click.stop="selectAnnotation(line.id)"
     >
       <!-- Polyline for multi-segment lines -->

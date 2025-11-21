@@ -13,6 +13,14 @@ export const useAnnotationStore = defineStore('annotations', () => {
   const selectedAnnotationId = ref<string | null>(null)
   const isDrawing = ref(false)
 
+  // Visual-only rotation state (applied during drag, cleared on release)
+  const visualRotation = ref<{
+    annotationId: string
+    centerX: number
+    centerY: number
+    rotationDelta: number
+  } | null>(null)
+
   // ============================================
   // Getters
   // ============================================
@@ -37,6 +45,17 @@ export const useAnnotationStore = defineStore('annotations', () => {
     if (!selectedAnnotationId.value) return null
     return getAnnotationById(selectedAnnotationId.value)
   })
+
+  /**
+   * Get rotation transform string for an annotation if it's being visually rotated
+   */
+  function getRotationTransform(annotationId: string): string {
+    if (!visualRotation.value || visualRotation.value.annotationId !== annotationId) {
+      return ""
+    }
+    const angleDeg = (visualRotation.value.rotationDelta * 180) / Math.PI
+    return `rotate(${angleDeg} ${visualRotation.value.centerX} ${visualRotation.value.centerY})`
+  }
 
   // ============================================
   // Actions
@@ -269,6 +288,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     activeTool,
     selectedAnnotationId,
     isDrawing,
+    visualRotation,
 
     // Getters
     getAnnotationsByPage,
@@ -276,6 +296,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     getAnnotationsByTypeAndPage,
     getAnnotationById,
     selectedAnnotation,
+    getRotationTransform,
 
     // Actions
     addAnnotation,

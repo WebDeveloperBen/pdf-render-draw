@@ -2,6 +2,7 @@
 import { usePerimeterToolState } from "@/composables/tools/usePerimeterTool"
 
 const settings = useSettingStore()
+const annotationStore = useAnnotationStore()
 
 // Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
 const tool = usePerimeterToolState()
@@ -30,6 +31,7 @@ const {
       :data-annotation-id="perimeter.id"
       :class="{ selected: selected?.id === perimeter.id }"
       class="perimeter"
+      :transform="annotationStore.getRotationTransform(perimeter.id)"
       @click.stop="selectAnnotation(perimeter.id)"
     >
       <!-- Polygon -->

@@ -2,6 +2,7 @@
 import { useAreaToolState } from "@/composables/tools/useAreaTool"
 
 const settings = useSettingStore()
+const annotationStore = useAnnotationStore()
 
 // Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
 const tool = useAreaToolState()
@@ -31,6 +32,7 @@ const {
       :data-annotation-id="area.id"
       :class="{ selected: selected?.id === area.id }"
       class="area"
+      :transform="annotationStore.getRotationTransform(area.id)"
       @click.stop="selectAnnotation(area.id)"
     >
       <!-- Polygon -->

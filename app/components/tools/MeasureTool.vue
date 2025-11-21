@@ -2,6 +2,7 @@
 import { useMeasureToolState } from "@/composables/tools/useMeasureTool"
 
 const settings = useSettingStore()
+const annotationStore = useAnnotationStore()
 
 // Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
 const tool = useMeasureToolState()
@@ -21,6 +22,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, s
       :data-annotation-id="measure.id"
       :class="{ selected: selected?.id === measure.id }"
       class="measurement"
+      :transform="annotationStore.getRotationTransform(measure.id)"
       @click.stop="selectAnnotation(measure.id)"
     >
       <!-- Invisible hit area (makes it easier to click thin lines) -->
