@@ -45,6 +45,9 @@ const fillTool = useFillTool()
 const textTool = useTextTool()
 const selectionMarquee = useSelectionMarquee()
 
+// Enable keyboard shortcuts (undo/redo, copy/paste, etc.)
+useKeyboardShortcuts()
+
 function handleMouseDown(e: MouseEvent) {
   const tool = annotationStore.activeTool
   const target = e.target as SVGElement
@@ -86,7 +89,18 @@ function handleClick(e: MouseEvent) {
 
   if (annotationId && (tool === "selection" || tool === "") && !annotationStore.isDrawing) {
     // Click on annotation while in selection mode (and not actively drawing)
-    annotationStore.selectAnnotation(annotationId)
+
+    // Multi-select: Ctrl/Cmd+Click to add to selection
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+    const isMultiSelect = isMac ? e.metaKey : e.ctrlKey
+
+    if (isMultiSelect) {
+      // Add to or remove from selection
+      annotationStore.selectAnnotation(annotationId, { toggle: true })
+    } else {
+      // Replace selection
+      annotationStore.selectAnnotation(annotationId)
+    }
     return
   }
 

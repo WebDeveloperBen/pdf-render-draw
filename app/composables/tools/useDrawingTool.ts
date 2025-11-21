@@ -15,6 +15,8 @@ export interface DrawingToolConfig<T extends Annotation> {
 export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T>) {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
+  const historyStore = useHistoryStore()
+  const settingsStore = useSettingStore()
 
   const base = useBaseTool({
     type: config.type,
@@ -122,7 +124,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     } as T
 
     debugLog(`${config.type}Tool`, "Creating annotation:", annotation)
-    annotationStore.addAnnotation(annotation)
+    historyStore.addAnnotationWithHistory(annotation)
     config.onCreate(annotation)
     base.reset()
   }
@@ -132,7 +134,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
   }
 
   function deleteAnnotation(id: string) {
-    annotationStore.deleteAnnotation(id)
+    historyStore.deleteAnnotationWithHistory(id)
   }
 
   return {
@@ -146,12 +148,17 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     completed,
     selected,
 
+    // Store access
+    settings: settingsStore,
+
     // Methods
     handleClick,
     handleMove,
     handleKeyDown,
     selectAnnotation,
     deleteAnnotation,
+    isAnnotationSelected: annotationStore.isAnnotationSelected,
+    getRotationTransform: annotationStore.getRotationTransform,
     clearPreview: base.clearPreview,
     getSvgPoint: base.getSvgPoint,
     toSvgPoints: base.toSvgPoints

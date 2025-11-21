@@ -23,6 +23,19 @@ export const useRendererStore = defineStore("renderer", () => {
 
   const getScale = computed(() => scale.value)
   const getRotation = computed(() => rotation.value)
+
+  /**
+   * Viewport-relative label rotation (counter-rotates PDF rotation)
+   *
+   * When PDF is rotated, labels need to rotate in the opposite direction
+   * to stay upright and readable in the viewport. This value is applied
+   * to preview labels during drawing, and stored as labelRotation when
+   * annotations are committed so they "stamp" in their current orientation.
+   *
+   * Example: PDF rotated 90° → labels rotate -90° to stay upright
+   */
+  const getViewportLabelRotation = computed(() => -rotation.value)
+
   const getCanvasPos = computed(() => canvasPos.value)
   const getPdfPosition = computed(() => {
     // Calculate the PDF position from the canvas position
@@ -165,6 +178,7 @@ export const useRendererStore = defineStore("renderer", () => {
     zoomOut,
     rotation,
     getRotation,
+    getViewportLabelRotation,
     setRotation,
     rotateClockwise,
     rotateCounterClockwise,

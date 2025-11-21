@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useMeasureToolState } from "@/composables/tools/useMeasureTool"
 
+// Get viewport-relative label rotation from renderer store (defined at top level)
+const rendererStore = useRendererStore()
+
 // Inject the tool state (which extends BaseTool)
 const tool = useMeasureToolState()
 if (!tool) {
@@ -13,6 +16,7 @@ const {
   settings,
   getRotationTransform,
   selectAnnotation,
+  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -31,7 +35,7 @@ const {
       v-for="measure in completed"
       :key="measure.id"
       :data-annotation-id="measure.id"
-      :class="{ selected: selected?.id === measure.id }"
+      :class="{ selected: isAnnotationSelected(measure.id) }"
       class="measurement"
       :transform="getRotationTransform(measure)"
       @click.stop="selectAnnotation(measure.id)"
@@ -125,7 +129,7 @@ const {
           opacity="0.7"
         />
 
-        <!-- Preview distance -->
+        <!-- Preview distance (viewport-relative rotation) -->
         <text
           v-if="previewDistance"
           :x="(points[0].x + tempEndPoint.x) / 2"
@@ -133,6 +137,7 @@ const {
           fill="blue"
           font-size="12"
           text-anchor="middle"
+          :transform="`rotate(${rendererStore.getViewportLabelRotation} ${(points[0].x + tempEndPoint.x) / 2} ${(points[0].y + tempEndPoint.y) / 2})`"
         >
           {{ previewDistance }}mm
         </text>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useAreaToolState } from "@/composables/tools/useAreaTool"
 
+// Get viewport-relative label rotation from renderer store (defined at top level)
+const rendererStore = useRendererStore()
+
 // Inject the tool state (which extends BaseTool)
 const tool = useAreaToolState()
 if (!tool) {
@@ -13,6 +16,7 @@ const {
   settings,
   getRotationTransform,
   selectAnnotation,
+  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -33,7 +37,7 @@ const {
       v-for="area in completed"
       :key="area.id"
       :data-annotation-id="area.id"
-      :class="{ selected: selected?.id === area.id }"
+      :class="{ selected: isAnnotationSelected(area.id) }"
       class="area"
       :transform="getRotationTransform(area)"
       @click.stop="selectAnnotation(area.id)"
@@ -171,12 +175,19 @@ const {
             stroke-width="2"
             class="snap-indicator"
           />
-          <text :x="points[0].x + 15" :y="points[0].y - 10" fill="green" font-size="12" font-weight="bold">
+          <text
+            :x="points[0].x + 15"
+            :y="points[0].y - 10"
+            fill="green"
+            font-size="12"
+            font-weight="bold"
+            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${points[0].x + 15} ${points[0].y - 10})`"
+          >
             Click to close
           </text>
         </g>
 
-        <!-- Preview area -->
+        <!-- Preview area (viewport-relative rotation) -->
         <text
           v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
           :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
@@ -184,6 +195,7 @@ const {
           fill="blue"
           font-size="12"
           text-anchor="middle"
+          :transform="`rotate(${rendererStore.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`"
         >
           {{ previewArea }}m²
         </text>

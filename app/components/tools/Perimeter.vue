@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { usePerimeterToolState } from "@/composables/tools/usePerimeterTool"
 
+// Get viewport-relative label rotation from renderer store (defined at top level)
+const rendererStore = useRendererStore()
+
 // Inject the tool state (which extends BaseTool)
 const tool = usePerimeterToolState()
 if (!tool) {
@@ -13,6 +16,7 @@ const {
   settings,
   getRotationTransform,
   selectAnnotation,
+  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -32,7 +36,7 @@ const {
       v-for="perimeter in completed"
       :key="perimeter.id"
       :data-annotation-id="perimeter.id"
-      :class="{ selected: selected?.id === perimeter.id }"
+      :class="{ selected: isAnnotationSelected(perimeter.id) }"
       class="perimeter"
       :transform="getRotationTransform(perimeter)"
       @click.stop="selectAnnotation(perimeter.id)"
@@ -155,7 +159,7 @@ const {
             :stroke-dasharray="idx === previewSegments.length - 1 ? '5,5' : '0'"
           />
 
-          <!-- Segment length label background -->
+          <!-- Segment length label background (viewport-relative rotation) -->
           <rect
             :x="segment.midpoint.x - 25"
             :y="segment.midpoint.y - 10"
@@ -164,9 +168,10 @@ const {
             fill="white"
             opacity="0.9"
             rx="3"
+            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           />
 
-          <!-- Segment length label -->
+          <!-- Segment length label (viewport-relative rotation) -->
           <text
             :x="segment.midpoint.x"
             :y="segment.midpoint.y"
@@ -175,6 +180,7 @@ const {
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
+            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           >
             {{ segment.length }}mm
           </text>

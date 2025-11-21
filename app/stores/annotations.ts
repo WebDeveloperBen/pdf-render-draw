@@ -10,7 +10,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
 
   const annotations = ref<Annotation[]>([])
   const activeTool = ref<Annotation['type'] | 'selection' | 'rotate' | ''>('')
-  const selectedAnnotationId = ref<string | null>(null)
+  const selectedAnnotationIds = ref<string[]>([]) // Multi-select support
   const isDrawing = ref(false)
 
   // Temporary rotation delta during drag (added to stored rotation)
@@ -36,10 +36,26 @@ export const useAnnotationStore = defineStore('annotations', () => {
     return annotations.value.find(a => a.id === id)
   }
 
+  // Backwards compatible: returns first selected annotation (or null)
+  const selectedAnnotationId = computed(() => selectedAnnotationIds.value[0] || null)
+
   const selectedAnnotation = computed(() => {
-    if (!selectedAnnotationId.value) return null
-    return getAnnotationById(selectedAnnotationId.value)
+    const id = selectedAnnotationId.value
+    if (!id) return null
+    return getAnnotationById(id)
   })
+
+  // Multi-select: returns all selected annotations
+  const selectedAnnotations = computed(() => {
+    return selectedAnnotationIds.value
+      .map(id => getAnnotationById(id))
+      .filter((ann): ann is Annotation => ann !== undefined)
+  })
+
+  // Check if an annotation is selected
+  function isAnnotationSelected(id: string): boolean {
+    return selectedAnnotationIds.value.includes(id)
+  }
 
   /**
    * Get rotation transform string for an annotation
@@ -184,38 +200,93 @@ export const useAnnotationStore = defineStore('annotations', () => {
     if (index !== -1) {
       annotations.value.splice(index, 1)
     }
-    if (selectedAnnotationId.value === id) {
-      selectedAnnotationId.value = null
+    // Remove from selection if selected
+    const selIndex = selectedAnnotationIds.value.indexOf(id)
+    if (selIndex !== -1) {
+      selectedAnnotationIds.value.splice(selIndex, 1)
     }
   }
 
   function setActiveTool(tool: Annotation['type'] | 'selection' | 'rotate' | '') {
     activeTool.value = tool
-    selectedAnnotationId.value = null
+    selectedAnnotationIds.value = []
     isDrawing.value = false
   }
 
   /**
-   * Select an annotation
-   * @param id - Annotation ID or null to deselect
+   * Select annotation(s)
+   * @param id - Annotation ID, array of IDs, or null to deselect all
+   * @param options - Selection options
    */
-  function selectAnnotation(id: string | null) {
-    if (id !== null && !annotations.value.some(a => a.id === id)) {
-      console.warn(`Cannot select annotation ${id}: not found`)
+  function selectAnnotation(
+    id: string | string[] | null,
+    options: { addToSelection?: boolean; toggle?: boolean } = {}
+  ) {
+    // Deselect all
+    if (id === null) {
+      selectedAnnotationIds.value = []
+      rotationDragDelta.value = 0
       return
     }
-    selectedAnnotationId.value = id
-    if (id !== null) {
+
+    // Convert single ID to array for uniform handling
+    const ids = Array.isArray(id) ? id : [id]
+
+    // Validate all IDs exist
+    const invalidIds = ids.filter(id => !annotations.value.some(a => a.id === id))
+    if (invalidIds.length > 0) {
+      console.warn(`Cannot select annotations: not found:`, invalidIds)
+      return
+    }
+
+    // Handle multi-select modes
+    if (options.addToSelection) {
+      // Add to selection (Ctrl/Cmd+Click)
+      ids.forEach(id => {
+        if (!selectedAnnotationIds.value.includes(id)) {
+          selectedAnnotationIds.value.push(id)
+        }
+      })
+    } else if (options.toggle) {
+      // Toggle selection
+      ids.forEach(id => {
+        const index = selectedAnnotationIds.value.indexOf(id)
+        if (index !== -1) {
+          selectedAnnotationIds.value.splice(index, 1)
+        } else {
+          selectedAnnotationIds.value.push(id)
+        }
+      })
+    } else {
+      // Replace selection (default behavior)
+      selectedAnnotationIds.value = [...ids]
+    }
+
+    // Switch to selection tool if anything is selected
+    if (selectedAnnotationIds.value.length > 0) {
       activeTool.value = 'selection'
     } else {
-      // Clear rotation drag delta when deselecting
       rotationDragDelta.value = 0
     }
   }
 
+  /**
+   * Select multiple annotations by IDs
+   */
+  function selectAnnotations(ids: string[]) {
+    selectAnnotation(ids)
+  }
+
+  /**
+   * Deselect all annotations
+   */
+  function deselectAll() {
+    selectAnnotation(null)
+  }
+
   function clearAnnotations() {
     annotations.value = []
-    selectedAnnotationId.value = null
+    selectedAnnotationIds.value = []
     isDrawing.value = false
   }
 
@@ -311,7 +382,8 @@ export const useAnnotationStore = defineStore('annotations', () => {
     // State
     annotations,
     activeTool,
-    selectedAnnotationId,
+    selectedAnnotationIds, // Multi-select array
+    selectedAnnotationId, // Backwards compat: first selected or null
     isDrawing,
     rotationDragDelta,
 
@@ -320,7 +392,9 @@ export const useAnnotationStore = defineStore('annotations', () => {
     getAnnotationsByType,
     getAnnotationsByTypeAndPage,
     getAnnotationById,
-    selectedAnnotation,
+    selectedAnnotation, // First selected annotation
+    selectedAnnotations, // All selected annotations
+    isAnnotationSelected, // Check if ID is selected
     getRotationTransform,
 
     // Actions
@@ -328,7 +402,9 @@ export const useAnnotationStore = defineStore('annotations', () => {
     updateAnnotation,
     deleteAnnotation,
     setActiveTool,
-    selectAnnotation,
+    selectAnnotation, // Supports single, multi, and options
+    selectAnnotations, // Convenience for multi-select
+    deselectAll, // Clear selection
     clearAnnotations,
     setAnnotations,
     saveAnnotations,

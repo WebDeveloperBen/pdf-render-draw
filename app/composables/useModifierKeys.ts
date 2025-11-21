@@ -14,7 +14,7 @@
  * - Ctrl/Cmd: Precision mode, additional options
  */
 
-import { createInjectionState } from '@vueuse/core'
+import { createInjectionState } from "@vueuse/core"
 
 const [useProvideModifierKeys, useModifierKeys] = createInjectionState(() => {
   // State - which keys are currently pressed
@@ -32,18 +32,18 @@ const [useProvideModifierKeys, useModifierKeys] = createInjectionState(() => {
 
   // Key down handler
   function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Shift') shift.value = true
-    if (e.key === 'Control') ctrl.value = true
-    if (e.key === 'Alt') alt.value = true
-    if (e.key === 'Meta') meta.value = true
+    if (e.key === "Shift") shift.value = true
+    if (e.key === "Control") ctrl.value = true
+    if (e.key === "Alt") alt.value = true
+    if (e.key === "Meta") meta.value = true
   }
 
   // Key up handler
   function handleKeyUp(e: KeyboardEvent) {
-    if (e.key === 'Shift') shift.value = false
-    if (e.key === 'Control') ctrl.value = false
-    if (e.key === 'Alt') alt.value = false
-    if (e.key === 'Meta') meta.value = false
+    if (e.key === "Shift") shift.value = false
+    if (e.key === "Control") ctrl.value = false
+    if (e.key === "Alt") alt.value = false
+    if (e.key === "Meta") meta.value = false
   }
 
   // Reset all modifiers (useful when window loses focus)
@@ -71,7 +71,7 @@ const [useProvideModifierKeys, useModifierKeys] = createInjectionState(() => {
     // Methods
     handleKeyDown,
     handleKeyUp,
-    resetAll,
+    resetAll
   }
 })
 

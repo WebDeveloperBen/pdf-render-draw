@@ -5,6 +5,7 @@ import { debugLog } from "~/utils/debug"
 import { isMeasurement, isArea, isPerimeter } from "~/types/annotations"
 
 const annotationStore = useAnnotationStore()
+const historyStore = useHistoryStore()
 const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
@@ -23,11 +24,21 @@ const dragMode = ref<"resize" | "rotate" | "move" | null>(null)
 const dragStart = ref<{ x: number; y: number } | null>(null)
 const originalBounds = ref<Bounds | null>(null)
 const originalPoints = ref<Array<{ x: number; y: number }> | null>(null)
+const originalAnnotationState = ref<any>(null) // Store complete annotation state for undo
 const startRotationAngle = ref(0)
 const currentRotationDelta = ref(0)
+const isShiftPressed = ref(false) // Track Shift key for aspect ratio constraint
+const hasMoved = ref(false) // Track if mouse moved during drag (to distinguish click from drag)
+
 // Set up event listeners with auto-cleanup
 useEventListener(window, "mousemove", handleDrag, { passive: false })
 useEventListener(window, "mouseup", endDrag)
+useEventListener(window, "keydown", (e: KeyboardEvent) => {
+  if (e.key === "Shift") isShiftPressed.value = true
+})
+useEventListener(window, "keyup", (e: KeyboardEvent) => {
+  if (e.key === "Shift") isShiftPressed.value = false
+})
 
 // Convert screen coordinates to SVG coordinates
 function getSvgPoint(e: MouseEvent): { x: number; y: number } | null {
@@ -128,6 +139,10 @@ function startDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "m
   dragMode.value = mode
   dragStart.value = svgPoint
   originalBounds.value = bounds.value ? { ...bounds.value } : null
+  hasMoved.value = false // Reset movement tracker
+
+  // Store COMPLETE annotation state for undo/redo (deep clone)
+  originalAnnotationState.value = JSON.parse(JSON.stringify(selectedAnnotation.value))
 
   // Store original points for point-based annotations
   if ("points" in selectedAnnotation.value && Array.isArray(selectedAnnotation.value.points)) {
@@ -157,6 +172,11 @@ function handleDrag(e: MouseEvent) {
   const deltaX = svgPoint.x - dragStart.value.x
   const deltaY = svgPoint.y - dragStart.value.y
 
+  // Track if mouse actually moved (to distinguish click from drag)
+  if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
+    hasMoved.value = true
+  }
+
   if (dragMode.value === "resize") {
     handleResize(deltaX, deltaY)
   } else if (dragMode.value === "rotate") {
@@ -178,6 +198,9 @@ function handleResize(deltaX: number, deltaY: number) {
   const isRight = handle === "corner-1" || handle === "corner-2"
   const isBottom = handle === "corner-2" || handle === "corner-3"
 
+  // Calculate original aspect ratio
+  const originalAspectRatio = originalBounds.value.width / originalBounds.value.height
+
   // Calculate new bounds based on corner drag
   const newBounds = { ...originalBounds.value }
 
@@ -194,6 +217,38 @@ function handleResize(deltaX: number, deltaY: number) {
   }
   if (isBottom) {
     newBounds.height += deltaY
+  }
+
+  // Constrain aspect ratio if Shift is pressed
+  if (isShiftPressed.value) {
+    // Determine which dimension to use as the "driver"
+    // Use the dimension that changed more (abs value)
+    const widthChangePct = Math.abs(newBounds.width - originalBounds.value.width) / originalBounds.value.width
+    const heightChangePct = Math.abs(newBounds.height - originalBounds.value.height) / originalBounds.value.height
+
+    if (widthChangePct > heightChangePct) {
+      // Width changed more - constrain height to match
+      const newHeight = newBounds.width / originalAspectRatio
+      const heightDiff = newHeight - newBounds.height
+
+      newBounds.height = newHeight
+
+      // Adjust position if resizing from top
+      if (isTop) {
+        newBounds.y -= heightDiff
+      }
+    } else {
+      // Height changed more - constrain width to match
+      const newWidth = newBounds.height * originalAspectRatio
+      const widthDiff = newWidth - newBounds.width
+
+      newBounds.width = newWidth
+
+      // Adjust position if resizing from left
+      if (isLeft) {
+        newBounds.x -= widthDiff
+      }
+    }
   }
 
   // Enforce minimum dimensions
@@ -273,34 +328,88 @@ function handleMove(deltaX: number, deltaY: number) {
 }
 
 function endDrag() {
+  // CRITICAL: Clear drag delta IMMEDIATELY to stop rotation
+  annotationStore.rotationDragDelta = 0
+
+  // CRITICAL: Stop dragging IMMEDIATELY to prevent handleDrag from running
+  const wasDragging = isDragging.value
+  const mode = dragMode.value
+  isDragging.value = false
+
+  if (!selectedAnnotation.value || !originalAnnotationState.value || !wasDragging) {
+    // Clean up state
+    activeHandle.value = null
+    dragMode.value = null
+    dragStart.value = null
+    originalBounds.value = null
+    originalPoints.value = null
+    originalAnnotationState.value = null
+    startRotationAngle.value = 0
+    currentRotationDelta.value = 0
+    hasMoved.value = false
+    return
+  }
+
+  // If mouse didn't move (just a click), deselect the annotation
+  if (!hasMoved.value && mode === "move") {
+    annotationStore.selectAnnotation(null)
+    activeHandle.value = null
+    dragMode.value = null
+    dragStart.value = null
+    originalBounds.value = null
+    originalPoints.value = null
+    originalAnnotationState.value = null
+    startRotationAngle.value = 0
+    currentRotationDelta.value = 0
+    hasMoved.value = false
+    return
+  }
+
+  const annotationId = selectedAnnotation.value.id
+
   // Commit rotation on release
-  if (dragMode.value === "rotate" && selectedAnnotation.value && currentRotationDelta.value !== 0) {
+  if (mode === "rotate" && currentRotationDelta.value !== 0) {
     const existingRotation = (selectedAnnotation.value as any).rotation || 0
     const newRotation = existingRotation + currentRotationDelta.value
 
-    annotationStore.updateAnnotation(selectedAnnotation.value.id, {
+    annotationStore.updateAnnotation(annotationId, {
       rotation: newRotation
     })
   }
 
-  // Clear drag delta
-  annotationStore.rotationDragDelta = 0
+  // Get final state AFTER all updates
+  const finalState = annotationStore.getAnnotationById(annotationId)
 
-  isDragging.value = false
+  // Create a single history entry for the entire transformation
+  // Only if the annotation actually changed
+  if (finalState && JSON.stringify(originalAnnotationState.value) !== JSON.stringify(finalState)) {
+    // Create update command with original and final states
+    const updateCommand = new historyStore.UpdateAnnotationCommand(
+      annotationId,
+      originalAnnotationState.value,
+      finalState,
+      annotationStore
+    )
+    historyStore.executeCommand(updateCommand)
+  }
+
+  // Clean up state
   activeHandle.value = null
   dragMode.value = null
   dragStart.value = null
   originalBounds.value = null
   originalPoints.value = null
+  originalAnnotationState.value = null
   startRotationAngle.value = 0
   currentRotationDelta.value = 0
+  hasMoved.value = false
 }
 </script>
 <template>
   <g v-if="selectedAnnotation && displayBounds" ref="svgRef" class="transform-handles">
     <!-- Apply rotation transform to entire transformer when rotating -->
     <g :transform="transformerTransform">
-      <!-- Selection outline - draggable to move -->
+      <!-- Selection outline - draggable to move, click to deselect -->
       <rect
         :x="displayBounds.x"
         :y="displayBounds.y"

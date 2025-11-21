@@ -13,6 +13,7 @@ const {
   settings,
   getRotationTransform,
   selectAnnotation,
+  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -30,7 +31,7 @@ const {
       v-for="line in completed"
       :key="line.id"
       :data-annotation-id="line.id"
-      :class="{ selected: selected?.id === line.id }"
+      :class="{ selected: isAnnotationSelected(line.id) }"
       class="line"
       :transform="getRotationTransform(line)"
       @click.stop="selectAnnotation(line.id)"
