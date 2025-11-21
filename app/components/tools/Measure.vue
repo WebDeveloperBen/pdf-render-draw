@@ -149,7 +149,7 @@ const {
 <style scoped>
 .measurement {
   cursor: pointer;
-  transition: all 0.15s ease;
+  /* Removed transition: all to prevent lag during rotation */
 }
 
 .measurement-hit-area {

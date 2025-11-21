@@ -258,7 +258,14 @@ function handleRotate(svgX: number, svgY: number) {
         }
       })
 
-      annotationStore.updateAnnotation(originalAnn.id, { points: rotatedPoints })
+      // For measurements, also update labelRotation to keep labels aligned
+      const updates: any = { points: rotatedPoints }
+      if (originalAnn.type === 'measure' && 'labelRotation' in originalAnn) {
+        const rotationDegrees = (rotationDelta * 180) / Math.PI
+        updates.labelRotation = originalAnn.labelRotation + rotationDegrees
+      }
+
+      annotationStore.updateAnnotation(originalAnn.id, updates)
     }
   })
 }
@@ -316,7 +323,14 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           }
         })
 
-        annotationStore.updateAnnotation(originalAnn.id, { points: rotatedPoints })
+        // For measurements, also update labelRotation to keep labels aligned
+        const updates: any = { points: rotatedPoints }
+        if (originalAnn.type === 'measure' && 'labelRotation' in originalAnn) {
+          const rotationDegrees = (transformBase.currentRotationDelta.value * 180) / Math.PI
+          updates.labelRotation = originalAnn.labelRotation + rotationDegrees
+        }
+
+        annotationStore.updateAnnotation(originalAnn.id, updates)
       }
     })
 
