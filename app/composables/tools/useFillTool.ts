@@ -1,15 +1,22 @@
 import type { Fill } from '~/types/annotations'
 import type { Point } from '~/types'
 import { v4 as uuidv4 } from 'uuid'
+import { createInjectionState } from '@vueuse/core'
 
-export function useFillTool() {
+const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
   const settings = useSettingStore()
 
   const completed = computed(() =>
-    annotationStore.getAnnotationsByType('fill') as Fill[]
+    annotationStore.getAnnotationsByTypeAndPage('fill', rendererStore.getCurrentPage) as Fill[]
   )
+
+  const selected = computed(() => {
+    if (!annotationStore.selectedAnnotation) return null
+    if (annotationStore.selectedAnnotation.type !== 'fill') return null
+    return annotationStore.selectedAnnotation as Fill
+  })
 
   function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
@@ -36,13 +43,24 @@ export function useFillTool() {
     annotationStore.addAnnotation(fill)
   }
 
+  function selectAnnotation(id: string) {
+    annotationStore.selectAnnotation(id)
+  }
+
   function deleteFill(id: string) {
     annotationStore.deleteAnnotation(id)
   }
 
   return {
     completed,
+    selected,
     handleClick,
+    selectAnnotation,
     deleteFill,
   }
-}
+})
+
+export { useProvideFillTool, useFillToolState }
+
+// Keep the original export name for provider for backwards compatibility
+export const useFillTool = useProvideFillTool

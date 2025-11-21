@@ -1,14 +1,21 @@
 import type { TextAnnotation } from '~/types/annotations'
 import type { Point } from '~/types'
 import { v4 as uuidv4 } from 'uuid'
+import { createInjectionState } from '@vueuse/core'
 
-export function useTextTool() {
+const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
 
   const completed = computed(() =>
     annotationStore.getAnnotationsByTypeAndPage('text', rendererStore.getCurrentPage) as TextAnnotation[]
   )
+
+  const selected = computed(() => {
+    if (!annotationStore.selectedAnnotation) return null
+    if (annotationStore.selectedAnnotation.type !== 'text') return null
+    return annotationStore.selectedAnnotation as TextAnnotation
+  })
 
   const editingId = ref<string | null>(null)
   const editingContent = ref<string>('')
@@ -52,6 +59,10 @@ export function useTextTool() {
     }
   }
 
+  function selectAnnotation(id: string) {
+    annotationStore.selectAnnotation(id)
+  }
+
   function updateText(id: string, content: string) {
     annotationStore.updateAnnotation(id, { content })
     editingId.value = null
@@ -72,12 +83,19 @@ export function useTextTool() {
 
   return {
     completed,
+    selected,
     editingId,
     editingContent,
     handleClick,
     handleDoubleClick,
+    selectAnnotation,
     updateText,
     finishEditing,
     deleteText,
   }
-}
+})
+
+export { useProvideTextTool, useTextToolState }
+
+// Keep the original export name for provider for backwards compatibility
+export const useTextTool = useProvideTextTool

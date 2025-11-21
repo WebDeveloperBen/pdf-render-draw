@@ -1,5 +1,12 @@
 <script setup lang="ts">
-const { completed, deleteFill } = useFillTool()
+import { useFillToolState } from "@/composables/tools/useFillTool"
+
+const tool = useFillToolState()
+if (!tool) {
+  throw new Error("FillTool must be used within SvgAnnotationLayer")
+}
+
+const { completed, deleteFill } = tool
 </script>
 <template>
   <g class="fill-tool">

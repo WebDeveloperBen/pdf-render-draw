@@ -1,5 +1,12 @@
 <script setup lang="ts">
-const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText } = useTextTool()
+import { useTextToolState } from '~/composables/tools/useTextTool'
+
+const tool = useTextToolState()
+if (!tool) {
+  throw new Error('TextTool must be used within SvgAnnotationLayer')
+}
+
+const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText } = tool
 
 // Store ref to currently editing textarea
 const currentTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -83,13 +90,14 @@ watch(editingId, (newId, oldId) => {
       </g>
 
       <!-- Editing mode: use foreignObject for HTML input -->
+      <!-- Extra space: border (2px * 2) + shadow (3px * 2) + padding = ~14px extra on each side -->
       <foreignObject
         v-else
-        :x="text.x - 5"
-        :y="text.y - text.fontSize - 2"
-        :width="text.width + 10"
-        :height="text.height + 4"
-        style="pointer-events: all"
+        :x="text.x - 12"
+        :y="text.y - text.fontSize - 9"
+        :width="text.width + 24"
+        :height="text.height + 18"
+        style="pointer-events: all; overflow: visible"
         @click.stop
         @mousedown.stop
       >
@@ -155,11 +163,13 @@ watch(editingId, (newId, oldId) => {
 .text-editor-wrapper {
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
 }
 
 .text-editor {
-  width: 100%;
-  height: 100%;
   border: 2px solid #4299e1;
   border-radius: 4px;
   padding: 4px;
@@ -167,6 +177,7 @@ watch(editingId, (newId, oldId) => {
   resize: none;
   background: white;
   outline: none;
+  box-sizing: border-box;
 }
 
 .text-editor:focus {
