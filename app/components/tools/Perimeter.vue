@@ -1,25 +1,28 @@
 <script setup lang="ts">
 import { usePerimeterToolState } from "@/composables/tools/usePerimeterTool"
 
-const settings = useSettingStore()
-const annotationStore = useAnnotationStore()
-
-// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+// Inject the tool state (which extends BaseTool)
 const tool = usePerimeterToolState()
 if (!tool) {
   throw new Error("PerimeterTool must be used within SvgAnnotationLayer")
 }
 
+// Destructure everything we need (inherited + tool-specific)
 const {
+  // From BaseTool (inherited):
+  settings,
+  getRotationTransform,
+  selectAnnotation,
+  // From DrawingTool (inherited):
   isDrawing,
   points,
   tempEndPoint,
   canSnapToClose,
   completed,
   selected,
-  previewSegments,
-  selectAnnotation,
-  toSvgPoints
+  toSvgPoints,
+  // From PerimeterTool (specific):
+  previewSegments
 } = tool
 </script>
 <template>
@@ -31,7 +34,7 @@ const {
       :data-annotation-id="perimeter.id"
       :class="{ selected: selected?.id === perimeter.id }"
       class="perimeter"
-      :transform="annotationStore.getRotationTransform(perimeter)"
+      :transform="getRotationTransform(perimeter)"
       @click.stop="selectAnnotation(perimeter.id)"
     >
       <!-- Polygon -->

@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import { useEventListener } from "@vueuse/core"
-import MeasureTool from "~/components/tools/MeasureTool.vue"
-import AreaTool from "~/components/tools/AreaTool.vue"
-import PerimeterTool from "~/components/tools/PerimeterTool.vue"
-import LineTool from "~/components/tools/LineTool.vue"
-import FillTool from "~/components/tools/FillTool.vue"
-import TextTool from "~/components/tools/TextTool.vue"
 import { SELECTION } from "~/constants/ui"
 import { debugLog } from "~/utils/debug"
 
@@ -221,16 +215,24 @@ useEventListener(window, "keydown", handleKeyDown)
     @dblclick="handleDoubleClick"
   >
     <!-- Render active tool + all completed annotations -->
-    <MeasureTool
+    <ToolsMeasure
       v-if="annotationStore.activeTool === 'measure' || annotationStore.getAnnotationsByType('measure').length > 0"
     />
-    <AreaTool v-if="annotationStore.activeTool === 'area' || annotationStore.getAnnotationsByType('area').length > 0" />
-    <PerimeterTool
+    <ToolsArea
+      v-if="annotationStore.activeTool === 'area' || annotationStore.getAnnotationsByType('area').length > 0"
+    />
+    <ToolsPerimeter
       v-if="annotationStore.activeTool === 'perimeter' || annotationStore.getAnnotationsByType('perimeter').length > 0"
     />
-    <LineTool v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0" />
-    <FillTool v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0" />
-    <TextTool v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0" />
+    <ToolsLine
+      v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0"
+    />
+    <ToolsFill
+      v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0"
+    />
+    <ToolsText
+      v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0"
+    />
 
     <!-- Selection marquee (drag-to-select rectangle) -->
     <rect

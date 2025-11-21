@@ -1,26 +1,29 @@
 <script setup lang="ts">
 import { useAreaToolState } from "@/composables/tools/useAreaTool"
 
-const settings = useSettingStore()
-const annotationStore = useAnnotationStore()
-
-// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+// Inject the tool state (which extends BaseTool)
 const tool = useAreaToolState()
 if (!tool) {
   throw new Error("AreaTool must be used within SvgAnnotationLayer")
 }
 
+// Destructure everything we need (inherited + tool-specific)
 const {
+  // From BaseTool (inherited):
+  settings,
+  getRotationTransform,
+  selectAnnotation,
+  // From DrawingTool (inherited):
   isDrawing,
   points,
   tempEndPoint,
   canSnapToClose,
   completed,
   selected,
+  toSvgPoints,
+  // From AreaTool (specific):
   previewArea,
-  previewPolygon,
-  selectAnnotation,
-  toSvgPoints
+  previewPolygon
 } = tool
 </script>
 <template>
@@ -32,7 +35,7 @@ const {
       :data-annotation-id="area.id"
       :class="{ selected: selected?.id === area.id }"
       class="area"
-      :transform="annotationStore.getRotationTransform(area)"
+      :transform="getRotationTransform(area)"
       @click.stop="selectAnnotation(area.id)"
     >
       <!-- Polygon -->

@@ -1,12 +1,26 @@
 import type { Area } from "~/types/annotations"
 import type { Point } from "~/types"
 import { createInjectionState } from "@vueuse/core"
+import { createBaseTool } from "./useToolComponent"
 
+/**
+ * Area Tool - extends BaseTool
+ *
+ * Hierarchy:
+ *   BaseTool (stores, rotation, selection)
+ *     ↓ extends
+ *   DrawingTool (drawing logic, points, events)
+ *     ↓ extends
+ *   AreaTool (polygon area calculations)
+ */
 const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
-  const settingsStore = useSettingStore()
+  // Inherit base functionality
+  const base = createBaseTool()
+  const settingsStore = base.settings
   const rendererStore = useRendererStore()
 
-  const tool = useDrawingTool<Area>({
+  // Add drawing behavior via composition
+  const drawing = useDrawingTool<Area>({
     type: "area",
     minPoints: 3,
     canClose: true,
@@ -28,35 +42,38 @@ const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
     }
   })
 
+  // Tool-specific computed properties
   const previewArea = computed(() => {
-    if (!tool.isDrawing.value || tool.points.value.length < 2) {
+    if (!drawing.isDrawing.value || drawing.points.value.length < 2) {
       return null
     }
 
-    const previewPoints = [...tool.points.value]
-    if (tool.tempEndPoint.value) {
-      previewPoints.push(tool.tempEndPoint.value)
+    const previewPoints = [...drawing.points.value]
+    if (drawing.tempEndPoint.value) {
+      previewPoints.push(drawing.tempEndPoint.value)
     }
 
     return calculatePolygonArea(previewPoints, settingsStore.getPdfScale)
   })
 
   const previewPolygon = computed(() => {
-    if (!tool.isDrawing.value || tool.points.value.length === 0) {
+    if (!drawing.isDrawing.value || drawing.points.value.length === 0) {
       return null
     }
 
-    const points = [...tool.points.value]
-    if (tool.tempEndPoint.value) {
-      points.push(tool.tempEndPoint.value)
+    const points = [...drawing.points.value]
+    if (drawing.tempEndPoint.value) {
+      points.push(drawing.tempEndPoint.value)
     }
 
-    return tool.toSvgPoints(points)
+    return drawing.toSvgPoints(points)
   })
 
+  // Return composed tool (like extending multiple classes)
   return {
-    ...tool,
-    previewArea,
+    ...base,      // Inherit: stores, getRotationTransform, selectAnnotation
+    ...drawing,   // Inherit: drawing behavior, events, state
+    previewArea,  // Add: tool-specific features
     previewPolygon
   }
 })

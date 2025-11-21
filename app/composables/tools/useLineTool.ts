@@ -1,9 +1,24 @@
 import type { Line } from "~/types/annotations"
 import type { Point } from "~/types"
 import { createInjectionState } from "@vueuse/core"
+import { createBaseTool } from "./useToolComponent"
 
+/**
+ * Line Tool - extends BaseTool
+ *
+ * Hierarchy:
+ *   BaseTool (stores, rotation, selection)
+ *     ↓ extends
+ *   DrawingTool (drawing logic, points, events)
+ *     ↓ extends
+ *   LineTool (simple line drawing, no calculations)
+ */
 const [useProvideLineTool, useLineToolState] = createInjectionState(() => {
-  const tool = useDrawingTool<Line>({
+  // Inherit base functionality
+  const base = createBaseTool()
+
+  // Add drawing behavior via composition
+  const drawing = useDrawingTool<Line>({
     type: "line",
     minPoints: 2,
     canClose: false,
@@ -17,7 +32,11 @@ const [useProvideLineTool, useLineToolState] = createInjectionState(() => {
     }
   })
 
-  return tool
+  // Return composed tool (like extending multiple classes)
+  return {
+    ...base,      // Inherit: stores, getRotationTransform, selectAnnotation
+    ...drawing    // Inherit: drawing behavior, events, state
+  }
 })
 
 export { useProvideLineTool, useLineToolState }

@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import { useMeasureToolState } from "@/composables/tools/useMeasureTool"
 
-const settings = useSettingStore()
-const annotationStore = useAnnotationStore()
-
-// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+// Inject the tool state (which extends BaseTool)
 const tool = useMeasureToolState()
 if (!tool) {
   throw new Error("MeasureTool must be used within SvgAnnotationLayer")
 }
 
-const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, selectAnnotation } = tool
+// Destructure everything we need (inherited + tool-specific)
+const {
+  // From BaseTool (inherited):
+  settings,
+  getRotationTransform,
+  selectAnnotation,
+  // From DrawingTool (inherited):
+  isDrawing,
+  points,
+  tempEndPoint,
+  completed,
+  selected,
+  // From MeasureTool (specific):
+  previewDistance
+} = tool
 </script>
 
 <template>
@@ -22,7 +33,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, s
       :data-annotation-id="measure.id"
       :class="{ selected: selected?.id === measure.id }"
       class="measurement"
-      :transform="annotationStore.getRotationTransform(measure)"
+      :transform="getRotationTransform(measure)"
       @click.stop="selectAnnotation(measure.id)"
     >
       <!-- Invisible hit area (makes it easier to click thin lines) -->

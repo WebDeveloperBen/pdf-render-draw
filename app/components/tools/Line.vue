@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import { useLineToolState } from "@/composables/tools/useLineTool"
 
-const settings = useSettingStore()
-const annotationStore = useAnnotationStore()
-
-// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+// Inject the tool state (which extends BaseTool)
 const tool = useLineToolState()
 if (!tool) {
   throw new Error("LineTool must be used within SvgAnnotationLayer")
 }
 
-const { isDrawing, points, tempEndPoint, completed, selected, selectAnnotation, toSvgPoints } = tool
+// Destructure everything we need (inherited + tool-specific)
+const {
+  // From BaseTool (inherited):
+  settings,
+  getRotationTransform,
+  selectAnnotation,
+  // From DrawingTool (inherited):
+  isDrawing,
+  points,
+  tempEndPoint,
+  completed,
+  selected,
+  toSvgPoints
+} = tool
 </script>
 
 <template>
@@ -22,7 +32,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, selectAnnotation, 
       :data-annotation-id="line.id"
       :class="{ selected: selected?.id === line.id }"
       class="line"
-      :transform="annotationStore.getRotationTransform(line)"
+      :transform="getRotationTransform(line)"
       @click.stop="selectAnnotation(line.id)"
     >
       <!-- Polyline for multi-segment lines -->

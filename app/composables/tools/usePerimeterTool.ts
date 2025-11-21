@@ -1,12 +1,26 @@
 import type { Perimeter, PerimeterSegment } from "~/types/annotations"
 import type { Point } from "~/types"
 import { createInjectionState } from "@vueuse/core"
+import { createBaseTool } from "./useToolComponent"
 
+/**
+ * Perimeter Tool - extends BaseTool
+ *
+ * Hierarchy:
+ *   BaseTool (stores, rotation, selection)
+ *     ↓ extends
+ *   DrawingTool (drawing logic, points, events)
+ *     ↓ extends
+ *   PerimeterTool (segment-by-segment perimeter calculations)
+ */
 const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
-  const settingsStore = useSettingStore()
+  // Inherit base functionality
+  const base = createBaseTool()
+  const settingsStore = base.settings
   const rendererStore = useRendererStore()
 
-  const tool = useDrawingTool<Perimeter>({
+  // Add drawing behavior via composition
+  const drawing = useDrawingTool<Perimeter>({
     type: "perimeter",
     minPoints: 3,
     canClose: true,
@@ -43,18 +57,18 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
     }
   })
 
-  // Preview segments while drawing
+  // Tool-specific computed properties
   const previewSegments = computed((): PerimeterSegment[] => {
-    if (!tool.isDrawing.value || tool.points.value.length < 1) {
+    if (!drawing.isDrawing.value || drawing.points.value.length < 1) {
       return []
     }
 
     const segments: PerimeterSegment[] = []
 
     // Completed segments
-    for (let i = 0; i < tool.points.value.length - 1; i++) {
-      const start = tool.points.value[i]!
-      const end = tool.points.value[i + 1]!
+    for (let i = 0; i < drawing.points.value.length - 1; i++) {
+      const start = drawing.points.value[i]!
+      const end = drawing.points.value[i + 1]!
 
       segments.push({
         start,
@@ -65,22 +79,24 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
     }
 
     // Temp segment to cursor
-    if (tool.tempEndPoint.value) {
-      const lastPoint = tool.points.value[tool.points.value.length - 1]!
+    if (drawing.tempEndPoint.value) {
+      const lastPoint = drawing.points.value[drawing.points.value.length - 1]!
       segments.push({
         start: lastPoint,
-        end: tool.tempEndPoint.value,
-        length: calculateDistance(lastPoint, tool.tempEndPoint.value, settingsStore.getPdfScale),
-        midpoint: calculateMidpoint(lastPoint, tool.tempEndPoint.value)
+        end: drawing.tempEndPoint.value,
+        length: calculateDistance(lastPoint, drawing.tempEndPoint.value, settingsStore.getPdfScale),
+        midpoint: calculateMidpoint(lastPoint, drawing.tempEndPoint.value)
       })
     }
 
     return segments
   })
 
+  // Return composed tool (like extending multiple classes)
   return {
-    ...tool,
-    previewSegments
+    ...base,      // Inherit: stores, getRotationTransform, selectAnnotation
+    ...drawing,   // Inherit: drawing behavior, events, state
+    previewSegments // Add: tool-specific features
   }
 })
 

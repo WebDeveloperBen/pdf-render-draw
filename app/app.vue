@@ -2,10 +2,6 @@
   <div>
     <NuxtRouteAnnouncer />
     <NuxtPage />
-    <PdfRotateHandles />
+    <HandlesPdfRotateHandles />
   </div>
 </template>
-
-<script setup lang="ts">
-import PdfRotateHandles from '~/components/handles/PdfRotateHandles.vue'
-</script>
