@@ -4,6 +4,7 @@ import { createInjectionState } from "@vueuse/core"
 
 const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   const settingsStore = useSettingStore()
+  const rendererStore = useRendererStore()
 
   const tool = useDrawingTool<Perimeter>({
     type: "perimeter",
@@ -32,7 +33,8 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
         points,
         segments,
         totalLength,
-        center
+        center,
+        labelRotation: -rendererStore.rotation // Counter-rotate to appear upright in viewport
       }
     },
 

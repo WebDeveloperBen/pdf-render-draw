@@ -29,6 +29,7 @@ describe('Annotation Type Guards', () => {
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
+        labelRotation: 0,
       }
 
       expect(isMeasurement(measurement)).toBe(true)
@@ -46,6 +47,7 @@ describe('Annotation Type Guards', () => {
         ],
         area: 5000,
         center: { x: 50, y: 50 },
+        labelRotation: 0,
       }
 
       expect(isMeasurement(area)).toBe(false)
@@ -65,6 +67,7 @@ describe('Annotation Type Guards', () => {
         ],
         area: 5000,
         center: { x: 50, y: 50 },
+        labelRotation: 0,
       }
 
       expect(isArea(area)).toBe(true)
@@ -85,6 +88,7 @@ describe('Annotation Type Guards', () => {
         segments: [],
         totalLength: 300,
         center: { x: 50, y: 50 },
+        labelRotation: 0,
       }
 
       expect(isPerimeter(perimeter)).toBe(true)
@@ -179,6 +183,7 @@ describe('Annotation Validation', () => {
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
+        labelRotation: 0,
       }
 
       expect(validateAnnotation(measurement)).toBe(true)
@@ -196,6 +201,7 @@ describe('Annotation Validation', () => {
         ],
         area: 5000,
         center: { x: 50, y: 50 },
+        labelRotation: 0,
       }
 
       expect(validateAnnotation(area)).toBe(true)

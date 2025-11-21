@@ -42,9 +42,9 @@ const {
         class="perimeter-polygon"
       />
 
-      <!-- Individual segment labels -->
+      <!-- Individual segment labels with rotation -->
       <g v-for="(segment, idx) in perimeter.segments" :key="idx">
-        <!-- Label background -->
+        <!-- Label background with rotation -->
         <rect
           :x="segment.midpoint.x - 25"
           :y="segment.midpoint.y - 10"
@@ -53,9 +53,10 @@ const {
           fill="white"
           opacity="0.9"
           rx="3"
+          :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
         />
 
-        <!-- Segment length label -->
+        <!-- Segment length label with rotation -->
         <text
           :x="segment.midpoint.x"
           :y="segment.midpoint.y"
@@ -65,12 +66,13 @@ const {
           text-anchor="middle"
           dominant-baseline="middle"
           class="segment-label"
+          :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
         >
           {{ segment.length }}mm
         </text>
       </g>
 
-      <!-- Total perimeter label at center -->
+      <!-- Total perimeter label at center with rotation -->
       <rect
         :x="perimeter.center.x - 40"
         :y="perimeter.center.y - 12"
@@ -79,6 +81,7 @@ const {
         fill="white"
         opacity="0.95"
         rx="4"
+        :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
       />
       <text
         :x="perimeter.center.x"
@@ -89,6 +92,7 @@ const {
         text-anchor="middle"
         dominant-baseline="middle"
         class="total-label"
+        :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
       >
         Total: {{ perimeter.totalLength }}mm
       </text>

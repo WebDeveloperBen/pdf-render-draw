@@ -4,6 +4,7 @@ import { createInjectionState } from "@vueuse/core"
 
 const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
   const settingsStore = useSettingStore()
+  const rendererStore = useRendererStore()
 
   const tool = useDrawingTool<Area>({
     type: "area",
@@ -17,7 +18,8 @@ const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
       return {
         points,
         area,
-        center
+        center,
+        labelRotation: -rendererStore.rotation // Counter-rotate to appear upright in viewport
       }
     },
 

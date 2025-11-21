@@ -15,6 +15,7 @@ export interface Measurement extends BaseAnnotation {
   points: [Point, Point] // Always exactly 2 points
   distance: number
   midpoint: Point
+  labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
 }
 
 export interface Area extends BaseAnnotation {
@@ -22,6 +23,7 @@ export interface Area extends BaseAnnotation {
   points: Point[] // Min 3 points
   area: number // in m²
   center: Point
+  labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
 }
 
 export interface PerimeterSegment {
@@ -37,6 +39,7 @@ export interface Perimeter extends BaseAnnotation {
   segments: PerimeterSegment[]
   totalLength: number
   center: Point
+  labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
 }
 
 export interface Line extends BaseAnnotation {
@@ -136,7 +139,8 @@ export function validateAnnotation(ann: unknown): ann is Annotation {
         m.points.every(isValidPoint) &&
         typeof m.distance === 'number' &&
         m.distance >= 0 &&
-        isValidPoint(m.midpoint)
+        isValidPoint(m.midpoint) &&
+        typeof m.labelRotation === 'number'
       )
     }
 
@@ -148,7 +152,8 @@ export function validateAnnotation(ann: unknown): ann is Annotation {
         a.points.every(isValidPoint) &&
         typeof a.area === 'number' &&
         a.area >= 0 &&
-        isValidPoint(a.center)
+        isValidPoint(a.center) &&
+        typeof a.labelRotation === 'number'
       )
     }
 
@@ -162,7 +167,8 @@ export function validateAnnotation(ann: unknown): ann is Annotation {
         p.segments.length > 0 &&
         typeof p.totalLength === 'number' &&
         p.totalLength >= 0 &&
-        isValidPoint(p.center)
+        isValidPoint(p.center) &&
+        typeof p.labelRotation === 'number'
       )
     }
 

@@ -6,14 +6,15 @@
  * No auth, no DB, no persistence - just pure rendering.
  */
 
-import { useEventListener } from '@vueuse/core'
-import PdfPageSidebar from '~/components/PdfPageSidebar.vue'
+import { useEventListener } from "@vueuse/core"
+import PdfPageSidebar from "~/components/PdfPageSidebar.vue"
 
 // Default test PDF - using a sample PDF from PDF.js demo
 // Replace with your own PDF path: "/sample.pdf" if you add one to /public folder
-const pdfString = ref<string>(
-  "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf"
-)
+// const pdfString = ref<string>(
+//   "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf"
+// )
+const pdfString = ref<string>("/house.pdf")
 
 // Load PDF from file input
 function handleFileUpload(event: Event) {
@@ -157,8 +158,8 @@ onMounted(() => {
 })
 
 // Keyboard event listeners using VueUse for automatic cleanup
-useEventListener(window, 'keydown', handleKeyDown)
-useEventListener(window, 'keyup', handleKeyUp)
+useEventListener(window, "keydown", handleKeyDown)
+useEventListener(window, "keyup", handleKeyUp)
 
 // Tool list
 const tools = [
@@ -183,11 +184,9 @@ const annotationCount = computed(() => annotationStore.annotations.length)
     <div class="pdf-editor" :class="{ 'sidebar-open': sidebarOpen }">
       <!-- Header -->
       <div class="header">
-        <button class="sidebar-toggle-btn" title="Toggle page sidebar" @click="toggleSidebar">
-          ☰
-        </button>
+        <button class="sidebar-toggle-btn" title="Toggle page sidebar" @click="toggleSidebar">☰</button>
         <h1>PDF Annotation Editor (Minimal)</h1>
-        <input type="file" accept="application/pdf" @change="handleFileUpload" >
+        <input type="file" accept="application/pdf" @change="handleFileUpload" />
         <span class="count">{{ annotationCount }} annotations</span>
       </div>
 
@@ -239,7 +238,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
           title="Enter drawing scale (e.g., 1:50, 1:100, 1:200)"
           @blur="updatePdfScale"
           @keyup.enter="updatePdfScale"
-        >
+        />
         <span class="scale-hint">{{ settingsStore.getPdfScale }}</span>
       </div>
 

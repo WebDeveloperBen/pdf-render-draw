@@ -43,10 +43,19 @@ const {
         class="area-polygon"
       />
 
-      <!-- Label background -->
-      <rect :x="area.center.x - 40" :y="area.center.y - 12" width="80" height="24" fill="white" opacity="0.95" rx="4" />
+      <!-- Label background with rotation -->
+      <rect
+        :x="area.center.x - 40"
+        :y="area.center.y - 12"
+        width="80"
+        height="24"
+        fill="white"
+        opacity="0.95"
+        rx="4"
+        :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
+      />
 
-      <!-- Label -->
+      <!-- Label with rotation -->
       <text
         :x="area.center.x"
         :y="area.center.y"
@@ -56,6 +65,7 @@ const {
         text-anchor="middle"
         dominant-baseline="middle"
         class="area-label"
+        :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
       >
         {{ area.area }}m²
       </text>

@@ -106,6 +106,7 @@ describe('Annotation Store', () => {
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
+        labelRotation: 0,
       }
 
       store.addAnnotation(page1Text)
@@ -286,6 +287,7 @@ describe('Annotation Store', () => {
         ],
         distance: 3528, // Calculated distance at 1:100 scale (100 PDF points = 3528mm)
         midpoint: { x: 50, y: 0 }, // Original midpoint
+        labelRotation: 0,
       }
 
       store.addAnnotation(measurement)
@@ -323,6 +325,7 @@ describe('Annotation Store', () => {
         ],
         area: 12.45, // Original area at 1:100 scale
         center: { x: 50, y: 50 }, // Original center
+        labelRotation: 0,
       }
 
       store.addAnnotation(area)
@@ -381,6 +384,7 @@ describe('Annotation Store', () => {
         ],
         totalLength: 12045,
         center: { x: 66.67, y: 33.33 },
+        labelRotation: 0,
       }
 
       store.addAnnotation(perimeter)

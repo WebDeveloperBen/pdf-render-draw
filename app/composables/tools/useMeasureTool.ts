@@ -4,6 +4,7 @@ import { createInjectionState } from "@vueuse/core"
 
 const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => {
   const settingsStore = useSettingStore()
+  const rendererStore = useRendererStore()
 
   const tool = useDrawingTool<Measurement>({
     type: "measure",
@@ -19,7 +20,8 @@ const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => 
       return {
         points: [start, end],
         distance,
-        midpoint
+        midpoint,
+        labelRotation: -rendererStore.rotation // Counter-rotate to appear upright in viewport
       }
     },
 

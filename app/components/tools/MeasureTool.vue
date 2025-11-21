@@ -45,7 +45,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, s
         class="measurement-line"
       />
 
-      <!-- Label background -->
+      <!-- Label background with rotation -->
       <rect
         :x="measure.midpoint.x - 30"
         :y="measure.midpoint.y - 10"
@@ -54,9 +54,10 @@ const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, s
         fill="white"
         opacity="0.9"
         rx="3"
+        :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
       />
 
-      <!-- Label -->
+      <!-- Label with rotation -->
       <text
         :x="measure.midpoint.x"
         :y="measure.midpoint.y"
@@ -66,6 +67,7 @@ const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, s
         text-anchor="middle"
         dominant-baseline="middle"
         class="measurement-label"
+        :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
       >
         {{ measure.distance }}mm
       </text>
