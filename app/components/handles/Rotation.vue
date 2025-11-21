@@ -72,7 +72,6 @@ const containerStyle = computed(() => {
 
 // Corner positions
 const corners = computed(() => {
-  const size = 32
   const offset = -16 // Half of size to center
   return [
     {
@@ -184,7 +183,7 @@ function stopRotation() {
 }
 
 // Mouse move to show handles
-function handleMouseMove(e: MouseEvent) {
+function handleMouseMove(_e: MouseEvent) {
   // Already handled by container visibility
 }
 

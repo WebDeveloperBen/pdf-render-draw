@@ -3,6 +3,9 @@
  * Simple PDF Viewer - no Konva, no old stores
  */
 import type { PDFDocumentLoadingTask } from "pdfjs-dist"
+import { RENDERING } from "~/constants/rendering"
+import { ERROR_COLORS, BUTTON_COLORS } from "~/constants/ui"
+import { debugLog, debugError } from "~/utils/debug"
 
 const props = defineProps<{
   pdf?: PDFDocumentLoadingTask
@@ -12,8 +15,13 @@ const rendererStore = useRendererStore()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 // Track current render task to allow cancellation
-const currentRenderTask = ref<any>(null)
+const currentRenderTask = ref<{ cancel: () => void } | null>(null)
+const abortController = ref<AbortController | null>(null)
 const isRendering = ref(false)
+
+// Error handling state
+const renderError = ref<string | null>(null)
+const retryCount = ref(0)
 
 const canvasStyle = computed(() => ({
   position: "absolute" as const,
@@ -26,7 +34,7 @@ const canvasStyle = computed(() => ({
 }))
 
 async function renderPage(pageNum: number, renderScale?: number) {
-  console.debug("renderPage called:", {
+  debugLog("SimplePdfViewer", "renderPage called:", {
     pageNum,
     renderScale,
     hasPdf: !!props.pdf,
@@ -35,41 +43,55 @@ async function renderPage(pageNum: number, renderScale?: number) {
   })
 
   if (!props.pdf || !canvasRef.value) {
-    console.debug("renderPage early return - missing pdf or canvas")
+    debugLog("SimplePdfViewer", "renderPage early return - missing pdf or canvas")
     return
   }
 
-  // Wait if already rendering
-  if (isRendering.value) {
-    console.log("Already rendering, waiting...")
-    // Cancel the current task and wait a bit
+  // Cancel any ongoing render operation
+  if (abortController.value) {
+    debugLog("SimplePdfViewer", "Aborting previous render operation")
+    abortController.value.abort()
+
     if (currentRenderTask.value) {
       try {
         currentRenderTask.value.cancel()
       } catch (e) {
-        console.debug("Error cancelling render task:", e)
+        debugLog("SimplePdfViewer", "Error cancelling render task:", e)
       }
-      currentRenderTask.value = null
-    }
-    // Wait for the rendering flag to clear
-    await new Promise(resolve => setTimeout(resolve, 50))
-    if (isRendering.value) {
-      console.log("Still rendering after wait, aborting")
-      return
     }
   }
+
+  // Create new abort controller for this render
+  abortController.value = new AbortController()
+  const signal = abortController.value.signal
+
+  // Clear any previous errors
+  renderError.value = null
 
   // Set rendering flag
   isRendering.value = true
 
   try {
-    console.debug("Getting PDF document from promise...")
+    debugLog("SimplePdfViewer", "Getting PDF document from promise...")
     const pdfDoc = await props.pdf.promise
-    console.debug("Got PDF doc, getting page", pageNum)
+
+    // Check if aborted
+    if (signal.aborted) {
+      debugLog("SimplePdfViewer", "Render aborted after PDF load")
+      return
+    }
+
+    debugLog("SimplePdfViewer", "Got PDF doc, getting page", pageNum)
     const page = await pdfDoc.getPage(pageNum)
 
+    // Check if aborted
+    if (signal.aborted) {
+      debugLog("SimplePdfViewer", "Render aborted after page load")
+      return
+    }
+
     // Use device pixel ratio AND current zoom scale for crisp rendering
-    const dpr = window.devicePixelRatio || 1
+    const dpr = window.devicePixelRatio || RENDERING.DEFAULT_DEVICE_PIXEL_RATIO
     const currentScale = renderScale ?? rendererStore.getScale
 
     // Render at higher resolution based on zoom level
@@ -78,7 +100,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
     const renderDpr = dpr * currentScale
     const viewport = page.getViewport({ scale: renderDpr })
 
-    console.log("Viewport created:", {
+    debugLog("SimplePdfViewer", "Viewport created:", {
       width: viewport.width,
       height: viewport.height,
       dpr,
@@ -108,7 +130,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
     canvasRef.value.style.width = `${logicalViewport.width}px`
     canvasRef.value.style.height = `${logicalViewport.height}px`
 
-    console.debug("Starting PDF render...")
+    debugLog("SimplePdfViewer", "Starting PDF render...")
     const renderTask = page.render({
       canvasContext: context,
       viewport,
@@ -123,24 +145,54 @@ async function renderPage(pageNum: number, renderScale?: number) {
     // Clear the render task when complete
     currentRenderTask.value = null
 
-    console.debug("PDF rendered successfully:", {
+    // Reset retry count on success
+    retryCount.value = 0
+
+    debugLog("SimplePdfViewer", "PDF rendered successfully:", {
       bufferWidth: viewport.width,
       bufferHeight: viewport.height,
       displayWidth: logicalViewport.width,
       displayHeight: logicalViewport.height,
       scale: currentScale
     })
-  } catch (e: any) {
-    // Ignore cancellation errors
-    if (e?.name === 'RenderingCancelledException') {
-      console.log("Render was cancelled (expected)")
+  } catch (e: unknown) {
+    // Ignore abort/cancellation errors
+    const error = e as { name?: string }
+    if (error?.name === 'RenderingCancelledException' || error?.name === 'AbortError' || signal.aborted) {
+      debugLog("SimplePdfViewer", "Render was cancelled (expected)")
       return
     }
-    console.error("Failed to render PDF:", e)
+
+    debugError("SimplePdfViewer", "Failed to render PDF:", e)
+
+    // Retry logic
+    if (retryCount.value < RENDERING.MAX_RETRIES) {
+      retryCount.value++
+      debugLog("SimplePdfViewer", `Retrying render (${retryCount.value}/${RENDERING.MAX_RETRIES})...`)
+
+      // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, RENDERING.RETRY_BASE_DELAY_MS * retryCount.value))
+
+      // Don't retry if aborted during backoff
+      if (signal.aborted) {
+        return
+      }
+
+      // Retry render
+      return renderPage(pageNum, renderScale)
+    }
+
+    // Max retries exceeded - show error to user
+    renderError.value = `Failed to render page ${pageNum}. ${e.message || 'Unknown error'}`
   } finally {
     // Always clear rendering flag
     isRendering.value = false
     currentRenderTask.value = null
+
+    // Clear abort controller if this was the active one
+    if (abortController.value?.signal === signal) {
+      abortController.value = null
+    }
   }
 }
 
@@ -150,19 +202,19 @@ let scaleDebounceTimer: ReturnType<typeof setTimeout> | null = null
 watch(
   () => props.pdf,
   async (newPdf) => {
-    console.log("🔍 PDF WATCH TRIGGERED - newPdf:", !!newPdf, "canvas:", !!canvasRef.value)
+    debugLog("SimplePdfViewer", "PDF WATCH TRIGGERED - newPdf:", !!newPdf, "canvas:", !!canvasRef.value)
 
     if (!newPdf) return
 
     // Store PDF document and total pages (don't need canvas for this)
-    console.log('⏳ Waiting for PDF promise...')
+    debugLog("SimplePdfViewer", "Waiting for PDF promise...")
     const pdfDoc = await newPdf.promise
-    console.log('✅ PDF loaded, storing in renderer store:', pdfDoc)
+    debugLog("SimplePdfViewer", "PDF loaded, storing in renderer store:", pdfDoc)
     // Use markRaw to prevent Vue from making the PDF document reactive
     // PDF.js uses private fields that break when wrapped in a Proxy
     rendererStore.setDocumentProxy(markRaw(pdfDoc))
     rendererStore.setTotalPages(pdfDoc.numPages)
-    console.log('✅ PDF document stored, total pages:', pdfDoc.numPages)
+    debugLog("SimplePdfViewer", "PDF document stored, total pages:", pdfDoc.numPages)
 
     // Render page if canvas is ready
     if (canvasRef.value) {
@@ -176,7 +228,7 @@ watch(
 watch(
   () => rendererStore.getCurrentPage,
   async (newPage) => {
-    console.log("Page changed:", newPage)
+    debugLog("SimplePdfViewer", "Page changed:", newPage)
     if (props.pdf && canvasRef.value) {
       await renderPage(newPage)
     }
@@ -187,7 +239,7 @@ watch(
 watch(
   () => rendererStore.getScale,
   async (newScale) => {
-    console.log("Scale changed:", newScale)
+    debugLog("SimplePdfViewer", "Scale changed:", newScale)
 
     // Debounce re-rendering to avoid too many renders during continuous zoom
     if (scaleDebounceTimer) {
@@ -198,14 +250,14 @@ watch(
       if (props.pdf && canvasRef.value) {
         await renderPage(rendererStore.getCurrentPage, newScale)
       }
-    }, 100) // Wait 100ms after user stops zooming (reduced for faster response)
+    }, RENDERING.SCALE_DEBOUNCE_MS)
   }
 )
 
 // Note: No need to watch rotation - it's applied via CSS transform, no re-render needed
 
 onMounted(async () => {
-  console.debug("SimplePdfViewer mounted:", {
+  debugLog("SimplePdfViewer", "SimplePdfViewer mounted:", {
     hasPdf: !!props.pdf,
     hasCanvas: !!canvasRef.value
   })
@@ -216,6 +268,12 @@ onMounted(async () => {
   }
 })
 
+function handleRetry() {
+  retryCount.value = 0
+  renderError.value = null
+  renderPage(rendererStore.getCurrentPage)
+}
+
 onUnmounted(() => {
   if (scaleDebounceTimer) {
     clearTimeout(scaleDebounceTimer)
@@ -225,6 +283,16 @@ onUnmounted(() => {
 
 <template>
   <div class="pdf-viewer">
+    <!-- Error overlay with retry button -->
+    <div v-if="renderError" class="error-overlay">
+      <div class="error-content">
+        <p class="error-message">{{ renderError }}</p>
+        <button class="retry-btn" @click="handleRetry">
+          Retry
+        </button>
+      </div>
+    </div>
+
     <canvas ref="canvasRef" class="pdf-canvas" :style="canvasStyle" />
   </div>
 </template>
@@ -241,5 +309,50 @@ onUnmounted(() => {
     0 4px 12px rgba(0, 0, 0, 0.15),
     0 12px 32px rgba(0, 0, 0, 0.2);
   background: white;
+}
+
+.error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: v-bind('ERROR_COLORS.BACKGROUND');
+  z-index: 1000;
+}
+
+.error-content {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.error-message {
+  margin: 0 0 16px 0;
+  color: v-bind('ERROR_COLORS.TEXT');
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  padding: 8px 24px;
+  background: v-bind('BUTTON_COLORS.PRIMARY');
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: v-bind('BUTTON_COLORS.PRIMARY_HOVER');
 }
 </style>

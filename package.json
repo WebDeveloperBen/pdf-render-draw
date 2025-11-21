@@ -10,10 +10,13 @@
     "postinstall": "nuxt prepare",
     "generate-api": "orval",
     "clean-api": "orval --clean",
+    "lint": "eslint . --fix",
     "format": "npx prettier --write '**/*.{ts,tsx,vue, js}'"
   },
   "dependencies": {
+    "@nuxt/eslint": "1.10.0",
     "@pinia/nuxt": "0.11.3",
+    "eslint": "^9.39.1",
     "nuxt": "^4.2.1",
     "pdfjs-dist": "^5.4.394",
     "pinia": "^3.0.4",
@@ -26,6 +29,7 @@
     "@types/uuid": "^11.0.0",
     "@vueuse/core": "^14.0.0",
     "@vueuse/nuxt": "^14.0.0",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.12"
   },
   "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"

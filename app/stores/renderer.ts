@@ -1,4 +1,5 @@
 import type { PDFDocumentProxy } from "pdfjs-dist"
+import { RENDERING } from "~/constants/rendering"
 
 export const useRendererStore = defineStore("renderer", () => {
   /**
@@ -49,20 +50,36 @@ export const useRendererStore = defineStore("renderer", () => {
    * Actions
    */
 
+  /**
+   * Set scale with validation and clamping
+   * @param newScale - The new scale value
+   */
   const setScale = (newScale: number) => {
-    // Clamp scale between 0.1 and 5
-    scale.value = Math.max(0.1, Math.min(5, newScale))
+    if (typeof newScale !== 'number' || isNaN(newScale)) {
+      console.warn('Invalid scale value:', newScale)
+      return
+    }
+    // Clamp scale between min and max
+    scale.value = Math.max(RENDERING.MIN_SCALE, Math.min(RENDERING.MAX_SCALE, newScale))
   }
 
   const zoomIn = () => {
-    setScale(scale.value * 1.25) // 25% zoom in
+    setScale(scale.value * RENDERING.ZOOM_FACTOR)
   }
 
   const zoomOut = () => {
-    setScale(scale.value / 1.25) // 25% zoom out
+    setScale(scale.value / RENDERING.ZOOM_FACTOR)
   }
 
+  /**
+   * Set rotation with validation
+   * @param deg - Rotation in degrees
+   */
   const setRotation = (deg: number) => {
+    if (typeof deg !== 'number' || isNaN(deg)) {
+      console.warn('Invalid rotation value:', deg)
+      return
+    }
     // Normalize to 0-360 range
     rotation.value = ((deg % 360) + 360) % 360
   }
@@ -86,12 +103,58 @@ export const useRendererStore = defineStore("renderer", () => {
     setCurrentPage(1)
     setPdfInitialised(false)
   }
-  const setCanvasPos = (pos: { scrollTop: number; scrollLeft: number }) => (canvasPos.value = pos)
+  /**
+   * Set canvas position with validation
+   * @param pos - Object containing scrollTop and scrollLeft
+   */
+  const setCanvasPos = (pos: { scrollTop: number; scrollLeft: number }) => {
+    if (
+      typeof pos.scrollTop !== 'number' ||
+      typeof pos.scrollLeft !== 'number' ||
+      isNaN(pos.scrollTop) ||
+      isNaN(pos.scrollLeft)
+    ) {
+      console.warn('Invalid canvas position:', pos)
+      return
+    }
+    canvasPos.value = pos
+  }
   const setDocumentProxy = (doc: PDFDocumentProxy | undefined) => (DocumentProxy.value = doc)
   const setPDFLoadingState = (state: PdfLoadingState) => (pdfLoadingState.value = state)
   const setTotalPages = (pages: number) => (totalPages.value = pages)
-  const setCanvasSize = (size: { width: number; height: number }) => (pdfCanvasSize.value = size)
-  const setCurrentPage = (page: number) => (currentPage.value = page)
+  /**
+   * Set canvas size with validation
+   * @param size - Object containing width and height
+   */
+  const setCanvasSize = (size: { width: number; height: number }) => {
+    if (
+      typeof size.width !== 'number' ||
+      typeof size.height !== 'number' ||
+      isNaN(size.width) ||
+      isNaN(size.height) ||
+      size.width < 0 ||
+      size.height < 0
+    ) {
+      console.warn('Invalid canvas size:', size)
+      return
+    }
+    pdfCanvasSize.value = size
+  }
+  /**
+   * Set current page with validation
+   * @param page - Page number (1-indexed)
+   */
+  const setCurrentPage = (page: number) => {
+    if (typeof page !== 'number' || isNaN(page) || page < 1) {
+      console.warn('Invalid page number:', page)
+      return
+    }
+    if (totalPages.value > 0 && page > totalPages.value) {
+      console.warn(`Page ${page} exceeds total pages ${totalPages.value}`)
+      return
+    }
+    currentPage.value = page
+  }
   const setPdfInitialised = (init: boolean) => (pdfInitialised.value = init)
 
   return {

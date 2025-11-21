@@ -24,7 +24,6 @@ import { debugLog } from '~/utils/debug'
 const annotationStore = useAnnotationStore()
 const rendererStore = useRendererStore()
 
-const handleSize = 12
 const colorBlueDarker = COLORS.SELECTION_BLUE_DARKER
 
 // Show handles when rotate tool is active
@@ -74,12 +73,6 @@ const startRotation = ref(0)
 const lastRotation = ref(0)
 const lastMouseAngle = ref(0)
 const accumulatedRotation = ref(0)
-
-function getRotationIconPath(cx: number, cy: number): string {
-  const r = 6
-  return `M ${cx - r} ${cy - r}
-          A ${r} ${r} 0 1 1 ${cx + r} ${cy - r}`
-}
 
 function startRotate(e: MouseEvent, cornerIndex: number) {
   isDragging.value = true

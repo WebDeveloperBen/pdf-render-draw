@@ -5,19 +5,19 @@
 
 export const DEBUG = import.meta.env.DEV
 
-export function debugLog(context: string, ...args: any[]) {
+export function debugLog(context: string, ...args: unknown[]) {
   if (DEBUG) {
     console.log(`[${context}]`, ...args)
   }
 }
 
-export function debugWarn(context: string, ...args: any[]) {
+export function debugWarn(context: string, ...args: unknown[]) {
   if (DEBUG) {
     console.warn(`[${context}]`, ...args)
   }
 }
 
-export function debugError(context: string, ...args: any[]) {
+export function debugError(context: string, ...args: unknown[]) {
   if (DEBUG) {
     console.error(`[${context}]`, ...args)
   }

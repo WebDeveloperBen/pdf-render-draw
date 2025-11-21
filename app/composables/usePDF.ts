@@ -3,23 +3,55 @@ import PDFWorker from "pdfjs-dist/build/pdf.worker.min?url"
 
 import type { PDFDocumentLoadingTask } from "pdfjs-dist"
 import type { UsePDFOptions, UsePDFSrc } from "../types/pdf"
+import { debugError } from "~/utils/debug"
 
 // Configuration for PDF.js worker
 let isWorkerConfigured = false
 
+/**
+ * Configure PDF.js Web Worker for background PDF parsing
+ *
+ * Sets up the PDF.js worker once globally to offload CPU-intensive
+ * PDF parsing to a separate thread. Only configures on first call
+ * and only in browser environment.
+ *
+ * @param workerSrc - URL or path to the PDF.js worker script
+ * @internal
+ */
 function configWorker(workerSrc: string) {
   if (!isWorkerConfigured && typeof window !== 'undefined') {
     PDFJS.GlobalWorkerOptions.workerPort = new Worker(workerSrc, { type: "module" })
-    // PDFJS.GlobalWorkerOptions.workerSrc = workerSrc
     isWorkerConfigured = true
   }
 }
 
 /**
- * Main function to use PDF.
- * @param {UsePDFSrc | Ref<UsePDFSrc>} src - The source of the PDF.
- * @param {UsePDFOptions} options - The options for the PDF.
- * @returns An object containing refs to the PDF, total pages, and page images.
+ * Composable for loading and managing PDF documents
+ *
+ * Wraps PDF.js functionality in a reactive Vue composable. Automatically
+ * configures the Web Worker for background parsing and provides reactive
+ * refs for the PDF document and metadata.
+ *
+ * Supports both static and reactive PDF sources - if a ref is passed,
+ * the PDF will automatically reload when the ref changes.
+ *
+ * @param src - PDF source as URL string, TypedArray, or reactive ref
+ * @param options - Optional callbacks for progress and error handling
+ * @param options.onProgress - Called with loading progress updates
+ * @param options.onError - Called if PDF loading fails
+ * @returns Object containing reactive refs for pdf and totalPages
+ *
+ * @example
+ * // Static PDF URL
+ * const { pdf, totalPages } = usePDF('/document.pdf')
+ *
+ * @example
+ * // Reactive PDF URL
+ * const pdfUrl = ref('/document.pdf')
+ * const { pdf, totalPages } = usePDF(pdfUrl, {
+ *   onProgress: (progress) => console.log(`${progress.loaded}/${progress.total}`),
+ *   onError: (error) => console.error('Failed to load PDF:', error)
+ * })
  */
 export function usePDF(
   src: UsePDFSrc | Ref<UsePDFSrc>,
@@ -33,6 +65,11 @@ export function usePDF(
   const pdf: Ref<PDFDocumentLoadingTask | null> = ref(null)
   const totalPages: Ref<number> = ref(0)
 
+  /**
+   * Process a PDF loading task with progress and error handling
+   * @param source - PDF source to load
+   * @internal
+   */
   function processLoadingTask(source: UsePDFSrc) {
     if (!source) return
     const loadingTask = PDFJS.getDocument(source)
@@ -49,7 +86,7 @@ export function usePDF(
         if (typeof options.onError === "function") {
           options.onError(error)
         }
-        console.error(error)
+        debugError("usePDF", "PDF loading error:", error)
       }
     )
   }

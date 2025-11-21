@@ -26,8 +26,8 @@
         :y1="measure.points[0].y"
         :x2="measure.points[1].x"
         :y2="measure.points[1].y"
-        :stroke="settings.measureStrokeColor"
-        :stroke-width="settings.measureStrokeWidth"
+        :stroke="settings.measureToolSettings.strokeColor"
+        :stroke-width="settings.measureToolSettings.strokeWidth"
         class="measurement-line"
       />
 
@@ -46,9 +46,9 @@
       <text
         :x="measure.midpoint.x"
         :y="measure.midpoint.y"
-        :fill="settings.measureLabelColor"
-        :font-size="settings.measureLabelSize"
-        :font-weight="settings.measureLabelStrokeStyle === 'bold' ? 'bold' : 'normal'"
+        :fill="settings.measureToolSettings.labelColor"
+        :font-size="settings.measureToolSettings.labelSize"
+        :font-weight="settings.measureToolSettings.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
         text-anchor="middle"
         dominant-baseline="middle"
         class="measurement-label"
@@ -66,13 +66,13 @@
         :cy="tempEndPoint.y"
         r="4"
         fill="none"
-        :stroke="settings.measureStrokeColor"
+        :stroke="settings.measureToolSettings.strokeColor"
         stroke-width="2"
         opacity="0.6"
       />
 
       <!-- After first click -->
-      <g v-if="isDrawing && points.length === 1">
+      <g v-if="isDrawing && points.length === 1 && points[0] && tempEndPoint">
         <!-- Start point marker -->
         <circle
           :cx="points[0].x"
@@ -90,8 +90,8 @@
           :y1="points[0].y"
           :x2="tempEndPoint.x"
           :y2="tempEndPoint.y"
-          :stroke="settings.measureStrokeColor"
-          :stroke-width="settings.measureStrokeWidth"
+          :stroke="settings.measureToolSettings.strokeColor"
+          :stroke-width="settings.measureToolSettings.strokeWidth"
           stroke-dasharray="5,5"
           opacity="0.7"
         />

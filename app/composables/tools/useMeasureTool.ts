@@ -4,7 +4,6 @@ import { calculateDistance, calculateMidpoint } from '~/utils/calculations'
 import { createInjectionState } from '@vueuse/core'
 
 const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => {
-  const rendererStore = useRendererStore()
   const settingsStore = useSettingStore()
 
   const tool = useDrawingTool<Measurement>({
@@ -13,7 +12,8 @@ const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => 
     canClose: false,
 
     calculate: (points: Point[]) => {
-      const [start, end] = points
+      const start = points[0]!
+      const end = points[1]!
       const distance = calculateDistance(
         start,
         end,
@@ -40,7 +40,7 @@ const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => 
     }
 
     return calculateDistance(
-      tool.points.value[0],
+      tool.points.value[0]!,
       tool.tempEndPoint.value,
       settingsStore.getPdfScale
     )

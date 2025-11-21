@@ -57,7 +57,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
       base.startDrawing(point)
     } else {
       const pointToAdd = e.shiftKey
-        ? base.snapTo45Degrees(base.points.value[base.points.value.length - 1], point)
+        ? base.snapTo45Degrees(base.points.value[base.points.value.length - 1]!, point)
         : point
 
       debugLog(`${config.type}Tool`, 'Adding point:', pointToAdd)
@@ -80,7 +80,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
       return
     }
 
-    const lastPoint = base.points.value[base.points.value.length - 1]
+    const lastPoint = base.points.value[base.points.value.length - 1]!
 
     const snappedPoint = e.shiftKey && lastPoint
       ? base.snapTo45Degrees(lastPoint, point)

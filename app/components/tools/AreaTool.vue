@@ -12,10 +12,10 @@
       <!-- Polygon -->
       <polygon
         :points="toSvgPoints(area.points)"
-        :fill="settings.areaFillColor"
-        :fill-opacity="settings.areaOpacity"
-        :stroke="settings.areaStrokeColor"
-        :stroke-width="settings.areaStrokeWidth"
+        :fill="settings.areaToolSettings.fillColor"
+        :fill-opacity="settings.areaToolSettings.opacity"
+        :stroke="settings.areaToolSettings.strokeColor"
+        :stroke-width="settings.areaToolSettings.strokeWidth"
         class="area-polygon"
       />
 
@@ -34,8 +34,8 @@
       <text
         :x="area.center.x"
         :y="area.center.y"
-        :fill="settings.areaLabelColor"
-        :font-size="settings.areaLabelSize"
+        :fill="settings.areaToolSettings.labelColor"
+        :font-size="settings.areaToolSettings.labelSize"
         font-weight="bold"
         text-anchor="middle"
         dominant-baseline="middle"
@@ -54,7 +54,7 @@
         :cy="tempEndPoint.y"
         r="4"
         fill="none"
-        :stroke="settings.areaStrokeColor"
+        :stroke="settings.areaToolSettings.strokeColor"
         stroke-width="2"
         opacity="0.6"
       />
@@ -67,7 +67,7 @@
           :cx="point.x"
           :cy="point.y"
           :r="index === 0 ? 6 : 5"
-          :fill="index === 0 ? 'green' : settings.areaStrokeColor"
+          :fill="index === 0 ? 'green' : settings.areaToolSettings.strokeColor"
           :stroke="'white'"
           :stroke-width="2"
           class="point-marker"
@@ -76,41 +76,44 @@
         <!-- Draw lines between placed points -->
         <g v-if="points.length > 0">
         <!-- Lines connecting placed points -->
-        <line
-          v-for="(point, index) in points.slice(0, -1)"
-          :key="`line-${index}`"
-          :x1="point.x"
-          :y1="point.y"
-          :x2="points[index + 1].x"
-          :y2="points[index + 1].y"
-          :stroke="settings.areaStrokeColor"
-          :stroke-width="settings.areaStrokeWidth"
-          stroke-dasharray="5,5"
-          opacity="0.8"
-        />
+        <template v-for="(point, index) in points.slice(0, -1)" :key="`line-${index}`">
+          <line
+            v-if="points[index + 1]"
+            :x1="point.x"
+            :y1="point.y"
+            :x2="points[index + 1]?.x ?? 0"
+            :y2="points[index + 1]?.y ?? 0"
+            :stroke="settings.areaToolSettings.strokeColor"
+            :stroke-width="settings.areaToolSettings.strokeWidth"
+            stroke-dasharray="5,5"
+            opacity="0.8"
+          />
+        </template>
 
         <!-- Line from last point to cursor -->
-        <line
-          v-if="tempEndPoint"
-          :x1="points[points.length - 1].x"
-          :y1="points[points.length - 1].y"
-          :x2="tempEndPoint.x"
-          :y2="tempEndPoint.y"
-          :stroke="settings.areaStrokeColor"
-          :stroke-width="settings.areaStrokeWidth"
-          stroke-dasharray="5,5"
-          opacity="0.8"
-        />
+        <template v-if="tempEndPoint && points.length > 0">
+          <line
+            v-if="points[points.length - 1]"
+            :x1="points[points.length - 1]?.x ?? 0"
+            :y1="points[points.length - 1]?.y ?? 0"
+            :x2="tempEndPoint.x"
+            :y2="tempEndPoint.y"
+            :stroke="settings.areaToolSettings.strokeColor"
+            :stroke-width="settings.areaToolSettings.strokeWidth"
+            stroke-dasharray="5,5"
+            opacity="0.8"
+          />
+        </template>
 
         <!-- Preview closing line when hovering near start -->
         <line
-          v-if="tempEndPoint && points.length >= 2"
+          v-if="tempEndPoint && points.length >= 2 && points[0]"
           :x1="tempEndPoint.x"
           :y1="tempEndPoint.y"
           :x2="points[0].x"
           :y2="points[0].y"
-          :stroke="settings.areaStrokeColor"
-          :stroke-width="settings.areaStrokeWidth"
+          :stroke="settings.areaToolSettings.strokeColor"
+          :stroke-width="settings.areaToolSettings.strokeWidth"
           stroke-dasharray="5,5"
           opacity="0.5"
         />
@@ -120,14 +123,14 @@
         <polygon
           v-if="previewPolygon"
           :points="previewPolygon"
-          :fill="settings.areaFillColor"
-          :fill-opacity="settings.areaOpacity * 0.3"
+          :fill="settings.areaToolSettings.fillColor"
+          :fill-opacity="settings.areaToolSettings.opacity * 0.3"
           fill-rule="evenodd"
           pointer-events="none"
         />
 
         <!-- Snap to close indicator -->
-        <g v-if="canSnapToClose && points.length > 0">
+        <g v-if="canSnapToClose && points.length > 0 && points[0]">
         <circle
           :cx="points[0].x"
           :cy="points[0].y"
@@ -150,9 +153,9 @@
 
         <!-- Preview area -->
         <text
-          v-if="previewArea && points.length >= 2"
-          :x="(points[0].x + points[points.length - 1].x) / 2"
-          :y="(points[0].y + points[points.length - 1].y) / 2"
+          v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
+          :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
+          :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2"
           fill="blue"
           font-size="12"
           text-anchor="middle"

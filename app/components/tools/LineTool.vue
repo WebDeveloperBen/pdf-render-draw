@@ -12,27 +12,29 @@
       <!-- Polyline for multi-segment lines -->
       <polyline
         :points="toSvgPoints(line.points)"
-        :stroke="settings.lineStrokeColor"
-        :stroke-width="settings.lineStrokeWidth"
+        :stroke="settings.lineToolSettings.strokeColor"
+        :stroke-width="settings.lineToolSettings.strokeWidth"
         fill="none"
         class="line-path"
       />
 
       <!-- Start point marker -->
       <circle
+        v-if="line.points[0]"
         :cx="line.points[0].x"
         :cy="line.points[0].y"
         r="4"
-        :fill="settings.lineStrokeColor"
+        :fill="settings.lineToolSettings.strokeColor"
         class="start-marker"
       />
 
       <!-- End point marker -->
       <circle
-        :cx="line.points[line.points.length - 1].x"
-        :cy="line.points[line.points.length - 1].y"
+        v-if="line.points[line.points.length - 1]"
+        :cx="line.points[line.points.length - 1]?.x ?? 0"
+        :cy="line.points[line.points.length - 1]?.y ?? 0"
         r="4"
-        :fill="settings.lineStrokeColor"
+        :fill="settings.lineToolSettings.strokeColor"
         class="end-marker"
       />
     </g>
@@ -46,7 +48,7 @@
         :cy="tempEndPoint.y"
         r="4"
         fill="none"
-        :stroke="settings.lineStrokeColor"
+        :stroke="settings.lineToolSettings.strokeColor"
         stroke-width="2"
         opacity="0.6"
       />
@@ -57,8 +59,8 @@
       <polyline
         v-if="points.length >= 1"
         :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
-        :stroke="settings.lineStrokeColor"
-        :stroke-width="settings.lineStrokeWidth"
+        :stroke="settings.lineToolSettings.strokeColor"
+        :stroke-width="settings.lineToolSettings.strokeWidth"
         fill="none"
         stroke-dasharray="5,5"
         opacity="0.7"
@@ -71,7 +73,7 @@
         :cx="point.x"
         :cy="point.y"
         r="4"
-        :fill="settings.lineStrokeColor"
+        :fill="settings.lineToolSettings.strokeColor"
       />
 
       <!-- Temp end point indicator -->

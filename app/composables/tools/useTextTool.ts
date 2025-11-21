@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid'
 export function useTextTool() {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
-  const settings = useSettingStore()
 
   const completed = computed(() =>
     annotationStore.getAnnotationsByType('text') as TextAnnotation[]

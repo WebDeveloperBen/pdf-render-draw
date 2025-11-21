@@ -11,7 +11,7 @@ export type LoadedEventPayload = PageViewport
 
 export interface AnnotationEventPayload {
   type: string
-  data: any
+  data: unknown
 }
 
 export interface WatermarkOptions {
@@ -24,8 +24,8 @@ export interface WatermarkOptions {
 
 export type OnProgressCallback = (progressData: OnProgressParameters) => void
 export type UpdatePasswordFn = (newPassword: string) => void
-export type OnPasswordCallback = (updatePassword: UpdatePasswordFn, reason: any) => void
-export type OnErrorCallback = (error: any) => void
+export type OnPasswordCallback = (updatePassword: UpdatePasswordFn, reason: unknown) => void
+export type OnErrorCallback = (error: unknown) => void
 
 export type UsePDFSrc =
   | string
@@ -44,7 +44,7 @@ export interface UsePDFOptions {
 }
 
 export interface UsePDFInfoMetadata {
-  info: Object
+  info: object
   metadata: Metadata
 }
 
@@ -59,7 +59,7 @@ export interface PopupArgs {
 }
 
 export interface LinkAnnotation {
-  dest: Array<any> | string
+  dest: unknown[] | string
   url: string
   unsafeurl: string
 }

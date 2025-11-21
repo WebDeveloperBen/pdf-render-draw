@@ -25,11 +25,11 @@
 
     <!-- Selection marquee (drag-to-select rectangle) -->
     <rect
-      v-if="selectionMarquee.isDrawing && selectionMarquee.marqueeBounds"
-      :x="selectionMarquee.marqueeBounds.x"
-      :y="selectionMarquee.marqueeBounds.y"
-      :width="selectionMarquee.marqueeBounds.width"
-      :height="selectionMarquee.marqueeBounds.height"
+      v-if="selectionMarquee.isDrawing && selectionMarquee.marqueeBounds.value"
+      :x="selectionMarquee.marqueeBounds.value.x"
+      :y="selectionMarquee.marqueeBounds.value.y"
+      :width="selectionMarquee.marqueeBounds.value.width"
+      :height="selectionMarquee.marqueeBounds.value.height"
       :fill="SELECTION.MARQUEE_FILL"
       :stroke="SELECTION.MARQUEE_STROKE"
       :stroke-width="SELECTION.MARQUEE_STROKE_WIDTH"
@@ -44,13 +44,13 @@
 </template>
 
 <script setup lang="ts">
+import { useEventListener } from "@vueuse/core"
 import MeasureTool from "~/components/tools/MeasureTool.vue"
 import AreaTool from "~/components/tools/AreaTool.vue"
 import PerimeterTool from "~/components/tools/PerimeterTool.vue"
 import LineTool from "~/components/tools/LineTool.vue"
 import FillTool from "~/components/tools/FillTool.vue"
 import TextTool from "~/components/tools/TextTool.vue"
-import PdfRotateHandles from "~/components/handles/PdfRotateHandles.vue"
 import { SELECTION } from "~/constants/ui"
 import { debugLog } from "~/utils/debug"
 
@@ -247,13 +247,8 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => {
-  window.addEventListener("keydown", handleKeyDown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown)
-})
+// Keyboard event listener using VueUse for automatic cleanup
+useEventListener(window, "keydown", handleKeyDown)
 </script>
 
 <style scoped>

@@ -6,6 +6,7 @@
  * No auth, no DB, no persistence - just pure rendering.
  */
 
+import { useEventListener } from '@vueuse/core'
 import PdfPageSidebar from '~/components/PdfPageSidebar.vue'
 
 // Default test PDF - using a sample PDF from PDF.js demo
@@ -150,16 +151,14 @@ watch(
   }
 )
 
+// Set initial tool on mount
 onMounted(() => {
   annotationStore.setActiveTool("measure")
-  window.addEventListener("keydown", handleKeyDown)
-  window.addEventListener("keyup", handleKeyUp)
 })
 
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown)
-  window.removeEventListener("keyup", handleKeyUp)
-})
+// Keyboard event listeners using VueUse for automatic cleanup
+useEventListener(window, 'keydown', handleKeyDown)
+useEventListener(window, 'keyup', handleKeyUp)
 
 // Tool list
 const tools = [
@@ -179,16 +178,16 @@ const annotationCount = computed(() => annotationStore.annotations.length)
 <template>
   <PdfEditorProvider>
     <!-- Page Sidebar -->
-    <PdfPageSidebar :isOpen="sidebarOpen" @close="sidebarOpen = false" />
+    <PdfPageSidebar :is-open="sidebarOpen" @close="sidebarOpen = false" />
 
     <div class="pdf-editor" :class="{ 'sidebar-open': sidebarOpen }">
       <!-- Header -->
       <div class="header">
-        <button class="sidebar-toggle-btn" @click="toggleSidebar" title="Toggle page sidebar">
+        <button class="sidebar-toggle-btn" title="Toggle page sidebar" @click="toggleSidebar">
           ☰
         </button>
         <h1>PDF Annotation Editor (Minimal)</h1>
-        <input type="file" accept="application/pdf" @change="handleFileUpload" />
+        <input type="file" accept="application/pdf" @change="handleFileUpload" >
         <span class="count">{{ annotationCount }} annotations</span>
       </div>
 
@@ -198,16 +197,16 @@ const annotationCount = computed(() => annotationStore.annotations.length)
           v-for="tool in tools"
           :key="tool.id"
           :class="['tool-btn', { active: annotationStore.activeTool === tool.id }]"
-          @click="annotationStore.setActiveTool(tool.id)"
           :title="tool.name"
+          @click="annotationStore.setActiveTool(tool.id)"
         >
           {{ tool.icon }} {{ tool.name }}
         </button>
 
         <button
           :class="['tool-btn', { active: annotationStore.activeTool === 'selection' }]"
-          @click="annotationStore.setActiveTool('selection')"
           title="Selection"
+          @click="annotationStore.setActiveTool('selection')"
         >
           🔍 Select
         </button>
@@ -215,18 +214,18 @@ const annotationCount = computed(() => annotationStore.annotations.length)
 
       <!-- Zoom Controls -->
       <div class="zoom-controls">
-        <button @click="rendererStore.zoomOut()" title="Zoom Out (Ctrl + Scroll)">−</button>
+        <button title="Zoom Out (Ctrl + Scroll)" @click="rendererStore.zoomOut()">−</button>
         <span>{{ Math.round(rendererStore.getScale * 100) }}%</span>
-        <button @click="rendererStore.zoomIn()" title="Zoom In (Ctrl + Scroll)">+</button>
-        <button @click="rendererStore.resetPageScale()" title="Reset Zoom">100%</button>
+        <button title="Zoom In (Ctrl + Scroll)" @click="rendererStore.zoomIn()">+</button>
+        <button title="Reset Zoom" @click="rendererStore.resetPageScale()">100%</button>
       </div>
 
       <!-- Rotation Controls -->
       <div class="rotation-controls">
-        <button @click="rendererStore.rotateCounterClockwise()" title="Rotate Left (90°)">↶</button>
+        <button title="Rotate Left (90°)" @click="rendererStore.rotateCounterClockwise()">↶</button>
         <span>{{ rendererStore.getRotation }}°</span>
-        <button @click="rendererStore.rotateClockwise()" title="Rotate Right (90°)">↷</button>
-        <button @click="rendererStore.resetRotation()" title="Reset Rotation">0°</button>
+        <button title="Rotate Right (90°)" @click="rendererStore.rotateClockwise()">↷</button>
+        <button title="Reset Rotation" @click="rendererStore.resetRotation()">0°</button>
       </div>
 
       <!-- PDF Scale Controls -->
@@ -237,27 +236,27 @@ const annotationCount = computed(() => annotationStore.annotations.length)
           v-model="scaleInput"
           type="text"
           placeholder="1:100"
+          title="Enter drawing scale (e.g., 1:50, 1:100, 1:200)"
           @blur="updatePdfScale"
           @keyup.enter="updatePdfScale"
-          title="Enter drawing scale (e.g., 1:50, 1:100, 1:200)"
-        />
+        >
         <span class="scale-hint">{{ settingsStore.getPdfScale }}</span>
       </div>
 
       <!-- Page Navigation Controls -->
       <div class="page-controls">
         <button
-          @click="rendererStore.setCurrentPage(rendererStore.getCurrentPage - 1)"
           :disabled="rendererStore.getCurrentPage <= 1"
           title="Previous Page"
+          @click="rendererStore.setCurrentPage(rendererStore.getCurrentPage - 1)"
         >
           ‹
         </button>
         <span>Page {{ rendererStore.getCurrentPage }} / {{ rendererStore.getTotalPages }}</span>
         <button
-          @click="rendererStore.setCurrentPage(rendererStore.getCurrentPage + 1)"
           :disabled="rendererStore.getCurrentPage >= rendererStore.getTotalPages"
           title="Next Page"
+          @click="rendererStore.setCurrentPage(rendererStore.getCurrentPage + 1)"
         >
           ›
         </button>

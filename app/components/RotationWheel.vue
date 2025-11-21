@@ -112,7 +112,7 @@
           @input="handleAngleInput"
           @keydown.enter="hideWheel"
           @keydown.esc="hideWheel"
-        />
+        >
         <span class="angle-unit">°</span>
       </div>
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Annotation } from '~/types/annotations'
+import { validateAnnotation } from '~/types/annotations'
 
 export const useAnnotationStore = defineStore('annotations', () => {
   // ============================================
@@ -40,15 +41,36 @@ export const useAnnotationStore = defineStore('annotations', () => {
   // Actions
   // ============================================
 
+  /**
+   * Add a new annotation with validation
+   * @throws {Error} If annotation is invalid
+   */
   function addAnnotation(annotation: Annotation) {
+    if (!validateAnnotation(annotation)) {
+      console.error('Invalid annotation:', annotation)
+      throw new Error(`Invalid annotation: missing or malformed data`)
+    }
     annotations.value.push(annotation)
   }
 
+  /**
+   * Update an existing annotation with validation
+   * @throws {Error} If updated annotation is invalid
+   */
   function updateAnnotation(id: string, updates: Partial<Annotation>) {
     const index = annotations.value.findIndex(a => a.id === id)
-    if (index !== -1) {
-      annotations.value[index] = { ...annotations.value[index], ...updates }
+    if (index === -1) {
+      console.warn(`Annotation with id ${id} not found`)
+      return
     }
+
+    const updated = { ...annotations.value[index], ...updates }
+    if (!validateAnnotation(updated)) {
+      console.error('Invalid annotation update:', updated)
+      throw new Error(`Invalid annotation update for id ${id}`)
+    }
+
+    annotations.value[index] = updated
   }
 
   function deleteAnnotation(id: string) {
@@ -67,7 +89,15 @@ export const useAnnotationStore = defineStore('annotations', () => {
     isDrawing.value = false
   }
 
+  /**
+   * Select an annotation
+   * @param id - Annotation ID or null to deselect
+   */
   function selectAnnotation(id: string | null) {
+    if (id !== null && !annotations.value.some(a => a.id === id)) {
+      console.warn(`Cannot select annotation ${id}: not found`)
+      return
+    }
     selectedAnnotationId.value = id
     if (id !== null) {
       activeTool.value = 'selection'
@@ -80,7 +110,17 @@ export const useAnnotationStore = defineStore('annotations', () => {
     isDrawing.value = false
   }
 
+  /**
+   * Set all annotations (replaces current set)
+   * @throws {Error} If any annotation is invalid
+   */
   function setAnnotations(newAnnotations: Annotation[]) {
+    // Validate all annotations before setting
+    const invalidAnnotations = newAnnotations.filter(ann => !validateAnnotation(ann))
+    if (invalidAnnotations.length > 0) {
+      console.error('Invalid annotations found:', invalidAnnotations)
+      throw new Error(`Cannot set annotations: ${invalidAnnotations.length} invalid annotation(s)`)
+    }
     annotations.value = newAnnotations
   }
 
@@ -105,13 +145,13 @@ export const useAnnotationStore = defineStore('annotations', () => {
   }
 
   async function loadAnnotations(documentUrl: string) {
-    const { data } = await $fetch<{ data: any[] }>('/api/annotations/fetch', {
+    const { data } = await $fetch<{ data: Array<{ data: Annotation }> }>('/api/annotations/fetch', {
       method: 'POST',
       body: { documentSlug: documentUrl },
     })
 
     // Data is already in the right format - NO DENORMALIZATION!
-    annotations.value = data.map(item => item.data as Annotation)
+    annotations.value = data.map(item => item.data)
   }
 
   // ============================================
@@ -122,12 +162,27 @@ export const useAnnotationStore = defineStore('annotations', () => {
     return JSON.stringify(annotations.value, null, 2)
   }
 
+  /**
+   * Import annotations from JSON with validation
+   * @throws {Error} If JSON is invalid or contains invalid annotations
+   */
   function importFromJSON(jsonString: string) {
     try {
       const imported = JSON.parse(jsonString) as Annotation[]
+
+      // Validate all imported annotations
+      const invalidAnnotations = imported.filter(ann => !validateAnnotation(ann))
+      if (invalidAnnotations.length > 0) {
+        console.error('Invalid annotations in import:', invalidAnnotations)
+        throw new Error(`Import contains ${invalidAnnotations.length} invalid annotation(s)`)
+      }
+
       annotations.value = imported
     } catch (error) {
       console.error('Failed to import annotations:', error)
+      if (error instanceof Error) {
+        throw error
+      }
       throw new Error('Invalid JSON format')
     }
   }

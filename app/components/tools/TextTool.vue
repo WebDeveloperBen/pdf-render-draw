@@ -105,7 +105,6 @@ const {
   editingId,
   editingContent,
   handleDoubleClick,
-  updateText,
   finishEditing,
   deleteText,
 } = useTextTool()

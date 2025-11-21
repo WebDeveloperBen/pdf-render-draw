@@ -15,8 +15,8 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
       // Calculate segments for closed perimeter
       const segments: PerimeterSegment[] = []
       for (let i = 0; i < points.length; i++) {
-        const start = points[i]
-        const end = points[(i + 1) % points.length]
+        const start = points[i]!
+        const end = points[(i + 1) % points.length]!
 
         segments.push({
           start,
@@ -52,8 +52,8 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
 
     // Completed segments
     for (let i = 0; i < tool.points.value.length - 1; i++) {
-      const start = tool.points.value[i]
-      const end = tool.points.value[i + 1]
+      const start = tool.points.value[i]!
+      const end = tool.points.value[i + 1]!
 
       segments.push({
         start,
@@ -65,7 +65,7 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
 
     // Temp segment to cursor
     if (tool.tempEndPoint.value) {
-      const lastPoint = tool.points.value[tool.points.value.length - 1]
+      const lastPoint = tool.points.value[tool.points.value.length - 1]!
       segments.push({
         start: lastPoint,
         end: tool.tempEndPoint.value,

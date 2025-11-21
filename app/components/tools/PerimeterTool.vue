@@ -12,10 +12,10 @@
       <!-- Polygon -->
       <polygon
         :points="toSvgPoints(perimeter.points)"
-        :fill="settings.perimeterFillColor"
-        :fill-opacity="settings.perimeterOpacity"
-        :stroke="settings.perimeterStrokeColor"
-        :stroke-width="settings.perimeterStrokeWidth"
+        :fill="settings.perimeterToolSettings.fillColor"
+        :fill-opacity="settings.perimeterToolSettings.opacity"
+        :stroke="settings.perimeterToolSettings.strokeColor"
+        :stroke-width="settings.perimeterToolSettings.strokeWidth"
         class="perimeter-polygon"
       />
 
@@ -36,8 +36,8 @@
         <text
           :x="segment.midpoint.x"
           :y="segment.midpoint.y"
-          :fill="settings.perimeterLabelColor"
-          :font-size="settings.perimeterLabelSize"
+          :fill="settings.perimeterToolSettings.labelColor"
+          :font-size="settings.perimeterToolSettings.labelSize"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
@@ -60,8 +60,8 @@
       <text
         :x="perimeter.center.x"
         :y="perimeter.center.y"
-        :fill="settings.perimeterLabelColor"
-        :font-size="settings.perimeterLabelSize + 2"
+        :fill="settings.perimeterToolSettings.labelColor"
+        :font-size="settings.perimeterToolSettings.labelSize + 2"
         font-weight="bold"
         text-anchor="middle"
         dominant-baseline="middle"
@@ -80,7 +80,7 @@
         :cy="tempEndPoint.y"
         r="4"
         fill="none"
-        :stroke="settings.perimeterStrokeColor"
+        :stroke="settings.perimeterToolSettings.strokeColor"
         stroke-width="2"
         opacity="0.6"
       />
@@ -94,7 +94,7 @@
         :cx="point.x"
         :cy="point.y"
         :r="index === 0 ? 6 : 5"
-        :fill="index === 0 ? 'green' : settings.perimeterStrokeColor"
+        :fill="index === 0 ? 'green' : settings.perimeterToolSettings.strokeColor"
         :stroke="'white'"
         :stroke-width="2"
         class="point-marker"
@@ -104,10 +104,10 @@
       <polygon
         v-if="points.length >= 2"
         :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
-        :fill="settings.perimeterFillColor"
-        :fill-opacity="settings.perimeterOpacity * 0.5"
-        :stroke="settings.perimeterStrokeColor"
-        :stroke-width="settings.perimeterStrokeWidth"
+        :fill="settings.perimeterToolSettings.fillColor"
+        :fill-opacity="settings.perimeterToolSettings.opacity * 0.5"
+        :stroke="settings.perimeterToolSettings.strokeColor"
+        :stroke-width="settings.perimeterToolSettings.strokeWidth"
         stroke-dasharray="5,5"
       />
 
@@ -118,8 +118,8 @@
           :y1="segment.start.y"
           :x2="segment.end.x"
           :y2="segment.end.y"
-          :stroke="settings.perimeterStrokeColor"
-          :stroke-width="settings.perimeterStrokeWidth"
+          :stroke="settings.perimeterToolSettings.strokeColor"
+          :stroke-width="settings.perimeterToolSettings.strokeWidth"
           :stroke-dasharray="idx === previewSegments.length - 1 ? '5,5' : '0'"
         />
 
@@ -149,7 +149,7 @@
       </g>
 
       <!-- Snap to close indicator -->
-      <g v-if="canSnapToClose && points.length > 0">
+      <g v-if="canSnapToClose && points.length > 0 && points[0]">
         <circle
           :cx="points[0].x"
           :cy="points[0].y"

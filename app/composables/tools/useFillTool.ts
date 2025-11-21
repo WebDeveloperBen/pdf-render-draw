@@ -29,8 +29,8 @@ export function useFillTool() {
       pageNum: rendererStore.currentPage,
       x: point.x,
       y: point.y,
-      color: settings.fillFillColor,
-      opacity: settings.fillOpacity,
+      color: settings.fillToolSettings.fillColor,
+      opacity: settings.fillToolSettings.opacity,
     }
 
     annotationStore.addAnnotation(fill)

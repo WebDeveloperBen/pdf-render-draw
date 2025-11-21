@@ -6,7 +6,7 @@
  */
 
 import type { Point } from '~/types'
-import { calculateBounds, boundsIntersect, type Bounds } from '~/utils/bounds'
+import { calculateBounds, boundsIntersect } from '~/utils/bounds'
 import { useSvgCoordinates } from '~/composables/useSvgCoordinates'
 
 export function useSelectionMarquee() {
@@ -76,7 +76,7 @@ export function useSelectionMarquee() {
 
     // Select the first one for now (multi-select coming later)
     if (selectedIds.length > 0) {
-      annotationStore.selectAnnotation(selectedIds[0])
+      annotationStore.selectAnnotation(selectedIds[0]!)
     }
 
     // Reset marquee

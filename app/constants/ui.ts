@@ -30,5 +30,25 @@ export const SELECTION = {
 } as const
 
 export const HIT_AREA = {
-  THIN_LINE_WIDTH: 15, // Invisible hit area for thin lines
+  THIN_LINE_WIDTH: 15, // Invisible hit area for thin lines (PDF points)
+} as const
+
+export const CURSOR = {
+  DEFAULT: 'default',
+  GRAB: 'grab',
+  GRABBING: 'grabbing',
+  CROSSHAIR: 'crosshair',
+  POINTER: 'pointer',
+  MOVE: 'move',
+  RESIZE: 'nwse-resize',
+} as const
+
+export const ERROR_COLORS = {
+  TEXT: '#d32f2f',
+  BACKGROUND: 'rgba(0, 0, 0, 0.8)',
+} as const
+
+export const BUTTON_COLORS = {
+  PRIMARY: '#1976d2',
+  PRIMARY_HOVER: '#1565c0',
 } as const

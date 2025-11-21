@@ -96,3 +96,111 @@ export function isFill(ann: Annotation): ann is Fill {
 export function isText(ann: Annotation): ann is TextAnnotation {
   return ann.type === 'text'
 }
+
+/**
+ * Runtime validation functions
+ * These check data integrity beyond just type checking
+ */
+
+export function isValidPoint(point: unknown): point is Point {
+  return (
+    typeof point === 'object' &&
+    point !== null &&
+    'x' in point &&
+    'y' in point &&
+    typeof (point as Point).x === 'number' &&
+    typeof (point as Point).y === 'number' &&
+    !isNaN((point as Point).x) &&
+    !isNaN((point as Point).y)
+  )
+}
+
+export function validateAnnotation(ann: unknown): ann is Annotation {
+  if (typeof ann !== 'object' || ann === null) return false
+
+  const base = ann as BaseAnnotation
+
+  // Validate base properties
+  if (!base.id || typeof base.id !== 'string') return false
+  if (!base.type || typeof base.type !== 'string') return false
+  if (typeof base.pageNum !== 'number' || base.pageNum < 1) return false
+
+  // Type-specific validation
+  switch (base.type) {
+    case 'measure': {
+      const m = ann as Measurement
+      return (
+        Array.isArray(m.points) &&
+        m.points.length === 2 &&
+        m.points.every(isValidPoint) &&
+        typeof m.distance === 'number' &&
+        m.distance >= 0 &&
+        isValidPoint(m.midpoint)
+      )
+    }
+
+    case 'area': {
+      const a = ann as Area
+      return (
+        Array.isArray(a.points) &&
+        a.points.length >= 3 &&
+        a.points.every(isValidPoint) &&
+        typeof a.area === 'number' &&
+        a.area >= 0 &&
+        isValidPoint(a.center)
+      )
+    }
+
+    case 'perimeter': {
+      const p = ann as Perimeter
+      return (
+        Array.isArray(p.points) &&
+        p.points.length >= 3 &&
+        p.points.every(isValidPoint) &&
+        Array.isArray(p.segments) &&
+        p.segments.length > 0 &&
+        typeof p.totalLength === 'number' &&
+        p.totalLength >= 0 &&
+        isValidPoint(p.center)
+      )
+    }
+
+    case 'line': {
+      const l = ann as Line
+      return (
+        Array.isArray(l.points) &&
+        l.points.length >= 2 &&
+        l.points.every(isValidPoint)
+      )
+    }
+
+    case 'fill': {
+      const f = ann as Fill
+      return (
+        typeof f.x === 'number' &&
+        typeof f.y === 'number' &&
+        typeof f.color === 'string' &&
+        typeof f.opacity === 'number' &&
+        f.opacity >= 0 &&
+        f.opacity <= 1
+      )
+    }
+
+    case 'text': {
+      const t = ann as TextAnnotation
+      return (
+        typeof t.x === 'number' &&
+        typeof t.y === 'number' &&
+        typeof t.width === 'number' &&
+        typeof t.height === 'number' &&
+        typeof t.content === 'string' &&
+        typeof t.fontSize === 'number' &&
+        t.fontSize > 0 &&
+        typeof t.color === 'string'
+      )
+    }
+
+    default:
+      return false
+  }
+}

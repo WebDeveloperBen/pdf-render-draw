@@ -71,14 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Annotation } from "~/types/annotations"
 import { TRANSFORM, COLORS } from "~/constants/ui"
 import { calculateBounds, type Bounds } from "~/utils/bounds"
 import { useSvgCoordinates } from "~/composables/useSvgCoordinates"
 import { debugLog } from "~/utils/debug"
 
 const annotationStore = useAnnotationStore()
-const rendererStore = useRendererStore()
 const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
@@ -188,7 +186,7 @@ function handleResize(deltaX: number, deltaY: number) {
   const isBottom = handle === "corner-2" || handle === "corner-3"
 
   // Calculate new bounds based on corner drag
-  let newBounds = { ...originalBounds.value }
+  const newBounds = { ...originalBounds.value }
 
   if (isLeft) {
     newBounds.x += deltaX
