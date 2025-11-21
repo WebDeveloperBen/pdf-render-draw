@@ -1,10 +1,6 @@
 <template>
   <g class="text-tool">
-    <g
-      v-for="text in completed"
-      :key="text.id"
-      class="text-annotation-group"
-    >
+    <g v-for="text in completed" :key="text.id" class="text-annotation-group">
       <!-- Non-editing mode: display text -->
       <g v-if="editingId !== text.id">
         <!-- Background for better readability -->
@@ -38,13 +34,7 @@
 
         <!-- Delete button (shown on hover) -->
         <g class="delete-button" @click.stop="deleteText(text.id)">
-          <circle
-            :cx="text.x + text.width + 15"
-            :cy="text.y - text.fontSize / 2"
-            r="8"
-            fill="red"
-            opacity="0.8"
-          />
+          <circle :cx="text.x + text.width + 15" :cy="text.y - text.fontSize / 2" r="8" fill="red" opacity="0.8" />
           <line
             :x1="text.x + text.width + 15 - 4"
             :y1="text.y - text.fontSize / 2 - 4"
@@ -71,21 +61,28 @@
         :y="text.y - text.fontSize - 2"
         :width="text.width + 10"
         :height="text.height + 4"
-        style="pointer-events: all;"
+        style="pointer-events: all"
         @click.stop
         @mousedown.stop
       >
         <div xmlns="http://www.w3.org/1999/xhtml" class="text-editor-wrapper">
           <textarea
-            :ref="el => { if (el) { nextTick(() => (el as HTMLTextAreaElement).focus()); (el as HTMLTextAreaElement).select() } }"
+            :ref="(el) => {
+              if (el && editingId === text.id) {
+                $nextTick(() => {
+                  const textarea = el as HTMLTextAreaElement
+                  textarea.focus()
+                  textarea.select()
+                })
+              }
+            }"
             v-model="editingContent"
             class="text-editor"
-            autofocus
             :style="{
               fontSize: text.fontSize + 'px',
               color: text.color,
               width: text.width + 'px',
-              height: text.height + 'px',
+              height: text.height + 'px'
             }"
             @blur="finishEditing"
             @keydown.enter.exact.prevent="finishEditing"
@@ -100,14 +97,7 @@
 </template>
 
 <script setup lang="ts">
-const {
-  completed,
-  editingId,
-  editingContent,
-  handleDoubleClick,
-  finishEditing,
-  deleteText,
-} = useTextTool()
+const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText } = useTextTool()
 </script>
 
 <style scoped>
