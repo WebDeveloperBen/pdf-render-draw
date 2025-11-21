@@ -1,25 +1,5 @@
-<template>
-  <Teleport to="body">
-    <div v-if="showHandles">
-      <div
-        v-for="(corner, index) in screenCorners"
-        :key="`rotate-${index}`"
-        class="rotate-handle"
-        :style="{
-          left: `${corner.x}px`,
-          top: `${corner.y}px`,
-          background: isDragging && activeCorner === index ? colorBlueDarker : 'white',
-          border: `3px solid ${COLORS.SELECTION_BLUE}`,
-        }"
-        @mousedown.stop="startRotate($event, index)"
-      />
-    </div>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
-import { COLORS } from '~/constants/ui'
-import { debugLog } from '~/utils/debug'
+import { COLORS } from "~/constants/ui"
 
 const annotationStore = useAnnotationStore()
 const rendererStore = useRendererStore()
@@ -27,7 +7,7 @@ const rendererStore = useRendererStore()
 const colorBlueDarker = COLORS.SELECTION_BLUE_DARKER
 
 // Show handles when rotate tool is active
-const showHandles = computed(() => annotationStore.activeTool === 'rotate')
+const showHandles = computed(() => annotationStore.activeTool === "rotate")
 
 // Use shared corner calculation logic
 const { screenCorners, center } = useRotatedPdfCorners()
@@ -41,8 +21,8 @@ const lastMouseAngle = ref(0)
 const accumulatedRotation = ref(0)
 
 // Set up event listeners with auto-cleanup
-useEventListener(window, 'mousemove', handleRotate, { passive: false })
-useEventListener(window, 'mouseup', endRotate)
+useEventListener(window, "mousemove", handleRotate, { passive: false })
+useEventListener(window, "mouseup", endRotate)
 
 function startRotate(e: MouseEvent, cornerIndex: number) {
   isDragging.value = true
@@ -57,7 +37,7 @@ function startRotate(e: MouseEvent, cornerIndex: number) {
   startMouseAngle.value = initialAngle
   lastMouseAngle.value = initialAngle
 
-  debugLog('PdfRotateHandles', 'Start rotate:', { cornerIndex, startAngle: initialAngle * (180 / Math.PI) })
+  debugLog("PdfRotateHandles", "Start rotate:", { cornerIndex, startAngle: initialAngle * (180 / Math.PI) })
 
   e.preventDefault()
   e.stopPropagation()
@@ -102,19 +82,37 @@ function handleRotate(e: MouseEvent) {
   // Update rotation in store
   rendererStore.setRotation(smoothedRotation)
 
-  debugLog('PdfRotateHandles', 'Rotating:', {
+  debugLog("PdfRotateHandles", "Rotating:", {
     deltaDegrees: deltaDegrees.toFixed(1),
     newRotation: smoothedRotation.toFixed(1)
   })
 }
 
 function endRotate() {
-  debugLog('PdfRotateHandles', 'End rotate, final rotation:', rendererStore.rotation)
+  debugLog("PdfRotateHandles", "End rotate, final rotation:", rendererStore.rotation)
 
   isDragging.value = false
   activeCorner.value = null
 }
 </script>
+<template>
+  <Teleport to="body">
+    <div v-if="showHandles">
+      <div
+        v-for="(corner, index) in screenCorners"
+        :key="`rotate-${index}`"
+        class="rotate-handle"
+        :style="{
+          left: `${corner.x}px`,
+          top: `${corner.y}px`,
+          background: isDragging && activeCorner === index ? colorBlueDarker : 'white',
+          border: `3px solid ${COLORS.SELECTION_BLUE}`
+        }"
+        @mousedown.stop="startRotate($event, index)"
+      />
+    </div>
+  </Teleport>
+</template>
 
 <style scoped>
 .rotate-handle {
@@ -127,7 +125,9 @@ function endRotate() {
   pointer-events: all;
   /* Center the handle on the calculated position */
   transform: translate(-50%, -50%);
-  transition: transform 0.15s, background 0.15s;
+  transition:
+    transform 0.15s,
+    background 0.15s;
 }
 
 .rotate-handle:hover {

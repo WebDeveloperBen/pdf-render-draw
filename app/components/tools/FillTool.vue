@@ -1,11 +1,10 @@
+<script setup lang="ts">
+const { completed, deleteFill } = useFillTool()
+</script>
 <template>
   <g class="fill-tool">
     <!-- Completed fill points -->
-    <g
-      v-for="fill in completed"
-      :key="fill.id"
-      class="fill-point-group"
-    >
+    <g v-for="fill in completed" :key="fill.id" class="fill-point-group">
       <!-- Outer ring for visibility -->
       <circle
         :cx="fill.x"
@@ -31,30 +30,12 @@
       <!-- Delete indicator on hover -->
       <g class="delete-indicator">
         <!-- X symbol -->
-        <line
-          :x1="fill.x - 3"
-          :y1="fill.y - 3"
-          :x2="fill.x + 3"
-          :y2="fill.y + 3"
-          stroke="white"
-          stroke-width="2"
-        />
-        <line
-          :x1="fill.x + 3"
-          :y1="fill.y - 3"
-          :x2="fill.x - 3"
-          :y2="fill.y + 3"
-          stroke="white"
-          stroke-width="2"
-        />
+        <line :x1="fill.x - 3" :y1="fill.y - 3" :x2="fill.x + 3" :y2="fill.y + 3" stroke="white" stroke-width="2" />
+        <line :x1="fill.x + 3" :y1="fill.y - 3" :x2="fill.x - 3" :y2="fill.y + 3" stroke="white" stroke-width="2" />
       </g>
     </g>
   </g>
 </template>
-
-<script setup lang="ts">
-const { completed, deleteFill } = useFillTool()
-</script>
 
 <style scoped>
 .fill-point-group {

@@ -1,7 +1,3 @@
-<template>
-  <slot />
-</template>
-
 <script setup lang="ts">
 /**
  * PDF Editor Feature Provider
@@ -21,7 +17,10 @@ const modifierKeys = useProvideModifierKeys()
 
 // Set up global keyboard listeners when PDF editor is active
 // Auto-cleanup on component unmount via useEventListener
-useEventListener(window, 'keydown', modifierKeys.handleKeyDown)
-useEventListener(window, 'keyup', modifierKeys.handleKeyUp)
-useEventListener(window, 'blur', modifierKeys.resetAll)
+useEventListener(window, "keydown", modifierKeys.handleKeyDown)
+useEventListener(window, "keyup", modifierKeys.handleKeyUp)
+useEventListener(window, "blur", modifierKeys.resetAll)
 </script>
+<template>
+  <slot />
+</template>

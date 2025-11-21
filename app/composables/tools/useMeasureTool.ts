@@ -1,36 +1,31 @@
-import type { Measurement } from '~/types/annotations'
-import type { Point } from '~/types'
-import { calculateDistance, calculateMidpoint } from '~/utils/calculations'
-import { createInjectionState } from '@vueuse/core'
+import type { Measurement } from "~/types/annotations"
+import type { Point } from "~/types"
+import { createInjectionState } from "@vueuse/core"
 
 const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => {
   const settingsStore = useSettingStore()
 
   const tool = useDrawingTool<Measurement>({
-    type: 'measure',
+    type: "measure",
     minPoints: 2,
     canClose: false,
 
     calculate: (points: Point[]) => {
       const start = points[0]!
       const end = points[1]!
-      const distance = calculateDistance(
-        start,
-        end,
-        settingsStore.getPdfScale
-      )
+      const distance = calculateDistance(start, end, settingsStore.getPdfScale)
       const midpoint = calculateMidpoint(start, end)
 
       return {
         points: [start, end],
         distance,
-        midpoint,
+        midpoint
       }
     },
 
     onCreate: async (measurement) => {
-      console.log('Measurement created:', measurement)
-    },
+      console.log("Measurement created:", measurement)
+    }
   })
 
   // Computed for preview
@@ -39,16 +34,12 @@ const [useProvideMeasureTool, useMeasureToolState] = createInjectionState(() => 
       return null
     }
 
-    return calculateDistance(
-      tool.points.value[0]!,
-      tool.tempEndPoint.value,
-      settingsStore.getPdfScale
-    )
+    return calculateDistance(tool.points.value[0]!, tool.tempEndPoint.value, settingsStore.getPdfScale)
   })
 
   return {
     ...tool,
-    previewDistance,
+    previewDistance
   }
 })
 

@@ -190,7 +190,8 @@ async function renderPage(pageNum: number, renderScale?: number) {
     }
 
     // Max retries exceeded - show error to user
-    renderError.value = `Failed to render page ${pageNum}. ${e.message || 'Unknown error'}`
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    renderError.value = `Failed to render page ${pageNum}. ${errorMessage}`
   } finally {
     // Always clear rendering flag
     isRendering.value = false

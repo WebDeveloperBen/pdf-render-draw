@@ -1,48 +1,3 @@
-<template>
-  <svg
-    ref="svgRef"
-    :viewBox="`0 0 ${pdfWidth} ${pdfHeight}`"
-    :style="svgStyle"
-    class="svg-annotation-layer"
-    @click="handleClick"
-    @mousedown="handleMouseDown"
-    @mousemove="handleMove"
-    @mouseup="handleMouseUp"
-    @mouseleave="handleMouseLeave"
-    @dblclick="handleDoubleClick"
-  >
-    <!-- Render active tool + all completed annotations -->
-    <MeasureTool
-      v-if="annotationStore.activeTool === 'measure' || annotationStore.getAnnotationsByType('measure').length > 0"
-    />
-    <AreaTool v-if="annotationStore.activeTool === 'area' || annotationStore.getAnnotationsByType('area').length > 0" />
-    <PerimeterTool
-      v-if="annotationStore.activeTool === 'perimeter' || annotationStore.getAnnotationsByType('perimeter').length > 0"
-    />
-    <LineTool v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0" />
-    <FillTool v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0" />
-    <TextTool v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0" />
-
-    <!-- Selection marquee (drag-to-select rectangle) -->
-    <rect
-      v-if="selectionMarquee.isDrawing && selectionMarquee.marqueeBounds.value"
-      :x="selectionMarquee.marqueeBounds.value.x"
-      :y="selectionMarquee.marqueeBounds.value.y"
-      :width="selectionMarquee.marqueeBounds.value.width"
-      :height="selectionMarquee.marqueeBounds.value.height"
-      :fill="SELECTION.MARQUEE_FILL"
-      :stroke="SELECTION.MARQUEE_STROKE"
-      :stroke-width="SELECTION.MARQUEE_STROKE_WIDTH"
-      :stroke-dasharray="SELECTION.MARQUEE_DASH_ARRAY"
-      class="selection-marquee"
-      pointer-events="none"
-    />
-
-    <!-- Transform handles for selected annotation -->
-    <HandlesTransform />
-  </svg>
-</template>
-
 <script setup lang="ts">
 import { useEventListener } from "@vueuse/core"
 import MeasureTool from "~/components/tools/MeasureTool.vue"
@@ -250,6 +205,51 @@ function handleKeyDown(e: KeyboardEvent) {
 // Keyboard event listener using VueUse for automatic cleanup
 useEventListener(window, "keydown", handleKeyDown)
 </script>
+
+<template>
+  <svg
+    ref="svgRef"
+    :viewBox="`0 0 ${pdfWidth} ${pdfHeight}`"
+    :style="svgStyle"
+    class="svg-annotation-layer"
+    @click="handleClick"
+    @mousedown="handleMouseDown"
+    @mousemove="handleMove"
+    @mouseup="handleMouseUp"
+    @mouseleave="handleMouseLeave"
+    @dblclick="handleDoubleClick"
+  >
+    <!-- Render active tool + all completed annotations -->
+    <MeasureTool
+      v-if="annotationStore.activeTool === 'measure' || annotationStore.getAnnotationsByType('measure').length > 0"
+    />
+    <AreaTool v-if="annotationStore.activeTool === 'area' || annotationStore.getAnnotationsByType('area').length > 0" />
+    <PerimeterTool
+      v-if="annotationStore.activeTool === 'perimeter' || annotationStore.getAnnotationsByType('perimeter').length > 0"
+    />
+    <LineTool v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0" />
+    <FillTool v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0" />
+    <TextTool v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0" />
+
+    <!-- Selection marquee (drag-to-select rectangle) -->
+    <rect
+      v-if="selectionMarquee.isDrawing && selectionMarquee.marqueeBounds.value"
+      :x="selectionMarquee.marqueeBounds.value.x"
+      :y="selectionMarquee.marqueeBounds.value.y"
+      :width="selectionMarquee.marqueeBounds.value.width"
+      :height="selectionMarquee.marqueeBounds.value.height"
+      :fill="SELECTION.MARQUEE_FILL"
+      :stroke="SELECTION.MARQUEE_STROKE"
+      :stroke-width="SELECTION.MARQUEE_STROKE_WIDTH"
+      :stroke-dasharray="SELECTION.MARQUEE_DASH_ARRAY"
+      class="selection-marquee"
+      pointer-events="none"
+    />
+
+    <!-- Transform handles for selected annotation -->
+    <HandlesTransform />
+  </svg>
+</template>
 
 <style scoped>
 .svg-annotation-layer {

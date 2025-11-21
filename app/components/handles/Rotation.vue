@@ -1,41 +1,3 @@
-<template>
-  <div v-if="showHandles" class="rotation-handles" :style="containerStyle" @mousemove="handleMouseMove">
-    <!-- Corner rotation handles -->
-    <div
-      v-for="corner in corners"
-      :key="corner.position"
-      class="rotation-handle"
-      :class="{ active: isDragging && activeCorner === corner.position }"
-      :style="corner.style"
-      @mousedown.stop="startRotation($event, corner.position)"
-    >
-      <div class="handle-icon">
-        <svg width="20" height="20" viewBox="0 0 20 20">
-          <path
-            d="M10 2 L10 6 M10 14 L10 18 M2 10 L6 10 M14 10 L18 10"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5" />
-        </svg>
-      </div>
-    </div>
-
-    <!-- Center indicator (rotation origin) -->
-    <div class="rotation-center" :style="centerStyle">
-      <div class="center-dot" />
-    </div>
-
-    <!-- Angle display -->
-    <div v-if="isDragging" class="angle-display" :style="angleDisplayStyle">
-      <div class="angle-value">{{ Math.round(currentAngle) }}°</div>
-      <div v-if="modifierKeys.isShiftPressed" class="angle-hint">15° snap</div>
-      <div v-else class="angle-hint">45° snap</div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
@@ -68,9 +30,9 @@ watch(
 // Container positioning - no longer used as container, just for reference
 const containerStyle = computed(() => {
   return {
-    position: 'fixed' as const,
-    inset: '0',
-    pointerEvents: 'none' as const
+    position: "fixed" as const,
+    inset: "0",
+    pointerEvents: "none" as const
   }
 })
 
@@ -81,10 +43,10 @@ const corners = computed(() => {
   return screenCorners.value.map((corner, index) => ({
     position: positions[index]!,
     style: {
-      position: 'fixed' as const,
+      position: "fixed" as const,
       left: `${corner.x}px`,
       top: `${corner.y}px`,
-      transform: 'translate(-50%, -50%)'
+      transform: "translate(-50%, -50%)"
     }
   }))
 })
@@ -93,7 +55,7 @@ const corners = computed(() => {
 const centerStyle = computed(() => {
   const centerPos = center.value
   return {
-    position: 'fixed' as const,
+    position: "fixed" as const,
     left: `${centerPos.x}px`,
     top: `${centerPos.y}px`,
     transform: "translate(-50%, -50%)"
@@ -104,7 +66,7 @@ const centerStyle = computed(() => {
 const angleDisplayStyle = computed(() => {
   const centerPos = center.value
   return {
-    position: 'fixed' as const,
+    position: "fixed" as const,
     left: `${centerPos.x}px`,
     top: `${centerPos.y}px`,
     transform: "translate(-50%, -50%)"
@@ -185,6 +147,43 @@ function handleMouseMove(_e: MouseEvent) {
   // Already handled by container visibility
 }
 </script>
+<template>
+  <div v-if="showHandles" class="rotation-handles" :style="containerStyle" @mousemove="handleMouseMove">
+    <!-- Corner rotation handles -->
+    <div
+      v-for="corner in corners"
+      :key="corner.position"
+      class="rotation-handle"
+      :class="{ active: isDragging && activeCorner === corner.position }"
+      :style="corner.style"
+      @mousedown.stop="startRotation($event, corner.position)"
+    >
+      <div class="handle-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20">
+          <path
+            d="M10 2 L10 6 M10 14 L10 18 M2 10 L6 10 M14 10 L18 10"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Center indicator (rotation origin) -->
+    <div class="rotation-center" :style="centerStyle">
+      <div class="center-dot" />
+    </div>
+
+    <!-- Angle display -->
+    <div v-if="isDragging" class="angle-display" :style="angleDisplayStyle">
+      <div class="angle-value">{{ Math.round(currentAngle) }}°</div>
+      <div v-if="modifierKeys.isShiftPressed" class="angle-hint">15° snap</div>
+      <div v-else class="angle-hint">45° snap</div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .rotation-handles {

@@ -1,3 +1,26 @@
+<script setup lang="ts">
+import { usePerimeterToolState } from "@/composables/tools/usePerimeterTool"
+
+const settings = useSettingStore()
+
+// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+const tool = usePerimeterToolState()
+if (!tool) {
+  throw new Error("PerimeterTool must be used within SvgAnnotationLayer")
+}
+
+const {
+  isDrawing,
+  points,
+  tempEndPoint,
+  canSnapToClose,
+  completed,
+  selected,
+  previewSegments,
+  selectAnnotation,
+  toSvgPoints
+} = tool
+</script>
 <template>
   <g class="perimeter-tool">
     <!-- Completed perimeters -->
@@ -87,116 +110,86 @@
 
       <!-- After first click -->
       <g v-if="isDrawing">
-      <!-- Placed point markers -->
-      <circle
-        v-for="(point, index) in points"
-        :key="`point-${index}`"
-        :cx="point.x"
-        :cy="point.y"
-        :r="index === 0 ? 6 : 5"
-        :fill="index === 0 ? 'green' : settings.perimeterToolSettings.strokeColor"
-        :stroke="'white'"
-        :stroke-width="2"
-        class="point-marker"
-      />
+        <!-- Placed point markers -->
+        <circle
+          v-for="(point, index) in points"
+          :key="`point-${index}`"
+          :cx="point.x"
+          :cy="point.y"
+          :r="index === 0 ? 6 : 5"
+          :fill="index === 0 ? 'green' : settings.perimeterToolSettings.strokeColor"
+          :stroke="'white'"
+          :stroke-width="2"
+          class="point-marker"
+        />
 
-      <!-- Preview polygon (if we have enough points) -->
-      <polygon
-        v-if="points.length >= 2"
-        :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
-        :fill="settings.perimeterToolSettings.fillColor"
-        :fill-opacity="settings.perimeterToolSettings.opacity * 0.5"
-        :stroke="settings.perimeterToolSettings.strokeColor"
-        :stroke-width="settings.perimeterToolSettings.strokeWidth"
-        stroke-dasharray="5,5"
-      />
-
-      <!-- Preview segment labels -->
-      <g v-for="(segment, idx) in previewSegments" :key="idx">
-        <line
-          :x1="segment.start.x"
-          :y1="segment.start.y"
-          :x2="segment.end.x"
-          :y2="segment.end.y"
+        <!-- Preview polygon (if we have enough points) -->
+        <polygon
+          v-if="points.length >= 2"
+          :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
+          :fill="settings.perimeterToolSettings.fillColor"
+          :fill-opacity="settings.perimeterToolSettings.opacity * 0.5"
           :stroke="settings.perimeterToolSettings.strokeColor"
           :stroke-width="settings.perimeterToolSettings.strokeWidth"
-          :stroke-dasharray="idx === previewSegments.length - 1 ? '5,5' : '0'"
+          stroke-dasharray="5,5"
         />
 
-        <!-- Segment length label background -->
-        <rect
-          :x="segment.midpoint.x - 25"
-          :y="segment.midpoint.y - 10"
-          width="50"
-          height="20"
-          fill="white"
-          opacity="0.9"
-          rx="3"
-        />
+        <!-- Preview segment labels -->
+        <g v-for="(segment, idx) in previewSegments" :key="idx">
+          <line
+            :x1="segment.start.x"
+            :y1="segment.start.y"
+            :x2="segment.end.x"
+            :y2="segment.end.y"
+            :stroke="settings.perimeterToolSettings.strokeColor"
+            :stroke-width="settings.perimeterToolSettings.strokeWidth"
+            :stroke-dasharray="idx === previewSegments.length - 1 ? '5,5' : '0'"
+          />
 
-        <!-- Segment length label -->
-        <text
-          :x="segment.midpoint.x"
-          :y="segment.midpoint.y"
-          fill="blue"
-          font-size="12"
-          font-weight="bold"
-          text-anchor="middle"
-          dominant-baseline="middle"
-        >
-          {{ segment.length }}mm
-        </text>
-      </g>
+          <!-- Segment length label background -->
+          <rect
+            :x="segment.midpoint.x - 25"
+            :y="segment.midpoint.y - 10"
+            width="50"
+            height="20"
+            fill="white"
+            opacity="0.9"
+            rx="3"
+          />
 
-      <!-- Snap to close indicator -->
-      <g v-if="canSnapToClose && points.length > 0 && points[0]">
-        <circle
-          :cx="points[0].x"
-          :cy="points[0].y"
-          r="10"
-          fill="none"
-          stroke="green"
-          stroke-width="2"
-          class="snap-indicator"
-        />
-        <text
-          :x="points[0].x + 15"
-          :y="points[0].y - 10"
-          fill="green"
-          font-size="12"
-          font-weight="bold"
-        >
-          Click to close
-        </text>
-      </g>
+          <!-- Segment length label -->
+          <text
+            :x="segment.midpoint.x"
+            :y="segment.midpoint.y"
+            fill="blue"
+            font-size="12"
+            font-weight="bold"
+            text-anchor="middle"
+            dominant-baseline="middle"
+          >
+            {{ segment.length }}mm
+          </text>
+        </g>
+
+        <!-- Snap to close indicator -->
+        <g v-if="canSnapToClose && points.length > 0 && points[0]">
+          <circle
+            :cx="points[0].x"
+            :cy="points[0].y"
+            r="10"
+            fill="none"
+            stroke="green"
+            stroke-width="2"
+            class="snap-indicator"
+          />
+          <text :x="points[0].x + 15" :y="points[0].y - 10" fill="green" font-size="12" font-weight="bold">
+            Click to close
+          </text>
+        </g>
       </g>
     </g>
   </g>
 </template>
-
-<script setup lang="ts">
-import { usePerimeterToolState } from '~/composables/tools/usePerimeterTool'
-
-const settings = useSettingStore()
-
-// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
-const tool = usePerimeterToolState()
-if (!tool) {
-  throw new Error('PerimeterTool must be used within SvgAnnotationLayer')
-}
-
-const {
-  isDrawing,
-  points,
-  tempEndPoint,
-  canSnapToClose,
-  completed,
-  selected,
-  previewSegments,
-  selectAnnotation,
-  toSvgPoints,
-} = tool
-</script>
 
 <style scoped>
 .perimeter-polygon {
@@ -225,7 +218,8 @@ const {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     r: 8;
     opacity: 1;
   }

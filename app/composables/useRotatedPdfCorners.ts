@@ -11,8 +11,8 @@ export function useRotatedPdfCorners() {
     const rotation = rendererStore.rotation
     const scale = rendererStore.getScale
     // Add scroll position as dependency to force recomputation when dragging
-    const scrollLeft = rendererStore.canvasPos.scrollLeft
-    const scrollTop = rendererStore.canvasPos.scrollTop
+    void rendererStore.canvasPos.scrollLeft
+    void rendererStore.canvasPos.scrollTop
 
     if (!width || !height) return []
 
@@ -54,10 +54,10 @@ export function useRotatedPdfCorners() {
 
   const center = computed(() => {
     // Add dependencies to force recomputation when needed
-    const rotation = rendererStore.rotation
-    const scale = rendererStore.getScale
-    const scrollLeft = rendererStore.canvasPos.scrollLeft
-    const scrollTop = rendererStore.canvasPos.scrollTop
+    void rendererStore.rotation
+    void rendererStore.getScale
+    void rendererStore.canvasPos.scrollLeft
+    void rendererStore.canvasPos.scrollTop
 
     const canvas = document.querySelector('.pdf-canvas') as HTMLCanvasElement
     if (!canvas) return { x: 0, y: 0 }

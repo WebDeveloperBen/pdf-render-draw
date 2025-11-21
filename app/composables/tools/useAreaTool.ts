@@ -1,13 +1,12 @@
-import type { Area } from '~/types/annotations'
-import type { Point } from '~/types'
-import { calculatePolygonArea, calculateCentroid } from '~/utils/calculations'
-import { createInjectionState } from '@vueuse/core'
+import type { Area } from "~/types/annotations"
+import type { Point } from "~/types"
+import { createInjectionState } from "@vueuse/core"
 
 const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
   const settingsStore = useSettingStore()
 
   const tool = useDrawingTool<Area>({
-    type: 'area',
+    type: "area",
     minPoints: 3,
     canClose: true,
 
@@ -18,13 +17,13 @@ const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
       return {
         points,
         area,
-        center,
+        center
       }
     },
 
     onCreate: async (area) => {
-      console.log('Area created:', area)
-    },
+      console.log("Area created:", area)
+    }
   })
 
   const previewArea = computed(() => {
@@ -56,7 +55,7 @@ const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
   return {
     ...tool,
     previewArea,
-    previewPolygon,
+    previewPolygon
   }
 })
 

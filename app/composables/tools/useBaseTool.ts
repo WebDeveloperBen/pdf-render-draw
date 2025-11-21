@@ -1,6 +1,4 @@
 import type { Point } from "~/types"
-import { distance } from "~/utils/calculations"
-import { debugLog } from "~/utils/debug"
 
 export interface BaseToolOptions {
   type: string

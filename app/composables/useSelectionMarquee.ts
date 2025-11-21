@@ -5,9 +5,7 @@
  * Similar to Figma, Illustrator, etc.
  */
 
-import type { Point } from '~/types'
-import { calculateBounds, boundsIntersect } from '~/utils/bounds'
-import { useSvgCoordinates } from '~/composables/useSvgCoordinates'
+import type { Point } from "~/types"
 
 export function useSelectionMarquee() {
   const annotationStore = useAnnotationStore()
@@ -67,7 +65,7 @@ export function useSelectionMarquee() {
     // Find all annotations that intersect with the marquee
     const selectedIds: string[] = []
 
-    annotationStore.annotations.forEach(annotation => {
+    annotationStore.annotations.forEach((annotation) => {
       const annoBounds = calculateBounds(annotation)
       if (annoBounds && boundsIntersect(marquee, annoBounds)) {
         selectedIds.push(annotation.id)
@@ -84,7 +82,6 @@ export function useSelectionMarquee() {
     startPoint.value = null
     endPoint.value = null
   }
-
 
   return {
     isDrawing,

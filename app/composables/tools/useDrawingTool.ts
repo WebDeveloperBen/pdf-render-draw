@@ -1,10 +1,9 @@
-import type { Annotation, BaseAnnotation } from '~/types/annotations'
-import type { Point } from '~/types'
-import { v4 as uuidv4 } from 'uuid'
-import { debugLog } from '~/utils/debug'
+import type { Annotation, BaseAnnotation } from "~/types/annotations"
+import type { Point } from "~/types"
+import { v4 as uuidv4 } from "uuid"
 
 export interface DrawingToolConfig<T extends Annotation> {
-  type: T['type']
+  type: T["type"]
   minPoints: number
   canClose: boolean
   calculate: (points: Point[]) => Omit<T, keyof BaseAnnotation>
@@ -21,12 +20,12 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     type: config.type,
     minPoints: config.minPoints,
     canClose: config.canClose,
-    snapDistance: config.snapDistance,
+    snapDistance: config.snapDistance
   })
 
   // Tool-specific state - only show annotations for current page
-  const completed = computed(() =>
-    annotationStore.getAnnotationsByTypeAndPage(config.type, rendererStore.getCurrentPage) as T[]
+  const completed = computed(
+    () => annotationStore.getAnnotationsByTypeAndPage(config.type, rendererStore.getCurrentPage) as T[]
   )
 
   const selected = computed(() => {
@@ -37,35 +36,35 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
 
   // Event handlers
   function handleClick(e: MouseEvent) {
-    debugLog(`${config.type}Tool`, 'handleClick called', {
+    debugLog(`${config.type}Tool`, "handleClick called", {
       isDrawing: annotationStore.isDrawing,
       currentPoints: base.points.value.length
     })
 
     const point = base.getSvgPoint(e)
-    debugLog(`${config.type}Tool`, 'Got SVG point:', point)
+    debugLog(`${config.type}Tool`, "Got SVG point:", point)
 
     // Check for snap to close
     if (base.canSnapToClose.value) {
-      debugLog(`${config.type}Tool`, 'Snapping to close')
+      debugLog(`${config.type}Tool`, "Snapping to close")
       completeDrawing()
       return
     }
 
     if (!annotationStore.isDrawing) {
-      debugLog(`${config.type}Tool`, 'Starting new drawing')
+      debugLog(`${config.type}Tool`, "Starting new drawing")
       base.startDrawing(point)
     } else {
       const pointToAdd = e.shiftKey
         ? base.snapTo45Degrees(base.points.value[base.points.value.length - 1]!, point)
         : point
 
-      debugLog(`${config.type}Tool`, 'Adding point:', pointToAdd)
+      debugLog(`${config.type}Tool`, "Adding point:", pointToAdd)
       base.addPoint(pointToAdd)
 
       // Auto-complete for 2-point tools (measure, line)
       if (config.minPoints === 2 && base.points.value.length === 2) {
-        debugLog(`${config.type}Tool`, 'Auto-completing (2 points)')
+        debugLog(`${config.type}Tool`, "Auto-completing (2 points)")
         completeDrawing()
       }
     }
@@ -82,49 +81,47 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
 
     const lastPoint = base.points.value[base.points.value.length - 1]!
 
-    const snappedPoint = e.shiftKey && lastPoint
-      ? base.snapTo45Degrees(lastPoint, point)
-      : point
+    const snappedPoint = e.shiftKey && lastPoint ? base.snapTo45Degrees(lastPoint, point) : point
 
     base.updateTempPoint(snappedPoint)
   }
 
   function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && annotationStore.isDrawing) {
+    if (e.key === "Escape" && annotationStore.isDrawing) {
       base.reset()
     }
 
-    if ((e.key === 'Delete' || e.key === 'Backspace') && selected.value) {
+    if ((e.key === "Delete" || e.key === "Backspace") && selected.value) {
       deleteAnnotation(selected.value.id)
     }
   }
 
   function completeDrawing() {
-    debugLog(`${config.type}Tool`, 'completeDrawing called', {
+    debugLog(`${config.type}Tool`, "completeDrawing called", {
       hasMinimumPoints: base.hasMinimumPoints.value,
       pointsCount: base.points.value.length
     })
 
     if (!base.hasMinimumPoints.value) {
-      debugLog(`${config.type}Tool`, 'Not enough points, resetting')
+      debugLog(`${config.type}Tool`, "Not enough points, resetting")
       base.reset()
       return
     }
 
     const points = base.complete()
-    debugLog(`${config.type}Tool`, 'Points completed:', points)
+    debugLog(`${config.type}Tool`, "Points completed:", points)
 
     const calculatedData = config.calculate(points)
-    debugLog(`${config.type}Tool`, 'Calculated data:', calculatedData)
+    debugLog(`${config.type}Tool`, "Calculated data:", calculatedData)
 
     const annotation: T = {
       id: uuidv4(),
       type: config.type,
       pageNum: rendererStore.currentPage,
-      ...calculatedData,
+      ...calculatedData
     } as T
 
-    debugLog(`${config.type}Tool`, 'Creating annotation:', annotation)
+    debugLog(`${config.type}Tool`, "Creating annotation:", annotation)
     annotationStore.addAnnotation(annotation)
     config.onCreate(annotation)
     base.reset()
@@ -157,6 +154,6 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     deleteAnnotation,
     clearPreview: base.clearPreview,
     getSvgPoint: base.getSvgPoint,
-    toSvgPoints: base.toSvgPoints,
+    toSvgPoints: base.toSvgPoints
   }
 }

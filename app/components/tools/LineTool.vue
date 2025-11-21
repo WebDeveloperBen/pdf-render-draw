@@ -1,3 +1,17 @@
+<script setup lang="ts">
+import { useLineToolState } from "@/composables/tools/useLineTool"
+
+const settings = useSettingStore()
+
+// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+const tool = useLineToolState()
+if (!tool) {
+  throw new Error("LineTool must be used within SvgAnnotationLayer")
+}
+
+const { isDrawing, points, tempEndPoint, completed, selected, selectAnnotation, toSvgPoints } = tool
+</script>
+
 <template>
   <g class="line-tool">
     <!-- Completed lines -->
@@ -55,62 +69,33 @@
 
       <!-- After first click -->
       <g v-if="isDrawing">
-      <!-- Completed segments -->
-      <polyline
-        v-if="points.length >= 1"
-        :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
-        :stroke="settings.lineToolSettings.strokeColor"
-        :stroke-width="settings.lineToolSettings.strokeWidth"
-        fill="none"
-        stroke-dasharray="5,5"
-        opacity="0.7"
-      />
+        <!-- Completed segments -->
+        <polyline
+          v-if="points.length >= 1"
+          :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
+          :stroke="settings.lineToolSettings.strokeColor"
+          :stroke-width="settings.lineToolSettings.strokeWidth"
+          fill="none"
+          stroke-dasharray="5,5"
+          opacity="0.7"
+        />
 
-      <!-- Preview points -->
-      <circle
-        v-for="(point, idx) in points"
-        :key="idx"
-        :cx="point.x"
-        :cy="point.y"
-        r="4"
-        :fill="settings.lineToolSettings.strokeColor"
-      />
+        <!-- Preview points -->
+        <circle
+          v-for="(point, idx) in points"
+          :key="idx"
+          :cx="point.x"
+          :cy="point.y"
+          r="4"
+          :fill="settings.lineToolSettings.strokeColor"
+        />
 
-      <!-- Temp end point indicator -->
-      <circle
-        v-if="tempEndPoint"
-        :cx="tempEndPoint.x"
-        :cy="tempEndPoint.y"
-        r="3"
-        fill="blue"
-        opacity="0.5"
-      />
+        <!-- Temp end point indicator -->
+        <circle v-if="tempEndPoint" :cx="tempEndPoint.x" :cy="tempEndPoint.y" r="3" fill="blue" opacity="0.5" />
       </g>
     </g>
   </g>
 </template>
-
-<script setup lang="ts">
-import { useLineToolState } from '~/composables/tools/useLineTool'
-
-const settings = useSettingStore()
-
-// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
-const tool = useLineToolState()
-if (!tool) {
-  throw new Error('LineTool must be used within SvgAnnotationLayer')
-}
-
-const {
-  isDrawing,
-  points,
-  tempEndPoint,
-  completed,
-  selected,
-  selectAnnotation,
-  toSvgPoints,
-} = tool
-</script>
 
 <style scoped>
 .line-path {

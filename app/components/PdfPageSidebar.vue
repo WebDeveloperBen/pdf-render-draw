@@ -1,46 +1,7 @@
-<template>
-  <div class="pdf-sidebar" :class="{ open: isOpen }">
-    <!-- Sidebar Header -->
-    <div class="sidebar-header">
-      <h3>Pages</h3>
-      <button class="close-btn" title="Close sidebar" @click="emit('close')">×</button>
-    </div>
-
-    <!-- Pages List with Bespoke Virtual Scrolling -->
-    <div ref="scrollContainerRef" class="pages-container" @scroll="handleScroll">
-      <!-- Spacer for items before visible range -->
-      <div :style="{ height: `${offsetBefore}px` }" />
-
-      <!-- Visible items -->
-      <div
-        v-for="page in visiblePages"
-        :key="page"
-        class="page-item"
-        :class="{ active: page === rendererStore.getCurrentPage }"
-        @click="navigateToPage(page)"
-      >
-        <div class="page-content">
-          <div class="page-thumbnail">
-            <canvas
-              :ref="(el) => setCanvasRef(page, el as HTMLCanvasElement)"
-              class="thumbnail-canvas"
-            />
-            <!-- No loading overlay - canvas will be blank until rendered -->
-          </div>
-          <div class="page-label">Page {{ page }}</div>
-        </div>
-      </div>
-
-      <!-- Spacer for items after visible range -->
-      <div :style="{ height: `${offsetAfter}px` }" />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import type { PDFDocumentProxy } from 'pdfjs-dist'
-import { watchThrottled } from '@vueuse/core'
-import { DIMENSIONS } from '~/constants/dimensions'
+import type { PDFDocumentProxy } from "pdfjs-dist"
+import { watchThrottled } from "@vueuse/core"
+import { DIMENSIONS } from "~/constants/dimensions"
 
 const props = defineProps<{
   isOpen: boolean
@@ -67,10 +28,7 @@ const visiblePages = computed(() => {
 
   const containerHeight = scrollContainerRef.value?.clientHeight || 600
   const startIndex = Math.max(0, Math.floor(scrollTop.value / ITEM_HEIGHT) - BUFFER_SIZE)
-  const endIndex = Math.min(
-    totalPages - 1,
-    Math.ceil((scrollTop.value + containerHeight) / ITEM_HEIGHT) + BUFFER_SIZE
-  )
+  const endIndex = Math.min(totalPages - 1, Math.ceil((scrollTop.value + containerHeight) / ITEM_HEIGHT) + BUFFER_SIZE)
 
   const pages: number[] = []
   for (let i = startIndex; i <= endIndex; i++) {
@@ -121,7 +79,7 @@ function setCanvasRef(pageNum: number, el: HTMLCanvasElement | null) {
     // If we have a cached thumbnail for this page, draw it immediately
     const cached = renderedThumbnails.value.get(pageNum)
     if (cached) {
-      const ctx = el.getContext('2d')
+      const ctx = el.getContext("2d")
       if (ctx) {
         el.width = cached.width
         el.height = cached.height
@@ -179,7 +137,7 @@ watchThrottled(
     await nextTick()
 
     // Filter pages that need rendering
-    const pagesToRender = pages.filter(pageNum => {
+    const pagesToRender = pages.filter((pageNum) => {
       // Skip if already cached or currently rendering
       if (renderedThumbnails.value.has(pageNum) || currentlyRendering.value.has(pageNum)) {
         return false
@@ -191,7 +149,7 @@ watchThrottled(
     if (pagesToRender.length === 0) return
 
     // Mark all pages as rendering
-    pagesToRender.forEach(pageNum => currentlyRendering.value.add(pageNum))
+    pagesToRender.forEach((pageNum) => currentlyRendering.value.add(pageNum))
 
     // Render all thumbnails in parallel
     const renderPromises = pagesToRender.map(async (pageNum) => {
@@ -202,7 +160,7 @@ watchThrottled(
         await renderThumbnail(pdf, pageNum, canvas)
 
         // Cache the rendered thumbnail with LRU eviction
-        const ctx = canvas.getContext('2d')
+        const ctx = canvas.getContext("2d")
         if (ctx) {
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
           cacheThumbnail(pageNum, imageData)
@@ -243,15 +201,14 @@ async function renderThumbnail(pdf: PDFDocumentProxy, pageNum: number, canvas: H
     canvas.width = scaledViewport.width
     canvas.height = scaledViewport.height
 
-    const context = canvas.getContext('2d')
+    const context = canvas.getContext("2d")
     if (!context) return
 
     await page.render({
       canvasContext: context,
       viewport: scaledViewport,
-      canvas: canvas,
+      canvas: canvas
     }).promise
-
   } catch (error) {
     console.error(`Failed to render thumbnail for page ${pageNum}:`, error)
   }
@@ -267,7 +224,7 @@ function scrollToPage(pageNum: number) {
   const scrollPosition = (pageNum - 1) * ITEM_HEIGHT
   scrollContainerRef.value.scrollTo({
     top: scrollPosition,
-    behavior: 'smooth'
+    behavior: "smooth"
   })
 }
 
@@ -283,6 +240,41 @@ watch(
   }
 )
 </script>
+<template>
+  <div class="pdf-sidebar" :class="{ open: isOpen }">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <h3>Pages</h3>
+      <button class="close-btn" title="Close sidebar" @click="emit('close')">×</button>
+    </div>
+
+    <!-- Pages List with Bespoke Virtual Scrolling -->
+    <div ref="scrollContainerRef" class="pages-container" @scroll="handleScroll">
+      <!-- Spacer for items before visible range -->
+      <div :style="{ height: `${offsetBefore}px` }" />
+
+      <!-- Visible items -->
+      <div
+        v-for="page in visiblePages"
+        :key="page"
+        class="page-item"
+        :class="{ active: page === rendererStore.getCurrentPage }"
+        @click="navigateToPage(page)"
+      >
+        <div class="page-content">
+          <div class="page-thumbnail">
+            <canvas :ref="(el) => setCanvasRef(page, el as HTMLCanvasElement)" class="thumbnail-canvas" />
+            <!-- No loading overlay - canvas will be blank until rendered -->
+          </div>
+          <div class="page-label">Page {{ page }}</div>
+        </div>
+      </div>
+
+      <!-- Spacer for items after visible range -->
+      <div :style="{ height: `${offsetAfter}px` }" />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .pdf-sidebar {

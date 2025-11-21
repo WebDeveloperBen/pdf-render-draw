@@ -1,80 +1,6 @@
-<template>
-  <g v-if="selectedAnnotation && displayBounds" ref="svgRef" class="transform-handles">
-    <!-- Selection outline - draggable to move -->
-    <rect
-      :x="displayBounds.x"
-      :y="displayBounds.y"
-      :width="displayBounds.width"
-      :height="displayBounds.height"
-      fill="transparent"
-      :stroke="COLORS.SELECTION_BLUE"
-      stroke-width="2"
-      stroke-dasharray="4 4"
-      class="selection-outline moveable"
-      @mousedown.stop="startDrag($event, 'move', 'move')"
-    />
-
-    <!-- Corner handles -->
-    <rect
-      v-for="(corner, index) in corners"
-      :key="`corner-${index}`"
-      :x="corner.x - handleSize / 2"
-      :y="corner.y - handleSize / 2"
-      :width="handleSize"
-      :height="handleSize"
-      fill="white"
-      :stroke="COLORS.SELECTION_BLUE"
-      stroke-width="2"
-      class="corner-handle"
-      :class="{ dragging: isDragging && activeHandle === `corner-${index}` }"
-      :data-handle="`corner-${index}`"
-      @mousedown.stop="startDrag($event, `corner-${index}`, 'resize')"
-    />
-
-    <!-- Rotation handle -->
-    <g class="rotation-handle-group">
-      <!-- Line connecting to rotation handle -->
-      <line
-        :x1="displayBounds.x + displayBounds.width / 2"
-        :y1="displayBounds.y"
-        :x2="displayBounds.x + displayBounds.width / 2"
-        :y2="displayBounds.y - rotationHandleDistance"
-        :stroke="COLORS.SELECTION_BLUE"
-        stroke-width="2"
-        stroke-dasharray="2 2"
-      />
-
-      <!-- Rotation handle - larger circle with icon -->
-      <circle
-        :cx="displayBounds.x + displayBounds.width / 2"
-        :cy="displayBounds.y - rotationHandleDistance"
-        :r="handleSize * 0.8"
-        fill="white"
-        :stroke="COLORS.SELECTION_BLUE"
-        stroke-width="2"
-        class="rotation-handle"
-        :class="{ dragging: isDragging && activeHandle === 'rotate' }"
-        @mousedown.stop="startDrag($event, 'rotate', 'rotate')"
-      />
-
-      <!-- Rotation icon (curved arrow hint) -->
-      <path
-        :d="`M ${displayBounds.x + displayBounds.width / 2 - 3} ${displayBounds.y - rotationHandleDistance - 2}
-             A 3 3 0 1 1 ${displayBounds.x + displayBounds.width / 2 + 3} ${displayBounds.y - rotationHandleDistance - 2}`"
-        :stroke="COLORS.SELECTION_BLUE"
-        stroke-width="1.5"
-        fill="none"
-        pointer-events="none"
-      />
-    </g>
-  </g>
-</template>
-
 <script setup lang="ts">
 import { TRANSFORM, COLORS } from "~/constants/ui"
-import { calculateBounds, type Bounds } from "~/utils/bounds"
-import { useSvgCoordinates } from "~/composables/useSvgCoordinates"
-import { debugLog } from "~/utils/debug"
+import { useSvgCoordinates } from "@/composables/useSvgCoordinates"
 
 const annotationStore = useAnnotationStore()
 const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
@@ -148,7 +74,7 @@ function startDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "m
   // Store original points for point-based annotations
   if ("points" in selectedAnnotation.value && Array.isArray(selectedAnnotation.value.points)) {
     // Manual clone to avoid issues with reactive proxies
-    originalPoints.value = selectedAnnotation.value.points.map(p => ({ x: p.x, y: p.y }))
+    originalPoints.value = selectedAnnotation.value.points.map((p) => ({ x: p.x, y: p.y }))
     debugLog("TransformHandles", `Stored ${originalPoints.value.length} original points`)
   }
 
@@ -327,6 +253,77 @@ function endDrag() {
   originalPoints.value = null
 }
 </script>
+<template>
+  <g v-if="selectedAnnotation && displayBounds" ref="svgRef" class="transform-handles">
+    <!-- Selection outline - draggable to move -->
+    <rect
+      :x="displayBounds.x"
+      :y="displayBounds.y"
+      :width="displayBounds.width"
+      :height="displayBounds.height"
+      fill="transparent"
+      :stroke="COLORS.SELECTION_BLUE"
+      stroke-width="2"
+      stroke-dasharray="4 4"
+      class="selection-outline moveable"
+      @mousedown.stop="startDrag($event, 'move', 'move')"
+    />
+
+    <!-- Corner handles -->
+    <rect
+      v-for="(corner, index) in corners"
+      :key="`corner-${index}`"
+      :x="corner.x - handleSize / 2"
+      :y="corner.y - handleSize / 2"
+      :width="handleSize"
+      :height="handleSize"
+      fill="white"
+      :stroke="COLORS.SELECTION_BLUE"
+      stroke-width="2"
+      class="corner-handle"
+      :class="{ dragging: isDragging && activeHandle === `corner-${index}` }"
+      :data-handle="`corner-${index}`"
+      @mousedown.stop="startDrag($event, `corner-${index}`, 'resize')"
+    />
+
+    <!-- Rotation handle -->
+    <g class="rotation-handle-group">
+      <!-- Line connecting to rotation handle -->
+      <line
+        :x1="displayBounds.x + displayBounds.width / 2"
+        :y1="displayBounds.y"
+        :x2="displayBounds.x + displayBounds.width / 2"
+        :y2="displayBounds.y - rotationHandleDistance"
+        :stroke="COLORS.SELECTION_BLUE"
+        stroke-width="2"
+        stroke-dasharray="2 2"
+      />
+
+      <!-- Rotation handle - larger circle with icon -->
+      <circle
+        :cx="displayBounds.x + displayBounds.width / 2"
+        :cy="displayBounds.y - rotationHandleDistance"
+        :r="handleSize * 0.8"
+        fill="white"
+        :stroke="COLORS.SELECTION_BLUE"
+        stroke-width="2"
+        class="rotation-handle"
+        :class="{ dragging: isDragging && activeHandle === 'rotate' }"
+        @mousedown.stop="startDrag($event, 'rotate', 'rotate')"
+      />
+
+      <!-- Rotation icon (curved arrow hint) -->
+      <path
+        :d="`M ${displayBounds.x + displayBounds.width / 2 - 3} ${displayBounds.y - rotationHandleDistance - 2}
+             A 3 3 0 1 1 ${displayBounds.x + displayBounds.width / 2 + 3} ${displayBounds.y - rotationHandleDistance - 2}`"
+        :stroke="COLORS.SELECTION_BLUE"
+        stroke-width="1.5"
+        fill="none"
+        pointer-events="none"
+      />
+    </g>
+  </g>
+</template>
 
 <style scoped>
 .transform-handles {

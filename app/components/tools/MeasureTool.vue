@@ -1,3 +1,17 @@
+<script setup lang="ts">
+import { useMeasureToolState } from "@/composables/tools/useMeasureTool"
+
+const settings = useSettingStore()
+
+// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
+const tool = useMeasureToolState()
+if (!tool) {
+  throw new Error("MeasureTool must be used within SvgAnnotationLayer")
+}
+
+const { isDrawing, points, tempEndPoint, completed, selected, previewDistance, selectAnnotation } = tool
+</script>
+
 <template>
   <g class="measure-tool">
     <!-- Completed measurements -->
@@ -112,28 +126,6 @@
   </g>
 </template>
 
-<script setup lang="ts">
-import { useMeasureToolState } from '~/composables/tools/useMeasureTool'
-
-const settings = useSettingStore()
-
-// Inject the shared tool state from SvgAnnotationLayer using VueUse createInjectionState
-const tool = useMeasureToolState()
-if (!tool) {
-  throw new Error('MeasureTool must be used within SvgAnnotationLayer')
-}
-
-const {
-  isDrawing,
-  points,
-  tempEndPoint,
-  completed,
-  selected,
-  previewDistance,
-  selectAnnotation,
-} = tool
-</script>
-
 <style scoped>
 .measurement {
   cursor: pointer;
@@ -146,7 +138,9 @@ const {
 }
 
 .measurement-line {
-  transition: stroke-width 0.15s, filter 0.15s;
+  transition:
+    stroke-width 0.15s,
+    filter 0.15s;
   stroke-linecap: round;
   pointer-events: none;
 }

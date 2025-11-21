@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import type { Annotation } from '~/types/annotations'
-import { validateAnnotation } from '~/types/annotations'
+import type { Annotation, PerimeterSegment } from '~/types/annotations'
+import { validateAnnotation, isMeasurement, isArea, isPerimeter } from '~/types/annotations'
+import { calculateDistance, calculatePolygonArea, calculateCentroid, calculateMidpoint } from '~/utils/calculations'
 
 export const useAnnotationStore = defineStore('annotations', () => {
   // ============================================
@@ -42,6 +43,61 @@ export const useAnnotationStore = defineStore('annotations', () => {
   // ============================================
 
   /**
+   * Recalculate derived values for annotations when points change
+   * This ensures labels (midpoint, center) update when dragging/transforming
+   */
+  function recalculateDerivedValues(annotation: Annotation): Partial<Annotation> {
+    const settingsStore = useSettingStore()
+    const pdfScale = settingsStore.getPdfScale
+
+    const derivedUpdates: Partial<Annotation> = {}
+
+    if (isMeasurement(annotation)) {
+      // Recalculate distance and midpoint
+      const [p1, p2] = annotation.points
+      if (p1 && p2) {
+        derivedUpdates.distance = calculateDistance(p1, p2, pdfScale)
+        derivedUpdates.midpoint = calculateMidpoint(p1, p2)
+      }
+    } else if (isArea(annotation)) {
+      // Recalculate area and center
+      if (annotation.points.length >= 3) {
+        derivedUpdates.area = calculatePolygonArea(annotation.points, pdfScale)
+        derivedUpdates.center = calculateCentroid(annotation.points)
+      }
+    } else if (isPerimeter(annotation)) {
+      // Recalculate segments, totalLength, and center
+      if (annotation.points.length >= 3) {
+        const segments: PerimeterSegment[] = []
+        let totalLength = 0
+
+        for (let i = 0; i < annotation.points.length; i++) {
+          const start = annotation.points[i]
+          const end = annotation.points[(i + 1) % annotation.points.length]
+
+          if (start && end) {
+            const segmentLength = calculateDistance(start, end, pdfScale)
+            totalLength += segmentLength
+
+            segments.push({
+              start,
+              end,
+              length: segmentLength,
+              midpoint: calculateMidpoint(start, end)
+            })
+          }
+        }
+
+        derivedUpdates.segments = segments
+        derivedUpdates.totalLength = totalLength
+        derivedUpdates.center = calculateCentroid(annotation.points)
+      }
+    }
+
+    return derivedUpdates
+  }
+
+  /**
    * Add a new annotation with validation
    * @throws {Error} If annotation is invalid
    */
@@ -55,6 +111,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
 
   /**
    * Update an existing annotation with validation
+   * Automatically recalculates derived values (distance, area, center, etc.) when points change
    * @throws {Error} If updated annotation is invalid
    */
   function updateAnnotation(id: string, updates: Partial<Annotation>) {
@@ -64,7 +121,15 @@ export const useAnnotationStore = defineStore('annotations', () => {
       return
     }
 
-    const updated = { ...annotations.value[index], ...updates }
+    // Merge updates with existing annotation
+    let updated = { ...annotations.value[index], ...updates }
+
+    // If points were updated, recalculate derived values (distance, midpoint, area, center, etc.)
+    if ('points' in updates && updates.points) {
+      const derivedValues = recalculateDerivedValues(updated)
+      updated = { ...updated, ...derivedValues }
+    }
+
     if (!validateAnnotation(updated)) {
       console.error('Invalid annotation update:', updated)
       throw new Error(`Invalid annotation update for id ${id}`)

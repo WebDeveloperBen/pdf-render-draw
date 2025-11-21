@@ -1,129 +1,3 @@
-<template>
-  <div
-    v-if="isVisible"
-    class="rotation-wheel-overlay"
-    @mousedown.stop="handleOverlayClick"
-  >
-    <div
-      class="rotation-wheel"
-      :style="wheelStyle"
-    >
-      <!-- SVG for smooth graphics -->
-      <svg
-        width="180"
-        height="180"
-        viewBox="0 0 180 180"
-        class="wheel-svg"
-        @mousedown.stop="startDrag"
-      >
-        <!-- Outer circle track -->
-        <circle
-          cx="90"
-          cy="90"
-          r="70"
-          fill="none"
-          stroke="rgba(0, 0, 0, 0.06)"
-          stroke-width="1.5"
-        />
-
-        <!-- Rotation arc (shows swept angle) -->
-        <path
-          v-if="currentRotation > 0"
-          :d="getArcPath()"
-          fill="none"
-          stroke="url(#arcGradient)"
-          stroke-width="3"
-          stroke-linecap="round"
-          class="rotation-arc"
-        />
-
-        <!-- Gradient for arc -->
-        <defs>
-          <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color: #667eea; stop-opacity: 1" />
-            <stop offset="100%" style="stop-color: #764ba2; stop-opacity: 1" />
-          </linearGradient>
-        </defs>
-
-        <!-- Snap indicators (subtle dots at key angles) -->
-        <circle
-          v-for="angle in snapAngles"
-          :key="angle"
-          :cx="90 + 70 * Math.sin((angle * Math.PI) / 180)"
-          :cy="90 - 70 * Math.cos((angle * Math.PI) / 180)"
-          :r="isNearSnap(angle) ? 4 : 2"
-          :fill="isNearSnap(angle) ? '#667eea' : 'rgba(0, 0, 0, 0.15)'"
-          class="snap-dot"
-          :class="{ active: isNearSnap(angle) }"
-        />
-
-        <!-- Reference line (0° north) -->
-        <line
-          x1="90"
-          y1="25"
-          x2="90"
-          y2="35"
-          stroke="rgba(0, 0, 0, 0.2)"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        />
-
-        <!-- Rotation handle -->
-        <g :transform="`rotate(${currentRotation} 90 90)`">
-          <!-- Handle line -->
-          <line
-            x1="90"
-            y1="90"
-            x2="90"
-            y2="25"
-            stroke="#667eea"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-          <!-- Handle dot -->
-          <circle
-            cx="90"
-            cy="25"
-            r="8"
-            fill="white"
-            stroke="#667eea"
-            stroke-width="2.5"
-            class="handle-dot"
-          />
-        </g>
-
-        <!-- Center point -->
-        <circle
-          cx="90"
-          cy="90"
-          r="3"
-          fill="rgba(0, 0, 0, 0.2)"
-        />
-      </svg>
-
-      <!-- Angle input -->
-      <div class="angle-input-container">
-        <input
-          v-model.number="angleInput"
-          type="number"
-          min="0"
-          max="360"
-          class="angle-input"
-          @input="handleAngleInput"
-          @keydown.enter="hideWheel"
-          @keydown.esc="hideWheel"
-        >
-        <span class="angle-unit">°</span>
-      </div>
-
-      <!-- Hint text -->
-      <div class="hint-text">
-        {{ snapHint }}
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
@@ -135,8 +9,8 @@ const currentRotation = ref(0)
 const angleInput = ref(0)
 
 // Set up event listeners with auto-cleanup
-useEventListener(window, 'mousemove', updateRotation, { passive: false })
-useEventListener(window, 'mouseup', stopDrag)
+useEventListener(window, "mousemove", updateRotation, { passive: false })
+useEventListener(window, "mouseup", stopDrag)
 
 // Snap angles (common increments)
 const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315]
@@ -144,22 +18,22 @@ const snapThreshold = 5 // degrees
 
 const wheelStyle = computed(() => ({
   left: `${position.value.x}px`,
-  top: `${position.value.y}px`,
+  top: `${position.value.y}px`
 }))
 
 // Check if current angle is near a snap point
 function isNearSnap(snapAngle: number): boolean {
   const diff = Math.abs(currentRotation.value - snapAngle)
-  return diff < snapThreshold || diff > (360 - snapThreshold)
+  return diff < snapThreshold || diff > 360 - snapThreshold
 }
 
 // Snap hint text
 const snapHint = computed(() => {
-  const nearSnap = snapAngles.find(angle => isNearSnap(angle))
+  const nearSnap = snapAngles.find((angle) => isNearSnap(angle))
   if (nearSnap !== undefined) {
     return `Snap to ${nearSnap}°`
   }
-  return 'Drag to rotate'
+  return "Drag to rotate"
 })
 
 // Generate SVG arc path for rotation visualization
@@ -171,19 +45,16 @@ function getArcPath(): string {
   const start = polarToCartesian(90, 90, radius, endAngle)
   const end = polarToCartesian(90, 90, radius, startAngle)
 
-  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1'
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1"
 
-  return [
-    'M', start.x, start.y,
-    'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
-  ].join(' ')
+  return ["M", start.x, start.y, "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y].join(" ")
 }
 
 function polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
-  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180
   return {
-    x: centerX + (radius * Math.cos(angleInRadians)),
-    y: centerY + (radius * Math.sin(angleInRadians))
+    x: centerX + radius * Math.cos(angleInRadians),
+    y: centerY + radius * Math.sin(angleInRadians)
   }
 }
 
@@ -223,7 +94,7 @@ function calculateAngle(mouseX: number, mouseY: number): number {
 function applySnap(angle: number): number {
   for (const snapAngle of snapAngles) {
     const diff = Math.abs(angle - snapAngle)
-    if (diff < snapThreshold || diff > (360 - snapThreshold)) {
+    if (diff < snapThreshold || diff > 360 - snapThreshold) {
       return snapAngle
     }
   }
@@ -239,7 +110,7 @@ function startDrag(e: MouseEvent) {
 
 // Update rotation while dragging
 function updateRotation(e: MouseEvent) {
-  if (!isDragging.value && e.type === 'mousemove') return
+  if (!isDragging.value && e.type === "mousemove") return
 
   let angle = calculateAngle(e.clientX, e.clientY)
 
@@ -270,18 +141,94 @@ function handleAngleInput() {
 function handleOverlayClick(e: MouseEvent) {
   if (e.target === e.currentTarget) {
     hideWheel()
-    annotationStore.setActiveTool('selection')
+    annotationStore.setActiveTool("selection")
   }
 }
 
 // Expose methods for parent to call
 defineExpose({
   showWheel,
-  hideWheel,
+  hideWheel
 })
 
 // Event listeners auto-cleanup via useEventListener
 </script>
+<template>
+  <div v-if="isVisible" class="rotation-wheel-overlay" @mousedown.stop="handleOverlayClick">
+    <div class="rotation-wheel" :style="wheelStyle">
+      <!-- SVG for smooth graphics -->
+      <svg width="180" height="180" viewBox="0 0 180 180" class="wheel-svg" @mousedown.stop="startDrag">
+        <!-- Outer circle track -->
+        <circle cx="90" cy="90" r="70" fill="none" stroke="rgba(0, 0, 0, 0.06)" stroke-width="1.5" />
+
+        <!-- Rotation arc (shows swept angle) -->
+        <path
+          v-if="currentRotation > 0"
+          :d="getArcPath()"
+          fill="none"
+          stroke="url(#arcGradient)"
+          stroke-width="3"
+          stroke-linecap="round"
+          class="rotation-arc"
+        />
+
+        <!-- Gradient for arc -->
+        <defs>
+          <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color: #667eea; stop-opacity: 1" />
+            <stop offset="100%" style="stop-color: #764ba2; stop-opacity: 1" />
+          </linearGradient>
+        </defs>
+
+        <!-- Snap indicators (subtle dots at key angles) -->
+        <circle
+          v-for="angle in snapAngles"
+          :key="angle"
+          :cx="90 + 70 * Math.sin((angle * Math.PI) / 180)"
+          :cy="90 - 70 * Math.cos((angle * Math.PI) / 180)"
+          :r="isNearSnap(angle) ? 4 : 2"
+          :fill="isNearSnap(angle) ? '#667eea' : 'rgba(0, 0, 0, 0.15)'"
+          class="snap-dot"
+          :class="{ active: isNearSnap(angle) }"
+        />
+
+        <!-- Reference line (0° north) -->
+        <line x1="90" y1="25" x2="90" y2="35" stroke="rgba(0, 0, 0, 0.2)" stroke-width="1.5" stroke-linecap="round" />
+
+        <!-- Rotation handle -->
+        <g :transform="`rotate(${currentRotation} 90 90)`">
+          <!-- Handle line -->
+          <line x1="90" y1="90" x2="90" y2="25" stroke="#667eea" stroke-width="2" stroke-linecap="round" />
+          <!-- Handle dot -->
+          <circle cx="90" cy="25" r="8" fill="white" stroke="#667eea" stroke-width="2.5" class="handle-dot" />
+        </g>
+
+        <!-- Center point -->
+        <circle cx="90" cy="90" r="3" fill="rgba(0, 0, 0, 0.2)" />
+      </svg>
+
+      <!-- Angle input -->
+      <div class="angle-input-container">
+        <input
+          v-model.number="angleInput"
+          type="number"
+          min="0"
+          max="360"
+          class="angle-input"
+          @input="handleAngleInput"
+          @keydown.enter="hideWheel"
+          @keydown.esc="hideWheel"
+        />
+        <span class="angle-unit">°</span>
+      </div>
+
+      <!-- Hint text -->
+      <div class="hint-text">
+        {{ snapHint }}
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .rotation-wheel-overlay {
@@ -354,7 +301,8 @@ defineExpose({
 }
 
 @keyframes snapPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -394,7 +342,7 @@ defineExpose({
   color: #2d3748;
   text-align: right;
   outline: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .angle-input::-webkit-inner-spin-button,

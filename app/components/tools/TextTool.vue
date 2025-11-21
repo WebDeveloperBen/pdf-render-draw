@@ -1,3 +1,26 @@
+<script setup lang="ts">
+const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText } = useTextTool()
+
+// Store ref to currently editing textarea
+const currentTextarea = ref<HTMLTextAreaElement | null>(null)
+
+function setTextareaRef(el: Element | ComponentPublicInstance | null, textId: string) {
+  // Only store ref for the textarea we're currently editing
+  if (el && editingId.value === textId) {
+    currentTextarea.value = el as HTMLTextAreaElement
+  }
+}
+
+// Watch editingId to focus and select text only when editing starts
+watch(editingId, (newId, oldId) => {
+  if (newId && newId !== oldId && currentTextarea.value) {
+    nextTick(() => {
+      currentTextarea.value?.focus()
+      currentTextarea.value?.select()
+    })
+  }
+})
+</script>
 <template>
   <g class="text-tool">
     <g
@@ -72,7 +95,7 @@
       >
         <div xmlns="http://www.w3.org/1999/xhtml" class="text-editor-wrapper">
           <textarea
-            :ref="el => setTextareaRef(el, text.id)"
+            :ref="(el) => setTextareaRef(el, text.id)"
             v-model="editingContent"
             class="text-editor"
             :style="{
@@ -92,30 +115,6 @@
     </g>
   </g>
 </template>
-
-<script setup lang="ts">
-const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText } = useTextTool()
-
-// Store ref to currently editing textarea
-const currentTextarea = ref<HTMLTextAreaElement | null>(null)
-
-function setTextareaRef(el: Element | ComponentPublicInstance | null, textId: string) {
-  // Only store ref for the textarea we're currently editing
-  if (el && editingId.value === textId) {
-    currentTextarea.value = el as HTMLTextAreaElement
-  }
-}
-
-// Watch editingId to focus and select text only when editing starts
-watch(editingId, (newId, oldId) => {
-  if (newId && newId !== oldId && currentTextarea.value) {
-    nextTick(() => {
-      currentTextarea.value?.focus()
-      currentTextarea.value?.select()
-    })
-  }
-})
-</script>
 
 <style scoped>
 .text-annotation-group {
