@@ -136,6 +136,20 @@ function handleKeyUp(e: KeyboardEvent) {
   }
 }
 
+// Clear selection when page changes
+watch(
+  () => rendererStore.getCurrentPage,
+  (newPage, oldPage) => {
+    if (newPage !== oldPage && annotationStore.selectedAnnotationId) {
+      const selectedAnnotation = annotationStore.selectedAnnotation
+      // Only clear if selected annotation is on a different page
+      if (selectedAnnotation && selectedAnnotation.pageNum !== newPage) {
+        annotationStore.selectAnnotation(null)
+      }
+    }
+  }
+)
+
 onMounted(() => {
   annotationStore.setActiveTool("measure")
   window.addEventListener("keydown", handleKeyDown)
