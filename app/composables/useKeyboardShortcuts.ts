@@ -4,6 +4,8 @@
  * Handles global keyboard shortcuts for annotation operations using a command map pattern.
  */
 
+import type { Annotation, Point, PerimeterSegment } from '~/types/annotations'
+
 interface ShortcutCommand {
   key: string
   ctrl?: boolean
@@ -17,62 +19,90 @@ interface ShortcutCommand {
 export function useKeyboardShortcuts() {
   const historyStore = useHistoryStore()
   const annotationStore = useAnnotationStore()
+  const rendererStore = useRendererStore()
 
   // Clipboard state (in-memory for now, could use Clipboard API later)
-  const clipboard = ref<any>(null)
+  const clipboard = ref<Annotation | null>(null)
 
-  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
-  const modKey = isMac ? 'meta' : 'ctrl'
+  // Detect Mac platform using userAgent (platform is deprecated)
+  const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent)
+  const modKey: 'meta' | 'ctrl' = isMac ? 'meta' : 'ctrl'
 
   /**
    * Paste annotation from clipboard
-   * Creates a new annotation offset from the original
+   * Places annotation at cursor position (or offset from original if no cursor position)
    */
   function pasteAnnotation() {
     if (!clipboard.value) return
 
     const original = clipboard.value
-    const offset = 20 // Offset by 20px so it's visible
+    const cursorPos = rendererStore.lastCursorPosition
 
-    // Create new annotation with new ID and offset position
+    // Create new annotation with new ID
     const newAnnotation = {
       ...original,
       id: crypto.randomUUID(),
     }
 
-    // Offset position based on annotation type
+    // Calculate offset - either to cursor or default 20px offset
+    let offsetX = 20
+    let offsetY = 20
+
+    if (cursorPos) {
+      // Calculate center of original annotation
+      let originalCenterX = 0
+      let originalCenterY = 0
+
+      if ('points' in original && Array.isArray(original.points) && original.points.length > 0) {
+        // Calculate centroid of points
+        const sumX = original.points.reduce((sum, p) => sum + p.x, 0)
+        const sumY = original.points.reduce((sum, p) => sum + p.y, 0)
+        originalCenterX = sumX / original.points.length
+        originalCenterY = sumY / original.points.length
+      } else if ('x' in original && 'y' in original) {
+        // Text annotation - use x, y as center
+        originalCenterX = original.x
+        originalCenterY = original.y
+      }
+
+      // Calculate offset to move center to cursor
+      offsetX = cursorPos.x - originalCenterX
+      offsetY = cursorPos.y - originalCenterY
+    }
+
+    // Apply offset based on annotation type
     if ('points' in newAnnotation && Array.isArray(newAnnotation.points)) {
       // Point-based annotation - offset all points
-      newAnnotation.points = newAnnotation.points.map((p: any) => ({
-        x: p.x + offset,
-        y: p.y + offset,
+      newAnnotation.points = newAnnotation.points.map((p: Point) => ({
+        x: p.x + offsetX,
+        y: p.y + offsetY,
       }))
 
       // Recalculate derived values (center, midpoint, etc.)
       if ('center' in newAnnotation) {
         newAnnotation.center = {
-          x: newAnnotation.center.x + offset,
-          y: newAnnotation.center.y + offset,
+          x: newAnnotation.center.x + offsetX,
+          y: newAnnotation.center.y + offsetY,
         }
       }
       if ('midpoint' in newAnnotation) {
         newAnnotation.midpoint = {
-          x: newAnnotation.midpoint.x + offset,
-          y: newAnnotation.midpoint.y + offset,
+          x: newAnnotation.midpoint.x + offsetX,
+          y: newAnnotation.midpoint.y + offsetY,
         }
       }
       if ('segments' in newAnnotation && Array.isArray(newAnnotation.segments)) {
-        newAnnotation.segments = newAnnotation.segments.map((seg: any) => ({
+        newAnnotation.segments = newAnnotation.segments.map((seg: PerimeterSegment): PerimeterSegment => ({
           ...seg,
-          start: { x: seg.start.x + offset, y: seg.start.y + offset },
-          end: { x: seg.end.x + offset, y: seg.end.y + offset },
-          midpoint: { x: seg.midpoint.x + offset, y: seg.midpoint.y + offset },
+          start: { x: seg.start.x + offsetX, y: seg.start.y + offsetY },
+          end: { x: seg.end.x + offsetX, y: seg.end.y + offsetY },
+          midpoint: { x: seg.midpoint.x + offsetX, y: seg.midpoint.y + offsetY },
         }))
       }
     } else if ('x' in newAnnotation && 'y' in newAnnotation) {
       // Text annotation - offset x, y
-      newAnnotation.x += offset
-      newAnnotation.y += offset
+      newAnnotation.x += offsetX
+      newAnnotation.y += offsetY
     }
 
     historyStore.addAnnotationWithHistory(newAnnotation)
@@ -95,7 +125,8 @@ export function useKeyboardShortcuts() {
     // Undo: Ctrl/Cmd+Z
     {
       key: 'z',
-      [modKey]: true,
+      ctrl: !isMac,
+      meta: isMac,
       handler: (e) => {
         if (historyStore.canUndo) {
           e.preventDefault()
@@ -107,7 +138,8 @@ export function useKeyboardShortcuts() {
     // Redo: Ctrl/Cmd+Shift+Z
     {
       key: 'z',
-      [modKey]: true,
+      ctrl: !isMac,
+      meta: isMac,
       shift: true,
       handler: (e) => {
         if (historyStore.canRedo) {
@@ -120,7 +152,8 @@ export function useKeyboardShortcuts() {
     // Redo (alternate): Ctrl/Cmd+Y
     {
       key: 'y',
-      [modKey]: true,
+      ctrl: !isMac,
+      meta: isMac,
       handler: (e) => {
         if (historyStore.canRedo) {
           e.preventDefault()
@@ -132,7 +165,8 @@ export function useKeyboardShortcuts() {
     // Copy: Ctrl/Cmd+C
     {
       key: 'c',
-      [modKey]: true,
+      ctrl: !isMac,
+      meta: isMac,
       handler: (e) => {
         if (annotationStore.selectedAnnotation) {
           e.preventDefault()
@@ -145,7 +179,8 @@ export function useKeyboardShortcuts() {
     // Paste: Ctrl/Cmd+V
     {
       key: 'v',
-      [modKey]: true,
+      ctrl: !isMac,
+      meta: isMac,
       handler: (e) => {
         if (clipboard.value) {
           e.preventDefault()
@@ -157,7 +192,8 @@ export function useKeyboardShortcuts() {
     // Duplicate: Ctrl/Cmd+D
     {
       key: 'd',
-      [modKey]: true,
+      ctrl: !isMac,
+      meta: isMac,
       handler: (e) => {
         if (annotationStore.selectedAnnotation) {
           e.preventDefault()
@@ -205,17 +241,22 @@ export function useKeyboardShortcuts() {
 
   /**
    * Check if a shortcut matches the current keyboard event
+   * Requires exact modifier match - all modifiers must match exactly
    */
   function matchesShortcut(shortcut: ShortcutCommand, e: KeyboardEvent): boolean {
     if (e.key.toLowerCase() !== shortcut.key.toLowerCase()) return false
+
+    // Check that all required modifiers are pressed
     if (shortcut.ctrl && !e.ctrlKey) return false
     if (shortcut.shift && !e.shiftKey) return false
     if (shortcut.alt && !e.altKey) return false
     if (shortcut.meta && !e.metaKey) return false
 
-    // If shortcut doesn't specify a modifier, but the event has it, don't match
-    // (unless it's shift with redo, which we handle separately)
-    if (!shortcut.shift && e.shiftKey && shortcut.key !== 'z') return false
+    // Check that no extra modifiers are pressed (exact match)
+    if (!shortcut.ctrl && e.ctrlKey) return false
+    if (!shortcut.shift && e.shiftKey) return false
+    if (!shortcut.alt && e.altKey) return false
+    if (!shortcut.meta && e.metaKey) return false
 
     return true
   }

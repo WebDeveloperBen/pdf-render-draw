@@ -16,6 +16,7 @@ export const useRendererStore = defineStore("renderer", () => {
   const pdfCanvasSize = ref<{ width: number; height: number }>({ width: 0, height: 0 })
   const currentPage = shallowRef(1) //first page of the pdf
   const pdfInitialised = shallowRef(false)
+  const lastCursorPosition = ref<{ x: number; y: number } | null>(null) // Last known cursor position in SVG coords for paste operations
 
   /**
    * Getters
@@ -169,6 +170,7 @@ export const useRendererStore = defineStore("renderer", () => {
     currentPage.value = page
   }
   const setPdfInitialised = (init: boolean) => (pdfInitialised.value = init)
+  const setLastCursorPosition = (pos: { x: number; y: number } | null) => (lastCursorPosition.value = pos)
 
   return {
     scale,
@@ -205,6 +207,8 @@ export const useRendererStore = defineStore("renderer", () => {
     pdfInitialised,
     getPdfInitialised,
     setPdfInitialised,
+    lastCursorPosition,
+    setLastCursorPosition,
     resetState,
     // Transform getters
     getCanvasTransform,

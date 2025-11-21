@@ -6,6 +6,9 @@ import { debugLog } from "~/utils/debug"
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
 
+// Note: Group rotation transform removed to prevent unselected annotations from rotating
+// Group rotation now only applies to selected annotations on drag end
+
 // SVG element ref
 const svgRef = ref<SVGSVGElement>()
 
@@ -160,6 +163,16 @@ function handleMove(e: MouseEvent) {
   const tool = annotationStore.activeTool
   debugLog("SVG Layer", "handleMove:", { tool, hasTarget: !!e.target })
 
+  // Track cursor position for paste operations
+  if (svgRef.value) {
+    const svg = svgRef.value
+    const pt = svg.createSVGPoint()
+    pt.x = e.clientX
+    pt.y = e.clientY
+    const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse())
+    rendererStore.setLastCursorPosition({ x: svgP.x, y: svgP.y })
+  }
+
   // Update selection marquee if dragging (only in selection mode)
   if (selectionMarquee.isDrawing && (tool === "selection" || tool === "") && svgRef.value) {
     selectionMarquee.updateMarquee(e, svgRef.value)
@@ -263,8 +276,12 @@ useEventListener(window, "keydown", handleKeyDown)
       pointer-events="none"
     />
 
-    <!-- Transform handles for selected annotation -->
-    <HandlesTransform />
+    <!-- Transform handles -->
+    <!-- Single annotation: use Transform component -->
+    <HandlesTransform v-if="annotationStore.selectedAnnotationIds.length === 1" />
+
+    <!-- Multi-select: use GroupTransform component -->
+    <HandlesGroupTransform v-if="annotationStore.selectedAnnotationIds.length >= 2" />
   </svg>
 </template>
 

@@ -72,9 +72,9 @@ export function useSelectionMarquee() {
       }
     })
 
-    // Select the first one for now (multi-select coming later)
+    // Select all annotations within the marquee (multi-select)
     if (selectedIds.length > 0) {
-      annotationStore.selectAnnotation(selectedIds[0]!)
+      annotationStore.selectAnnotation(selectedIds)
     }
 
     // Reset marquee

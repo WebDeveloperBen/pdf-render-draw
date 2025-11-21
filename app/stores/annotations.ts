@@ -64,10 +64,21 @@ export const useAnnotationStore = defineStore('annotations', () => {
    */
   function getRotationTransform(annotation: Annotation): string {
     const storedRotation = (annotation as any).rotation || 0
-    // Add drag delta if currently selected (being rotated)
-    const rotation = selectedAnnotationId.value === annotation.id
-      ? storedRotation + rotationDragDelta.value
-      : storedRotation
+
+    // During multi-select rotation drag, don't apply individual drag delta
+    // (group rotation is handled at the SvgAnnotationLayer level)
+    const isMultiSelectRotating = selectedAnnotationIds.value.length > 1 && rotationDragDelta.value !== 0
+    let rotation = storedRotation
+
+    if (isMultiSelectRotating && selectedAnnotationIds.value.includes(annotation.id)) {
+      // Only apply stored rotation, not drag delta
+      rotation = storedRotation
+    } else {
+      // Single annotation: add drag delta if being rotated
+      rotation = selectedAnnotationId.value === annotation.id
+        ? storedRotation + rotationDragDelta.value
+        : storedRotation
+    }
 
     if (rotation === 0) return ""
 
