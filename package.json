@@ -8,6 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "check": "nuxt typecheck",
     "generate-api": "orval",
     "clean-api": "orval --clean",
     "lint": "eslint . --fix",
