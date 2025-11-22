@@ -91,15 +91,25 @@ export const useRendererStore = defineStore("renderer", () => {
       const clampedScale = Math.max(RENDERING.MIN_SCALE, Math.min(RENDERING.MAX_SCALE, newScale))
       const currentScale = scale.value
 
-      // Convert mouse position to PDF coordinates (accounting for current transform)
-      // With transform-origin: top left, the math is straightforward:
-      // screenPos = pdfPos * scale + translate
-      const pdfMouseX = (mousePos.x - canvasPos.value.scrollLeft) / currentScale
-      const pdfMouseY = (mousePos.y - canvasPos.value.scrollTop) / currentScale
+      // With transform-origin: center center, we need to account for the centering offset
+      // The center point is at (width/2, height/2) in PDF coordinates
+      const centerX = pdfCanvasSize.value.width / 2
+      const centerY = pdfCanvasSize.value.height / 2
+
+      // Transform formula with center origin:
+      // screenX = (pdfX - centerX) * scale + centerX + translateX
+      // Rearranged: screenX = pdfX * scale + translateX + centerX * (1 - scale)
+
+      // Solving for pdfX:
+      // pdfX = (screenX - translateX - centerX * (1 - scale)) / scale
+      const pdfMouseX = (mousePos.x - canvasPos.value.scrollLeft - centerX * (1 - currentScale)) / currentScale
+      const pdfMouseY = (mousePos.y - canvasPos.value.scrollTop - centerY * (1 - currentScale)) / currentScale
 
       // Calculate new translate to keep the PDF point under the mouse
-      const newScrollLeft = mousePos.x - (pdfMouseX * clampedScale)
-      const newScrollTop = mousePos.y - (pdfMouseY * clampedScale)
+      // screenX = pdfX * newScale + newTranslateX + centerX * (1 - newScale)
+      // Solving for newTranslateX:
+      const newScrollLeft = mousePos.x - pdfMouseX * clampedScale - centerX * (1 - clampedScale)
+      const newScrollTop = mousePos.y - pdfMouseY * clampedScale - centerY * (1 - clampedScale)
 
       // Set new values
       scale.value = clampedScale

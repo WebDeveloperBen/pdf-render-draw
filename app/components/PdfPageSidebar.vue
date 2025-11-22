@@ -79,7 +79,8 @@ function setCanvasRef(pageNum: number, el: HTMLCanvasElement | null) {
     // If we have a cached thumbnail for this page, draw it immediately
     const cached = renderedThumbnails.value.get(pageNum)
     if (cached) {
-      const ctx = el.getContext("2d")
+      // Set willReadFrequently since we use getImageData for caching
+      const ctx = el.getContext("2d", { willReadFrequently: true })
       if (ctx) {
         el.width = cached.width
         el.height = cached.height
@@ -160,7 +161,8 @@ watchThrottled(
         await renderThumbnail(pdf, pageNum, canvas)
 
         // Cache the rendered thumbnail with LRU eviction
-        const ctx = canvas.getContext("2d")
+        // Use willReadFrequently since we're using getImageData for caching
+        const ctx = canvas.getContext("2d", { willReadFrequently: true })
         if (ctx) {
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
           cacheThumbnail(pageNum, imageData)
@@ -201,7 +203,8 @@ async function renderThumbnail(pdf: PDFDocumentProxy, pageNum: number, canvas: H
     canvas.width = scaledViewport.width
     canvas.height = scaledViewport.height
 
-    const context = canvas.getContext("2d")
+    // Set willReadFrequently since we cache thumbnails with getImageData
+    const context = canvas.getContext("2d", { willReadFrequently: true })
     if (!context) return
 
     await page.render({

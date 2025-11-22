@@ -33,7 +33,7 @@ const svgStyle = computed(() => {
     width: `${scaledWidth}px`,
     height: `${scaledHeight}px`,
     transform: rendererStore.getSvgTransform(offsetX, offsetY),
-    transformOrigin: "top left" as const,
+    transformOrigin: "center center" as const,
     pointerEvents: "all" as const,
     zIndex: 10,
     willChange: "width, height, transform" as const

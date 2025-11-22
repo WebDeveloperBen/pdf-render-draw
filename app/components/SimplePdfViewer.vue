@@ -29,7 +29,7 @@ const canvasStyle = computed(() => {
     top: "0",
     left: "0",
     transform: rendererStore.getCanvasTransform,
-    transformOrigin: "top left" as const,
+    transformOrigin: "center center" as const,
     // Use will-change for smooth scaling and rotation
     willChange: "transform" as const
   }
