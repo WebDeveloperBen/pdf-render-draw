@@ -73,7 +73,7 @@ function handleMouseDown(e: MouseEvent) {
 }
 
 function handleMouseUp(e: MouseEvent) {
-  if (selectionMarquee.isDrawing) {
+  if (selectionMarquee.isDrawing.value) {
     selectionMarquee.endMarquee()
     return
   }
@@ -113,6 +113,12 @@ function handleClick(e: MouseEvent) {
   const annotationId =
     target.dataset?.annotationId || target.closest("[data-annotation-id]")?.getAttribute("data-annotation-id")
 
+  // Check if clicking on transform handles (they have class or data attributes)
+  const isTransformHandle = target.closest(".transform-handles") ||
+                           target.closest(".group-transform-handles") ||
+                           target.classList?.contains("transform-handles") ||
+                           target.classList?.contains("group-transform-handles")
+
   if (annotationId && (tool === "selection" || tool === "") && !annotationStore.isDrawing) {
     // Click on annotation while in selection mode (and not actively drawing)
 
@@ -132,7 +138,8 @@ function handleClick(e: MouseEvent) {
 
   // Click outside any annotation - deselect regardless of active tool
   // But only if not drawing marquee or actively drawing with a tool
-  if (!annotationId && !selectionMarquee.isDrawing && !annotationStore.isDrawing) {
+  // Also ignore clicks on transform handles (they handle deselection via drag/drop)
+  if (!annotationId && !isTransformHandle && !selectionMarquee.isDrawing.value && !annotationStore.isDrawing) {
     annotationStore.selectAnnotation(null)
     // Don't return - allow drawing tools to continue processing the click
   }
@@ -187,7 +194,7 @@ function handleMove(e: MouseEvent) {
   }
 
   // Update selection marquee if dragging (only in selection mode)
-  if (selectionMarquee.isDrawing && (tool === "selection" || tool === "") && svgRef.value) {
+  if (selectionMarquee.isDrawing.value && (tool === "selection" || tool === "") && svgRef.value) {
     selectionMarquee.updateMarquee(e, svgRef.value)
     return // Don't process tool moves while selecting
   }
@@ -216,7 +223,7 @@ function handleMove(e: MouseEvent) {
 function handleDoubleClick(e: MouseEvent) {
   // Text editing - allow editing text regardless of active tool
   const target = e.target as SVGElement
-  const id = target.dataset.annotationId
+  const id = target.dataset?.annotationId || target.closest("[data-annotation-id]")?.getAttribute("data-annotation-id")
   if (id) {
     const annotation = annotationStore.getAnnotationById(id)
     if (annotation?.type === "text") {

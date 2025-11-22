@@ -4,6 +4,7 @@ import { defineComponent, h } from 'vue'
 import { mount } from '@vue/test-utils'
 import { useProvideTextTool, useTextToolState } from './useTextTool'
 import type { TextAnnotation } from '~/types/annotations'
+import { degreesToRadians } from '~/utils/math'
 
 // Mock UUID to make tests deterministic
 vi.mock('uuid', () => ({
@@ -84,7 +85,7 @@ describe('useTextTool', () => {
 
       const texts = annotationStore.annotations as TextAnnotation[]
       expect(texts).toHaveLength(1)
-      expect(texts![0]!.rotation).toBe(-90) // Counter-rotated
+      expect(texts![0]!.rotation).toBe(degreesToRadians(-90)) // Counter-rotated (in radians)
       expect(texts![0]!.content).toBe('Double-click to edit')
       expect(texts![0]!.id).toBe('test-uuid-123')
     })
@@ -275,7 +276,7 @@ describe('useTextTool', () => {
 
       // Text rotation should NOT change (it's stamped)
       expect(text.rotation).toBe(originalRotation)
-      expect(text.rotation).toBe(-90)
+      expect(text.rotation).toBe(degreesToRadians(-90))
     })
   })
 })

@@ -2,9 +2,11 @@
 import { TRANSFORM, COLORS } from "~/constants/ui"
 import { isMeasurement, isArea, isPerimeter, type Annotation } from "~/types/annotations"
 import type { Point } from "~/types"
+import { useTextToolState } from "~/composables/tools/useTextTool"
 
 const annotationStore = useAnnotationStore()
 const historyStore = useHistoryStore()
+const textTool = useTextToolState()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
 
@@ -112,6 +114,16 @@ const transformerTransform = computed(() => {
   const angleDeg = (totalRotation * 180) / Math.PI
   return `rotate(${angleDeg} ${center.x} ${center.y})`
 })
+
+// Handle double-click to edit text annotations
+function handleDoubleClick() {
+  if (!selectedAnnotation.value) return
+
+  // If the selected annotation is text, trigger text editing mode
+  if (selectedAnnotation.value.type === "text" && textTool) {
+    textTool.handleDoubleClick(selectedAnnotation.value.id)
+  }
+}
 
 function onStartDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "move") {
   if (!bounds.value || !selectedAnnotation.value) return
@@ -392,6 +404,7 @@ transformBase.setupEventListeners({
       }
     "
     class="transform-handles"
+    @dblclick="handleDoubleClick"
   >
     <!-- Apply rotation transform to entire transformer when rotating -->
     <g :transform="transformerTransform">
