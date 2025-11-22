@@ -66,7 +66,8 @@ function handleMouseDown(e: MouseEvent) {
   }
 
   // Handle fill tool mouse down
-  if (tool === "fill") {
+  // Only start drawing if NOT clicking on an existing annotation
+  if (tool === "fill" && !annotationId) {
     fillTool.handleMouseDown(e)
   }
 }

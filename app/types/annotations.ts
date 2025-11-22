@@ -5,6 +5,7 @@ export interface BaseAnnotation {
   id: string
   type: 'measure' | 'area' | 'perimeter' | 'line' | 'fill' | 'text'
   pageNum: number
+  rotation: number // Required for all annotations (in radians) - enables group transforms
   createdAt?: string
   updatedAt?: string
 }
@@ -16,7 +17,7 @@ export interface Measurement extends BaseAnnotation {
   distance: number
   midpoint: Point
   labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
-  rotation?: number // Shape rotation in radians (default 0)
+  // rotation inherited from BaseAnnotation
 }
 
 export interface Area extends BaseAnnotation {
@@ -25,7 +26,7 @@ export interface Area extends BaseAnnotation {
   area: number // in m²
   center: Point
   labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
-  rotation?: number // Shape rotation in radians (default 0)
+  // rotation inherited from BaseAnnotation
 }
 
 export interface PerimeterSegment {
@@ -42,13 +43,13 @@ export interface Perimeter extends BaseAnnotation {
   totalLength: number
   center: Point
   labelRotation: number // Label rotation in degrees, baked in at creation time to appear upright in viewport
-  rotation?: number // Shape rotation in radians (default 0)
+  // rotation inherited from BaseAnnotation
 }
 
 export interface Line extends BaseAnnotation {
   type: 'line'
   points: Point[] // Min 2 points
-  rotation?: number // Shape rotation in radians (default 0)
+  // rotation inherited from BaseAnnotation
 }
 
 export interface Fill extends BaseAnnotation {
@@ -59,7 +60,7 @@ export interface Fill extends BaseAnnotation {
   height: number
   color: string
   opacity: number
-  rotation?: number // Rotation in radians (for group rotation)
+  // rotation inherited from BaseAnnotation
 }
 
 export interface TextAnnotation extends BaseAnnotation {
@@ -71,7 +72,8 @@ export interface TextAnnotation extends BaseAnnotation {
   content: string
   fontSize: number
   color: string
-  rotation: number // Rotation in degrees, baked in at creation time
+  // rotation inherited from BaseAnnotation (in radians)
+  // Note: Text uses rotation differently - it's baked in at creation time, not for transforms
 }
 
 // Union type for all annotations
