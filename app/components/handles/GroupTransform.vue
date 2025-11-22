@@ -86,10 +86,23 @@ const corners = computed(() => {
 
   const b = displayBounds.value
   return [
-    { x: b.x, y: b.y },
-    { x: b.x + b.width, y: b.y },
-    { x: b.x + b.width, y: b.y + b.height },
-    { x: b.x, y: b.y + b.height }
+    { x: b.x, y: b.y }, // Top-left
+    { x: b.x + b.width, y: b.y }, // Top-right
+    { x: b.x + b.width, y: b.y + b.height }, // Bottom-right
+    { x: b.x, y: b.y + b.height } // Bottom-left
+  ]
+})
+
+// Calculate edge midpoints for edge handles (single-axis resizing)
+const edges = computed(() => {
+  if (!displayBounds.value) return []
+
+  const b = displayBounds.value
+  return [
+    { x: b.x + b.width / 2, y: b.y }, // Top edge
+    { x: b.x + b.width, y: b.y + b.height / 2 }, // Right edge
+    { x: b.x + b.width / 2, y: b.y + b.height }, // Bottom edge
+    { x: b.x, y: b.y + b.height / 2 } // Left edge
   ]
 })
 
@@ -112,13 +125,13 @@ const transformerTransform = computed(() => {
 function onStartDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "move") {
   if (!combinedBounds.value) return
 
-  // Clear frozen bounds for move/resize (need to recalculate)
-  // Keep frozen bounds for rotation (prevents jumping at rotation start)
-  if (mode !== "rotate") {
+  // Don't clear frozen bounds if we've rotated (preserves transformer orientation)
+  // For move without rotation, clear to recalculate
+  if (mode === "move" && cumulativeGroupRotation.value === 0) {
     frozenTransformerBounds.value = null
   }
 
-  // Use frozen bounds if available (for rotation), otherwise use combined bounds
+  // Use frozen bounds if available (maintains transformer after rotation), otherwise use combined bounds
   const startBounds = frozenTransformerBounds.value || combinedBounds.value
 
   transformBase.startDrag(e, handle, mode, startBounds, (svgPoint) => {
@@ -143,18 +156,29 @@ function handleResize(deltaX: number, deltaY: number) {
 
   const handle = transformBase.activeHandle.value
 
-  // Determine which corner is being dragged
+  // Determine which corner or edge is being dragged
+  const isCorner = handle.startsWith("corner-")
+  const isEdge = handle.startsWith("edge-")
+
+  // Corner handles
   const isLeft = handle === "corner-0" || handle === "corner-3"
   const isTop = handle === "corner-0" || handle === "corner-1"
   const isRight = handle === "corner-1" || handle === "corner-2"
   const isBottom = handle === "corner-2" || handle === "corner-3"
 
+  // Edge handles (single-axis resizing)
+  const isTopEdge = handle === "edge-0"
+  const isRightEdge = handle === "edge-1"
+  const isBottomEdge = handle === "edge-2"
+  const isLeftEdge = handle === "edge-3"
+
   // Calculate original aspect ratio
   const originalAspectRatio = transformBase.originalBounds.value.width / transformBase.originalBounds.value.height
 
-  // Calculate new bounds based on corner drag
+  // Calculate new bounds based on corner or edge drag
   const newBounds = { ...transformBase.originalBounds.value }
 
+  // Corner handles - resize both dimensions
   if (isLeft) {
     newBounds.x += deltaX
     newBounds.width -= deltaX
@@ -170,8 +194,24 @@ function handleResize(deltaX: number, deltaY: number) {
     newBounds.height += deltaY
   }
 
-  // Constrain aspect ratio if Shift is pressed
-  if (transformBase.isShiftPressed.value) {
+  // Edge handles - resize single dimension only
+  if (isTopEdge) {
+    newBounds.y += deltaY
+    newBounds.height -= deltaY
+  }
+  if (isBottomEdge) {
+    newBounds.height += deltaY
+  }
+  if (isLeftEdge) {
+    newBounds.x += deltaX
+    newBounds.width -= deltaX
+  }
+  if (isRightEdge) {
+    newBounds.width += deltaX
+  }
+
+  // Constrain aspect ratio if Shift is pressed (only for corner handles)
+  if (transformBase.isShiftPressed.value && isCorner) {
     const widthChangePct = Math.abs(newBounds.width - transformBase.originalBounds.value.width) / transformBase.originalBounds.value.width
     const heightChangePct = Math.abs(newBounds.height - transformBase.originalBounds.value.height) / transformBase.originalBounds.value.height
 
@@ -339,7 +379,8 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     // Add to cumulative group rotation so handles stay visually rotated
     cumulativeGroupRotation.value += transformBase.currentRotationDelta.value
 
-    // Freeze transformer bounds to prevent jumping on recalculation
+    // Keep transformer at original size/position (just rotated)
+    // Don't recalculate bounds - this prevents the bounding box from expanding
     frozenTransformerBounds.value = { ...transformBase.originalBounds.value }
   }
 
@@ -432,6 +473,23 @@ transformBase.setupEventListeners({
         @mousedown.stop="onStartDrag($event, `corner-${index}`, 'resize')"
       />
 
+      <!-- Edge handles for horizontal/vertical resizing -->
+      <rect
+        v-for="(edge, index) in edges"
+        :key="`edge-${index}`"
+        :x="edge.x - handleSize / 2"
+        :y="edge.y - handleSize / 2"
+        :width="handleSize"
+        :height="handleSize"
+        fill="white"
+        :stroke="COLORS.SELECTION_BLUE"
+        stroke-width="2"
+        class="edge-handle"
+        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle.value === `edge-${index}` }"
+        :data-handle="`edge-${index}`"
+        @mousedown.stop="onStartDrag($event, `edge-${index}`, 'resize')"
+      />
+
       <!-- Rotation handle -->
       <g class="rotation-handle-group">
         <!-- Line connecting to rotation handle -->
@@ -478,6 +536,7 @@ transformBase.setupEventListeners({
 }
 
 .corner-handle,
+.edge-handle,
 .rotation-handle {
   cursor: pointer;
   pointer-events: all;
@@ -489,6 +548,16 @@ transformBase.setupEventListeners({
 }
 
 .corner-handle.dragging {
+  fill: v-bind(colorBlueDarker);
+  stroke-width: 3;
+}
+
+.edge-handle:hover {
+  fill: v-bind(colorBlueDark);
+  stroke-width: 3;
+}
+
+.edge-handle.dragging {
   fill: v-bind(colorBlueDarker);
   stroke-width: 3;
 }
