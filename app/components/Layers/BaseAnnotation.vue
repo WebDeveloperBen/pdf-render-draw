@@ -23,7 +23,7 @@ const dragState = useDragState() // Track drag state to prevent clicks after dra
 // Check if this annotation is selected
 const isSelected = computed(() => annotationStore.isAnnotationSelected(props.annotation.id))
 
-// Debounce single-click to allow double-click to take precedence
+// Delay single-click to allow double-click to take precedence
 const CLICK_DELAY = 150 // ms to wait for potential double-click
 
 // Handle selection logic
@@ -48,13 +48,17 @@ function performSelection() {
   }
 }
 
-// Debounced version of selection - waits for potential double-click
-const debouncedSelection = useDebounceFn(performSelection, CLICK_DELAY)
+// Use useTimeoutFn for cancellable delayed selection
+const { start: startSelectionTimeout, stop: cancelSelectionTimeout } = useTimeoutFn(
+  performSelection,
+  CLICK_DELAY,
+  { immediate: false }
+)
 
 // Handle double-click - delegate to tool's handler if registered
 function handleDoubleClick(e: MouseEvent) {
   // Cancel pending single-click
-  debouncedSelection()
+  cancelSelectionTimeout()
 
   const tool = toolRegistry.getTool(props.annotation.type)
 
@@ -75,7 +79,7 @@ function handleContextMenu(e: MouseEvent) {
   }
 }
 
-// Handle click with debounce to detect double-click
+// Handle click with delay to detect double-click
 function handleClick(e: MouseEvent) {
   // Prevent selection changes if a drag just finished (click fires after drag ends)
   if (dragState.isDragJustFinished()) {
@@ -83,7 +87,7 @@ function handleClick(e: MouseEvent) {
   }
 
   // Delay single-click to see if double-click is coming
-  debouncedSelection()
+  startSelectionTimeout()
   e.stopPropagation()
 }
 </script>
