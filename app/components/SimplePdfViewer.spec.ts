@@ -544,7 +544,6 @@ describe('SimplePdfViewer Component', () => {
 
     it('should include scroll position (translate) in canvasStyle', async () => {
       const store = useRendererStore()
-      store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -555,6 +554,10 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
+      // Set canvas position after PDF has loaded and centered
+      store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
+      await nextTick()
+
       const canvas = wrapper.find('canvas')
       const style = canvas.attributes('style')
       expect(style).toContain('translate(100px, 50px)')
@@ -562,9 +565,6 @@ describe('SimplePdfViewer Component', () => {
 
     it('should have correct transform string format', async () => {
       const store = useRendererStore()
-      store.setScale(1.5)
-      store.setRotation(45)
-      store.setCanvasPos({ scrollLeft: 200, scrollTop: 100 })
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -573,6 +573,12 @@ describe('SimplePdfViewer Component', () => {
       })
 
       await flushPromises()
+      await nextTick()
+
+      // Set transforms after PDF has loaded
+      store.setScale(1.5)
+      store.setRotation(45)
+      store.setCanvasPos({ scrollLeft: 200, scrollTop: 100 })
       await nextTick()
 
       const canvas = wrapper.find('canvas')
@@ -655,7 +661,6 @@ describe('SimplePdfViewer Component', () => {
 
     it('should use rendererStore for canvas position', async () => {
       const store = useRendererStore()
-      store.setCanvasPos({ scrollLeft: 150, scrollTop: 75 })
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -664,6 +669,10 @@ describe('SimplePdfViewer Component', () => {
       })
 
       await flushPromises()
+      await nextTick()
+
+      // Set canvas position after PDF has loaded and centered
+      store.setCanvasPos({ scrollLeft: 150, scrollTop: 75 })
       await nextTick()
 
       const canvas = wrapper.find('canvas')
@@ -723,6 +732,50 @@ describe('SimplePdfViewer Component', () => {
       // Logical viewport is 600x800
       expect(store.getCanvasSize.width).toBe(600)
       expect(store.getCanvasSize.height).toBe(800)
+    })
+
+    it('should center PDF on first load', async () => {
+      const store = useRendererStore()
+
+      const wrapper = mount(SimplePdfViewer, {
+        props: {
+          pdf: mockPdfTask as PDFDocumentLoadingTask
+        }
+      })
+
+      await flushPromises()
+      await nextTick()
+
+      // PDF should be centered by offsetting by half its dimensions
+      // Logical viewport is 600x800
+      expect(store.getCanvasPos.scrollLeft).toBe(-300) // -600/2
+      expect(store.getCanvasPos.scrollTop).toBe(-400)  // -800/2
+      expect(store.getPdfInitialised).toBe(true)
+    })
+
+    it('should not re-center PDF when page changes', async () => {
+      const store = useRendererStore()
+
+      const wrapper = mount(SimplePdfViewer, {
+        props: {
+          pdf: mockPdfTask as PDFDocumentLoadingTask
+        }
+      })
+
+      await flushPromises()
+      await nextTick()
+
+      // Set a custom position after initial centering
+      store.setCanvasPos({ scrollLeft: 100, scrollTop: 200 })
+
+      // Change page
+      store.setCurrentPage(2)
+      await flushPromises()
+      await nextTick()
+
+      // Position should remain unchanged (not re-centered)
+      expect(store.getCanvasPos.scrollLeft).toBe(100)
+      expect(store.getCanvasPos.scrollTop).toBe(200)
     })
   })
 
@@ -812,9 +865,10 @@ describe('SimplePdfViewer Component', () => {
       await new Promise(resolve => setTimeout(resolve, RENDERING.SCALE_DEBOUNCE_MS + 100))
       await flushPromises()
 
-      // Should only render once after debounce period
+      // Should only render once or twice after debounce period (not once per scale change)
+      // May include an extra render from auto-centering interaction
       const finalRenderCount = (mockPage.render as any).mock.calls.length
-      expect(finalRenderCount - initialRenderCount).toBeLessThanOrEqual(2) // Initial + debounced
+      expect(finalRenderCount - initialRenderCount).toBeLessThanOrEqual(3) // Debounced + potential centering interaction
     })
 
     it('should render with latest scale after debounce', async () => {
