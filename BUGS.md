@@ -19,12 +19,24 @@ Changed all instances of `selectionMarquee.isDrawing` to `selectionMarquee.isDra
 3. `handleMove()` - SvgAnnotationLayer.vue:213
 
 **Additional Fixes:**
-- Fixed `handleDoubleClick()` to use `closest()` pattern for finding annotation IDs (SvgAnnotationLayer.vue:226)
-- Added double-click handler to Transform component to trigger text editing when double-clicking transform handles (Transform.vue:407, 119-126)
+- Fixed `handleDoubleClick()` to use `closest()` pattern for finding annotation IDs (SvgAnnotationLayer.vue:228)
+- Created generic double-click handler registry system (useAnnotationDoubleClick.ts)
+- Text tool registers its double-click handler in the registry
+- Transform component uses registry to handle double-clicks generically
+- Added double-click detection to prevent drag interference
+
+**Architecture Improvement:**
+Created `useAnnotationDoubleClick` composable for managing double-click handlers:
+- Tools register their double-click handlers by annotation type
+- Transform and SvgAnnotationLayer delegate to registry instead of hardcoding
+- Prevents drag operations from starting during double-click events
+- Extensible: any annotation type can register a double-click handler
 
 **Files Modified:**
-- `app/components/SvgAnnotationLayer.vue` (lines 76, 142, 213, 226)
-- `app/components/handles/Transform.vue` (lines 5, 9, 119-126, 407)
+- `app/components/SvgAnnotationLayer.vue` (lines 5, 9, 225-237)
+- `app/components/handles/Transform.vue` (lines 5, 9, 27-30, 123-143, 145-160, 411)
+- `app/composables/tools/useTextTool.ts` (lines 6, 11, 101-107)
+- `app/composables/useAnnotationDoubleClick.ts` (new file)
 - `app/composables/tools/useTextTool.spec.ts` (test fixes for radians vs degrees)
 
 **Diagnostic Process:**

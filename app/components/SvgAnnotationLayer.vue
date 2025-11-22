@@ -221,14 +221,24 @@ function handleMove(e: MouseEvent) {
 }
 
 function handleDoubleClick(e: MouseEvent) {
-  // Text editing - allow editing text regardless of active tool
+  // Find the annotation element and dispatch a custom event to it
+  // This lets the annotation component handle its own double-click behavior
   const target = e.target as SVGElement
   const id = target.dataset?.annotationId || target.closest("[data-annotation-id]")?.getAttribute("data-annotation-id")
+
   if (id) {
-    const annotation = annotationStore.getAnnotationById(id)
-    if (annotation?.type === "text") {
-      textTool.handleDoubleClick(id)
-      e.stopPropagation()
+    // Find the annotation element in the DOM
+    const annotationElement = svgRef.value?.querySelector(`[data-annotation-id="${id}"]`)
+
+    if (annotationElement) {
+      // Dispatch a custom event that the annotation component can listen for
+      const customEvent = new CustomEvent("annotation:dblclick", {
+        bubbles: true,
+        cancelable: true,
+        detail: { id, originalEvent: e }
+      })
+
+      annotationElement.dispatchEvent(customEvent)
     }
   }
 }
