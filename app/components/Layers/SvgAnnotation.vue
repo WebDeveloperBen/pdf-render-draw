@@ -47,6 +47,7 @@ const lineTool = useLineTool()
 const fillTool = useFillTool()
 const textTool = useTextTool()
 const selectionMarquee = useSelectionMarquee()
+const dragState = useDragState()
 
 // Enable keyboard shortcuts (undo/redo, copy/paste, etc.)
 useKeyboardShortcuts()
@@ -126,7 +127,14 @@ function handleClick(e: MouseEvent) {
   // Click outside any annotation - deselect regardless of active tool
   // But only if not drawing marquee or actively drawing with a tool
   // Also ignore clicks on transform handles (they handle deselection via drag/drop)
-  if (!annotationId && !isTransformHandle && !selectionMarquee.isDrawing.value && !annotationStore.isDrawing) {
+  // Prevent deselection if a drag/marquee just finished (click fires after mouseup)
+  if (
+    !annotationId &&
+    !isTransformHandle &&
+    !selectionMarquee.isDrawing.value &&
+    !annotationStore.isDrawing &&
+    !dragState.isDragJustFinished()
+  ) {
     annotationStore.selectAnnotation(null)
     // Don't return - allow drawing tools to continue processing the click
   }

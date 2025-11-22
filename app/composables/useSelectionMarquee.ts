@@ -8,6 +8,7 @@
 export function useSelectionMarquee() {
   const annotationStore = useAnnotationStore()
   const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
+  const dragState = useDragState()
 
   const isDrawing = ref(false)
   const startPoint = ref<Point | null>(null)
@@ -73,6 +74,12 @@ export function useSelectionMarquee() {
     // Select all annotations within the marquee (multi-select)
     if (selectedIds.length > 0) {
       annotationStore.selectAnnotation(selectedIds)
+    }
+
+    // Mark that drag just ended to prevent click handlers from deselecting
+    // Only if we actually dragged (not just a click)
+    if (marquee.width > 5 || marquee.height > 5) {
+      dragState.markDragEnd()
     }
 
     // Reset marquee
