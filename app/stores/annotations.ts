@@ -244,14 +244,14 @@ export const useAnnotationStore = defineStore('annotations', () => {
 
     // Handle multi-select modes
     if (options.addToSelection) {
-      // Add to selection (Ctrl/Cmd+Click)
+      // Add to selection (Shift+Click)
       ids.forEach(id => {
         if (!selectedAnnotationIds.value.includes(id)) {
           selectedAnnotationIds.value.push(id)
         }
       })
     } else if (options.toggle) {
-      // Toggle selection
+      // Toggle selection (Cmd/Ctrl+Click)
       ids.forEach(id => {
         const index = selectedAnnotationIds.value.indexOf(id)
         if (index !== -1) {

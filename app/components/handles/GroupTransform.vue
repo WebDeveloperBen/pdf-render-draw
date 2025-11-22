@@ -423,6 +423,8 @@ function handleMove(deltaX: number, deltaY: number) {
 }
 
 function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean) {
+  const dragState = useDragState()
+
   if (originalAnnotationStates.value.length === 0) {
     originalAnnotationStates.value = []
     return
@@ -433,6 +435,11 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     annotationStore.selectAnnotation(null)
     originalAnnotationStates.value = []
     return
+  }
+
+  // Mark that drag just ended to prevent click handlers from firing
+  if (moved) {
+    dragState.markDragEnd()
   }
 
   // Commit rotation for all annotations

@@ -79,6 +79,7 @@ describe("GroupTransform Component", () => {
   function createTestFill(id: string, x: number, y: number, width: number, height: number): Fill {
     return {
       id,
+      rotation: 0,
       type: "fill",
       pageNum: 1,
       x,

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
 import { getSvgPoint } from "~/utils/svg"
-import { useSvgCoordinates } from "~/composables/useSvgCoordinates"
+import { useSvgCoordinates } from "~/utils/useSvgCoordinates"
 import { useRendererStore } from "~/stores/renderer"
 
 /**
@@ -32,7 +32,7 @@ function createMockSvg(
       const point = {
         x: 0,
         y: 0,
-        matrixTransform: vi.fn(function (this: { x: number; y: number }, matrix: DOMMatrix) {
+        matrixTransform: vi.fn(function (this: { x: number; y: number }) {
           // Simulate inverse transform: screen -> SVG coordinates
           // Remove scroll offset and scale
           const svgX = (this.x - scrollLeft) / scale

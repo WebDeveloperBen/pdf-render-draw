@@ -17,7 +17,8 @@ const props = defineProps<{
 
 const annotationStore = useAnnotationStore()
 const toolRegistry = useToolRegistry()
-const modifierKeys = useModifierKeys()
+const modifierKeys = useModifierKeys() // Shared composable - same instance across all components
+const dragState = useDragState() // Track drag state to prevent clicks after drag
 
 // Check if this annotation is selected
 const isSelected = computed(() => annotationStore.isAnnotationSelected(props.annotation.id))
@@ -47,14 +48,27 @@ function handleContextMenu(e: MouseEvent) {
 function handleClick(e: MouseEvent) {
   const tool = annotationStore.activeTool
 
+  // Prevent selection changes if a drag just finished (click fires after drag ends)
+  if (dragState.isDragJustFinished()) {
+    return
+  }
+
   // Only handle selection in selection mode or when no tool is active
   if (tool === "selection" || tool === "") {
-    // Support Shift+click for multi-select
-    const isMultiSelect = modifierKeys?.isShiftPressed.value ?? false
+    // Multi-select support:
+    // - Shift+click: Add to selection (addToSelection)
+    // - Cmd/Ctrl+click: Toggle selection on/off (toggle)
+    const isShiftClick = modifierKeys.isShiftPressed.value
+    const isCmdCtrlClick = modifierKeys.isCmdOrCtrl.value
 
-    if (isMultiSelect) {
+    if (isShiftClick) {
+      // Shift+click: Add to selection
       annotationStore.selectAnnotation(props.annotation.id, { addToSelection: true })
+    } else if (isCmdCtrlClick) {
+      // Cmd/Ctrl+click: Toggle selection
+      annotationStore.selectAnnotation(props.annotation.id, { toggle: true })
     } else {
+      // Normal click: Replace selection
       annotationStore.selectAnnotation(props.annotation.id)
     }
 

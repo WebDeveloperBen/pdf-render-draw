@@ -1,22 +1,23 @@
 /**
- * Feature-scoped Modifier Key Tracking
+ * Shared Modifier Key Tracking
  *
- * s reactive state for modifier keys (Shift, Ctrl, Alt, Meta) that tools can use
- * to modify their behavior. Uses createInjectionState for feature-scoped state.
+ * Provides reactive state for modifier keys (Shift, Ctrl, Alt, Meta) that tools can use
+ * to modify their behavior. Uses createSharedComposable to ensure all components
+ * share the same state instance (like useKbd).
  *
  * Usage:
- * - r: useModifierKeys() in PdfEditorr component
- * - Consumer: useModifierKeys() in any child component (tools, etc.)
+ * - Simply call useModifierKeys() in any component
+ * - All components get the same shared reactive state
  *
  * Common modifier patterns:
- * - Shift: Constrain, snap to increments, maintain proportions
+ * - Shift: Multi-select, constrain, snap to increments, maintain proportions
  * - Alt/Option: From center, duplicate, inverse behavior
- * - Ctrl/Cmd: Precision mode, additional options
+ * - Ctrl/Cmd: Toggle, precision mode, additional options
  */
 
-import { createInjectionState } from "@vueuse/core"
+import { createSharedComposable } from "@vueuse/core"
 
-const [useModifierKeys, useModifierKeysState] = createInjectionState(() => {
+const _useModifierKeys = () => {
   // State - which keys are currently pressed
   const shift = ref(false)
   const ctrl = ref(false)
@@ -73,6 +74,7 @@ const [useModifierKeys, useModifierKeysState] = createInjectionState(() => {
     handleKeyUp,
     resetAll
   }
-})
+}
 
-export { useModifierKeys, useModifierKeysState }
+// Export shared composable - all components calling this get the same instance
+export const useModifierKeys = createSharedComposable(_useModifierKeys)

@@ -6,14 +6,14 @@
  * Only active when this component is mounted (i.e., on PDF editor pages).
  *
  * Provides:
- * - Modifier key tracking (Shift, Ctrl, Alt, Meta)
+ * - Modifier key tracking (Shift, Ctrl, Alt, Meta) via shared composable
  * - Window-level keyboard event listeners
  * - Automatic cleanup on unmount/navigation
  *
  * Usage: Wrap your PDF editor page content with this component
  */
 
-// Initialize and provide modifier keys state for all child components
+// Use shared composable for modifier keys (all components get same instance)
 const modifierKeys = useModifierKeys()
 
 // Set up global keyboard listeners when PDF editor is active

@@ -3,7 +3,7 @@ import { TRANSFORM, COLORS } from "~/constants/ui"
 import { isMeasurement, isArea, isPerimeter, type Annotation } from "~/types/annotations"
 import type { Point } from "~/types"
 
-const props = defineProps<{
+defineProps<{
   annotation: Annotation
 }>()
 
@@ -211,7 +211,7 @@ function handleResize(deltaX: number, deltaY: number) {
   let minWidth: number = TRANSFORM.MIN_BOUNDS
   let minHeight: number = TRANSFORM.MIN_BOUNDS
 
-  if (annotation.type === 'text' && 'content' in annotation && 'fontSize' in annotation) {
+  if (annotation.type === "text" && "content" in annotation && "fontSize" in annotation) {
     // Estimate minimum width based on text content
     // Average character width is roughly 0.6 * fontSize (for proportional fonts)
     const estimatedTextWidth = annotation.content.length * annotation.fontSize * 0.6
@@ -226,7 +226,8 @@ function handleResize(deltaX: number, deltaY: number) {
     newBounds.width = minWidth
   }
   if (newBounds.height < minHeight) {
-    if (isTop) newBounds.y = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height - minHeight
+    if (isTop)
+      newBounds.y = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height - minHeight
     newBounds.height = minHeight
   }
 
@@ -293,6 +294,8 @@ function handleMove(deltaX: number, deltaY: number) {
 }
 
 function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean) {
+  const dragState = useDragState()
+
   if (!selectedAnnotation.value || !originalAnnotationState.value) {
     // Clean up component-specific state
     originalPoints.value = null
@@ -306,6 +309,11 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     originalPoints.value = null
     originalAnnotationState.value = null
     return
+  }
+
+  // Mark that drag just ended to prevent click handlers from firing
+  if (moved) {
+    dragState.markDragEnd()
   }
 
   const annotationId = selectedAnnotation.value.id
@@ -329,7 +337,11 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     const updates: Record<string, unknown> = {}
 
     // Compare key properties that might have changed
-    if (hasRotation(finalState) && hasRotation(originalAnnotationState.value) && finalState.rotation !== originalAnnotationState.value.rotation) {
+    if (
+      hasRotation(finalState) &&
+      hasRotation(originalAnnotationState.value) &&
+      finalState.rotation !== originalAnnotationState.value.rotation
+    ) {
       updates.rotation = finalState.rotation
     }
     if (

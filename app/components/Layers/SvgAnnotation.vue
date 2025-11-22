@@ -120,21 +120,8 @@ function handleClick(e: MouseEvent) {
     target.classList?.contains("transform-handles") ||
     target.classList?.contains("group-transform-handles")
 
-  if (annotationId && (tool === "selection" || tool === "") && !annotationStore.isDrawing) {
-    // Click on annotation while in selection mode (and not actively drawing)
-
-    // Multi-select: Ctrl/Cmd+Click to add to selection
-    const isMultiSelect = isMac ? e.metaKey : e.ctrlKey
-
-    if (isMultiSelect) {
-      // Add to or remove from selection
-      annotationStore.selectAnnotation(annotationId, { toggle: true })
-    } else {
-      // Replace selection
-      annotationStore.selectAnnotation(annotationId)
-    }
-    return
-  }
+  // Note: Annotation click handling removed - now handled by BaseAnnotation component
+  // This prevents double-handling of clicks where both layers would process the same click
 
   // Click outside any annotation - deselect regardless of active tool
   // But only if not drawing marquee or actively drawing with a tool

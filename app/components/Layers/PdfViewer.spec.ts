@@ -1,31 +1,31 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
-import { setActivePinia, createPinia } from 'pinia'
-import { nextTick } from 'vue'
-import SimplePdfViewer from './SimplePdfViewer.vue'
-import { useRendererStore } from '~/stores/renderer'
-import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
-import { RENDERING } from '~/constants/rendering'
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
+import { mount, flushPromises } from "@vue/test-utils"
+import { setActivePinia, createPinia } from "pinia"
+import { nextTick } from "vue"
+import SimplePdfViewer from "./PdfViewer.vue"
+import { useRendererStore } from "~/stores/renderer"
+import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist"
+import { RENDERING } from "~/constants/rendering"
 
 // Mock debug utils
-vi.mock('~/utils/debug', () => ({
+vi.mock("~/utils/debug", () => ({
   debugLog: vi.fn(),
   debugError: vi.fn()
 }))
 
 // Mock constants
-vi.mock('~/constants/ui', () => ({
+vi.mock("~/constants/ui", () => ({
   ERROR_COLORS: {
-    BACKGROUND: 'rgba(255, 0, 0, 0.1)',
-    TEXT: '#d32f2f'
+    BACKGROUND: "rgba(255, 0, 0, 0.1)",
+    TEXT: "#d32f2f"
   },
   BUTTON_COLORS: {
-    PRIMARY: '#1976d2',
-    PRIMARY_HOVER: '#1565c0'
+    PRIMARY: "#1976d2",
+    PRIMARY_HOVER: "#1565c0"
   }
 }))
 
-describe('SimplePdfViewer Component', () => {
+describe("SimplePdfViewer Component", () => {
   let mockPage: Partial<PDFPageProxy>
   let mockPdfDoc: Partial<PDFDocumentProxy>
   let mockPdfTask: Partial<PDFDocumentLoadingTask>
@@ -76,7 +76,7 @@ describe('SimplePdfViewer Component', () => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => mockCanvasContext as CanvasRenderingContext2D) as any
 
     // Mock window.devicePixelRatio
-    Object.defineProperty(window, 'devicePixelRatio', {
+    Object.defineProperty(window, "devicePixelRatio", {
       writable: true,
       configurable: true,
       value: 2
@@ -87,20 +87,20 @@ describe('SimplePdfViewer Component', () => {
     vi.clearAllMocks()
   })
 
-  describe('Component Mounting & Props', () => {
-    it('should mount successfully', () => {
+  describe("Component Mounting & Props", () => {
+    it("should mount successfully", () => {
       const wrapper = mount(SimplePdfViewer)
       expect(wrapper.exists()).toBe(true)
     })
 
-    it('should render canvas element', () => {
+    it("should render canvas element", () => {
       const wrapper = mount(SimplePdfViewer)
-      const canvas = wrapper.find('canvas')
+      const canvas = wrapper.find("canvas")
       expect(canvas.exists()).toBe(true)
-      expect(canvas.classes()).toContain('pdf-canvas')
+      expect(canvas.classes()).toContain("pdf-canvas")
     })
 
-    it('should accept pdf prop (PDFDocumentLoadingTask)', async () => {
+    it("should accept pdf prop (PDFDocumentLoadingTask)", async () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: mockPdfTask as PDFDocumentLoadingTask
@@ -109,13 +109,13 @@ describe('SimplePdfViewer Component', () => {
 
       await flushPromises()
       // Check that the prop exists and has the expected structure
-      const pdfProp = wrapper.props('pdf')
+      const pdfProp = wrapper.props("pdf")
       expect(pdfProp).toBeDefined()
-      expect(pdfProp).toHaveProperty('promise')
-      expect(pdfProp).toHaveProperty('destroy')
+      expect(pdfProp).toHaveProperty("promise")
+      expect(pdfProp).toHaveProperty("destroy")
     })
 
-    it('should handle missing/undefined pdf prop', () => {
+    it("should handle missing/undefined pdf prop", () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: undefined
@@ -123,19 +123,13 @@ describe('SimplePdfViewer Component', () => {
       })
 
       expect(wrapper.exists()).toBe(true)
-      const canvas = wrapper.find('canvas')
+      const canvas = wrapper.find("canvas")
       expect(canvas.exists()).toBe(true)
     })
   })
 
-  describe('Canvas Rendering Lifecycle', () => {
-    it('should call renderPage when pdf provided', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+  describe("Canvas Rendering Lifecycle", () => {
+    it("should call renderPage when pdf provided", async () => {
       await flushPromises()
       await nextTick()
 
@@ -143,15 +137,9 @@ describe('SimplePdfViewer Component', () => {
       expect(mockPdfDoc.getPage).toHaveBeenCalled()
     })
 
-    it('should use correct page number from store', async () => {
+    it("should use correct page number from store", async () => {
       const store = useRendererStore()
       store.setCurrentPage(3)
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
       await nextTick()
@@ -159,7 +147,7 @@ describe('SimplePdfViewer Component', () => {
       expect(mockPdfDoc.getPage).toHaveBeenCalledWith(3)
     })
 
-    it('should acquire canvas context', async () => {
+    it("should acquire canvas context", async () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: mockPdfTask as PDFDocumentLoadingTask
@@ -169,17 +157,11 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
-      const canvas = wrapper.find('canvas').element as HTMLCanvasElement
-      expect(canvas.getContext).toHaveBeenCalledWith('2d')
+      const canvas = wrapper.find("canvas").element as HTMLCanvasElement
+      expect(canvas.getContext).toHaveBeenCalledWith("2d")
     })
 
-    it('should render page to canvas', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+    it("should render page to canvas", async () => {
       await flushPromises()
       await nextTick()
 
@@ -188,7 +170,7 @@ describe('SimplePdfViewer Component', () => {
       expect(renderCall.canvasContext).toBe(mockCanvasContext)
     })
 
-    it('should set canvas width and height from viewport', async () => {
+    it("should set canvas width and height from viewport", async () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: mockPdfTask as PDFDocumentLoadingTask
@@ -198,7 +180,7 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
-      const canvas = wrapper.find('canvas').element as HTMLCanvasElement
+      const canvas = wrapper.find("canvas").element as HTMLCanvasElement
 
       // Width/height should be set with device pixel ratio
       // Viewport returns 600x800 at scale=1, with DPR=2 => 1200x1600
@@ -206,13 +188,7 @@ describe('SimplePdfViewer Component', () => {
       expect(canvas.height).toBeGreaterThan(0)
     })
 
-    it('should apply device pixel ratio for crisp rendering', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+    it("should apply device pixel ratio for crisp rendering", async () => {
       await flushPromises()
       await nextTick()
 
@@ -225,14 +201,8 @@ describe('SimplePdfViewer Component', () => {
     })
   })
 
-  describe('Render Cancellation', () => {
-    it('should create abort controller on render start', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+  describe("Render Cancellation", () => {
+    it("should create abort controller on render start", async () => {
       await flushPromises()
       await nextTick()
 
@@ -241,7 +211,7 @@ describe('SimplePdfViewer Component', () => {
       expect(mockPage.render).toHaveBeenCalled()
     })
 
-    it('should abort previous render when new render starts', async () => {
+    it("should abort previous render when new render starts", async () => {
       const cancelFn = vi.fn()
       const firstRenderTask = {
         promise: new Promise(() => {}), // Never resolves
@@ -249,12 +219,6 @@ describe('SimplePdfViewer Component', () => {
       }
 
       mockPage.render = vi.fn(() => firstRenderTask) as any
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
 
@@ -274,7 +238,7 @@ describe('SimplePdfViewer Component', () => {
       expect(cancelFn).toHaveBeenCalled()
     })
 
-    it('should cancel current render task', async () => {
+    it("should cancel current render task", async () => {
       const cancelFn = vi.fn()
       const renderTask = {
         promise: new Promise(() => {}), // Never resolves
@@ -282,12 +246,6 @@ describe('SimplePdfViewer Component', () => {
       }
 
       mockPage.render = vi.fn(() => renderTask) as any
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
 
@@ -304,7 +262,7 @@ describe('SimplePdfViewer Component', () => {
       expect(cancelFn).toHaveBeenCalled()
     })
 
-    it('should set isRendering flag during render', async () => {
+    it("should set isRendering flag during render", async () => {
       let resolveRender: () => void
       const renderPromise = new Promise<void>((resolve) => {
         resolveRender = resolve
@@ -314,12 +272,6 @@ describe('SimplePdfViewer Component', () => {
         promise: renderPromise,
         cancel: vi.fn()
       })) as any
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
       // At this point, render should be in progress (but we can't directly check the ref)
@@ -332,7 +284,7 @@ describe('SimplePdfViewer Component', () => {
       expect(mockPage.render).toHaveBeenCalled()
     })
 
-    it('should clear isRendering after render completes', async () => {
+    it("should clear isRendering after render completes", async () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: mockPdfTask as PDFDocumentLoadingTask
@@ -343,15 +295,15 @@ describe('SimplePdfViewer Component', () => {
       await nextTick()
 
       // After render completes, no errors should be shown
-      const errorOverlay = wrapper.find('.error-overlay')
+      const errorOverlay = wrapper.find(".error-overlay")
       expect(errorOverlay.exists()).toBe(false)
     })
   })
 
-  describe('Error Handling', () => {
-    it('should display render error when page.render fails', async () => {
+  describe("Error Handling", () => {
+    it("should display render error when page.render fails", async () => {
       mockPage.render = vi.fn(() => ({
-        promise: Promise.reject(new Error('Render failed')),
+        promise: Promise.reject(new Error("Render failed")),
         cancel: vi.fn()
       })) as any
 
@@ -363,18 +315,18 @@ describe('SimplePdfViewer Component', () => {
 
       await flushPromises()
       // Wait for all retries with exponential backoff: 500ms * 1 + 500ms * 2 + 500ms * 3 = 3000ms + buffer
-      await new Promise(resolve => setTimeout(resolve, 3500))
+      await new Promise((resolve) => setTimeout(resolve, 3500))
       await flushPromises()
       await nextTick()
 
       // After max retries, error should be visible
-      const errorOverlay = wrapper.find('.error-overlay')
+      const errorOverlay = wrapper.find(".error-overlay")
       expect(errorOverlay.exists()).toBe(true)
     })
 
-    it('should set renderError state on failure', async () => {
+    it("should set renderError state on failure", async () => {
       mockPage.render = vi.fn(() => ({
-        promise: Promise.reject(new Error('Test error')),
+        promise: Promise.reject(new Error("Test error")),
         cancel: vi.fn()
       })) as any
 
@@ -386,22 +338,22 @@ describe('SimplePdfViewer Component', () => {
 
       await flushPromises()
       // Wait for all retries with exponential backoff
-      await new Promise(resolve => setTimeout(resolve, 3500))
+      await new Promise((resolve) => setTimeout(resolve, 3500))
       await flushPromises()
       await nextTick()
 
-      const errorMessage = wrapper.find('.error-message')
+      const errorMessage = wrapper.find(".error-message")
       expect(errorMessage.exists()).toBe(true)
-      expect(errorMessage.text()).toContain('Failed to render page')
+      expect(errorMessage.text()).toContain("Failed to render page")
     })
 
-    it('should retry on render failure', async () => {
+    it("should retry on render failure", async () => {
       let callCount = 0
       mockPage.render = vi.fn(() => {
         callCount++
         if (callCount < RENDERING.MAX_RETRIES + 1) {
           return {
-            promise: Promise.reject(new Error('Temporary failure')),
+            promise: Promise.reject(new Error("Temporary failure")),
             cancel: vi.fn()
           }
         }
@@ -411,14 +363,8 @@ describe('SimplePdfViewer Component', () => {
         }
       }) as any
 
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
       await flushPromises()
-      await new Promise(resolve => setTimeout(resolve, RENDERING.RETRY_BASE_DELAY_MS * RENDERING.MAX_RETRIES + 500))
+      await new Promise((resolve) => setTimeout(resolve, RENDERING.RETRY_BASE_DELAY_MS * RENDERING.MAX_RETRIES + 500))
       await flushPromises()
 
       // Should have retried multiple times
@@ -426,8 +372,8 @@ describe('SimplePdfViewer Component', () => {
       expect((mockPage.render as any).mock.calls.length).toBeGreaterThan(1)
     })
 
-    it('should not crash on PDF.js errors', async () => {
-      mockPdfDoc.getPage = vi.fn(() => Promise.reject(new Error('Page not found')))
+    it("should not crash on PDF.js errors", async () => {
+      mockPdfDoc.getPage = vi.fn(() => Promise.reject(new Error("Page not found")))
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -442,9 +388,9 @@ describe('SimplePdfViewer Component', () => {
       expect(wrapper.exists()).toBe(true)
     })
 
-    it('should show retry button on error', async () => {
+    it("should show retry button on error", async () => {
       mockPage.render = vi.fn(() => ({
-        promise: Promise.reject(new Error('Render failed')),
+        promise: Promise.reject(new Error("Render failed")),
         cancel: vi.fn()
       })) as any
 
@@ -456,22 +402,22 @@ describe('SimplePdfViewer Component', () => {
 
       await flushPromises()
       // Wait for all retries with exponential backoff
-      await new Promise(resolve => setTimeout(resolve, 3500))
+      await new Promise((resolve) => setTimeout(resolve, 3500))
       await flushPromises()
       await nextTick()
 
-      const retryBtn = wrapper.find('.retry-btn')
+      const retryBtn = wrapper.find(".retry-btn")
       expect(retryBtn.exists()).toBe(true)
-      expect(retryBtn.text()).toBe('Retry')
+      expect(retryBtn.text()).toBe("Retry")
     })
 
-    it('should clear error on retry', async () => {
+    it("should clear error on retry", async () => {
       let attemptCount = 0
       mockPage.render = vi.fn(() => {
         attemptCount++
         if (attemptCount === 1) {
           return {
-            promise: Promise.reject(new Error('First attempt failed')),
+            promise: Promise.reject(new Error("First attempt failed")),
             cancel: vi.fn()
           }
         }
@@ -491,22 +437,22 @@ describe('SimplePdfViewer Component', () => {
       await nextTick()
 
       // Error should be shown after max retries
-      let errorOverlay = wrapper.find('.error-overlay')
+      let errorOverlay = wrapper.find(".error-overlay")
       if (errorOverlay.exists()) {
         // Click retry
-        const retryBtn = wrapper.find('.retry-btn')
-        await retryBtn.trigger('click')
+        const retryBtn = wrapper.find(".retry-btn")
+        await retryBtn.trigger("click")
         await flushPromises()
 
         // Error should be cleared
-        errorOverlay = wrapper.find('.error-overlay')
+        errorOverlay = wrapper.find(".error-overlay")
         expect(errorOverlay.exists()).toBe(false)
       }
     })
   })
 
-  describe('Transform Application', () => {
-    it('should include scale transform in canvasStyle', async () => {
+  describe("Transform Application", () => {
+    it("should include scale transform in canvasStyle", async () => {
       const store = useRendererStore()
       store.setScale(2)
 
@@ -519,12 +465,12 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('scale(2)')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("scale(2)")
     })
 
-    it('should include rotation transform in canvasStyle', async () => {
+    it("should include rotation transform in canvasStyle", async () => {
       const store = useRendererStore()
       store.setRotation(90)
 
@@ -537,12 +483,12 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('rotate(90deg)')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("rotate(90deg)")
     })
 
-    it('should include scroll position (translate) in canvasStyle', async () => {
+    it("should include scroll position (translate) in canvasStyle", async () => {
       const store = useRendererStore()
 
       const wrapper = mount(SimplePdfViewer, {
@@ -558,12 +504,12 @@ describe('SimplePdfViewer Component', () => {
       store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('translate(100px, 50px)')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("translate(100px, 50px)")
     })
 
-    it('should have correct transform string format', async () => {
+    it("should have correct transform string format", async () => {
       const store = useRendererStore()
 
       const wrapper = mount(SimplePdfViewer, {
@@ -581,16 +527,16 @@ describe('SimplePdfViewer Component', () => {
       store.setCanvasPos({ scrollLeft: 200, scrollTop: 100 })
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
 
       // Should contain all transforms in correct order
-      expect(style).toContain('translate(200px, 100px)')
-      expect(style).toContain('scale(1.5)')
-      expect(style).toContain('rotate(45deg)')
+      expect(style).toContain("translate(200px, 100px)")
+      expect(style).toContain("scale(1.5)")
+      expect(style).toContain("rotate(45deg)")
     })
 
-    it('should set will-change property for performance', async () => {
+    it("should set will-change property for performance", async () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: mockPdfTask as PDFDocumentLoadingTask
@@ -600,22 +546,16 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('will-change: transform')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("will-change: transform")
     })
   })
 
-  describe('Store Integration', () => {
-    it('should use rendererStore for current page', async () => {
+  describe("Store Integration", () => {
+    it("should use rendererStore for current page", async () => {
       const store = useRendererStore()
       store.setCurrentPage(5)
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
       await nextTick()
@@ -623,7 +563,7 @@ describe('SimplePdfViewer Component', () => {
       expect(mockPdfDoc.getPage).toHaveBeenCalledWith(5)
     })
 
-    it('should use rendererStore for scale', async () => {
+    it("should use rendererStore for scale", async () => {
       const store = useRendererStore()
       store.setScale(2.5)
 
@@ -636,12 +576,12 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('scale(2.5)')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("scale(2.5)")
     })
 
-    it('should use rendererStore for rotation', async () => {
+    it("should use rendererStore for rotation", async () => {
       const store = useRendererStore()
       store.setRotation(180)
 
@@ -654,12 +594,12 @@ describe('SimplePdfViewer Component', () => {
       await flushPromises()
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('rotate(180deg)')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("rotate(180deg)")
     })
 
-    it('should use rendererStore for canvas position', async () => {
+    it("should use rendererStore for canvas position", async () => {
       const store = useRendererStore()
 
       const wrapper = mount(SimplePdfViewer, {
@@ -675,12 +615,12 @@ describe('SimplePdfViewer Component', () => {
       store.setCanvasPos({ scrollLeft: 150, scrollTop: 75 })
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('translate(150px, 75px)')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("translate(150px, 75px)")
     })
 
-    it('should react to store changes', async () => {
+    it("should react to store changes", async () => {
       const store = useRendererStore()
 
       const wrapper = mount(SimplePdfViewer, {
@@ -696,19 +636,13 @@ describe('SimplePdfViewer Component', () => {
       store.setScale(3)
       await nextTick()
 
-      const canvas = wrapper.find('canvas')
-      const style = canvas.attributes('style')
-      expect(style).toContain('scale(3)')
+      const canvas = wrapper.find("canvas")
+      const style = canvas.attributes("style")
+      expect(style).toContain("scale(3)")
     })
 
-    it('should store PDF document in renderer store', async () => {
+    it("should store PDF document in renderer store", async () => {
       const store = useRendererStore()
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
       await nextTick()
@@ -717,14 +651,8 @@ describe('SimplePdfViewer Component', () => {
       expect(store.getTotalPages).toBe(10)
     })
 
-    it('should update canvas size in store', async () => {
+    it("should update canvas size in store", async () => {
       const store = useRendererStore()
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
       await nextTick()
@@ -734,33 +662,20 @@ describe('SimplePdfViewer Component', () => {
       expect(store.getCanvasSize.height).toBe(800)
     })
 
-    it('should center PDF on first load', async () => {
+    it("should center PDF on first load", async () => {
       const store = useRendererStore()
 
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
-      await flushPromises()
       await nextTick()
 
       // PDF should be centered by offsetting by half its dimensions
       // Logical viewport is 600x800
       expect(store.getCanvasPos.scrollLeft).toBe(-300) // -600/2
-      expect(store.getCanvasPos.scrollTop).toBe(-400)  // -800/2
+      expect(store.getCanvasPos.scrollTop).toBe(-400) // -800/2
       expect(store.getPdfInitialised).toBe(true)
     })
 
-    it('should not re-center PDF when page changes', async () => {
+    it("should not re-center PDF when page changes", async () => {
       const store = useRendererStore()
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
       await nextTick()
@@ -779,8 +694,8 @@ describe('SimplePdfViewer Component', () => {
     })
   })
 
-  describe('Cleanup & Memory', () => {
-    it('should clean up abort controller on unmount', async () => {
+  describe("Cleanup & Memory", () => {
+    it("should clean up abort controller on unmount", async () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: mockPdfTask as PDFDocumentLoadingTask
@@ -794,7 +709,7 @@ describe('SimplePdfViewer Component', () => {
       expect(() => wrapper.unmount()).not.toThrow()
     })
 
-    it('should cancel render task on unmount', async () => {
+    it("should cancel render task on unmount", async () => {
       const cancelFn = vi.fn()
       const renderTask = {
         promise: new Promise(() => {}), // Never resolves
@@ -818,7 +733,7 @@ describe('SimplePdfViewer Component', () => {
       expect(wrapper.exists()).toBe(false)
     })
 
-    it('should clear debounce timer on unmount', async () => {
+    it("should clear debounce timer on unmount", async () => {
       const wrapper = mount(SimplePdfViewer, {
         props: {
           pdf: mockPdfTask as PDFDocumentLoadingTask
@@ -841,14 +756,8 @@ describe('SimplePdfViewer Component', () => {
     })
   })
 
-  describe('Scale Debouncing', () => {
-    it('should debounce scale changes', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+  describe("Scale Debouncing", () => {
+    it("should debounce scale changes", async () => {
       await flushPromises()
       await nextTick()
 
@@ -862,7 +771,7 @@ describe('SimplePdfViewer Component', () => {
       store.setScale(2.5)
 
       // Wait for debounce
-      await new Promise(resolve => setTimeout(resolve, RENDERING.SCALE_DEBOUNCE_MS + 100))
+      await new Promise((resolve) => setTimeout(resolve, RENDERING.SCALE_DEBOUNCE_MS + 100))
       await flushPromises()
 
       // Should only render once or twice after debounce period (not once per scale change)
@@ -871,13 +780,7 @@ describe('SimplePdfViewer Component', () => {
       expect(finalRenderCount - initialRenderCount).toBeLessThanOrEqual(3) // Debounced + potential centering interaction
     })
 
-    it('should render with latest scale after debounce', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+    it("should render with latest scale after debounce", async () => {
       await flushPromises()
       await nextTick()
 
@@ -889,7 +792,7 @@ describe('SimplePdfViewer Component', () => {
       store.setScale(3)
 
       // Wait for debounce
-      await new Promise(resolve => setTimeout(resolve, RENDERING.SCALE_DEBOUNCE_MS + 200))
+      await new Promise((resolve) => setTimeout(resolve, RENDERING.SCALE_DEBOUNCE_MS + 200))
       await flushPromises()
       await nextTick()
 
@@ -907,14 +810,8 @@ describe('SimplePdfViewer Component', () => {
     })
   })
 
-  describe('Page Change Reactivity', () => {
-    it('should re-render when page changes', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+  describe("Page Change Reactivity", () => {
+    it("should re-render when page changes", async () => {
       await flushPromises()
       await nextTick()
 
@@ -930,13 +827,7 @@ describe('SimplePdfViewer Component', () => {
       expect((mockPage.render as any).mock.calls.length).toBeGreaterThan(initialRenderCount)
     })
 
-    it('should load correct page when page changes', async () => {
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: mockPdfTask as PDFDocumentLoadingTask
-        }
-      })
-
+    it("should load correct page when page changes", async () => {
       await flushPromises()
       await nextTick()
 
@@ -950,21 +841,9 @@ describe('SimplePdfViewer Component', () => {
     })
   })
 
-  describe('PDF Loading', () => {
-    it('should wait for PDF promise to resolve', async () => {
+  describe("PDF Loading", () => {
+    it("should wait for PDF promise to resolve", async () => {
       let resolvePdf: (value: PDFDocumentProxy) => void
-      const delayedPdfTask = {
-        promise: new Promise<PDFDocumentProxy>((resolve) => {
-          resolvePdf = resolve
-        }),
-        destroy: vi.fn()
-      }
-
-      const wrapper = mount(SimplePdfViewer, {
-        props: {
-          pdf: delayedPdfTask as unknown as PDFDocumentLoadingTask
-        }
-      })
 
       await flushPromises()
 
@@ -982,9 +861,9 @@ describe('SimplePdfViewer Component', () => {
 
     // Skipped: This test passes but causes an unhandled rejection warning during Vue watcher callback
     // Error handling is already covered by other tests (getPage rejection, render rejection, etc.)
-    it.skip('should handle PDF promise rejection', async () => {
+    it.skip("should handle PDF promise rejection", async () => {
       // Create a promise that will be rejected and properly handled by component
-      const pdfError = new Error('Failed to load PDF')
+      const pdfError = new Error("Failed to load PDF")
       let rejectPromise: (error: Error) => void
       const failedPromise = new Promise<PDFDocumentProxy>((_, reject) => {
         rejectPromise = reject
@@ -1009,7 +888,7 @@ describe('SimplePdfViewer Component', () => {
 
       // Allow component to process the rejection through retries
       // Wait for all retries with exponential backoff: 500ms * 1 + 500ms * 2 + 500ms * 3 = 3000ms + buffer
-      await new Promise(resolve => setTimeout(resolve, 3500))
+      await new Promise((resolve) => setTimeout(resolve, 3500))
       await flushPromises()
       await nextTick()
 
@@ -1017,7 +896,7 @@ describe('SimplePdfViewer Component', () => {
       expect(wrapper.exists()).toBe(true)
     })
 
-    it('should not render if canvas ref is not available', async () => {
+    it("should not render if canvas ref is not available", async () => {
       // Create mock that doesn't create canvas element
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -1032,8 +911,8 @@ describe('SimplePdfViewer Component', () => {
     })
   })
 
-  describe('Context Acquisition', () => {
-    it('should handle failed context acquisition', async () => {
+  describe("Context Acquisition", () => {
+    it("should handle failed context acquisition", async () => {
       // Mock getContext to return null
       HTMLCanvasElement.prototype.getContext = vi.fn(() => null)
 
@@ -1051,10 +930,10 @@ describe('SimplePdfViewer Component', () => {
     })
   })
 
-  describe('Rendering Cancellation Error Handling', () => {
-    it('should ignore RenderingCancelledException', async () => {
+  describe("Rendering Cancellation Error Handling", () => {
+    it("should ignore RenderingCancelledException", async () => {
       mockPage.render = vi.fn(() => ({
-        promise: Promise.reject({ name: 'RenderingCancelledException' }),
+        promise: Promise.reject({ name: "RenderingCancelledException" }),
         cancel: vi.fn()
       })) as any
 
@@ -1068,13 +947,13 @@ describe('SimplePdfViewer Component', () => {
       await nextTick()
 
       // Should not show error overlay
-      const errorOverlay = wrapper.find('.error-overlay')
+      const errorOverlay = wrapper.find(".error-overlay")
       expect(errorOverlay.exists()).toBe(false)
     })
 
-    it('should ignore AbortError', async () => {
+    it("should ignore AbortError", async () => {
       mockPage.render = vi.fn(() => ({
-        promise: Promise.reject({ name: 'AbortError' }),
+        promise: Promise.reject({ name: "AbortError" }),
         cancel: vi.fn()
       })) as any
 
@@ -1088,7 +967,7 @@ describe('SimplePdfViewer Component', () => {
       await nextTick()
 
       // Should not show error overlay
-      const errorOverlay = wrapper.find('.error-overlay')
+      const errorOverlay = wrapper.find(".error-overlay")
       expect(errorOverlay.exists()).toBe(false)
     })
   })
