@@ -136,6 +136,16 @@ function handleResize(deltaX: number, deltaY: number) {
   const annotation = selectedAnnotation.value
   const handle = transformBase.activeHandle.value
 
+  // Get annotation rotation and rotate deltas into local space
+  // When annotation is rotated, mouse deltas are in global space but need to be in local space
+  const rotation = (annotation as { rotation?: number }).rotation || 0
+
+  // Rotate deltas by -rotation to convert from global to local coordinate system
+  const cos = Math.cos(-rotation)
+  const sin = Math.sin(-rotation)
+  const localDeltaX = deltaX * cos - deltaY * sin
+  const localDeltaY = deltaX * sin + deltaY * cos
+
   // Determine which corner or edge is being dragged
   const isLeft = handle === "corner-0" || handle === "corner-3" || handle === "edge-3"
   const isTop = handle === "corner-0" || handle === "corner-1" || handle === "edge-0"
@@ -148,41 +158,41 @@ function handleResize(deltaX: number, deltaY: number) {
   // Calculate original aspect ratio
   const originalAspectRatio = transformBase.originalBounds.value.width / transformBase.originalBounds.value.height
 
-  // Calculate new bounds based on corner/edge drag
+  // Calculate new bounds based on corner/edge drag (using local deltas)
   const newBounds = { ...transformBase.originalBounds.value }
 
   if (isEdgeHandle) {
-    // Edge handles only resize in one dimension
+    // Edge handles only resize in one dimension (using local deltas)
     if (handle === "edge-0") {
       // Top edge
-      newBounds.y += deltaY
-      newBounds.height -= deltaY
+      newBounds.y += localDeltaY
+      newBounds.height -= localDeltaY
     } else if (handle === "edge-1") {
       // Right edge
-      newBounds.width += deltaX
+      newBounds.width += localDeltaX
     } else if (handle === "edge-2") {
       // Bottom edge
-      newBounds.height += deltaY
+      newBounds.height += localDeltaY
     } else if (handle === "edge-3") {
       // Left edge
-      newBounds.x += deltaX
-      newBounds.width -= deltaX
+      newBounds.x += localDeltaX
+      newBounds.width -= localDeltaX
     }
   } else {
-    // Corner handles resize in both dimensions
+    // Corner handles resize in both dimensions (using local deltas)
     if (isLeft) {
-      newBounds.x += deltaX
-      newBounds.width -= deltaX
+      newBounds.x += localDeltaX
+      newBounds.width -= localDeltaX
     }
     if (isRight) {
-      newBounds.width += deltaX
+      newBounds.width += localDeltaX
     }
     if (isTop) {
-      newBounds.y += deltaY
-      newBounds.height -= deltaY
+      newBounds.y += localDeltaY
+      newBounds.height -= localDeltaY
     }
     if (isBottom) {
-      newBounds.height += deltaY
+      newBounds.height += localDeltaY
     }
   }
 
