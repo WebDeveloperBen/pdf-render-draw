@@ -7,6 +7,9 @@ if (!tool) {
 }
 
 const { completed, isDrawing, currentRect, deleteFill } = tool
+
+const annotationStore = useAnnotationStore()
+const { getRotationTransform, isAnnotationSelected, selectAnnotation } = annotationStore
 </script>
 <template>
   <g class="fill-tool">
@@ -27,7 +30,15 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
     />
 
     <!-- Completed fill rectangles -->
-    <g v-for="fill in completed" :key="fill.id" class="fill-rect-group" :data-annotation-id="fill.id">
+    <g
+      v-for="fill in completed"
+      :key="fill.id"
+      class="fill-rect-group"
+      :data-annotation-id="fill.id"
+      :class="{ selected: isAnnotationSelected(fill.id) }"
+      :transform="getRotationTransform(fill)"
+      @click.stop="selectAnnotation(fill.id)"
+    >
       <!-- Filled rectangle -->
       <rect
         :x="fill.x"
@@ -64,8 +75,22 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
           class="delete-bg"
         />
         <!-- X symbol in center -->
-        <line :x1="fill.x + fill.width / 2 - 5" :y1="fill.y + fill.height / 2 - 5" :x2="fill.x + fill.width / 2 + 5" :y2="fill.y + fill.height / 2 + 5" stroke="white" stroke-width="2" />
-        <line :x1="fill.x + fill.width / 2 + 5" :y1="fill.y + fill.height / 2 - 5" :x2="fill.x + fill.width / 2 - 5" :y2="fill.y + fill.height / 2 + 5" stroke="white" stroke-width="2" />
+        <line
+          :x1="fill.x + fill.width / 2 - 5"
+          :y1="fill.y + fill.height / 2 - 5"
+          :x2="fill.x + fill.width / 2 + 5"
+          :y2="fill.y + fill.height / 2 + 5"
+          stroke="white"
+          stroke-width="2"
+        />
+        <line
+          :x1="fill.x + fill.width / 2 + 5"
+          :y1="fill.y + fill.height / 2 - 5"
+          :x2="fill.x + fill.width / 2 - 5"
+          :y2="fill.y + fill.height / 2 + 5"
+          stroke="white"
+          stroke-width="2"
+        />
       </g>
     </g>
   </g>
@@ -74,12 +99,6 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
 <style scoped>
 .fill-rect-group {
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.fill-rect,
-.fill-border {
-  transition: all 0.2s;
 }
 
 .fill-rect-group:hover .fill-border {
@@ -92,10 +111,6 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
   pointer-events: none;
   transition: opacity 0.2s;
   cursor: pointer;
-}
-
-.delete-indicator .delete-bg {
-  transition: all 0.2s;
 }
 
 .fill-rect-group:hover .delete-indicator {

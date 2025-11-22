@@ -68,9 +68,10 @@ export const useAnnotationStore = defineStore('annotations', () => {
     // During multi-select rotation drag, don't apply individual drag delta
     // (group rotation is handled at the SvgAnnotationLayer level)
     const isMultiSelectRotating = selectedAnnotationIds.value.length > 1 && rotationDragDelta.value !== 0
+    const isMultiSelected = selectedAnnotationIds.value.length > 1 && selectedAnnotationIds.value.includes(annotation.id)
     let rotation = storedRotation
 
-    if (isMultiSelectRotating && selectedAnnotationIds.value.includes(annotation.id)) {
+    if (isMultiSelectRotating && isMultiSelected) {
       // Only apply stored rotation, not drag delta
       rotation = storedRotation
     } else {
@@ -82,10 +83,15 @@ export const useAnnotationStore = defineStore('annotations', () => {
 
     if (rotation === 0) return ""
 
-    // Get annotation center using utility
+    // Get rotation center
+    // Always rotate around annotation's own center
+    // For fills/text, orbiting around group center is handled by updating their x,y position in GroupTransform
     const center = getAnnotationCenter(annotation)
+    const centerX = center.x
+    const centerY = center.y
+
     const angleDeg = radiansToDegrees(rotation)
-    return `rotate(${angleDeg} ${center.x} ${center.y})`
+    return `rotate(${angleDeg} ${centerX} ${centerY})`
   }
 
   // ============================================

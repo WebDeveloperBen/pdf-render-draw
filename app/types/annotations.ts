@@ -59,6 +59,7 @@ export interface Fill extends BaseAnnotation {
   height: number
   color: string
   opacity: number
+  rotation?: number // Rotation in radians (for group rotation)
 }
 
 export interface TextAnnotation extends BaseAnnotation {

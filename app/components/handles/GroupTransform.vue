@@ -30,18 +30,61 @@ const transformBase = useTransformBase()
 const originalAnnotationStates = ref<Annotation[]>([]) // Store all annotation states for undo
 const cumulativeGroupRotation = ref(0) // Track cumulative rotation for visual handles
 const frozenTransformerBounds = ref<Bounds | null>(null) // Keep transformer bounds frozen after rotation
+const originalCombinedBounds = ref<Bounds | null>(null) // Store combined bounds at drag start for delta calculation
 
 // Reset state when selection changes
-watch(() => annotationStore.selectedAnnotationIds, () => {
-  cumulativeGroupRotation.value = 0
-  frozenTransformerBounds.value = null
-}, { deep: true })
+watch(
+  () => annotationStore.selectedAnnotationIds,
+  () => {
+    cumulativeGroupRotation.value = 0
+    frozenTransformerBounds.value = null
+  },
+  { deep: true }
+)
+
+/**
+ * Calculate transformed bounds based on the change from original to current combined bounds
+ * Used for both real-time display during drag and committing on drag end
+ */
+function calculateTransformedBounds(
+  frozenBounds: Bounds,
+  originalCombined: Bounds,
+  currentCombined: Bounds,
+  mode: "move" | "resize"
+): Bounds {
+  if (mode === "move") {
+    // For move: translate by the movement delta
+    const deltaX = currentCombined.x - originalCombined.x
+    const deltaY = currentCombined.y - originalCombined.y
+    return {
+      x: frozenBounds.x + deltaX,
+      y: frozenBounds.y + deltaY,
+      width: frozenBounds.width,
+      height: frozenBounds.height
+    }
+  } else {
+    // For resize: scale and translate
+    const scaleX = originalCombined.width > 0 ? currentCombined.width / originalCombined.width : 1
+    const scaleY = originalCombined.height > 0 ? currentCombined.height / originalCombined.height : 1
+    const deltaX = currentCombined.x - originalCombined.x
+    const deltaY = currentCombined.y - originalCombined.y
+    return {
+      x: frozenBounds.x + deltaX,
+      y: frozenBounds.y + deltaY,
+      width: frozenBounds.width * scaleX,
+      height: frozenBounds.height * scaleY
+    }
+  }
+}
 
 // Calculate combined bounding box for all selected annotations
 const combinedBounds = computed(() => {
   if (selectedAnnotations.value.length < 2) return null
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity
 
   for (const annotation of selectedAnnotations.value) {
     const bounds = calculateBounds(annotation)
@@ -67,11 +110,29 @@ const combinedBounds = computed(() => {
 // After rotation, use frozen bounds to prevent transformer from jumping
 const displayBounds = computed(() => {
   // During rotation drag: use original bounds (frozen at drag start)
-  if (transformBase.isDragging.value && transformBase.dragMode.value === "rotate" && transformBase.originalBounds.value) {
+  if (
+    transformBase.isDragging.value &&
+    transformBase.dragMode.value === "rotate" &&
+    transformBase.originalBounds.value
+  ) {
     return transformBase.originalBounds.value
   }
 
-  // After rotation: use frozen bounds (preserves transformer position)
+  // During move/resize drag: transform frozen bounds if rotated, otherwise use combinedBounds
+  const dragMode = transformBase.dragMode.value
+  if (transformBase.isDragging.value && (dragMode === "move" || dragMode === "resize")) {
+    if (frozenTransformerBounds.value && originalCombinedBounds.value && combinedBounds.value) {
+      return calculateTransformedBounds(
+        frozenTransformerBounds.value,
+        originalCombinedBounds.value,
+        combinedBounds.value,
+        dragMode
+      )
+    }
+    return combinedBounds.value
+  }
+
+  // After rotation: use frozen bounds (preserves transformer position when not dragging)
   if (frozenTransformerBounds.value) {
     return frozenTransformerBounds.value
   }
@@ -136,9 +197,10 @@ function onStartDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | 
 
   transformBase.startDrag(e, handle, mode, startBounds, (svgPoint) => {
     // Store COMPLETE state for ALL selected annotations
-    originalAnnotationStates.value = selectedAnnotations.value.map(ann =>
-      JSON.parse(JSON.stringify(ann))
-    )
+    originalAnnotationStates.value = selectedAnnotations.value.map((ann) => JSON.parse(JSON.stringify(ann)))
+
+    // Store combined bounds at drag start for accurate delta calculation
+    originalCombinedBounds.value = combinedBounds.value ? { ...combinedBounds.value } : null
 
     // For rotation, calculate starting angle from group center to mouse
     if (mode === "rotate" && transformBase.originalBounds.value) {
@@ -158,7 +220,6 @@ function handleResize(deltaX: number, deltaY: number) {
 
   // Determine which corner or edge is being dragged
   const isCorner = handle.startsWith("corner-")
-  const isEdge = handle.startsWith("edge-")
 
   // Corner handles
   const isLeft = handle === "corner-0" || handle === "corner-3"
@@ -212,8 +273,10 @@ function handleResize(deltaX: number, deltaY: number) {
 
   // Constrain aspect ratio if Shift is pressed (only for corner handles)
   if (transformBase.isShiftPressed.value && isCorner) {
-    const widthChangePct = Math.abs(newBounds.width - transformBase.originalBounds.value.width) / transformBase.originalBounds.value.width
-    const heightChangePct = Math.abs(newBounds.height - transformBase.originalBounds.value.height) / transformBase.originalBounds.value.height
+    const widthChangePct =
+      Math.abs(newBounds.width - transformBase.originalBounds.value.width) / transformBase.originalBounds.value.width
+    const heightChangePct =
+      Math.abs(newBounds.height - transformBase.originalBounds.value.height) / transformBase.originalBounds.value.height
 
     if (widthChangePct > heightChangePct) {
       const newHeight = newBounds.width / originalAspectRatio
@@ -301,13 +364,40 @@ function handleRotate(svgX: number, svgY: number) {
       })
 
       // For measurements, also update labelRotation to keep labels aligned
-      const updates: Record<string, any> = { points: rotatedPoints }
-      if (originalAnn.type === 'measure' && hasLabelRotation(originalAnn)) {
+      const updates: Record<string, unknown> = { points: rotatedPoints }
+      if (originalAnn.type === "measure" && hasLabelRotation(originalAnn)) {
         const rotationDegrees = (rotationDelta * 180) / Math.PI
         updates.labelRotation = originalAnn.labelRotation + rotationDegrees
       }
 
       annotationStore.updateAnnotation(originalAnn.id, updates)
+    } else if (hasX(originalAnn) && hasY(originalAnn)) {
+      // Handle fill/text annotations with x,y position
+      // For group rotation, update BOTH position (to orbit around group center) AND rotation property
+      if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
+        // Calculate fill's center position
+        const fillCenterX = originalAnn.x + originalAnn.width / 2
+        const fillCenterY = originalAnn.y + originalAnn.height / 2
+
+        // Rotate the center around the group center
+        const dx = fillCenterX - centerX
+        const dy = fillCenterY - centerY
+        const cos = Math.cos(rotationDelta)
+        const sin = Math.sin(rotationDelta)
+        const rotatedCenterX = centerX + dx * cos - dy * sin
+        const rotatedCenterY = centerY + dx * sin + dy * cos
+
+        // Calculate new x,y position from rotated center
+        const newX = rotatedCenterX - originalAnn.width / 2
+        const newY = rotatedCenterY - originalAnn.height / 2
+
+        const originalRotation = (originalAnn.rotation as number) || 0
+        annotationStore.updateAnnotation(originalAnn.id, {
+          x: newX,
+          y: newY,
+          rotation: originalRotation + rotationDelta
+        })
+      }
     }
   })
 }
@@ -352,7 +442,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
 
     // Rotate all annotations around group center
     // Only rotate the points - don't update individual rotation properties
-  originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
+    originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
       if (hasPoints(originalAnn)) {
         const rotatedPoints = originalAnn.points.map((p: Point) => {
           const dx = p.x - centerX
@@ -366,13 +456,40 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
         })
 
         // For measurements, also update labelRotation to keep labels aligned
-        const updates: Record<string, any> = { points: rotatedPoints }
-        if (originalAnn.type === 'measure' && hasLabelRotation(originalAnn)) {
+        const updates: Record<string, unknown> = { points: rotatedPoints }
+        if (originalAnn.type === "measure" && hasLabelRotation(originalAnn)) {
           const rotationDegrees = (transformBase.currentRotationDelta.value * 180) / Math.PI
           updates.labelRotation = originalAnn.labelRotation + rotationDegrees
         }
 
         annotationStore.updateAnnotation(originalAnn.id, updates)
+      } else if (hasX(originalAnn) && hasY(originalAnn)) {
+        // Handle fill/text annotations with x,y position
+        // For group rotation, update BOTH position (to orbit around group center) AND rotation property
+        if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
+          // Calculate fill's center position
+          const fillCenterX = originalAnn.x + originalAnn.width / 2
+          const fillCenterY = originalAnn.y + originalAnn.height / 2
+
+          // Rotate the center around the group center
+          const dx = fillCenterX - centerX
+          const dy = fillCenterY - centerY
+          const cos = Math.cos(transformBase.currentRotationDelta.value)
+          const sin = Math.sin(transformBase.currentRotationDelta.value)
+          const rotatedCenterX = centerX + dx * cos - dy * sin
+          const rotatedCenterY = centerY + dx * sin + dy * cos
+
+          // Calculate new x,y position from rotated center
+          const newX = rotatedCenterX - originalAnn.width / 2
+          const newY = rotatedCenterY - originalAnn.height / 2
+
+          const originalRotation = (originalAnn.rotation as number) || 0
+          annotationStore.updateAnnotation(originalAnn.id, {
+            x: newX,
+            y: newY,
+            rotation: originalRotation + transformBase.currentRotationDelta.value
+          })
+        }
       }
     })
 
@@ -384,33 +501,64 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     frozenTransformerBounds.value = { ...transformBase.originalBounds.value }
   }
 
-  // For move and resize, recalculate and freeze the new bounds
-  if ((mode === "move" || mode === "resize") && moved) {
-    frozenTransformerBounds.value = combinedBounds.value
+  // For resize/move: update frozen bounds to match what was displayed during drag
+  if ((mode === "resize" || mode === "move") && moved) {
+    // For move without rotation: recalculate from annotations
+    if (mode === "move" && cumulativeGroupRotation.value === 0) {
+      frozenTransformerBounds.value = combinedBounds.value
+    }
+    // For resize or rotated move: apply the same transform shown during drag
+    else if (frozenTransformerBounds.value && originalCombinedBounds.value && combinedBounds.value) {
+      frozenTransformerBounds.value = calculateTransformedBounds(
+        frozenTransformerBounds.value,
+        originalCombinedBounds.value,
+        combinedBounds.value,
+        mode
+      )
+    }
+    // Fallback: recalculate from annotations
+    else if (!frozenTransformerBounds.value) {
+      frozenTransformerBounds.value = combinedBounds.value
+    }
   }
 
   // Get final states for all annotations
-  const _finalStates = selectedAnnotations.value.map(ann => annotationStore.getAnnotationById(ann.id))
+  const _finalStates = selectedAnnotations.value.map((ann) => annotationStore.getAnnotationById(ann.id))
 
   // Record history for group transformations
   originalAnnotationStates.value.forEach((originalAnn: Annotation, index: number) => {
     const finalState = _finalStates[index]
     if (finalState) {
       // Calculate the updates that were made during transformation
-      const updates: Record<string, any> = {}
+      const updates: Record<string, unknown> = {}
 
       // Compare key properties that might have changed
       if (hasRotation(finalState) && hasRotation(originalAnn) && finalState.rotation !== originalAnn.rotation) {
         updates.rotation = finalState.rotation
       }
-      if (hasPoints(finalState) && hasPoints(originalAnn) &&
-          JSON.stringify(finalState.points) !== JSON.stringify(originalAnn.points)) {
+      if (
+        hasPoints(finalState) &&
+        hasPoints(originalAnn) &&
+        JSON.stringify(finalState.points) !== JSON.stringify(originalAnn.points)
+      ) {
         updates.points = finalState.points
       }
-      if (hasX(finalState) && hasY(finalState) && hasWidth(finalState) && hasHeight(finalState) &&
-          hasX(originalAnn) && hasY(originalAnn) && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-        if (finalState.x !== originalAnn.x || finalState.y !== originalAnn.y ||
-            finalState.width !== originalAnn.width || finalState.height !== originalAnn.height) {
+      if (
+        hasX(finalState) &&
+        hasY(finalState) &&
+        hasWidth(finalState) &&
+        hasHeight(finalState) &&
+        hasX(originalAnn) &&
+        hasY(originalAnn) &&
+        hasWidth(originalAnn) &&
+        hasHeight(originalAnn)
+      ) {
+        if (
+          finalState.x !== originalAnn.x ||
+          finalState.y !== originalAnn.y ||
+          finalState.width !== originalAnn.width ||
+          finalState.height !== originalAnn.height
+        ) {
           updates.x = finalState.x
           updates.y = finalState.y
           updates.width = finalState.width
@@ -427,6 +575,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
 
   // Clean up
   originalAnnotationStates.value = []
+  originalCombinedBounds.value = null
 }
 
 // Set up event listeners with handlers
@@ -434,12 +583,20 @@ transformBase.setupEventListeners({
   onResize: handleResize,
   onRotate: handleRotate,
   onMove: handleMove,
-  onEndDrag: handleEndDrag,
+  onEndDrag: handleEndDrag
 })
 </script>
 
 <template>
-  <g v-if="selectedAnnotations.length >= 2 && displayBounds" :ref="(el) => { transformBase.svgRef.value = el as SVGGElement | null }" class="group-transform-handles">
+  <g
+    v-if="selectedAnnotations.length >= 2 && displayBounds"
+    :ref="
+      (el) => {
+        transformBase.svgRef.value = el as SVGGElement | null
+      }
+    "
+    class="group-transform-handles"
+  >
     <!-- Apply rotation transform to entire transformer when rotating -->
     <g :transform="transformerTransform">
       <!-- Selection outline - draggable to move, click to deselect -->

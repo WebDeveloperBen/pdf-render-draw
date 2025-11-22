@@ -31,14 +31,20 @@ export function getAnnotationCenter(annotation: Annotation): Point {
     }
   }
 
-  // Fill tool: use stored position
-  if (isFill(annotation) && "x" in annotation && "y" in annotation) {
-    return { x: annotation.x, y: annotation.y }
+  // Fill tool: calculate center from x,y,width,height
+  if (isFill(annotation) && "x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation) {
+    return {
+      x: annotation.x + annotation.width / 2,
+      y: annotation.y + annotation.height / 2
+    }
   }
 
-  // Text tool: use stored position
-  if (isText(annotation) && "x" in annotation && "y" in annotation) {
-    return { x: annotation.x, y: annotation.y }
+  // Text tool: calculate center from x,y,width,height
+  if (isText(annotation) && "x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation) {
+    return {
+      x: annotation.x + annotation.width / 2,
+      y: annotation.y + annotation.height / 2
+    }
   }
 
   // Fallback: calculate centroid if points exist
