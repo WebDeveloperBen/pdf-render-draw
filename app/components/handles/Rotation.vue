@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import RotationWheel from '~/components/RotationWheel.vue'
+import RotationWheel from "~/components/tools/RotationWheel.vue"
 
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
@@ -7,7 +7,7 @@ const modifierKeys = useModifierKeys()
 
 // Debug: Check if modifierKeys is available
 if (!modifierKeys) {
-  console.error('[Rotation] modifierKeys is not available! Make sure PdfEditorProvider is wrapping this component.')
+  console.error("[Rotation] modifierKeys is not available! Make sure PdfEditorProvider is wrapping this component.")
 }
 
 // Use shared corner calculation logic
@@ -48,26 +48,35 @@ if (modifierKeys) {
   watch(
     () => modifierKeys.isCmdOrCtrl.value,
     (isPressed) => {
-      console.log('[Rotation] Cmd/Ctrl pressed:', isPressed, 'showHandles:', showHandles.value, 'isDragging:', isDragging.value, 'mousePos:', mousePosition.value)
+      console.log(
+        "[Rotation] Cmd/Ctrl pressed:",
+        isPressed,
+        "showHandles:",
+        showHandles.value,
+        "isDragging:",
+        isDragging.value,
+        "mousePos:",
+        mousePosition.value
+      )
 
       if (!showHandles.value) {
-        console.log('[Rotation] Handles not shown, returning')
+        console.log("[Rotation] Handles not shown, returning")
         return
       }
 
       if (isPressed && !isDragging.value) {
-        console.log('[Rotation] Showing wheel at', mousePosition.value)
+        console.log("[Rotation] Showing wheel at", mousePosition.value)
         // Show rotation wheel at current mouse position
         rotationWheelRef.value?.showWheel(mousePosition.value.x, mousePosition.value.y)
       } else if (!isPressed) {
-        console.log('[Rotation] Hiding wheel')
+        console.log("[Rotation] Hiding wheel")
         // Hide rotation wheel
         rotationWheelRef.value?.hideWheel()
       }
     }
   )
 } else {
-  console.warn('[Rotation] Cmd/Ctrl key watcher not set up - modifierKeys not available')
+  console.warn("[Rotation] Cmd/Ctrl key watcher not set up - modifierKeys not available")
 }
 
 // Container positioning - no longer used as container, just for reference

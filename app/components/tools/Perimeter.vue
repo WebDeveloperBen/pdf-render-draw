@@ -28,15 +28,11 @@ const {
 <template>
   <g class="perimeter-tool">
     <!-- Completed perimeters -->
-    <BaseAnnotation
-      v-for="perimeter in completed"
-      :key="perimeter.id"
-      :annotation="perimeter"
-    >
-      <template #content="{ annotation: perimeter, isSelected }">
+    <LayersBaseAnnotation v-for="perimeter in completed" :key="perimeter.id" :annotation="perimeter">
+      <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
         <polygon
-          :points="toSvgPoints(perimeter.points)"
+          :points="toSvgPoints(annotation.points)"
           :fill="settings.perimeterToolSettings.fillColor"
           :fill-opacity="settings.perimeterToolSettings.opacity"
           :stroke="settings.perimeterToolSettings.strokeColor"
@@ -46,7 +42,7 @@ const {
         />
 
         <!-- Individual segment labels with rotation -->
-        <g v-for="(segment, idx) in perimeter.segments" :key="idx">
+        <g v-for="(segment, idx) in annotation.segments" :key="idx">
           <!-- Label background with rotation -->
           <rect
             :x="segment.midpoint.x - 25"
@@ -56,7 +52,7 @@ const {
             fill="white"
             opacity="0.9"
             rx="3"
-            :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+            :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           />
 
           <!-- Segment length label with rotation -->
@@ -69,7 +65,7 @@ const {
             text-anchor="middle"
             dominant-baseline="middle"
             class="segment-label"
-            :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+            :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           >
             {{ segment.length }}mm
           </text>
@@ -77,30 +73,30 @@ const {
 
         <!-- Total perimeter label at center with rotation -->
         <rect
-          :x="perimeter.center.x - 40"
-          :y="perimeter.center.y - 12"
+          :x="annotation.center.x - 40"
+          :y="annotation.center.y - 12"
           width="80"
           height="24"
           fill="white"
           opacity="0.95"
           rx="4"
-          :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         />
         <text
-          :x="perimeter.center.x"
-          :y="perimeter.center.y"
+          :x="annotation.center.x"
+          :y="annotation.center.y"
           :fill="settings.perimeterToolSettings.labelColor"
           :font-size="settings.perimeterToolSettings.labelSize + 2"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
           class="total-label"
-          :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         >
-          Total: {{ perimeter.totalLength }}mm
+          Total: {{ annotation.totalLength }}mm
         </text>
       </template>
-    </BaseAnnotation>
+    </LayersBaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

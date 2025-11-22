@@ -12,11 +12,6 @@ const historyStore = useHistoryStore()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
 
-// Debug: Log when component mounts
-onMounted(() => {
-  console.log('✨ Transform component mounted for annotation:', props.annotation.id)
-})
-
 const handleSize = TRANSFORM.HANDLE_SIZE
 const rotationHandleDistance = TRANSFORM.ROTATION_DISTANCE
 
@@ -108,24 +103,13 @@ const edges = computed(() => {
 
 // Transform for rotating the entire transformer box
 const transformerTransform = computed(() => {
-  if (!displayBounds.value || !selectedAnnotation.value) return ""
-
-  const storedRotation = (selectedAnnotation.value as { rotation?: number }).rotation || 0
-  const dragDelta = annotationStore.rotationDragDelta
-  const totalRotation = storedRotation + dragDelta
-
-  if (totalRotation === 0) return ""
-
-  // Rotate around annotation's center
-  const center = getRotationCenter(selectedAnnotation.value, displayBounds.value)
-  const angleDeg = (totalRotation * 180) / Math.PI
-  return `rotate(${angleDeg} ${center.x} ${center.y})`
+  // No rotation needed - BaseAnnotation parent already applies both stored rotation
+  // and drag delta via getRotationTransform(annotation)
+  return ""
 })
 
 function onStartDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "move") {
   if (!bounds.value || !selectedAnnotation.value) return
-
-  console.log('🎯 Transform: onStartDrag', { handle, mode, annotationId: selectedAnnotation.value.id })
 
   const annotation = selectedAnnotation.value
 
@@ -289,8 +273,6 @@ function handleRotate(svgX: number, svgY: number) {
 function handleMove(deltaX: number, deltaY: number) {
   if (!selectedAnnotation.value) return
 
-  console.log('🚀 Transform: handleMove', { deltaX, deltaY, annotationId: selectedAnnotation.value.id })
-
   const annotation = selectedAnnotation.value
 
   if ("points" in annotation && originalPoints.value) {
@@ -300,16 +282,12 @@ function handleMove(deltaX: number, deltaY: number) {
       y: p.y + deltaY
     }))
 
-    console.log('📍 Moving point-based annotation', { originalPoints: originalPoints.value, movedPoints })
     annotationStore.updateAnnotation(annotation.id, { points: movedPoints })
   } else if ("x" in annotation && "y" in annotation && transformBase.originalBounds.value) {
     // Text annotation - update x, y position
-    const newX = transformBase.originalBounds.value.x + deltaX
-    const newY = transformBase.originalBounds.value.y + deltaY
-    console.log('📍 Moving text annotation', { oldX: annotation.x, oldY: annotation.y, newX, newY })
     annotationStore.updateAnnotation(annotation.id, {
-      x: newX,
-      y: newY
+      x: transformBase.originalBounds.value.x + deltaX,
+      y: transformBase.originalBounds.value.y + deltaY
     })
   }
 }
@@ -548,9 +526,8 @@ transformBase.setupEventListeners({
 }
 
 .selection-outline.moveable {
-  /* Only respond to events on the stroke, not the fill
-     This allows double-clicks on the interior to pass through to annotations below */
-  pointer-events: stroke;
+  /* Allow events on both stroke and fill for easier dragging */
+  pointer-events: all;
   cursor: move;
 }
 

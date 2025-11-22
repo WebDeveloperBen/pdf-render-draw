@@ -114,16 +114,16 @@ function handleClick(e: MouseEvent) {
     target.dataset?.annotationId || target.closest("[data-annotation-id]")?.getAttribute("data-annotation-id")
 
   // Check if clicking on transform handles (they have class or data attributes)
-  const isTransformHandle = target.closest(".transform-handles") ||
-                           target.closest(".group-transform-handles") ||
-                           target.classList?.contains("transform-handles") ||
-                           target.classList?.contains("group-transform-handles")
+  const isTransformHandle =
+    target.closest(".transform-handles") ||
+    target.closest(".group-transform-handles") ||
+    target.classList?.contains("transform-handles") ||
+    target.classList?.contains("group-transform-handles")
 
   if (annotationId && (tool === "selection" || tool === "") && !annotationStore.isDrawing) {
     // Click on annotation while in selection mode (and not actively drawing)
 
     // Multi-select: Ctrl/Cmd+Click to add to selection
-    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
     const isMultiSelect = isMac ? e.metaKey : e.ctrlKey
 
     if (isMultiSelect) {
@@ -316,8 +316,6 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
       class="selection-marquee"
       pointer-events="none"
     />
-
-    <!-- Transform handles now rendered per-annotation via BaseAnnotation component -->
   </svg>
 </template>
 

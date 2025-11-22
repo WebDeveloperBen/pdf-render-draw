@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useTextToolState } from '~/composables/tools/useTextTool'
+import { useTextToolState } from "~/composables/tools/useTextTool"
 
 const tool = useTextToolState()
 if (!tool) {
-  throw new Error('TextTool must be used within SvgAnnotationLayer')
+  throw new Error("TextTool must be used within SvgAnnotationLayer")
 }
 
 const { completed, editingId, editingContent, finishEditing, deleteText } = tool
@@ -32,21 +32,17 @@ watch(editingId, (newId, oldId) => {
 <template>
   <g class="text-tool">
     <!-- Each text annotation uses BaseAnnotation for common functionality -->
-    <BaseAnnotation
-      v-for="text in completed"
-      :key="text.id"
-      :annotation="text"
-    >
+    <LayersBaseAnnotation v-for="text in completed" :key="text.id" :annotation="text">
       <!-- Custom content for text annotations -->
-      <template #content="{ annotation: text, isSelected }">
+      <template #content="{ annotation, isSelected }">
         <!-- Non-editing mode: display text -->
-        <g v-if="editingId !== text.id">
+        <g v-if="editingId !== annotation.id">
           <!-- Background for better readability -->
           <rect
-            :x="text.x - 5"
-            :y="text.y - text.fontSize - 2"
-            :width="text.width + 10"
-            :height="text.height + 4"
+            :x="annotation.x - 5"
+            :y="annotation.y - annotation.fontSize - 2"
+            :width="annotation.width + 10"
+            :height="annotation.height + 4"
             fill="white"
             opacity="0.8"
             rx="3"
@@ -56,31 +52,37 @@ watch(editingId, (newId, oldId) => {
 
           <!-- Text content -->
           <text
-            :x="text.x"
-            :y="text.y"
-            :font-size="text.fontSize"
-            :fill="text.color"
+            :x="annotation.x"
+            :y="annotation.y"
+            :font-size="annotation.fontSize"
+            :fill="annotation.color"
             class="text-annotation"
           >
-            {{ text.content }}
+            {{ annotation.content }}
           </text>
 
           <!-- Delete button (shown on hover) -->
-          <g class="delete-button" @click.stop="deleteText(text.id)">
-            <circle :cx="text.x + text.width + 15" :cy="text.y - text.fontSize / 2" r="8" fill="red" opacity="0.8" />
+          <g class="delete-button" @click.stop="deleteText(annotation.id)">
+            <circle
+              :cx="annotation.x + annotation.width + 15"
+              :cy="annotation.y - annotation.fontSize / 2"
+              r="8"
+              fill="red"
+              opacity="0.8"
+            />
             <line
-              :x1="text.x + text.width + 15 - 4"
-              :y1="text.y - text.fontSize / 2 - 4"
-              :x2="text.x + text.width + 15 + 4"
-              :y2="text.y - text.fontSize / 2 + 4"
+              :x1="annotation.x + annotation.width + 15 - 4"
+              :y1="annotation.y - annotation.fontSize / 2 - 4"
+              :x2="annotation.x + annotation.width + 15 + 4"
+              :y2="annotation.y + annotation.fontSize / 2 + 4"
               stroke="white"
               stroke-width="2"
             />
             <line
-              :x1="text.x + text.width + 15 + 4"
-              :y1="text.y - text.fontSize / 2 - 4"
-              :x2="text.x + text.width + 15 - 4"
-              :y2="text.y - text.fontSize / 2 + 4"
+              :x1="annotation.x + annotation.width + 15 + 4"
+              :y1="annotation.y - annotation.fontSize / 2 - 4"
+              :x2="annotation.x + annotation.width + 15 - 4"
+              :y2="annotation.y + annotation.fontSize / 2 + 4"
               stroke="white"
               stroke-width="2"
             />
@@ -91,24 +93,24 @@ watch(editingId, (newId, oldId) => {
         <!-- Extra space: border (2px * 2) + shadow (3px * 2) + padding = ~14px extra on each side -->
         <foreignObject
           v-else
-          :x="text.x - 12"
-          :y="text.y - text.fontSize - 9"
-          :width="text.width + 24"
-          :height="text.height + 18"
+          :x="annotation.x - 12"
+          :y="annotation.y - annotation.fontSize - 9"
+          :width="annotation.width + 24"
+          :height="annotation.height + 18"
           style="pointer-events: all; overflow: visible"
           @click.stop
           @mousedown.stop
         >
           <div xmlns="http://www.w3.org/1999/xhtml" class="text-editor-wrapper">
             <textarea
-              :ref="(el) => setTextareaRef(el, text.id)"
+              :ref="(el) => setTextareaRef(el, annotation.id)"
               v-model="editingContent"
               class="text-editor"
               :style="{
-                fontSize: text.fontSize + 'px',
-                color: text.color,
-                width: text.width + 'px',
-                height: text.height + 'px'
+                fontSize: annotation.fontSize + 'px',
+                color: annotation.color,
+                width: annotation.width + 'px',
+                height: annotation.height + 'px'
               }"
               @blur="finishEditing"
               @keydown.enter.exact.prevent="finishEditing"
@@ -122,7 +124,7 @@ watch(editingId, (newId, oldId) => {
 
       <!-- Transform handles are now handled by BaseAnnotation -->
       <!-- No need to manually include them here -->
-    </BaseAnnotation>
+    </LayersBaseAnnotation>
   </g>
 </template>
 

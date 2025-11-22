@@ -66,7 +66,7 @@ function handleWheel(e: WheelEvent) {
     const delta = e.deltaY
 
     // Get mouse position relative to PDF container (not canvas-area, which centers the PDF)
-    const pdfContainer = document.querySelector('.pdf-container') as HTMLElement
+    const pdfContainer = document.querySelector(".pdf-container") as HTMLElement
     if (!pdfContainer) return
 
     const rect = pdfContainer.getBoundingClientRect()
@@ -188,7 +188,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
 </script>
 
 <template>
-  <PdfEditorProvider>
+  <LayersPdfEditorProvider>
     <!-- Page Sidebar -->
     <PdfPageSidebar :is-open="sidebarOpen" @close="sidebarOpen = false" />
 
@@ -197,7 +197,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
       <div class="header">
         <button class="sidebar-toggle-btn" title="Toggle page sidebar" @click="toggleSidebar">☰</button>
         <h1>PDF Annotation Editor (Minimal)</h1>
-        <input type="file" accept="application/pdf" @change="handleFileUpload">
+        <input type="file" accept="application/pdf" @change="handleFileUpload" />
         <span class="count">{{ annotationCount }} annotations</span>
       </div>
 
@@ -249,7 +249,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
           title="Enter drawing scale (e.g., 1:50, 1:100, 1:200)"
           @blur="updatePdfScale"
           @keyup.enter="updatePdfScale"
-        >
+        />
         <span class="scale-hint">{{ settingsStore.getPdfScale }}</span>
       </div>
 
@@ -290,10 +290,10 @@ const annotationCount = computed(() => annotationStore.annotations.length)
           <!-- Wrapper to keep PDF and SVG aligned -->
           <div class="pdf-container">
             <!-- PDF Canvas -->
-            <SimplePdfViewer :pdf="pdf" />
+            <LayersPdfViewer :pdf="pdf" />
 
             <!-- SVG Annotation Layer -->
-            <SvgAnnotationLayer />
+            <LayersSvgAnnotation />
           </div>
         </template>
       </div>
@@ -322,7 +322,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
       <!-- Rotation Handles Component -->
       <HandlesRotation />
     </div>
-  </PdfEditorProvider>
+  </LayersPdfEditorProvider>
 </template>
 
 <style scoped>

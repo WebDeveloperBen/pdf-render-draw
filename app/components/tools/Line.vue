@@ -23,15 +23,11 @@ const {
 <template>
   <g class="line-tool">
     <!-- Completed lines -->
-    <BaseAnnotation
-      v-for="line in completed"
-      :key="line.id"
-      :annotation="line"
-    >
-      <template #content="{ annotation: line, isSelected }">
+    <LayersBaseAnnotation v-for="line in completed" :key="line.id" :annotation="line">
+      <template #content="{ annotation, isSelected }">
         <!-- Invisible wider hitbox for easier clicking -->
         <polyline
-          :points="toSvgPoints(line.points)"
+          :points="toSvgPoints(annotation.points)"
           stroke="transparent"
           stroke-width="20"
           fill="none"
@@ -40,7 +36,7 @@ const {
 
         <!-- Visible line -->
         <polyline
-          :points="toSvgPoints(line.points)"
+          :points="toSvgPoints(annotation.points)"
           :stroke="settings.lineToolSettings.strokeColor"
           :stroke-width="settings.lineToolSettings.strokeWidth"
           fill="none"
@@ -50,9 +46,9 @@ const {
 
         <!-- Start point marker -->
         <circle
-          v-if="line.points[0]"
-          :cx="line.points[0].x"
-          :cy="line.points[0].y"
+          v-if="annotation.points[0]"
+          :cx="annotation.points[0].x"
+          :cy="annotation.points[0].y"
           r="4"
           :fill="settings.lineToolSettings.strokeColor"
           class="start-marker"
@@ -60,15 +56,15 @@ const {
 
         <!-- End point marker -->
         <circle
-          v-if="line.points[line.points.length - 1]"
-          :cx="line.points[line.points.length - 1]?.x ?? 0"
-          :cy="line.points[line.points.length - 1]?.y ?? 0"
+          v-if="annotation.points[annotation.points.length - 1]"
+          :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
+          :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
           r="4"
           :fill="settings.lineToolSettings.strokeColor"
           class="end-marker"
         />
       </template>
-    </BaseAnnotation>
+    </LayersBaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

@@ -27,22 +27,18 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
     />
 
     <!-- Completed fill rectangles -->
-    <BaseAnnotation
-      v-for="fill in completed"
-      :key="fill.id"
-      :annotation="fill"
-    >
-      <template #content="{ annotation: fill, isSelected }">
+    <LayersBaseAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
+      <template #content="{ annotation, isSelected }">
         <!-- Filled rectangle -->
         <rect
-          :x="fill.x"
-          :y="fill.y"
-          :width="fill.width"
-          :height="fill.height"
-          :fill="fill.color"
-          :opacity="fill.opacity"
+          :x="annotation.x"
+          :y="annotation.y"
+          :width="annotation.width"
+          :height="annotation.height"
+          :fill="annotation.color"
+          :opacity="annotation.opacity"
           class="fill-rect"
-          :data-annotation-id="fill.id"
+          :data-annotation-id="annotation.id"
         />
 
         <!-- Border for visibility -->
@@ -55,39 +51,39 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
           :stroke="isSelected ? '#0056b3' : '#007acc'"
           :stroke-width="isSelected ? 2 : 1"
           class="fill-border"
-          :data-annotation-id="fill.id"
+          :data-annotation-id="annotation.id"
         />
 
         <!-- Delete button on hover -->
-        <g class="delete-indicator" @click.stop="deleteFill(fill.id)">
+        <g class="delete-indicator" @click.stop="deleteFill(annotation.id)">
           <!-- Background circle for delete button -->
           <circle
-            :cx="fill.x + fill.width / 2"
-            :cy="fill.y + fill.height / 2"
+            :cx="annotation.x + annotation.width / 2"
+            :cy="annotation.y + annotation.height / 2"
             r="12"
             fill="rgba(220, 53, 69, 0.9)"
             class="delete-bg"
           />
           <!-- X symbol in center -->
           <line
-            :x1="fill.x + fill.width / 2 - 5"
-            :y1="fill.y + fill.height / 2 - 5"
-            :x2="fill.x + fill.width / 2 + 5"
-            :y2="fill.y + fill.height / 2 + 5"
+            :x1="annotation.x + annotation.width / 2 - 5"
+            :y1="annotation.y + annotation.height / 2 - 5"
+            :x2="annotation.x + annotation.width / 2 + 5"
+            :y2="annotation.y + annotation.height / 2 + 5"
             stroke="white"
             stroke-width="2"
           />
           <line
-            :x1="fill.x + fill.width / 2 + 5"
-            :y1="fill.y + fill.height / 2 - 5"
-            :x2="fill.x + fill.width / 2 - 5"
-            :y2="fill.y + fill.height / 2 + 5"
+            :x1="annotation.x + annotation.width / 2 + 5"
+            :y1="annotation.y + annotation.height / 2 - 5"
+            :x2="annotation.x + annotation.width / 2 - 5"
+            :y2="annotation.y + annotation.height / 2 + 5"
             stroke="white"
             stroke-width="2"
           />
         </g>
       </template>
-    </BaseAnnotation>
+    </LayersBaseAnnotation>
   </g>
 </template>
 

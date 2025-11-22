@@ -29,11 +29,11 @@ const {
 <template>
   <g class="area-tool">
     <!-- Completed areas -->
-    <BaseAnnotation v-for="area in completed" :key="area.id" :annotation="area">
-      <template #content="{ annotation: area, isSelected }">
+    <LayersBaseAnnotation v-for="area in completed" :key="area.id" :annotation="area">
+      <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
         <polygon
-          :points="toSvgPoints(area.points)"
+          :points="toSvgPoints(annotation.points)"
           :fill="settings.areaToolSettings.fillColor"
           :fill-opacity="settings.areaToolSettings.opacity"
           :stroke="settings.areaToolSettings.strokeColor"
@@ -44,32 +44,32 @@ const {
 
         <!-- Label background with rotation -->
         <rect
-          :x="area.center.x - 40"
-          :y="area.center.y - 12"
+          :x="annotation.center.x - 40"
+          :y="annotation.center.y - 12"
           width="80"
           height="24"
           fill="white"
           opacity="0.95"
           rx="4"
-          :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         />
 
         <!-- Label with rotation -->
         <text
-          :x="area.center.x"
-          :y="area.center.y"
+          :x="annotation.center.x"
+          :y="annotation.center.y"
           :fill="settings.areaToolSettings.labelColor"
           :font-size="settings.areaToolSettings.labelSize"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
           class="area-label"
-          :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         >
-          {{ area.area }}m²
+          {{ annotation.area }}m²
         </text>
       </template>
-    </BaseAnnotation>
+    </LayersBaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

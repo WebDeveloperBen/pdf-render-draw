@@ -22,17 +22,6 @@ const modifierKeys = useModifierKeys()
 // Check if this annotation is selected
 const isSelected = computed(() => annotationStore.isAnnotationSelected(props.annotation.id))
 
-// Debug: Watch selection changes
-watch(isSelected, (newVal) => {
-  console.log('🎨 BaseAnnotation selection changed:', {
-    annotationId: props.annotation.id,
-    isSelected: newVal,
-    selectedCount: annotationStore.selectedAnnotationIds.length,
-    shouldShowTransform: newVal && annotationStore.selectedAnnotationIds.length === 1,
-    shouldShowGroupTransform: newVal && annotationStore.selectedAnnotationIds.length > 1
-  })
-})
-
 // Handle double-click - delegate to tool's handler if registered
 function handleDoubleClick(e: MouseEvent) {
   const tool = toolRegistry.getTool(props.annotation.type)
@@ -58,22 +47,10 @@ function handleContextMenu(e: MouseEvent) {
 function handleClick(e: MouseEvent) {
   const tool = annotationStore.activeTool
 
-  console.log('🖱️ BaseAnnotation clicked:', {
-    annotationId: props.annotation.id,
-    activeTool: tool,
-    isSelected: isSelected.value
-  })
-
   // Only handle selection in selection mode or when no tool is active
   if (tool === "selection" || tool === "") {
     // Support Shift+click for multi-select
     const isMultiSelect = modifierKeys?.isShiftPressed.value ?? false
-
-    console.log('👆 Selecting annotation:', {
-      annotationId: props.annotation.id,
-      isMultiSelect,
-      currentSelection: annotationStore.selectedAnnotationIds
-    })
 
     if (isMultiSelect) {
       annotationStore.selectAnnotation(props.annotation.id, { addToSelection: true })

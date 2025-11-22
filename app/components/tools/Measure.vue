@@ -27,18 +27,14 @@ const {
 <template>
   <g class="measure-tool">
     <!-- Completed measurements -->
-    <BaseAnnotation
-      v-for="measure in completed"
-      :key="measure.id"
-      :annotation="measure"
-    >
-      <template #content="{ annotation: measure, isSelected }">
+    <LayersBaseAnnotation v-for="measure in completed" :key="measure.id" :annotation="measure">
+      <template #content="{ annotation, isSelected }">
         <!-- Invisible hit area (makes it easier to click thin lines) -->
         <line
-          :x1="measure.points[0].x"
-          :y1="measure.points[0].y"
-          :x2="measure.points[1].x"
-          :y2="measure.points[1].y"
+          :x1="annotation.points[0].x"
+          :y1="annotation.points[0].y"
+          :x2="annotation.points[1].x"
+          :y2="annotation.points[1].y"
           stroke="transparent"
           stroke-width="15"
           class="measurement-hit-area"
@@ -46,10 +42,10 @@ const {
 
         <!-- Visible line -->
         <line
-          :x1="measure.points[0].x"
-          :y1="measure.points[0].y"
-          :x2="measure.points[1].x"
-          :y2="measure.points[1].y"
+          :x1="annotation.points[0].x"
+          :y1="annotation.points[0].y"
+          :x2="annotation.points[1].x"
+          :y2="annotation.points[1].y"
           :stroke="settings.measureToolSettings.strokeColor"
           :stroke-width="settings.measureToolSettings.strokeWidth"
           :class="{ 'selected-line': isSelected }"
@@ -58,32 +54,32 @@ const {
 
         <!-- Label background with rotation -->
         <rect
-          :x="measure.midpoint.x - 30"
-          :y="measure.midpoint.y - 10"
+          :x="annotation.midpoint.x - 30"
+          :y="annotation.midpoint.y - 10"
           width="60"
           height="20"
           fill="white"
           opacity="0.9"
           rx="3"
-          :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.midpoint.x} ${annotation.midpoint.y})`"
         />
 
         <!-- Label with rotation -->
         <text
-          :x="measure.midpoint.x"
-          :y="measure.midpoint.y"
+          :x="annotation.midpoint.x"
+          :y="annotation.midpoint.y"
           :fill="settings.measureToolSettings.labelColor"
           :font-size="settings.measureToolSettings.labelSize"
           :font-weight="settings.measureToolSettings.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
           text-anchor="middle"
           dominant-baseline="middle"
           class="measurement-label"
-          :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.midpoint.x} ${annotation.midpoint.y})`"
         >
-          {{ measure.distance }}mm
+          {{ annotation.distance }}mm
         </text>
       </template>
-    </BaseAnnotation>
+    </LayersBaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">
