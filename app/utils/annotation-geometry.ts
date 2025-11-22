@@ -40,10 +40,13 @@ export function getAnnotationCenter(annotation: Annotation): Point {
   }
 
   // Text tool: calculate center from x,y,width,height
-  if (isText(annotation) && "x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation) {
+  // Note: In SVG, text y is the baseline, so we need to offset by fontSize to get visual center
+  if (isText(annotation) && "x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation && "fontSize" in annotation) {
+    // Visual bounds match the background rect in Text.vue
+    const visualY = annotation.y - annotation.fontSize - 2
     return {
       x: annotation.x + annotation.width / 2,
-      y: annotation.y + annotation.height / 2
+      y: visualY + annotation.height / 2
     }
   }
 

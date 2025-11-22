@@ -9,6 +9,7 @@ if (!tool) {
 const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText, selectAnnotation } = tool
 
 const annotationStore = useAnnotationStore()
+const { getRotationTransform, isAnnotationSelected, activeTool } = annotationStore
 
 // Handle clicks - allow selection but don't stop propagation for drawing tools
 function handleAnnotationClick(e: MouseEvent, id: string) {
@@ -48,7 +49,10 @@ watch(editingId, (newId, oldId) => {
       v-for="text in completed"
       :key="text.id"
       class="text-annotation-group"
-      :transform="`rotate(${text.rotation} ${text.x} ${text.y})`"
+      :data-annotation-id="text.id"
+      :class="{ selected: isAnnotationSelected(text.id) }"
+      :transform="getRotationTransform(text)"
+      @click="handleAnnotationClick($event, text.id)"
     >
       <!-- Non-editing mode: display text -->
       <g v-if="editingId !== text.id">
@@ -64,7 +68,6 @@ watch(editingId, (newId, oldId) => {
           class="text-background"
           :data-annotation-id="text.id"
           @dblclick.stop="handleDoubleClick(text.id)"
-          @click="handleAnnotationClick($event, text.id)"
         />
 
         <!-- Text content -->
@@ -76,7 +79,6 @@ watch(editingId, (newId, oldId) => {
           class="text-annotation"
           :data-annotation-id="text.id"
           @dblclick.stop="handleDoubleClick(text.id)"
-          @click.stop
         >
           {{ text.content }}
         </text>

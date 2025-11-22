@@ -2,6 +2,7 @@ import type { TextAnnotation } from "~/types/annotations"
 import type { Point } from "~/types"
 import { v4 as uuidv4 } from "uuid"
 import { createInjectionState } from "@vueuse/core"
+import { degreesToRadians } from "~/utils/math"
 
 const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
@@ -35,18 +36,28 @@ const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 
+    // Text dimensions
+    const width = 200
+    const height = 50
+    const fontSize = 16
+
+    // Center text on cursor position
+    // Visual bounds: (x - 5, y - fontSize - 2, width + 10, height + 4)
+    // Visual center: (x + width/2, y - fontSize - 2 + height/2)
+    // To center on cursor: x + width/2 = point.x → x = point.x - width/2
+    //                      y - fontSize - 2 + height/2 = point.y → y = point.y + fontSize + 2 - height/2
     const text: TextAnnotation = {
       id: uuidv4(),
       type: "text",
       pageNum: rendererStore.currentPage,
-      x: point.x,
-      y: point.y,
-      width: 200,
-      height: 50,
+      x: point.x - width / 2,
+      y: point.y + fontSize + 2 - height / 2,
+      width,
+      height,
       content: "Double-click to edit",
-      fontSize: 16,
+      fontSize,
       color: "#000000",
-      rotation: -rendererStore.rotation // Counter-rotate to appear upright, then "stamp" it
+      rotation: degreesToRadians(-rendererStore.rotation) // Counter-rotate to appear upright in viewport
     }
 
     annotationStore.addAnnotation(text)

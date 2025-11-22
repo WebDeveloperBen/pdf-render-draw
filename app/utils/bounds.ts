@@ -19,7 +19,19 @@ export interface Bounds {
  * @returns Bounds object or null if unable to calculate
  */
 export function calculateBounds(annotation: Annotation): Bounds | null {
-  // Text annotations have explicit bounds
+  // Text annotations need special handling
+  // In SVG, text y-coordinate is the baseline, not the top
+  // The visual bounds need to account for font size offset
+  if (annotation.type === 'text' && 'x' in annotation && 'y' in annotation && 'width' in annotation && 'height' in annotation && 'fontSize' in annotation) {
+    return {
+      x: annotation.x - 5, // Match background rect padding
+      y: annotation.y - annotation.fontSize - 2, // Offset for baseline + padding
+      width: annotation.width + 10, // Include padding
+      height: annotation.height + 4, // Include padding
+    }
+  }
+
+  // Fill annotations have explicit bounds (x,y is top-left)
   if ('x' in annotation && 'y' in annotation && 'width' in annotation && 'height' in annotation) {
     return {
       x: annotation.x,
