@@ -26,7 +26,7 @@ export function useKeyboardShortcuts() {
 
   // Detect Mac platform using userAgent (platform is deprecated)
   const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent)
-  const modKey: 'meta' | 'ctrl' = isMac ? 'meta' : 'ctrl'
+  const _modKey: 'meta' | 'ctrl' = isMac ? 'meta' : 'ctrl'
 
   /**
    * Paste annotation from clipboard

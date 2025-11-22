@@ -35,7 +35,7 @@ export const useRendererStore = defineStore("renderer", () => {
    *
    * Example: PDF rotated 90° → labels rotate -90° to stay upright
    */
-  const getViewportLabelRotation = computed(() => -rotation.value)
+  const getViewportLabelRotation = computed(() => rotation.value === 0 ? 0 : -rotation.value)
 
   const getCanvasPos = computed(() => canvasPos.value)
   const getPdfPosition = computed(() => {
@@ -69,7 +69,7 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param newScale - The new scale value
    */
   const setScale = (newScale: number) => {
-    if (typeof newScale !== 'number' || isNaN(newScale)) {
+    if (typeof newScale !== 'number' || !isFinite(newScale)) {
       console.warn('Invalid scale value:', newScale)
       return
     }
@@ -77,12 +77,40 @@ export const useRendererStore = defineStore("renderer", () => {
     scale.value = Math.max(RENDERING.MIN_SCALE, Math.min(RENDERING.MAX_SCALE, newScale))
   }
 
-  const zoomIn = () => {
-    setScale(scale.value * RENDERING.ZOOM_FACTOR)
+  const zoomIn = (mousePos?: { x: number; y: number }) => {
+    zoomToScale(scale.value * RENDERING.ZOOM_FACTOR, mousePos)
   }
 
-  const zoomOut = () => {
-    setScale(scale.value / RENDERING.ZOOM_FACTOR)
+  const zoomOut = (mousePos?: { x: number; y: number }) => {
+    zoomToScale(scale.value / RENDERING.ZOOM_FACTOR, mousePos)
+  }
+
+  const zoomToScale = (newScale: number, mousePos?: { x: number; y: number }) => {
+    if (mousePos) {
+      // Clamp scale first
+      const clampedScale = Math.max(RENDERING.MIN_SCALE, Math.min(RENDERING.MAX_SCALE, newScale))
+      const currentScale = scale.value
+
+      // Convert mouse position to PDF coordinates (accounting for current transform)
+      // With transform-origin: top left, the math is straightforward:
+      // screenPos = pdfPos * scale + translate
+      const pdfMouseX = (mousePos.x - canvasPos.value.scrollLeft) / currentScale
+      const pdfMouseY = (mousePos.y - canvasPos.value.scrollTop) / currentScale
+
+      // Calculate new translate to keep the PDF point under the mouse
+      const newScrollLeft = mousePos.x - (pdfMouseX * clampedScale)
+      const newScrollTop = mousePos.y - (pdfMouseY * clampedScale)
+
+      // Set new values
+      scale.value = clampedScale
+      canvasPos.value = {
+        scrollLeft: newScrollLeft,
+        scrollTop: newScrollTop
+      }
+    } else {
+      // Original behavior - zoom towards center
+      setScale(newScale)
+    }
   }
 
   /**
@@ -90,7 +118,7 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param deg - Rotation in degrees
    */
   const setRotation = (deg: number) => {
-    if (typeof deg !== 'number' || isNaN(deg)) {
+    if (typeof deg !== 'number' || !isFinite(deg)) {
       console.warn('Invalid rotation value:', deg)
       return
     }
@@ -125,8 +153,8 @@ export const useRendererStore = defineStore("renderer", () => {
     if (
       typeof pos.scrollTop !== 'number' ||
       typeof pos.scrollLeft !== 'number' ||
-      isNaN(pos.scrollTop) ||
-      isNaN(pos.scrollLeft)
+      !isFinite(pos.scrollTop) ||
+      !isFinite(pos.scrollLeft)
     ) {
       console.warn('Invalid canvas position:', pos)
       return
@@ -144,8 +172,8 @@ export const useRendererStore = defineStore("renderer", () => {
     if (
       typeof size.width !== 'number' ||
       typeof size.height !== 'number' ||
-      isNaN(size.width) ||
-      isNaN(size.height) ||
+      !isFinite(size.width) ||
+      !isFinite(size.height) ||
       size.width < 0 ||
       size.height < 0
     ) {
@@ -159,7 +187,7 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param page - Page number (1-indexed)
    */
   const setCurrentPage = (page: number) => {
-    if (typeof page !== 'number' || isNaN(page) || page < 1) {
+    if (typeof page !== 'number' || !isFinite(page) || !Number.isInteger(page) || page < 1) {
       console.warn('Invalid page number:', page)
       return
     }

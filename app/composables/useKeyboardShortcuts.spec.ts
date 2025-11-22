@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useKeyboardShortcuts } from './useKeyboardShortcuts'
 import { useAnnotationStore } from '~/stores/annotations'
 import { useRendererStore } from '~/stores/renderer'
-import { useHistoryStore } from '~/stores/history'
+
 import type { Measurement, Area } from '~/types/annotations'
 
 describe('Keyboard Shortcuts', () => {

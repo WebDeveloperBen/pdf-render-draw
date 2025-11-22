@@ -6,39 +6,58 @@ if (!tool) {
   throw new Error("FillTool must be used within SvgAnnotationLayer")
 }
 
-const { completed, deleteFill } = tool
+const { completed, isDrawing, currentRect, deleteFill } = tool
 </script>
 <template>
   <g class="fill-tool">
-    <!-- Completed fill points -->
-    <g v-for="fill in completed" :key="fill.id" class="fill-point-group">
-      <!-- Outer ring for visibility -->
-      <circle
-        :cx="fill.x"
-        :cy="fill.y"
-        r="8"
+    <!-- Current drawing rectangle preview -->
+    <rect
+      v-if="isDrawing && currentRect"
+      :x="currentRect.x"
+      :y="currentRect.y"
+      :width="currentRect.width"
+      :height="currentRect.height"
+      fill="#007acc"
+      fill-opacity="0.2"
+      stroke="#007acc"
+      stroke-width="2"
+      stroke-dasharray="4 4"
+      class="drawing-rect"
+      pointer-events="none"
+    />
+
+    <!-- Completed fill rectangles -->
+    <g v-for="fill in completed" :key="fill.id" class="fill-rect-group">
+      <!-- Filled rectangle -->
+      <rect
+        :x="fill.x"
+        :y="fill.y"
+        :width="fill.width"
+        :height="fill.height"
         :fill="fill.color"
-        :opacity="fill.opacity * 0.3"
-        class="fill-point-outer"
+        :opacity="fill.opacity"
+        class="fill-rect"
         @click.stop="deleteFill(fill.id)"
       />
 
-      <!-- Main fill point -->
-      <circle
-        :cx="fill.x"
-        :cy="fill.y"
-        r="5"
-        :fill="fill.color"
-        :opacity="fill.opacity"
-        class="fill-point"
+      <!-- Border for visibility -->
+      <rect
+        :x="fill.x"
+        :y="fill.y"
+        :width="fill.width"
+        :height="fill.height"
+        fill="transparent"
+        stroke="#007acc"
+        stroke-width="1"
+        class="fill-border"
         @click.stop="deleteFill(fill.id)"
       />
 
       <!-- Delete indicator on hover -->
       <g class="delete-indicator">
-        <!-- X symbol -->
-        <line :x1="fill.x - 3" :y1="fill.y - 3" :x2="fill.x + 3" :y2="fill.y + 3" stroke="white" stroke-width="2" />
-        <line :x1="fill.x + 3" :y1="fill.y - 3" :x2="fill.x - 3" :y2="fill.y + 3" stroke="white" stroke-width="2" />
+        <!-- X symbol in center -->
+        <line :x1="fill.x + fill.width / 2 - 5" :y1="fill.y + fill.height / 2 - 5" :x2="fill.x + fill.width / 2 + 5" :y2="fill.y + fill.height / 2 + 5" stroke="white" stroke-width="2" />
+        <line :x1="fill.x + fill.width / 2 + 5" :y1="fill.y + fill.height / 2 - 5" :x2="fill.x + fill.width / 2 - 5" :y2="fill.y + fill.height / 2 + 5" stroke="white" stroke-width="2" />
       </g>
     </g>
   </g>

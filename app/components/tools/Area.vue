@@ -23,7 +23,7 @@ const {
   tempEndPoint,
   canSnapToClose,
   completed,
-  selected,
+  selected: _selected,
   toSvgPoints,
   // From AreaTool (specific):
   previewArea,

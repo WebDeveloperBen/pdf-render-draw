@@ -2,6 +2,7 @@ import type { Fill } from '~/types/annotations'
 import type { Point } from '~/types'
 import { v4 as uuidv4 } from 'uuid'
 import { createInjectionState } from '@vueuse/core'
+import { ref, computed } from 'vue'
 
 const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
@@ -18,6 +19,11 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
     return annotationStore.selectedAnnotation as Fill
   })
 
+  // Drawing state
+  const isDrawing = ref(false)
+  const startPoint = ref<Point | null>(null)
+  const currentRect = ref<{ x: number; y: number; width: number; height: number } | null>(null)
+
   function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
     pt.x = e.clientX
@@ -26,21 +32,61 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
     return { x: transformed.x, y: transformed.y }
   }
 
-  function handleClick(e: MouseEvent) {
+  function handleMouseDown(e: MouseEvent) {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
+
+    isDrawing.value = true
+    startPoint.value = point
+    currentRect.value = {
+      x: point.x,
+      y: point.y,
+      width: 0,
+      height: 0
+    }
+  }
+
+  function handleMouseMove(e: MouseEvent) {
+    if (!isDrawing.value || !startPoint.value) return
+
+    const svg = e.currentTarget as SVGSVGElement
+    const point = getSvgPoint(e, svg)
+
+    const x = Math.min(startPoint.value.x, point.x)
+    const y = Math.min(startPoint.value.y, point.y)
+    const width = Math.abs(point.x - startPoint.value.x)
+    const height = Math.abs(point.y - startPoint.value.y)
+
+    currentRect.value = { x, y, width, height }
+  }
+
+  function handleMouseUp(_e: MouseEvent) {
+    if (!isDrawing.value || !currentRect.value || currentRect.value.width === 0 || currentRect.value.height === 0) {
+      // Cancel if no rectangle was drawn
+      isDrawing.value = false
+      startPoint.value = null
+      currentRect.value = null
+      return
+    }
 
     const fill: Fill = {
       id: uuidv4(),
       type: 'fill',
       pageNum: rendererStore.currentPage,
-      x: point.x,
-      y: point.y,
+      x: currentRect.value.x,
+      y: currentRect.value.y,
+      width: currentRect.value.width,
+      height: currentRect.value.height,
       color: settings.fillToolSettings.fillColor,
       opacity: settings.fillToolSettings.opacity,
     }
 
     annotationStore.addAnnotation(fill)
+
+    // Reset drawing state
+    isDrawing.value = false
+    startPoint.value = null
+    currentRect.value = null
   }
 
   function selectAnnotation(id: string) {
@@ -54,7 +100,11 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
   return {
     completed,
     selected,
-    handleClick,
+    isDrawing,
+    currentRect,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
     selectAnnotation,
     deleteFill,
   }

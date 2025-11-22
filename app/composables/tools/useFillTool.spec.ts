@@ -48,7 +48,7 @@ describe('useFillTool', () => {
   })
 
   describe('Fill Annotation Creation', () => {
-    it('should create fill annotation on click', () => {
+    it('should create fill annotation on drag', () => {
       const tool = withSetup(() => useProvideFillTool())
       const annotationStore = useAnnotationStore()
       const settingsStore = useSettingStore()
@@ -67,9 +67,24 @@ describe('useFillTool', () => {
         getScreenCTM: () => ({ inverse: () => ({}) })
       } as unknown as SVGSVGElement
 
-      const mockEvent = { currentTarget: mockSvg, clientX: 150, clientY: 250 } as MouseEvent
+      // Simulate mouse down
+      const mockMouseDownEvent = { currentTarget: mockSvg, clientX: 150, clientY: 250 } as MouseEvent
+      tool.handleMouseDown(mockMouseDownEvent)
 
-      tool.handleClick(mockEvent)
+      // Update mock to return different point for mouse move
+      mockSvg.createSVGPoint = () => ({
+        x: 0,
+        y: 0,
+        matrixTransform: () => ({ x: 200, y: 300 })
+      })
+
+      // Simulate mouse move
+      const mockMouseMoveEvent = { currentTarget: mockSvg, clientX: 200, clientY: 300 } as MouseEvent
+      tool.handleMouseMove(mockMouseMoveEvent)
+
+      // Simulate mouse up
+      const mockMouseUpEvent = { currentTarget: mockSvg, clientX: 200, clientY: 300 } as MouseEvent
+      tool.handleMouseUp(mockMouseUpEvent)
 
       const fills = annotationStore.annotations as Fill[]
       expect(fills).toHaveLength(1)
@@ -78,6 +93,8 @@ describe('useFillTool', () => {
         type: 'fill',
         x: 150,
         y: 250,
+        width: 50,
+        height: 50,
         color: '#ff0000',
         opacity: 0.5
       })
@@ -99,9 +116,24 @@ describe('useFillTool', () => {
         getScreenCTM: () => ({ inverse: () => ({}) })
       } as unknown as SVGSVGElement
 
-      const mockEvent = { currentTarget: mockSvg, clientX: 100, clientY: 200 } as MouseEvent
+      // Simulate mouse down
+      const mockMouseDownEvent = { currentTarget: mockSvg, clientX: 100, clientY: 200 } as MouseEvent
+      tool.handleMouseDown(mockMouseDownEvent)
 
-      tool.handleClick(mockEvent)
+      // Update mock to return different point for mouse move
+      mockSvg.createSVGPoint = () => ({
+        x: 0,
+        y: 0,
+        matrixTransform: () => ({ x: 150, y: 250 })
+      })
+
+      // Simulate mouse move
+      const mockMouseMoveEvent = { currentTarget: mockSvg, clientX: 150, clientY: 250 } as MouseEvent
+      tool.handleMouseMove(mockMouseMoveEvent)
+
+      // Simulate mouse up
+      const mockMouseUpEvent = { currentTarget: mockSvg, clientX: 150, clientY: 250 } as MouseEvent
+      tool.handleMouseUp(mockMouseUpEvent)
 
       const fills = annotationStore.annotations as Fill[]
       expect(fills[0].pageNum).toBe(3)
@@ -121,6 +153,8 @@ describe('useFillTool', () => {
         pageNum: 1,
         x: 100,
         y: 100,
+        width: 50,
+        height: 50,
         color: '#ff0000',
         opacity: 0.5
       }
@@ -131,6 +165,8 @@ describe('useFillTool', () => {
         pageNum: 2,
         x: 200,
         y: 200,
+        width: 50,
+        height: 50,
         color: '#00ff00',
         opacity: 0.5
       }
@@ -157,6 +193,8 @@ describe('useFillTool', () => {
         pageNum: 1,
         x: 100,
         y: 100,
+        width: 50,
+        height: 50,
         color: '#ff0000',
         opacity: 0.5
       }
@@ -179,6 +217,8 @@ describe('useFillTool', () => {
         pageNum: 1,
         x: 100,
         y: 100,
+        width: 50,
+        height: 50,
         color: '#ff0000',
         opacity: 0.5
       }
@@ -200,6 +240,8 @@ describe('useFillTool', () => {
         pageNum: 1,
         x: 100,
         y: 100,
+        width: 50,
+        height: 50,
         color: '#ff0000',
         opacity: 0.5
       }

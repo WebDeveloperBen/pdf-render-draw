@@ -19,7 +19,7 @@ const {
   points,
   tempEndPoint,
   completed,
-  selected,
+  selected: _selected,
   toSvgPoints
 } = tool
 </script>

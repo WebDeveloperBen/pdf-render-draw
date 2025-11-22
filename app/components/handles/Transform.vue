@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { TRANSFORM, COLORS } from "~/constants/ui"
-import { isMeasurement, isArea, isPerimeter } from "~/types/annotations"
+import { isMeasurement, isArea, isPerimeter, type Annotation } from "~/types/annotations"
+import type { Point } from "~/types"
 import { useTransformBase } from "~/composables/useTransformBase"
 
 const annotationStore = useAnnotationStore()
-const historyStore = useHistoryStore()
+const _historyStore = useHistoryStore()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
 
@@ -20,11 +21,11 @@ const transformBase = useTransformBase()
 
 // Component-specific state
 const originalPoints = ref<Array<{ x: number; y: number }> | null>(null)
-const originalAnnotationState = ref<any>(null)
+const originalAnnotationState = ref<Annotation | null>(null)
 
 // Calculate rotation center based on annotation type
 // This matches the logic in annotationStore.getRotationTransform()
-function getRotationCenter(annotation: any, fallbackBounds: Bounds): { x: number; y: number } {
+function getRotationCenter(annotation: Annotation, fallbackBounds: Bounds): { x: number; y: number } {
   if (isMeasurement(annotation)) {
     return {
       x: (annotation.points[0].x + annotation.points[1].x) / 2,
@@ -37,8 +38,8 @@ function getRotationCenter(annotation: any, fallbackBounds: Bounds): { x: number
     }
   } else if ("points" in annotation && Array.isArray(annotation.points)) {
     // Line or other point-based annotation - calculate centroid
-    const sumX = annotation.points.reduce((sum: number, p: any) => sum + p.x, 0)
-    const sumY = annotation.points.reduce((sum: number, p: any) => sum + p.y, 0)
+    const sumX = annotation.points.reduce((sum: number, p: Point) => sum + p.x, 0)
+    const sumY = annotation.points.reduce((sum: number, p: Point) => sum + p.y, 0)
     return {
       x: sumX / annotation.points.length,
       y: sumY / annotation.points.length
@@ -80,11 +81,24 @@ const corners = computed(() => {
   ]
 })
 
+// Calculate edge midpoints for edge handles
+const edges = computed(() => {
+  if (!displayBounds.value) return []
+
+  const b = displayBounds.value
+  return [
+    { x: b.x + b.width / 2, y: b.y }, // Top edge
+    { x: b.x + b.width, y: b.y + b.height / 2 }, // Right edge
+    { x: b.x + b.width / 2, y: b.y + b.height }, // Bottom edge
+    { x: b.x, y: b.y + b.height / 2 } // Left edge
+  ]
+})
+
 // Transform for rotating the entire transformer box
 const transformerTransform = computed(() => {
   if (!displayBounds.value || !selectedAnnotation.value) return ""
 
-  const storedRotation = (selectedAnnotation.value as any).rotation || 0
+  const storedRotation = (selectedAnnotation.value as { rotation?: number }).rotation || 0
   const dragDelta = annotationStore.rotationDragDelta
   const totalRotation = storedRotation + dragDelta
 
@@ -122,35 +136,54 @@ function handleResize(deltaX: number, deltaY: number) {
   const annotation = selectedAnnotation.value
   const handle = transformBase.activeHandle.value
 
-  // Determine which corner is being dragged
-  const isLeft = handle === "corner-0" || handle === "corner-3"
-  const isTop = handle === "corner-0" || handle === "corner-1"
-  const isRight = handle === "corner-1" || handle === "corner-2"
-  const isBottom = handle === "corner-2" || handle === "corner-3"
+  // Determine which corner or edge is being dragged
+  const isLeft = handle === "corner-0" || handle === "corner-3" || handle === "edge-3"
+  const isTop = handle === "corner-0" || handle === "corner-1" || handle === "edge-0"
+  const isRight = handle === "corner-1" || handle === "corner-2" || handle === "edge-1"
+  const isBottom = handle === "corner-2" || handle === "corner-3" || handle === "edge-2"
+
+  // For edge handles, only allow resizing in one dimension
+  const isEdgeHandle = handle.startsWith("edge-")
 
   // Calculate original aspect ratio
   const originalAspectRatio = transformBase.originalBounds.value.width / transformBase.originalBounds.value.height
 
-  // Calculate new bounds based on corner drag
+  // Calculate new bounds based on corner/edge drag
   const newBounds = { ...transformBase.originalBounds.value }
 
-  if (isLeft) {
-    newBounds.x += deltaX
-    newBounds.width -= deltaX
-  }
-  if (isRight) {
-    newBounds.width += deltaX
-  }
-  if (isTop) {
-    newBounds.y += deltaY
-    newBounds.height -= deltaY
-  }
-  if (isBottom) {
-    newBounds.height += deltaY
+  if (isEdgeHandle) {
+    // Edge handles only resize in one dimension
+    if (handle === "edge-0") { // Top edge
+      newBounds.y += deltaY
+      newBounds.height -= deltaY
+    } else if (handle === "edge-1") { // Right edge
+      newBounds.width += deltaX
+    } else if (handle === "edge-2") { // Bottom edge
+      newBounds.height += deltaY
+    } else if (handle === "edge-3") { // Left edge
+      newBounds.x += deltaX
+      newBounds.width -= deltaX
+    }
+  } else {
+    // Corner handles resize in both dimensions
+    if (isLeft) {
+      newBounds.x += deltaX
+      newBounds.width -= deltaX
+    }
+    if (isRight) {
+      newBounds.width += deltaX
+    }
+    if (isTop) {
+      newBounds.y += deltaY
+      newBounds.height -= deltaY
+    }
+    if (isBottom) {
+      newBounds.height += deltaY
+    }
   }
 
-  // Constrain aspect ratio if Shift is pressed
-  if (transformBase.isShiftPressed.value) {
+  // Constrain aspect ratio if Shift is pressed (only for corner handles)
+  if (transformBase.isShiftPressed.value && !isEdgeHandle) {
     const widthChangePct = Math.abs(newBounds.width - transformBase.originalBounds.value.width) / transformBase.originalBounds.value.width
     const heightChangePct = Math.abs(newBounds.height - transformBase.originalBounds.value.height) / transformBase.originalBounds.value.height
 
@@ -260,7 +293,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
 
   // Commit rotation on release
   if (mode === "rotate" && transformBase.currentRotationDelta.value !== 0) {
-    const existingRotation = (selectedAnnotation.value as any).rotation || 0
+    const existingRotation = (selectedAnnotation.value as { rotation?: number }).rotation || 0
     const newRotation = existingRotation + transformBase.currentRotationDelta.value
 
     annotationStore.updateAnnotation(annotationId, {
@@ -269,20 +302,39 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   }
 
   // Get final state AFTER all updates
-  const finalState = annotationStore.getAnnotationById(annotationId)
+  const _finalState = annotationStore.getAnnotationById(annotationId)
 
-  // TODO: Fix history recording - currently causing Pinia class instantiation error
-  // For now, transformations won't be undo-able
-  // if (finalState && JSON.stringify(originalAnnotationState.value) !== JSON.stringify(finalState)) {
-  //   const UpdateAnnotationCommand = toRaw(historyStore.UpdateAnnotationCommand)
-  //   const updateCommand = new UpdateAnnotationCommand(
-  //     annotationId,
-  //     originalAnnotationState.value,
-  //     finalState,
-  //     annotationStore
-  //   )
-  //   historyStore.executeCommand(updateCommand)
-  // }
+  // Record history for the transformation
+  if (finalState && originalAnnotationState.value) {
+    // Calculate the updates that were made during transformation
+    const updates: Partial<Annotation> = {}
+
+    // Compare key properties that might have changed
+    if (finalState.rotation !== originalAnnotationState.value.rotation) {
+      updates.rotation = finalState.rotation
+    }
+    if (finalState.points && originalAnnotationState.value.points &&
+        JSON.stringify(finalState.points) !== JSON.stringify(originalAnnotationState.value.points)) {
+      updates.points = finalState.points
+    }
+      if ('x' in finalState && 'y' in finalState && 'width' in finalState && 'height' in finalState &&
+          ('x' in originalAnnotationState.value && 'y' in originalAnnotationState.value &&
+           'width' in originalAnnotationState.value && 'height' in originalAnnotationState.value)) {
+        const orig = originalAnnotationState.value as { x: number; y: number; width: number; height: number }
+        const fin = finalState as { x: number; y: number; width: number; height: number }
+        if (fin.x !== orig.x || fin.y !== orig.y || fin.width !== orig.width || fin.height !== orig.height) {
+          updates.x = fin.x
+          updates.y = fin.y
+          updates.width = fin.width
+          updates.height = fin.height
+        }
+      }
+
+    // If any updates were made, record them in history
+    if (Object.keys(updates).length > 0) {
+      historyStore.updateAnnotationWithHistory(annotationId, updates)
+    }
+  }
 
   // Clean up component-specific state
   originalPoints.value = null
@@ -330,6 +382,23 @@ transformBase.setupEventListeners({
         :class="{ dragging: transformBase.isDragging && transformBase.activeHandle === `corner-${index}` }"
         :data-handle="`corner-${index}`"
         @mousedown.stop="onStartDrag($event, `corner-${index}`, 'resize')"
+      />
+
+      <!-- Edge handles for horizontal/vertical resizing -->
+      <rect
+        v-for="(edge, index) in edges"
+        :key="`edge-${index}`"
+        :x="edge.x - handleSize / 2"
+        :y="edge.y - handleSize / 2"
+        :width="handleSize"
+        :height="handleSize"
+        fill="white"
+        :stroke="COLORS.SELECTION_BLUE"
+        stroke-width="2"
+        class="edge-handle"
+        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle === `edge-${index}` }"
+        :data-handle="`edge-${index}`"
+        @mousedown.stop="onStartDrag($event, `edge-${index}`, 'resize')"
       />
 
       <!-- Rotation handle -->

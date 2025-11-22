@@ -63,7 +63,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
    * Includes both stored rotation and temporary drag delta
    */
   function getRotationTransform(annotation: Annotation): string {
-    const storedRotation = (annotation as any).rotation || 0
+    const storedRotation = (annotation as { rotation?: number }).rotation || 0
 
     // During multi-select rotation drag, don't apply individual drag delta
     // (group rotation is handled at the SvgAnnotationLayer level)

@@ -33,7 +33,7 @@ const svgStyle = computed(() => {
     width: `${scaledWidth}px`,
     height: `${scaledHeight}px`,
     transform: rendererStore.getSvgTransform(offsetX, offsetY),
-    transformOrigin: "center center" as const,
+    transformOrigin: "top left" as const,
     pointerEvents: "all" as const,
     zIndex: 10,
     willChange: "width, height, transform" as const
@@ -64,21 +64,43 @@ function handleMouseDown(e: MouseEvent) {
   if ((tool === "selection" || tool === "") && !annotationId && svgRef.value) {
     selectionMarquee.startMarquee(e, svgRef.value)
   }
-}
 
-function handleMouseUp(_: MouseEvent) {
-  if (selectionMarquee.isDrawing) {
-    selectionMarquee.endMarquee()
+  // Handle fill tool mouse down
+  if (tool === "fill") {
+    fillTool.handleMouseDown(e)
   }
 }
 
-function handleMouseLeave(_: MouseEvent) {
+function handleMouseUp(e: MouseEvent) {
+  if (selectionMarquee.isDrawing) {
+    selectionMarquee.endMarquee()
+    return
+  }
+
+  const tool = annotationStore.activeTool
+  switch (tool) {
+    case "fill":
+      fillTool.handleMouseUp(e)
+      break
+    default:
+      // Other tools don't need mouse up handling
+      break
+  }
+}
+
+function handleMouseLeave(e: MouseEvent) {
   // Clear cursor preview for all tools when mouse leaves canvas
   // (fillTool and textTool don't have preview states, so they don't need clearPreview)
   measureTool.clearPreview?.()
   areaTool.clearPreview?.()
   perimeterTool.clearPreview?.()
   lineTool.clearPreview?.()
+
+  // Complete fill tool drawing if mouse leaves while dragging
+  const tool = annotationStore.activeTool
+  if (tool === "fill" && fillTool.isDrawing) {
+    fillTool.handleMouseUp(e)
+  }
 }
 
 // Event routing
@@ -94,7 +116,7 @@ function handleClick(e: MouseEvent) {
     // Click on annotation while in selection mode (and not actively drawing)
 
     // Multi-select: Ctrl/Cmd+Click to add to selection
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
     const isMultiSelect = isMac ? e.metaKey : e.ctrlKey
 
     if (isMultiSelect) {
@@ -146,10 +168,7 @@ function handleClick(e: MouseEvent) {
       debugLog("SVG Layer", "Calling line tool handleClick")
       lineTool.handleClick(e)
       break
-    case "fill":
-      debugLog("SVG Layer", "Calling fill tool handleClick")
-      fillTool.handleClick(e)
-      break
+
     case "text":
       debugLog("SVG Layer", "Calling text tool handleClick")
       textTool.handleClick(e)
@@ -161,7 +180,7 @@ function handleClick(e: MouseEvent) {
 
 function handleMove(e: MouseEvent) {
   const tool = annotationStore.activeTool
-  debugLog("SVG Layer", "handleMove:", { tool, hasTarget: !!e.target })
+  // debugLog("SVG Layer", "handleMove:", { tool, hasTarget: !!e.target })
 
   // Track cursor position for paste operations
   if (svgRef.value) {
@@ -191,6 +210,9 @@ function handleMove(e: MouseEvent) {
       break
     case "line":
       lineTool.handleMove(e)
+      break
+    case "fill":
+      fillTool.handleMouseMove(e)
       break
     default:
       debugLog("SVG Layer", "No matching tool for handleMove:", tool)
@@ -226,6 +248,14 @@ function handleKeyDown(e: KeyboardEvent) {
 
 // Keyboard event listener using VueUse for automatic cleanup
 useEventListener(window, "keydown", handleKeyDown)
+
+// Global mouseup listener to complete fill tool drawing even if released outside SVG
+useEventListener(window, "mouseup", (e: MouseEvent) => {
+  const tool = annotationStore.activeTool
+  if (tool === "fill" && fillTool.isDrawing) {
+    fillTool.handleMouseUp(e)
+  }
+})
 </script>
 
 <template>

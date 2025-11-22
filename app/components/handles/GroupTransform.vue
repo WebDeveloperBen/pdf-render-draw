@@ -8,9 +8,11 @@
 
 import { TRANSFORM, COLORS } from "~/constants/ui"
 import { useTransformBase } from "~/composables/useTransformBase"
+import type { Annotation } from "~/types/annotations"
+import type { Point } from "~/types"
 
 const annotationStore = useAnnotationStore()
-const historyStore = useHistoryStore()
+const _historyStore = useHistoryStore()
 
 const selectedAnnotations = computed(() => annotationStore.selectedAnnotations)
 
@@ -25,7 +27,7 @@ const colorBlueDarker = COLORS.SELECTION_BLUE_DARKER
 const transformBase = useTransformBase()
 
 // Component-specific state
-const originalAnnotationStates = ref<any[]>([]) // Store all annotation states for undo
+const originalAnnotationStates = ref<Annotation[]>([]) // Store all annotation states for undo
 const cumulativeGroupRotation = ref(0) // Track cumulative rotation for visual handles
 const frozenTransformerBounds = ref<Bounds | null>(null) // Keep transformer bounds frozen after rotation
 
@@ -202,10 +204,10 @@ function handleResize(deltaX: number, deltaY: number) {
   const scaleY = newBounds.height / transformBase.originalBounds.value.height
 
   // Scale all annotations proportionally
-  originalAnnotationStates.value.forEach((originalAnn: any) => {
+  originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
     if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
       // Point-based annotation - scale all points relative to combined bounds
-      const scaledPoints = originalAnn.points.map((p: any) => ({
+      const scaledPoints = originalAnn.points.map((p: Point) => ({
         x: newBounds.x + (p.x - transformBase.originalBounds.value!.x) * scaleX,
         y: newBounds.y + (p.y - transformBase.originalBounds.value!.y) * scaleY
       }))
@@ -245,9 +247,9 @@ function handleRotate(svgX: number, svgY: number) {
   annotationStore.rotationDragDelta = rotationDelta
 
   // Apply rotation to annotations in real-time for visual feedback
-  originalAnnotationStates.value.forEach((originalAnn: any) => {
+  originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
     if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
-      const rotatedPoints = originalAnn.points.map((p: any) => {
+      const rotatedPoints = originalAnn.points.map((p: Annotation) => {
         const dx = p.x - centerX
         const dy = p.y - centerY
         const cos = Math.cos(rotationDelta)
@@ -259,7 +261,7 @@ function handleRotate(svgX: number, svgY: number) {
       })
 
       // For measurements, also update labelRotation to keep labels aligned
-      const updates: any = { points: rotatedPoints }
+      const updates: Annotation = { points: rotatedPoints }
       if (originalAnn.type === 'measure' && 'labelRotation' in originalAnn) {
         const rotationDegrees = (rotationDelta * 180) / Math.PI
         updates.labelRotation = originalAnn.labelRotation + rotationDegrees
@@ -274,9 +276,9 @@ function handleMove(deltaX: number, deltaY: number) {
   if (originalAnnotationStates.value.length === 0) return
 
   // Move all annotations by the same delta
-  originalAnnotationStates.value.forEach((originalAnn: any) => {
+  originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
     if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
-      const movedPoints = originalAnn.points.map((p: any) => ({
+      const movedPoints = originalAnn.points.map((p: Annotation) => ({
         x: p.x + deltaX,
         y: p.y + deltaY
       }))
@@ -310,9 +312,9 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
 
     // Rotate all annotations around group center
     // Only rotate the points - don't update individual rotation properties
-    originalAnnotationStates.value.forEach((originalAnn: any) => {
+  originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
       if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
-        const rotatedPoints = originalAnn.points.map((p: any) => {
+        const rotatedPoints = originalAnn.points.map((p: Annotation) => {
           const dx = p.x - centerX
           const dy = p.y - centerY
           const cos = Math.cos(transformBase.currentRotationDelta.value)
@@ -324,7 +326,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
         })
 
         // For measurements, also update labelRotation to keep labels aligned
-        const updates: any = { points: rotatedPoints }
+        const updates: Annotation = { points: rotatedPoints }
         if (originalAnn.type === 'measure' && 'labelRotation' in originalAnn) {
           const rotationDegrees = (transformBase.currentRotationDelta.value * 180) / Math.PI
           updates.labelRotation = originalAnn.labelRotation + rotationDegrees
@@ -347,23 +349,41 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   }
 
   // Get final states for all annotations
-  const finalStates = selectedAnnotations.value.map(ann => annotationStore.getAnnotationById(ann.id))
+  const _finalStates = selectedAnnotations.value.map(ann => annotationStore.getAnnotationById(ann.id))
 
-  // TODO: Fix history recording for groups - currently causing Pinia class instantiation error
-  // For now, group transformations won't be undo-able
-  // const UpdateAnnotationCommand = toRaw(historyStore.UpdateAnnotationCommand)
-  // originalAnnotationStates.value.forEach((originalAnn: any, index: number) => {
-  //   const finalState = finalStates[index]
-  //   if (finalState && JSON.stringify(originalAnn) !== JSON.stringify(finalState)) {
-  //     const updateCommand = new UpdateAnnotationCommand(
-  //       originalAnn.id,
-  //       originalAnn,
-  //       finalState,
-  //       annotationStore
-  //     )
-  //     historyStore.executeCommand(updateCommand)
-  //   }
-  // })
+  // Record history for group transformations
+  originalAnnotationStates.value.forEach((originalAnn: Annotation, index: number) => {
+    const finalState = _finalStates[index]
+    if (finalState) {
+      // Calculate the updates that were made during transformation
+      const updates: Partial<Annotation> = {}
+
+      // Compare key properties that might have changed
+      if (finalState.rotation !== originalAnn.rotation) {
+        updates.rotation = finalState.rotation
+      }
+      if (finalState.points && originalAnn.points &&
+          JSON.stringify(finalState.points) !== JSON.stringify(originalAnn.points)) {
+        updates.points = finalState.points
+      }
+      if ('x' in finalState && 'y' in finalState && 'width' in finalState && 'height' in finalState &&
+          ('x' in originalAnn && 'y' in originalAnn && 'width' in originalAnn && 'height' in originalAnn)) {
+        const orig = originalAnn as { x: number; y: number; width: number; height: number }
+        const fin = finalState as { x: number; y: number; width: number; height: number }
+        if (fin.x !== orig.x || fin.y !== orig.y || fin.width !== orig.width || fin.height !== orig.height) {
+          updates.x = fin.x
+          updates.y = fin.y
+          updates.width = fin.width
+          updates.height = fin.height
+        }
+      }
+
+      // If any updates were made, record them in history
+      if (Object.keys(updates).length > 0) {
+        historyStore.updateAnnotationWithHistory(originalAnn.id, updates)
+      }
+    }
+  })
 
   // Clean up
   originalAnnotationStates.value = []

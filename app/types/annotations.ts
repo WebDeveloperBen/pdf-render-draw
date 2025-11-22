@@ -55,6 +55,8 @@ export interface Fill extends BaseAnnotation {
   type: 'fill'
   x: number
   y: number
+  width: number
+  height: number
   color: string
   opacity: number
 }
