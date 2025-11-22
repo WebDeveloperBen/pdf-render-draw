@@ -215,28 +215,8 @@ function handleMove(e: MouseEvent) {
   }
 }
 
-function handleDoubleClick(e: MouseEvent) {
-  // Find the annotation element and dispatch a custom event to it
-  // This lets the annotation component handle its own double-click behavior
-  const target = e.target as SVGElement
-  const id = target.dataset?.annotationId || target.closest("[data-annotation-id]")?.getAttribute("data-annotation-id")
-
-  if (id) {
-    // Find the annotation element in the DOM
-    const annotationElement = svgRef.value?.querySelector(`[data-annotation-id="${id}"]`)
-
-    if (annotationElement) {
-      // Dispatch a custom event that the annotation component can listen for
-      const customEvent = new CustomEvent("annotation:dblclick", {
-        bubbles: true,
-        cancelable: true,
-        detail: { id, originalEvent: e }
-      })
-
-      annotationElement.dispatchEvent(customEvent)
-    }
-  }
-}
+// Double-click handling removed - let native events bubble to BaseAnnotation components
+// BaseAnnotation.vue handles double-click delegation to tools via @dblclick listener
 
 // Keyboard shortcuts
 function handleKeyDown(e: KeyboardEvent) {
@@ -275,7 +255,6 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
     @mousemove="handleMove"
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseLeave"
-    @dblclick="handleDoubleClick"
   >
     <!-- Render active tool + all completed annotations -->
     <ToolsMeasure

@@ -23,8 +23,39 @@ const dragState = useDragState() // Track drag state to prevent clicks after dra
 // Check if this annotation is selected
 const isSelected = computed(() => annotationStore.isAnnotationSelected(props.annotation.id))
 
+// Debounce single-click to allow double-click to take precedence
+const CLICK_DELAY = 150 // ms to wait for potential double-click
+
+// Handle selection logic
+function performSelection() {
+  const tool = annotationStore.activeTool
+
+  // Only handle selection in selection mode or when no tool is active
+  if (tool === "selection" || tool === "") {
+    // Multi-select support:
+    // - Shift+click: Add to selection (addToSelection)
+    // - Cmd/Ctrl+click: Toggle selection on/off (toggle)
+    const isShiftClick = modifierKeys.isShiftPressed.value
+    const isCmdCtrlClick = modifierKeys.isCmdOrCtrl.value
+
+    if (isShiftClick) {
+      annotationStore.selectAnnotation(props.annotation.id, { addToSelection: true })
+    } else if (isCmdCtrlClick) {
+      annotationStore.selectAnnotation(props.annotation.id, { toggle: true })
+    } else {
+      annotationStore.selectAnnotation(props.annotation.id)
+    }
+  }
+}
+
+// Debounced version of selection - waits for potential double-click
+const debouncedSelection = useDebounceFn(performSelection, CLICK_DELAY)
+
 // Handle double-click - delegate to tool's handler if registered
 function handleDoubleClick(e: MouseEvent) {
+  // Cancel pending single-click
+  debouncedSelection()
+
   const tool = toolRegistry.getTool(props.annotation.type)
 
   if (tool?.onDoubleClick) {
@@ -44,36 +75,16 @@ function handleContextMenu(e: MouseEvent) {
   }
 }
 
-// Handle selection
+// Handle click with debounce to detect double-click
 function handleClick(e: MouseEvent) {
-  const tool = annotationStore.activeTool
-
   // Prevent selection changes if a drag just finished (click fires after drag ends)
   if (dragState.isDragJustFinished()) {
     return
   }
 
-  // Only handle selection in selection mode or when no tool is active
-  if (tool === "selection" || tool === "") {
-    // Multi-select support:
-    // - Shift+click: Add to selection (addToSelection)
-    // - Cmd/Ctrl+click: Toggle selection on/off (toggle)
-    const isShiftClick = modifierKeys.isShiftPressed.value
-    const isCmdCtrlClick = modifierKeys.isCmdOrCtrl.value
-
-    if (isShiftClick) {
-      // Shift+click: Add to selection
-      annotationStore.selectAnnotation(props.annotation.id, { addToSelection: true })
-    } else if (isCmdCtrlClick) {
-      // Cmd/Ctrl+click: Toggle selection
-      annotationStore.selectAnnotation(props.annotation.id, { toggle: true })
-    } else {
-      // Normal click: Replace selection
-      annotationStore.selectAnnotation(props.annotation.id)
-    }
-
-    e.stopPropagation()
-  }
+  // Delay single-click to see if double-click is coming
+  debouncedSelection()
+  e.stopPropagation()
 }
 </script>
 
@@ -103,7 +114,11 @@ function handleClick(e: MouseEvent) {
       <!-- Group transform handles for multi-selection -->
       <!-- Only render on the FIRST selected annotation to avoid duplicates -->
       <HandlesGroupTransform
-        v-else-if="isSelected && annotationStore.selectedAnnotationIds.length > 1 && annotationStore.selectedAnnotationIds[0] === annotation.id"
+        v-else-if="
+          isSelected &&
+          annotationStore.selectedAnnotationIds.length > 1 &&
+          annotationStore.selectedAnnotationIds[0] === annotation.id
+        "
       />
     </slot>
   </g>

@@ -8,6 +8,9 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
   // Get modifier keys for multi-select support (optional for tests)
   const modifierKeys = useModifierKeys()!
 
+  // Use global text editing state (singleton composable)
+  const textEditing = useTextEditingState()
+
   const completed = computed(
     () => annotationStore.getAnnotationsByTypeAndPage("text", rendererStore.getCurrentPage) as TextAnnotation[]
   )
@@ -18,8 +21,8 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     return annotationStore.selectedAnnotation as TextAnnotation
   })
 
-  const editingId = ref<string | null>(null)
-  const editingContent = ref<string>("")
+  const editingId = textEditing.editingId
+  const editingContent = textEditing.editingContent
 
   function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
@@ -58,16 +61,11 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     }
 
     annotationStore.addAnnotation(text)
-    editingId.value = text.id
-    editingContent.value = text.content
+    textEditing.startEditing(text.id)
   }
 
   function handleDoubleClick(id: string) {
-    const annotation = annotationStore.getAnnotationById(id) as TextAnnotation | undefined
-    if (annotation) {
-      editingId.value = id
-      editingContent.value = annotation.content
-    }
+    textEditing.startEditing(id)
   }
 
   function selectAnnotation(id: string) {
@@ -77,16 +75,11 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
 
   function updateText(id: string, content: string) {
     annotationStore.updateAnnotation(id, { content })
-    editingId.value = null
-    editingContent.value = ""
+    textEditing.cancelEditing()
   }
 
   function finishEditing() {
-    if (editingId.value && editingContent.value !== undefined) {
-      annotationStore.updateAnnotation(editingId.value, { content: editingContent.value })
-    }
-    editingId.value = null
-    editingContent.value = ""
+    textEditing.finishEditing()
   }
 
   function deleteText(id: string) {
@@ -114,9 +107,8 @@ registerTool({
   type: "text",
   component: defineAsyncComponent(() => import("~/components/tools/Text.vue")),
   onDoubleClick: (id: string) => {
-    const tool = useTextToolState()
-    if (tool) {
-      tool.handleDoubleClick(id)
-    }
+    // Use global text editing state (singleton composable, no injection needed)
+    const textEditing = useTextEditingState()
+    textEditing.startEditing(id)
   }
 })
