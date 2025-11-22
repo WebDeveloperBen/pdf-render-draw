@@ -81,7 +81,8 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
       width: currentRect.value.width,
       height: currentRect.value.height,
       color: settings.fillToolSettings.fillColor,
-      opacity: settings.fillToolSettings.opacity
+      opacity: settings.fillToolSettings.opacity,
+      rotation: 0
     }
 
     annotationStore.addAnnotation(fill)

@@ -129,18 +129,11 @@ function handleClick(e: MouseEvent) {
     return
   }
 
-  // Prevent clicking other annotations when using drawing tools (not select tool)
-  if (annotationId && tool !== "selection" && tool !== "" && annotationStore.selectedAnnotationId) {
-    e.stopPropagation()
-    e.preventDefault()
-    return
-  }
-
-  // Click outside any annotation - deselect if in selection mode or no tool active
-  // But only if not drawing marquee (to avoid deselecting during drag)
-  if (!annotationId && (tool === "selection" || tool === "") && !selectionMarquee.isDrawing) {
+  // Click outside any annotation - deselect regardless of active tool
+  // But only if not drawing marquee or actively drawing with a tool
+  if (!annotationId && !selectionMarquee.isDrawing && !annotationStore.isDrawing) {
     annotationStore.selectAnnotation(null)
-    return
+    // Don't return - allow drawing tools to continue processing the click
   }
 
   debugLog("SVG Layer", "Click:", {

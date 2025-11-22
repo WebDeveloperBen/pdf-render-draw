@@ -29,6 +29,20 @@ const {
   previewArea,
   previewPolygon
 } = tool
+
+const annotationStore = useAnnotationStore()
+
+// Handle clicks - allow selection but don't stop propagation for drawing tools
+function handleAnnotationClick(e: MouseEvent, id: string) {
+  // Always allow selection (needed for transforms/rotation)
+  selectAnnotation(id)
+
+  // Only stop propagation in selection mode
+  // This allows drawing tools to also process the click
+  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
+    e.stopPropagation()
+  }
+}
 </script>
 <template>
   <g class="area-tool">
@@ -40,7 +54,7 @@ const {
       :class="{ selected: isAnnotationSelected(area.id) }"
       class="area"
       :transform="getRotationTransform(area)"
-      @click.stop="selectAnnotation(area.id)"
+      @click="handleAnnotationClick($event, area.id)"
     >
       <!-- Polygon -->
       <polygon

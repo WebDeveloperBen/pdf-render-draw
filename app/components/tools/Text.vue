@@ -6,7 +6,21 @@ if (!tool) {
   throw new Error('TextTool must be used within SvgAnnotationLayer')
 }
 
-const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText } = tool
+const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText, selectAnnotation } = tool
+
+const annotationStore = useAnnotationStore()
+
+// Handle clicks - allow selection but don't stop propagation for drawing tools
+function handleAnnotationClick(e: MouseEvent, id: string) {
+  // Always allow selection (needed for transforms/rotation)
+  selectAnnotation(id)
+
+  // Only stop propagation in selection mode
+  // This allows drawing tools to also process the click
+  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
+    e.stopPropagation()
+  }
+}
 
 // Store ref to currently editing textarea
 const currentTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -50,7 +64,7 @@ watch(editingId, (newId, oldId) => {
           class="text-background"
           :data-annotation-id="text.id"
           @dblclick.stop="handleDoubleClick(text.id)"
-          @click.stop
+          @click="handleAnnotationClick($event, text.id)"
         />
 
         <!-- Text content -->

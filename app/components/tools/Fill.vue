@@ -9,7 +9,19 @@ if (!tool) {
 const { completed, isDrawing, currentRect, deleteFill, selectAnnotation } = tool
 
 const annotationStore = useAnnotationStore()
-const { getRotationTransform, isAnnotationSelected } = annotationStore
+const { getRotationTransform, isAnnotationSelected, activeTool } = annotationStore
+
+// Handle clicks - allow selection but don't stop propagation for drawing tools
+function handleAnnotationClick(e: MouseEvent, id: string) {
+  // Always allow selection (needed for transforms/rotation)
+  selectAnnotation(id)
+
+  // Only stop propagation in selection mode
+  // This allows drawing tools to also process the click
+  if (activeTool === "selection" || activeTool === "") {
+    e.stopPropagation()
+  }
+}
 </script>
 <template>
   <g class="fill-tool">
@@ -37,7 +49,7 @@ const { getRotationTransform, isAnnotationSelected } = annotationStore
       :data-annotation-id="fill.id"
       :class="{ selected: isAnnotationSelected(fill.id) }"
       :transform="getRotationTransform(fill)"
-      @click.stop="selectAnnotation(fill.id)"
+      @click="handleAnnotationClick($event, fill.id)"
     >
       <!-- Filled rectangle -->
       <rect

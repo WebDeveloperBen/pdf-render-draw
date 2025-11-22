@@ -26,6 +26,20 @@ const {
   // From MeasureTool (specific):
   previewDistance
 } = tool
+
+const annotationStore = useAnnotationStore()
+
+// Handle clicks - allow selection but don't stop propagation for drawing tools
+function handleAnnotationClick(e: MouseEvent, id: string) {
+  // Always allow selection (needed for transforms/rotation)
+  selectAnnotation(id)
+
+  // Only stop propagation in selection mode
+  // This allows drawing tools to also process the click
+  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
@@ -38,7 +52,7 @@ const {
       :class="{ selected: isAnnotationSelected(measure.id) }"
       class="measurement"
       :transform="getRotationTransform(measure)"
-      @click.stop="selectAnnotation(measure.id)"
+      @click="handleAnnotationClick($event, measure.id)"
     >
       <!-- Invisible hit area (makes it easier to click thin lines) -->
       <line

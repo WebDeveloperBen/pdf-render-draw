@@ -22,6 +22,20 @@ const {
   selected: _selected,
   toSvgPoints
 } = tool
+
+const annotationStore = useAnnotationStore()
+
+// Handle clicks - allow selection but don't stop propagation for drawing tools
+function handleAnnotationClick(e: MouseEvent, id: string) {
+  // Always allow selection (needed for transforms/rotation)
+  selectAnnotation(id)
+
+  // Only stop propagation in selection mode
+  // This allows drawing tools to also process the click
+  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
@@ -34,7 +48,7 @@ const {
       :class="{ selected: isAnnotationSelected(line.id) }"
       class="line"
       :transform="getRotationTransform(line)"
-      @click.stop="selectAnnotation(line.id)"
+      @click="handleAnnotationClick($event, line.id)"
     >
       <!-- Invisible wider hitbox for easier clicking -->
       <polyline

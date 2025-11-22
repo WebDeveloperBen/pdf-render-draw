@@ -28,6 +28,20 @@ const {
   // From PerimeterTool (specific):
   previewSegments
 } = tool
+
+const annotationStore = useAnnotationStore()
+
+// Handle clicks - allow selection but don't stop propagation for drawing tools
+function handleAnnotationClick(e: MouseEvent, id: string) {
+  // Always allow selection (needed for transforms/rotation)
+  selectAnnotation(id)
+
+  // Only stop propagation in selection mode
+  // This allows drawing tools to also process the click
+  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
+    e.stopPropagation()
+  }
+}
 </script>
 <template>
   <g class="perimeter-tool">
@@ -39,7 +53,7 @@ const {
       :class="{ selected: isAnnotationSelected(perimeter.id) }"
       class="perimeter"
       :transform="getRotationTransform(perimeter)"
-      @click.stop="selectAnnotation(perimeter.id)"
+      @click="handleAnnotationClick($event, perimeter.id)"
     >
       <!-- Polygon -->
       <polygon
