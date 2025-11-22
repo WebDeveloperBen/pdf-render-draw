@@ -132,7 +132,7 @@ describe('Tool Error Handling', () => {
         currentTarget: mockSvg,
         clientX: NaN,
         clientY: NaN
-      } as MouseEvent
+      } as unknown as MouseEvent
 
       // The function will run but produce invalid coordinates
       const result = base.getSvgPoint(invalidEvent)
@@ -150,7 +150,7 @@ describe('Tool Error Handling', () => {
         currentTarget: mockSvg,
         clientX: Infinity,
         clientY: -Infinity
-      } as MouseEvent
+      } as unknown as MouseEvent
 
       const result = base.getSvgPoint(invalidEvent)
       expect(result).toBeDefined()
@@ -173,7 +173,7 @@ describe('Tool Error Handling', () => {
         currentTarget: mockSvg,
         clientX: -50,
         clientY: -100
-      } as MouseEvent
+      } as unknown as MouseEvent
 
       const result = base.getSvgPoint(validEvent)
       expect(result).toEqual({ x: -100, y: -200 })
@@ -223,12 +223,12 @@ describe('Tool Error Handling', () => {
           type: 'measure',
           minPoints: 2,
           canClose: false,
-          calculate: (points: Point[]) => ({
+          calculate: ((points: Point[]) => ({
             points,
             distance: 0,
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
-          }),
+          })) as any,
           onCreate: () => {}
         })
       )
@@ -248,12 +248,12 @@ describe('Tool Error Handling', () => {
           type: 'measure',
           minPoints: 2,
           canClose: false,
-          calculate: (points: Point[]) => ({
+          calculate: ((points: Point[]) => ({
             points,
             distance: 0,
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
-          }),
+          })) as any,
           onCreate: () => {}
         })
       )
@@ -273,12 +273,12 @@ describe('Tool Error Handling', () => {
           type: 'measure',
           minPoints: 2,
           canClose: false,
-          calculate: (points: Point[]) => ({
+          calculate: ((points: Point[]) => ({
             points,
             distance: 0,
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
-          }),
+          })) as any,
           onCreate: () => {}
         })
       )
@@ -488,12 +488,12 @@ describe('Tool Error Handling', () => {
           type: 'measure',
           minPoints: 2,
           canClose: false,
-          calculate: (points: Point[]) => ({
+          calculate: ((points: Point[]) => ({
             points,
             distance: 0,
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
-          }),
+          })) as any,
           onCreate: () => { onCreateCalled = true }
         })
       )
@@ -531,12 +531,12 @@ describe('Tool Error Handling', () => {
           type: 'measure',
           minPoints: 2,
           canClose: false,
-          calculate: (points: Point[]) => ({
+          calculate: ((points: Point[]) => ({
             points,
             distance: 0,
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
-          }),
+          })) as any,
           onCreate: () => {}
         })
       )
@@ -582,12 +582,12 @@ describe('Tool Error Handling', () => {
           type: 'measure',
           minPoints: 2,
           canClose: false,
-          calculate: (points: Point[]) => ({
+          calculate: ((points: Point[]) => ({
             points,
             distance: 0,
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
-          }),
+          })) as any,
           onCreate: () => {}
         })
       )
@@ -600,7 +600,7 @@ describe('Tool Error Handling', () => {
 
       // Annotation created with default page (1) because NaN was rejected
       expect(annotationStore.annotations).toHaveLength(1)
-      expect(annotationStore.annotations[0].pageNum).toBe(1)
+      expect(annotationStore.annotations[0]!.pageNum).toBe(1)
       // Note: Renderer store HAS page validation
     })
 
@@ -640,12 +640,12 @@ describe('Tool Error Handling', () => {
           type: 'measure',
           minPoints: 2,
           canClose: false,
-          calculate: (points: Point[]) => ({
+          calculate: ((points: Point[]) => ({
             points,
             distance: 0,
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
-          }),
+          })) as any,
           onCreate: () => {
             throw new Error('onCreate failed')
           }

@@ -10,6 +10,27 @@ vi.mock('uuid', () => ({
   v4: () => 'test-fill-uuid-456'
 }))
 
+// Helper to create mock mouse event
+function createMockMouseEvent(x: number, y: number, shiftKey = false, svgX?: number, svgY?: number): MouseEvent {
+  const mockSvg = {
+    createSVGPoint: () => ({
+      x: 0,
+      y: 0,
+      matrixTransform: () => ({ x: svgX ?? x, y: svgY ?? y })
+    }),
+    getScreenCTM: () => ({ inverse: () => ({}) })
+  } as unknown as SVGSVGElement
+
+  return {
+    currentTarget: mockSvg,
+    clientX: x,
+    clientY: y,
+    shiftKey,
+    preventDefault: vi.fn(),
+    stopPropagation: vi.fn()
+  } as unknown as MouseEvent
+}
+
 // Helper to test composables within Vue setup context
 function withSetup<T>(composable: () => T): T {
   let result: T
@@ -58,32 +79,16 @@ describe('useFillTool', () => {
         opacity: 0.5
       })
 
-      const mockSvg = {
-        createSVGPoint: () => ({
-          x: 0,
-          y: 0,
-          matrixTransform: () => ({ x: 150, y: 250 })
-        }),
-        getScreenCTM: () => ({ inverse: () => ({}) })
-      } as unknown as SVGSVGElement
-
       // Simulate mouse down
-      const mockMouseDownEvent = { currentTarget: mockSvg, clientX: 150, clientY: 250 } as MouseEvent
+      const mockMouseDownEvent = createMockMouseEvent(150, 250)
       tool.handleMouseDown(mockMouseDownEvent)
 
-      // Update mock to return different point for mouse move
-      mockSvg.createSVGPoint = () => ({
-        x: 0,
-        y: 0,
-        matrixTransform: () => ({ x: 200, y: 300 })
-      })
-
       // Simulate mouse move
-      const mockMouseMoveEvent = { currentTarget: mockSvg, clientX: 200, clientY: 300 } as MouseEvent
+      const mockMouseMoveEvent = createMockMouseEvent(200, 300, false, 200, 300)
       tool.handleMouseMove(mockMouseMoveEvent)
 
       // Simulate mouse up
-      const mockMouseUpEvent = { currentTarget: mockSvg, clientX: 200, clientY: 300 } as MouseEvent
+      const mockMouseUpEvent = createMockMouseEvent(200, 300, false, 200, 300)
       tool.handleMouseUp(mockMouseUpEvent)
 
       const fills = annotationStore.annotations as Fill[]
@@ -107,36 +112,21 @@ describe('useFillTool', () => {
 
       rendererStore.setCurrentPage(3)
 
-      const mockSvg = {
-        createSVGPoint: () => ({
-          x: 0,
-          y: 0,
-          matrixTransform: () => ({ x: 100, y: 200 })
-        }),
-        getScreenCTM: () => ({ inverse: () => ({}) })
-      } as unknown as SVGSVGElement
-
       // Simulate mouse down
-      const mockMouseDownEvent = { currentTarget: mockSvg, clientX: 100, clientY: 200 } as MouseEvent
+      const mockMouseDownEvent = createMockMouseEvent(100, 200)
       tool.handleMouseDown(mockMouseDownEvent)
 
-      // Update mock to return different point for mouse move
-      mockSvg.createSVGPoint = () => ({
-        x: 0,
-        y: 0,
-        matrixTransform: () => ({ x: 150, y: 250 })
-      })
-
       // Simulate mouse move
-      const mockMouseMoveEvent = { currentTarget: mockSvg, clientX: 150, clientY: 250 } as MouseEvent
+      const mockMouseMoveEvent = createMockMouseEvent(150, 250, false, 150, 250)
       tool.handleMouseMove(mockMouseMoveEvent)
 
       // Simulate mouse up
-      const mockMouseUpEvent = { currentTarget: mockSvg, clientX: 150, clientY: 250 } as MouseEvent
+      const mockMouseUpEvent = createMockMouseEvent(150, 250, false, 150, 250)
       tool.handleMouseUp(mockMouseUpEvent)
 
       const fills = annotationStore.annotations as Fill[]
-      expect(fills[0].pageNum).toBe(3)
+      expect(fills).toHaveLength(1)
+      expect(fills![0]!.pageNum).toBe(3)
     })
   })
 
@@ -175,11 +165,11 @@ describe('useFillTool', () => {
       annotationStore.addAnnotation(fill2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('fill-1')
+      expect(tool.completed.value![0]!.id).toBe('fill-1')
 
       rendererStore.setCurrentPage(2)
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('fill-2')
+      expect(tool.completed.value![0]!.id).toBe('fill-2')
     })
 
     it('should return empty array when page has no fills', () => {

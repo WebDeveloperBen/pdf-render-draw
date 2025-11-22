@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
-import type { Annotation, PerimeterSegment } from '~/types/annotations'
+import type { Annotation, Measurement, Area, Perimeter, PerimeterSegment } from '~/types/annotations'
 import { validateAnnotation, isMeasurement, isArea, isPerimeter } from '~/types/annotations'
-import { calculateDistance, calculatePolygonArea, calculateCentroid, calculateMidpoint } from '~/utils/calculations'
+import * as calc from '~/utils/calculations'
 
 export const useAnnotationStore = defineStore('annotations', () => {
   // ============================================
@@ -118,47 +118,58 @@ export const useAnnotationStore = defineStore('annotations', () => {
     const settingsStore = useSettingStore()
     const pdfScale = settingsStore.getPdfScale
 
-    const derivedUpdates: Partial<Annotation> = {}
+    const derivedUpdates: any = {}
 
     if (isMeasurement(annotation)) {
       // Recalculate distance and midpoint
-      const [p1, p2] = annotation.points
+      const measurement = annotation as Measurement
+      const [p1, p2] = measurement.points
+
       if (p1 && p2) {
-        derivedUpdates.distance = calculateDistance(p1, p2, pdfScale)
-        derivedUpdates.midpoint = calculateMidpoint(p1, p2)
+        derivedUpdates.distance = calc.calculateDistance(p1, p2, pdfScale)
+        derivedUpdates.midpoint = calc.calculateMidpoint(p1, p2)
       }
     } else if (isArea(annotation)) {
       // Recalculate area and center
-      if (annotation.points.length >= 3) {
-        derivedUpdates.area = calculatePolygonArea(annotation.points, pdfScale)
-        derivedUpdates.center = calculateCentroid(annotation.points)
+      const area = annotation as Area
+      if (area.points.length >= 3) {
+        derivedUpdates.area = calc.calculatePolygonArea(area.points, pdfScale)
+        derivedUpdates.center = calc.calculateCentroid(area.points)
+      }
+    } else if (isArea(annotation)) {
+      // Recalculate area and center
+      const area = annotation as Area
+      if (area.points.length >= 3) {
+        derivedUpdates.area = calc.calculatePolygonArea(area.points, pdfScale)
+        derivedUpdates.center = calc.calculateCentroid(area.points)
       }
     } else if (isPerimeter(annotation)) {
       // Recalculate segments, totalLength, and center
-      if (annotation.points.length >= 3) {
+      const perimeter = annotation as Perimeter
+      if (perimeter.points.length >= 3) {
         const segments: PerimeterSegment[] = []
         let totalLength = 0
 
-        for (let i = 0; i < annotation.points.length; i++) {
-          const start = annotation.points[i]
-          const end = annotation.points[(i + 1) % annotation.points.length]
+        for (let i = 0; i < perimeter.points.length; i++) {
+          const start = perimeter.points[i]
+          const end = perimeter.points[(i + 1) % perimeter.points.length]
 
           if (start && end) {
-            const segmentLength = calculateDistance(start, end, pdfScale)
+            const segmentLength = calc.calculateDistance(start, end, pdfScale)
             totalLength += segmentLength
 
             segments.push({
               start,
               end,
               length: segmentLength,
-              midpoint: calculateMidpoint(start, end)
+              midpoint: calc.calculateMidpoint(start, end)
             })
           }
         }
 
         derivedUpdates.segments = segments
         derivedUpdates.totalLength = totalLength
-        derivedUpdates.center = calculateCentroid(annotation.points)
+        derivedUpdates.center = calc.calculateCentroid(perimeter.points)
       }
     }
 
@@ -194,7 +205,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
 
     // If points were updated, recalculate derived values (distance, midpoint, area, center, etc.)
     if ('points' in updates && updates.points) {
-      const derivedValues = recalculateDerivedValues(updated)
+      const derivedValues = recalculateDerivedValues(updated as Annotation) as any
       updated = { ...updated, ...derivedValues }
     }
 

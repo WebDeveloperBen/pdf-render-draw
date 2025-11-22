@@ -47,8 +47,8 @@ describe('Mouse Events Integration', () => {
   function createTestPerimeter(id: string, points: { x: number; y: number }[]): Perimeter {
     const segments: PerimeterSegment[] = []
     for (let i = 0; i < points.length; i++) {
-      const start = points[i]
-      const end = points[(i + 1) % points.length]
+      const start = points[i]!
+      const end = points[(i + 1) % points.length]!
       segments.push({
         start,
         end,
@@ -239,7 +239,7 @@ describe('Mouse Events Integration', () => {
       const angleMatch = transform.match(/rotate\(([0-9.]+)/)
       expect(angleMatch).toBeTruthy()
       if (angleMatch) {
-        expect(parseFloat(angleMatch[1])).toBeCloseTo(30, 5)
+        expect(parseFloat(angleMatch[1]!)).toBeCloseTo(30, 5)
       }
     })
 
@@ -267,7 +267,7 @@ describe('Mouse Events Integration', () => {
 
       // Verify rotation committed
       const updated = store.getAnnotationById('m1')
-      expect(updated?.rotation).toBeCloseTo(Math.PI / 4, 5)
+      expect((updated as any)?.rotation).toBeCloseTo(Math.PI / 4, 5)
       expect(store.rotationDragDelta).toBe(0)
     })
 
@@ -391,7 +391,7 @@ describe('Mouse Events Integration', () => {
 
       // Verify rotation not changed
       const updated = store.getAnnotationById('m1')
-      expect(updated?.rotation).toBe(originalRotation)
+      expect((updated as any)?.rotation).toBe(originalRotation)
     })
 
     it('should restore original annotation state on cancellation', () => {
@@ -551,13 +551,13 @@ describe('Mouse Events Integration', () => {
       rendererStore.setCurrentPage(1)
       const page1Annotations = store.getAnnotationsByPage(1)
       expect(page1Annotations).toHaveLength(1)
-      expect(page1Annotations[0].id).toBe('m1-page1')
+      expect(page1Annotations[0]!.id).toBe('m1-page1')
 
       // View page 2
       rendererStore.setCurrentPage(2)
       const page2Annotations = store.getAnnotationsByPage(2)
       expect(page2Annotations).toHaveLength(1)
-      expect(page2Annotations[0].id).toBe('m2-page2')
+      expect(page2Annotations[0]!.id).toBe('m2-page2')
     })
 
     it('should handle very small drag distances', () => {
@@ -713,8 +713,8 @@ describe('Mouse Events Integration', () => {
       store.selectAnnotations(['m1', 'a1'])
 
       expect(store.selectedAnnotations).toHaveLength(2)
-      expect(store.selectedAnnotations[0].type).toBe('measure')
-      expect(store.selectedAnnotations[1].type).toBe('area')
+      expect(store.selectedAnnotations[0]!.type).toBe('measure')
+      expect(store.selectedAnnotations[1]!.type).toBe('area')
     })
 
     it('should clear rotation delta on selection change', () => {

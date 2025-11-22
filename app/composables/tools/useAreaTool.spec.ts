@@ -461,7 +461,7 @@ describe('useAreaTool', () => {
       tool.handleClick(createMockMouseEvent(105, 105))
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       // Create another area on page 2
       const area2: Area = {
@@ -477,15 +477,15 @@ describe('useAreaTool', () => {
 
       // Should still only show page 1 areas
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       // Switch to page 2
       rendererStore.setCurrentPage(2)
 
       // Should now show page 2 areas
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('area-2')
-      expect(tool.completed.value[0].pageNum).toBe(2)
+      expect(tool.completed.value![0]!.id).toBe('area-2')
+      expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 

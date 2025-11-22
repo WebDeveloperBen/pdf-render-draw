@@ -195,12 +195,12 @@ describe('usePerimeterTool', () => {
       const perimeter = annotationStore.annotations[0] as Perimeter
 
       // First segment: (0,0) to (100,0), midpoint should be (50,0)
-      expect(perimeter.segments[0].midpoint.x).toBeCloseTo(50, 1)
-      expect(perimeter.segments[0].midpoint.y).toBeCloseTo(0, 1)
+      expect(perimeter.segments![0]!.midpoint.x).toBeCloseTo(50, 1)
+      expect(perimeter.segments![0]!.midpoint.y).toBeCloseTo(0, 1)
 
       // Second segment: (100,0) to (100,100), midpoint should be (100,50)
-      expect(perimeter.segments[1].midpoint.x).toBeCloseTo(100, 1)
-      expect(perimeter.segments[1].midpoint.y).toBeCloseTo(50, 1)
+      expect(perimeter.segments![1]!.midpoint.x).toBeCloseTo(100, 1)
+      expect(perimeter.segments![1]!.midpoint.y).toBeCloseTo(50, 1)
     })
 
     it('should create closing segment from last to first point', () => {
@@ -216,8 +216,8 @@ describe('usePerimeterTool', () => {
       const perimeter = annotationStore.annotations[0] as Perimeter
 
       // Last segment should connect back to first point
-      const lastSegment = perimeter.segments[perimeter.segments.length - 1]
-      expect(lastSegment.end).toEqual(perimeter.points[0])
+      const lastSegment = perimeter.segments![perimeter.segments!.length - 1]
+      expect(lastSegment!.end).toEqual(perimeter.points[0])
     })
   })
 
@@ -286,12 +286,12 @@ describe('usePerimeterTool', () => {
       expect(tool.previewSegments.value).toHaveLength(2)
 
       // First segment: completed between points 1 and 2
-      expect(tool.previewSegments.value[0].start).toEqual({ x: 100, y: 100 })
-      expect(tool.previewSegments.value[0].end).toEqual({ x: 200, y: 100 })
+      expect(tool.previewSegments.value![0]!.start).toEqual({ x: 100, y: 100 })
+      expect(tool.previewSegments.value![0]!.end).toEqual({ x: 200, y: 100 })
 
       // Second segment: temp segment to cursor
-      expect(tool.previewSegments.value[1].start).toEqual({ x: 200, y: 100 })
-      expect(tool.previewSegments.value[1].end).toEqual({ x: 150, y: 200 })
+      expect(tool.previewSegments.value![1]!.start).toEqual({ x: 200, y: 100 })
+      expect(tool.previewSegments.value![1]!.end).toEqual({ x: 150, y: 200 })
     })
 
     it('should not show preview segments before drawing starts', () => {
@@ -315,8 +315,8 @@ describe('usePerimeterTool', () => {
       const secondPreview = tool.previewSegments.value[1]
 
       // Preview segment should have different end points
-      expect(firstPreview.end).not.toEqual(secondPreview.end)
-      expect(secondPreview.end).toEqual({ x: 150, y: 250 })
+      expect(firstPreview!.end).not.toEqual(secondPreview!.end)
+      expect(secondPreview!.end).toEqual({ x: 150, y: 250 })
     })
 
     it('should calculate lengths for preview segments', () => {
@@ -478,12 +478,12 @@ describe('usePerimeterTool', () => {
       tool.handleClick(createMockMouseEvent(200, 100))
       tool.handleClick(createMockMouseEvent(150, 200))
       tool.handleMove(createMockMouseEvent(105, 105))
-      tool.handleClick(createMockMouseEvent(105, 105))
+       tool.handleClick(createMockMouseEvent(105, 105))
 
-      expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+       expect(tool.completed.value).toHaveLength(1)
+       expect(tool.completed.value![0]!.pageNum).toBe(1)
 
-      const perimeter2: Perimeter = {
+       const perimeter2: Perimeter = {
         id: 'perimeter-2',
         type: 'perimeter',
         pageNum: 2,
@@ -515,13 +515,13 @@ describe('usePerimeterTool', () => {
       annotationStore.addAnnotation(perimeter2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       rendererStore.setCurrentPage(2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('perimeter-2')
-      expect(tool.completed.value[0].pageNum).toBe(2)
+      expect(tool.completed.value![0]!.id).toBe('perimeter-2')
+      expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 

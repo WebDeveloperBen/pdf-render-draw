@@ -119,6 +119,8 @@ describe('Annotation Type Guards', () => {
         pageNum: 1,
         x: 100,
         y: 200,
+        width: 50,
+        height: 50,
         color: '#FF0000',
         opacity: 0.5,
       }

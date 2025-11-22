@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useHistoryStore } from './history'
 import { useAnnotationStore } from './annotations'
-import type { Measurement, Area, Perimeter, TextAnnotation, Point } from '~/types/annotations'
+import type { Point } from '~/types'
+import type { Measurement, Area, Perimeter, TextAnnotation } from '~/types/annotations'
 
 // Import command classes directly from the store file to avoid Pinia proxy issues
 // These are exported at the end of the store definition

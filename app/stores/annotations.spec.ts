@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAnnotationStore } from './annotations'
-import type { TextAnnotation, Measurement, Area, Perimeter, Point } from '~/types/annotations'
+import type { Point } from '~/types'
+import type { TextAnnotation, Measurement, Area, Perimeter, PerimeterSegment } from '~/types/annotations'
 
 describe('Annotation Store', () => {
   beforeEach(() => {
@@ -398,7 +399,9 @@ describe('Annotation Store', () => {
 
       store.updateAnnotation(perimeter.id, { points: newPoints })
 
-      const updated = store.getAnnotationById(perimeter.id) as Perimeter
+      const updatedRaw = store.getAnnotationById(perimeter.id)
+      expect(updatedRaw).toBeDefined()
+      const updated = updatedRaw as Perimeter
 
       // Total length should be recalculated but stay the same (same size polygon)
       expect(updated.totalLength).toBe(12045)
@@ -409,8 +412,8 @@ describe('Annotation Store', () => {
 
       // Segments should be recalculated with new positions
       expect(updated.segments).toHaveLength(3)
-      expect(updated.segments[0].midpoint.x).toBe(150) // (100 + 200) / 2
-      expect(updated.segments[0].midpoint.y).toBe(100) // (100 + 100) / 2
+      expect(updated.segments![0]!.midpoint.x).toBe(150) // (100 + 200) / 2
+      expect(updated.segments![0]!.midpoint.y).toBe(100) // (100 + 100) / 2
     })
 
     it('should not recalculate derived values when non-point properties are updated', () => {

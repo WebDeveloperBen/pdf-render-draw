@@ -29,7 +29,6 @@ class MockWorker {
   terminate() {}
 }
 
-// @ts-expect-error - Mocking global Worker
 global.Worker = MockWorker as any
 
 // Helper to setup composable in component context
@@ -91,7 +90,6 @@ describe("usePDF Composable", () => {
       // This test should run first to ensure worker gets configured
       // Ensure window exists for browser environment
       if (typeof global.window === "undefined") {
-        // @ts-expect-error - Ensuring browser environment
         global.window = {} as any
       }
 
@@ -326,7 +324,7 @@ describe("usePDF Composable", () => {
       const progressData: OnProgressParameters = { loaded: 7500, total: 10000 }
       mockLoadingTask.onProgress(progressData)
 
-      const { loaded, total } = onProgress.mock.calls[0][0]
+      const { loaded, total } = onProgress.mock.calls[0]![0]!
       const percentage = (loaded / total) * 100
 
       expect(percentage).toBe(75)
@@ -507,7 +505,7 @@ describe("usePDF Composable", () => {
     })
 
     it("should handle reactive ref changing to falsy value", async () => {
-      const pdfUrl = ref("/test.pdf")
+      const pdfUrl = ref<string | null>("/test.pdf")
       const { pdf } = withSetup(() => usePDF(pdfUrl))
 
       await nextTick()

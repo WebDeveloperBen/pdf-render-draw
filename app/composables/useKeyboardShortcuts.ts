@@ -4,7 +4,8 @@
  * Handles global keyboard shortcuts for annotation operations using a command map pattern.
  */
 
-import type { Annotation, Point, PerimeterSegment } from '~/types/annotations'
+import type { Point } from '~/types'
+import type { Annotation, PerimeterSegment } from '~/types/annotations'
 
 interface ShortcutCommand {
   key: string

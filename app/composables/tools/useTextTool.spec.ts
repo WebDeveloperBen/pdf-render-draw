@@ -10,6 +10,27 @@ vi.mock('uuid', () => ({
   v4: () => 'test-uuid-123'
 }))
 
+// Helper to create mock mouse event
+function createMockMouseEvent(x: number, y: number, shiftKey = false): MouseEvent {
+  const mockSvg = {
+    createSVGPoint: () => ({
+      x: 0,
+      y: 0,
+      matrixTransform: () => ({ x, y })
+    }),
+    getScreenCTM: () => ({ inverse: () => ({}) })
+  } as unknown as SVGSVGElement
+
+  return {
+    currentTarget: mockSvg,
+    clientX: x,
+    clientY: y,
+    shiftKey,
+    preventDefault: vi.fn(),
+    stopPropagation: vi.fn()
+  } as unknown as MouseEvent
+}
+
 // Helper to test composables within Vue setup context
 function withSetup<T>(composable: () => T): T {
   let result: T
@@ -56,40 +77,22 @@ describe('useTextTool', () => {
       // Set rotation to 90 degrees
       rendererStore.setRotation(90)
 
-      // Mock SVG and event
-      const mockSvg = {
-        createSVGPoint: () => ({
-          x: 0,
-          y: 0,
-          matrixTransform: () => ({ x: 100, y: 200 })
-        }),
-        getScreenCTM: () => ({ inverse: () => ({}) })
-      } as unknown as SVGSVGElement
-
-      const mockEvent = { currentTarget: mockSvg, clientX: 100, clientY: 200 } as MouseEvent
+      // Mock event
+      const mockEvent = createMockMouseEvent(100, 200)
 
       tool.handleClick(mockEvent)
 
       const texts = annotationStore.annotations as TextAnnotation[]
       expect(texts).toHaveLength(1)
-      expect(texts[0].rotation).toBe(-90) // Counter-rotated
-      expect(texts[0].content).toBe('Double-click to edit')
-      expect(texts[0].id).toBe('test-uuid-123')
+      expect(texts![0]!.rotation).toBe(-90) // Counter-rotated
+      expect(texts![0]!.content).toBe('Double-click to edit')
+      expect(texts![0]!.id).toBe('test-uuid-123')
     })
 
     it('should set text as editing after creation', () => {
       const tool = withSetup(() => useProvideTextTool())
 
-      const mockSvg = {
-        createSVGPoint: () => ({
-          x: 0,
-          y: 0,
-          matrixTransform: () => ({ x: 100, y: 200 })
-        }),
-        getScreenCTM: () => ({ inverse: () => ({}) })
-      } as unknown as SVGSVGElement
-
-      const mockEvent = { currentTarget: mockSvg, clientX: 100, clientY: 200 } as MouseEvent
+      const mockEvent = createMockMouseEvent(100, 200)
 
       tool.handleClick(mockEvent)
 
@@ -137,11 +140,11 @@ describe('useTextTool', () => {
       annotationStore.addAnnotation(text2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('text-1')
+      expect(tool.completed.value![0]!.id).toBe('text-1')
 
       rendererStore.setCurrentPage(2)
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('text-2')
+      expect(tool.completed.value![0]!.id).toBe('text-2')
     })
   })
 
@@ -260,16 +263,7 @@ describe('useTextTool', () => {
 
       rendererStore.setRotation(90)
 
-      const mockSvg = {
-        createSVGPoint: () => ({
-          x: 0,
-          y: 0,
-          matrixTransform: () => ({ x: 100, y: 200 })
-        }),
-        getScreenCTM: () => ({ inverse: () => ({}) })
-      } as unknown as SVGSVGElement
-
-      const mockEvent = { currentTarget: mockSvg, clientX: 100, clientY: 200 } as MouseEvent
+      const mockEvent = createMockMouseEvent(100, 200)
 
       tool.handleClick(mockEvent)
 

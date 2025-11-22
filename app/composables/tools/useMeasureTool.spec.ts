@@ -46,8 +46,8 @@ function createMockMouseEvent(x: number, y: number, shiftKey = false): MouseEven
   mockSvg.createSVGPoint = () => ({
     x: 0,
     y: 0,
-    matrixTransform: () => ({ x, y })
-  })
+    matrixTransform: () => ({ x, y } as any)
+  } as any)
 
   return {
     currentTarget: mockSvg,
@@ -389,7 +389,7 @@ describe('useMeasureTool', () => {
       tool.handleClick(mockEvent2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       // Create another measurement on page 1
       const measurement2: Measurement = {
@@ -405,15 +405,15 @@ describe('useMeasureTool', () => {
 
       // Should still only show page 1 measurements
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       // Switch to page 2
       rendererStore.setCurrentPage(2)
 
       // Should now show page 2 measurements
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('test-2')
-      expect(tool.completed.value[0].pageNum).toBe(2)
+      expect(tool.completed.value![0]!.id).toBe('test-2')
+      expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 

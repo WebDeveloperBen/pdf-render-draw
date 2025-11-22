@@ -17,7 +17,6 @@ class MockWorker {
   dispatchEvent() { return true }
 }
 
-// @ts-expect-error - Mocking Worker
 global.Worker = MockWorker as any
 
 // Mock debug utilities
@@ -220,7 +219,7 @@ describe('PDF Error Handling', () => {
       await new Promise(resolve => setTimeout(resolve, 10))
 
       expect(onError).toHaveBeenCalledWith(error)
-      expect(onError.mock.calls[0][0]).toHaveProperty('name', 'PasswordException')
+      expect(onError.mock.calls[0]![0]!).toHaveProperty('name', 'PasswordException')
     })
 
     it('should handle PDF.js getDocument() throwing synchronous error', async () => {
@@ -261,7 +260,7 @@ describe('PDF Error Handling', () => {
       await new Promise(resolve => setTimeout(resolve, 10))
 
       expect(onError).toHaveBeenCalledWith(error)
-      expect(onError.mock.calls[0][0]).toHaveProperty('name', 'TimeoutError')
+      expect(onError.mock.calls[0]![0]!).toHaveProperty('name', 'TimeoutError')
     })
 
     it('should handle network connection lost mid-load', async () => {
@@ -369,8 +368,8 @@ describe('PDF Error Handling', () => {
 
       expect(onError).toHaveBeenCalledTimes(1)
       expect(onError).toHaveBeenCalledWith(expectedError)
-      expect(onError.mock.calls[0][0]).toHaveProperty('message', 'Specific error message')
-      expect(onError.mock.calls[0][0]).toHaveProperty('stack')
+      expect(onError.mock.calls[0]![0]!).toHaveProperty('message', 'Specific error message')
+      expect(onError.mock.calls[0]![0]!).toHaveProperty('stack')
     })
 
     it('should work without onError callback', async () => {

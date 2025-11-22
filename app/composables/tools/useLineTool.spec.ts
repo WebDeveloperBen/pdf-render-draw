@@ -296,7 +296,7 @@ describe('useLineTool', () => {
       tool.handleClick(mockEvent2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       const line2: Line = {
         id: 'line-2',
@@ -307,13 +307,13 @@ describe('useLineTool', () => {
       annotationStore.addAnnotation(line2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].pageNum).toBe(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       rendererStore.setCurrentPage(2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value[0].id).toBe('line-2')
-      expect(tool.completed.value[0].pageNum).toBe(2)
+      expect(tool.completed.value![0]!.id).toBe('line-2')
+      expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 

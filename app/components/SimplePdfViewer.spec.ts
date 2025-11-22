@@ -53,11 +53,11 @@ describe('SimplePdfViewer Component', () => {
         offsetX: 0,
         offsetY: 0,
         clone: vi.fn()
-      })),
+      })) as any,
       render: vi.fn(() => ({
         promise: Promise.resolve(),
         cancel: vi.fn()
-      }))
+      })) as any
     }
 
     // Mock PDF document
@@ -73,7 +73,7 @@ describe('SimplePdfViewer Component', () => {
     }
 
     // Mock canvas getContext
-    HTMLCanvasElement.prototype.getContext = vi.fn(() => mockCanvasContext as CanvasRenderingContext2D)
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => mockCanvasContext as CanvasRenderingContext2D) as any
 
     // Mock window.devicePixelRatio
     Object.defineProperty(window, 'devicePixelRatio', {
@@ -248,7 +248,7 @@ describe('SimplePdfViewer Component', () => {
         cancel: cancelFn
       }
 
-      mockPage.render = vi.fn(() => firstRenderTask)
+      mockPage.render = vi.fn(() => firstRenderTask) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -265,7 +265,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: Promise.resolve(),
         cancel: vi.fn()
-      }))
+      })) as any
 
       store.setCurrentPage(2)
       await flushPromises()
@@ -281,7 +281,7 @@ describe('SimplePdfViewer Component', () => {
         cancel: cancelFn
       }
 
-      mockPage.render = vi.fn(() => renderTask)
+      mockPage.render = vi.fn(() => renderTask) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -296,7 +296,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: Promise.resolve(),
         cancel: vi.fn()
-      }))
+      })) as any
 
       store.setCurrentPage(2)
       await flushPromises()
@@ -313,7 +313,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: renderPromise,
         cancel: vi.fn()
-      }))
+      })) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -353,7 +353,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: Promise.reject(new Error('Render failed')),
         cancel: vi.fn()
-      }))
+      })) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -376,7 +376,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: Promise.reject(new Error('Test error')),
         cancel: vi.fn()
-      }))
+      })) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -409,7 +409,7 @@ describe('SimplePdfViewer Component', () => {
           promise: Promise.resolve(),
           cancel: vi.fn()
         }
-      })
+      }) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -446,7 +446,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: Promise.reject(new Error('Render failed')),
         cancel: vi.fn()
-      }))
+      })) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -479,7 +479,7 @@ describe('SimplePdfViewer Component', () => {
           promise: Promise.resolve(),
           cancel: vi.fn()
         }
-      })
+      }) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -748,7 +748,7 @@ describe('SimplePdfViewer Component', () => {
         cancel: cancelFn
       }
 
-      mockPage.render = vi.fn(() => renderTask)
+      mockPage.render = vi.fn(() => renderTask) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -908,7 +908,7 @@ describe('SimplePdfViewer Component', () => {
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
-          pdf: delayedPdfTask as PDFDocumentLoadingTask
+          pdf: delayedPdfTask as unknown as PDFDocumentLoadingTask
         }
       })
 
@@ -943,7 +943,7 @@ describe('SimplePdfViewer Component', () => {
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
-          pdf: failedPdfTask as PDFDocumentLoadingTask
+          pdf: failedPdfTask as unknown as PDFDocumentLoadingTask
         }
       })
 
@@ -1002,7 +1002,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: Promise.reject({ name: 'RenderingCancelledException' }),
         cancel: vi.fn()
-      }))
+      })) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
@@ -1022,7 +1022,7 @@ describe('SimplePdfViewer Component', () => {
       mockPage.render = vi.fn(() => ({
         promise: Promise.reject({ name: 'AbortError' }),
         cancel: vi.fn()
-      }))
+      })) as any
 
       const wrapper = mount(SimplePdfViewer, {
         props: {
