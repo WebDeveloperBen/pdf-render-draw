@@ -1,7 +1,7 @@
 import { ref, computed, toValue } from "vue"
 import type { MaybeRef } from "vue"
 import { useEventListener, useActiveElement, useDebounceFn } from "@vueuse/core"
-import { useKbd } from "./useKbd"
+import { usePlatform } from "~/utils/platform"
 
 type Handler = (e?: unknown) => void
 
@@ -37,14 +37,23 @@ const combinedShortcutRegex = /^[^_]+.*_.*[^_]+$/
 // keyboard keys which can be combined with Shift modifier (in addition to alphabet keys)
 const shiftableKeys = ["arrowleft", "arrowright", "arrowup", "arrowright", "tab", "escape", "enter", "backspace"]
 
+interface MenuItem {
+  kbds?: string[]
+  onSelect?: Handler
+  onClick?: Handler
+  children?: MenuItem[] | MenuItem[][]
+  items?: MenuItem[] | MenuItem[][]
+}
+
 export function extractShortcuts(items: unknown[] | unknown[][]) {
   const shortcuts: Record<string, Handler> = {}
 
-  function traverse(items: any[]) {
+  function traverse(items: MenuItem[]) {
     items.forEach((item) => {
-      if (item.kbds?.length && (item.onSelect || item.onClick)) {
+      const handler = item.onSelect || item.onClick
+      if (item.kbds?.length && handler) {
         const shortcutKey = item.kbds.join("_")
-        shortcuts[shortcutKey] = item.onSelect || item.onClick
+        shortcuts[shortcutKey] = handler
       }
       if (item.children) {
         traverse(item.children.flat())
@@ -55,7 +64,7 @@ export function extractShortcuts(items: unknown[] | unknown[][]) {
     })
   }
 
-  traverse(items.flat())
+  traverse(items.flat() as MenuItem[])
 
   return shortcuts
 }
@@ -67,7 +76,7 @@ export function defineShortcuts(config: MaybeRef<ShortcutsConfig>, options: Shor
   }
   const debouncedClearChainedInput = useDebounceFn(clearChainedInput, options.chainDelay ?? 800)
 
-  const { macOS } = useKbd()
+  const { macOS } = usePlatform()
   const activeElement = useActiveElement()
 
   const onKeyDown = (e: KeyboardEvent) => {
@@ -141,7 +150,8 @@ export function defineShortcuts(config: MaybeRef<ShortcutsConfig>, options: Shor
     )
 
     if (usingInput) {
-      return ((activeElement.value as any)?.name as string) || true
+      const inputElement = activeElement.value as HTMLInputElement | HTMLTextAreaElement | null
+      return inputElement?.name || true
     }
 
     return false
