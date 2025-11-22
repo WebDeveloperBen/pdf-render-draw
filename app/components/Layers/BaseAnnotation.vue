@@ -101,7 +101,10 @@ function handleClick(e: MouseEvent) {
         :annotation="annotation"
       />
       <!-- Group transform handles for multi-selection -->
-      <HandlesGroupTransform v-else-if="isSelected && annotationStore.selectedAnnotationIds.length > 1" />
+      <!-- Only render on the FIRST selected annotation to avoid duplicates -->
+      <HandlesGroupTransform
+        v-else-if="isSelected && annotationStore.selectedAnnotationIds.length > 1 && annotationStore.selectedAnnotationIds[0] === annotation.id"
+      />
     </slot>
   </g>
 </template>
