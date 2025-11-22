@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { getSvgPoint } from '~/utils/svg'
-import { useSvgCoordinates } from '~/composables/useSvgCoordinates'
-import { useRendererStore } from '~/stores/renderer'
-import type { Point } from '~/types'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { getSvgPoint } from "~/utils/svg"
+import { useSvgCoordinates } from "~/composables/useSvgCoordinates"
+import { useRendererStore } from "~/stores/renderer"
 
 /**
  * Integration Tests: SVG Coordinate Conversion
@@ -14,22 +13,17 @@ import type { Point } from '~/types'
  */
 
 // Helper to create mock SVG element with transformations
-function createMockSvg(options: {
-  scale?: number
-  scrollLeft?: number
-  scrollTop?: number
-  rotation?: number
-  width?: number
-  height?: number
-} = {}): SVGSVGElement {
-  const {
-    scale = 1,
-    scrollLeft = 0,
-    scrollTop = 0,
-    rotation = 0,
-    width = 800,
-    height = 600
-  } = options
+function createMockSvg(
+  options: {
+    scale?: number
+    scrollLeft?: number
+    scrollTop?: number
+    rotation?: number
+    width?: number
+    height?: number
+  } = {}
+): SVGSVGElement {
+  const { scale = 1, scrollLeft = 0, scrollTop = 0, rotation = 0, width = 800, height = 600 } = options
 
   // Mock SVG element that mimics real browser behavior
   const svg = {
@@ -38,7 +32,7 @@ function createMockSvg(options: {
       const point = {
         x: 0,
         y: 0,
-        matrixTransform: vi.fn(function(this: { x: number; y: number }, matrix: DOMMatrix) {
+        matrixTransform: vi.fn(function (this: { x: number; y: number }, matrix: DOMMatrix) {
           // Simulate inverse transform: screen -> SVG coordinates
           // Remove scroll offset and scale
           const svgX = (this.x - scrollLeft) / scale
@@ -103,13 +97,13 @@ function createMockMouseEvent(clientX: number, clientY: number): MouseEvent {
   } as unknown as MouseEvent
 }
 
-describe('SVG Coordinate Conversion - Integration Tests', () => {
+describe("SVG Coordinate Conversion - Integration Tests", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Basic Coordinate Conversion', () => {
-    it('should convert screen coordinates to SVG coordinates at 1:1 scale', () => {
+  describe("Basic Coordinate Conversion", () => {
+    it("should convert screen coordinates to SVG coordinates at 1:1 scale", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(150, 250)
 
@@ -118,7 +112,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result).toEqual({ x: 150, y: 250 })
     })
 
-    it('should handle screen coordinates at origin (0, 0)', () => {
+    it("should handle screen coordinates at origin (0, 0)", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(0, 0)
 
@@ -127,7 +121,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result).toEqual({ x: 0, y: 0 })
     })
 
-    it('should convert large screen coordinates correctly', () => {
+    it("should convert large screen coordinates correctly", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(1920, 1080)
 
@@ -136,7 +130,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result).toEqual({ x: 1920, y: 1080 })
     })
 
-    it('should provide bidirectional conversion accuracy', () => {
+    it("should provide bidirectional conversion accuracy", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 0, scrollTop: 0 })
       const originalPoint = { x: 300, y: 400 }
 
@@ -152,8 +146,8 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
     })
   })
 
-  describe('Zoom/Scale Effects', () => {
-    it('should respect 2x zoom level', () => {
+  describe("Zoom/Scale Effects", () => {
+    it("should respect 2x zoom level", () => {
       const svg = createMockSvg({ scale: 2, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(200, 300)
 
@@ -164,7 +158,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(150, 1)
     })
 
-    it('should respect 0.5x zoom level', () => {
+    it("should respect 0.5x zoom level", () => {
       const svg = createMockSvg({ scale: 0.5, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(100, 150)
 
@@ -175,7 +169,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(300, 1)
     })
 
-    it('should respect 4x zoom level', () => {
+    it("should respect 4x zoom level", () => {
       const svg = createMockSvg({ scale: 4, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(400, 800)
 
@@ -186,13 +180,13 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(200, 1)
     })
 
-    it('should maintain point accuracy across scale changes', () => {
+    it("should maintain point accuracy across scale changes", () => {
       const svgPoint = { x: 100, y: 150 }
 
       // Test at different scales
       const scales = [0.5, 1, 2, 4]
 
-      scales.forEach(scale => {
+      scales.forEach((scale) => {
         const svg = createMockSvg({ scale, scrollLeft: 0, scrollTop: 0 })
         // Screen coordinates = SVG coordinates * scale
         const screenX = svgPoint.x * scale
@@ -206,7 +200,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       })
     })
 
-    it('should handle fractional scale values', () => {
+    it("should handle fractional scale values", () => {
       const svg = createMockSvg({ scale: 1.5, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(300, 450)
 
@@ -218,8 +212,8 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
     })
   })
 
-  describe('Scroll Position Effects', () => {
-    it('should respect horizontal scroll position', () => {
+  describe("Scroll Position Effects", () => {
+    it("should respect horizontal scroll position", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 100, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(200, 300)
 
@@ -230,7 +224,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(300, 1)
     })
 
-    it('should respect vertical scroll position', () => {
+    it("should respect vertical scroll position", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 0, scrollTop: 150 })
       const mouseEvent = createMockMouseEvent(200, 300)
 
@@ -241,7 +235,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(150, 1)
     })
 
-    it('should handle both horizontal and vertical scroll', () => {
+    it("should handle both horizontal and vertical scroll", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 50, scrollTop: 75 })
       const mouseEvent = createMockMouseEvent(150, 225)
 
@@ -251,7 +245,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(150, 1)
     })
 
-    it('should combine scroll and scale correctly', () => {
+    it("should combine scroll and scale correctly", () => {
       const svg = createMockSvg({ scale: 2, scrollLeft: 100, scrollTop: 200 })
       const mouseEvent = createMockMouseEvent(300, 500)
 
@@ -262,7 +256,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(150, 1)
     })
 
-    it('should not affect annotation coordinates when viewport is scrolled', () => {
+    it("should not affect annotation coordinates when viewport is scrolled", () => {
       // Annotation at SVG coordinates (100, 100)
       const annotationPoint = { x: 100, y: 100 }
 
@@ -290,8 +284,8 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
     })
   })
 
-  describe('Page Rotation', () => {
-    it('should handle 0° rotation (no rotation)', () => {
+  describe("Page Rotation", () => {
+    it("should handle 0° rotation (no rotation)", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 0, scrollTop: 0, rotation: 0 })
       const mouseEvent = createMockMouseEvent(100, 150)
 
@@ -301,7 +295,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(150, 1)
     })
 
-    it('should handle 90° rotation', () => {
+    it("should handle 90° rotation", () => {
       const svg = createMockSvg({
         scale: 1,
         scrollLeft: 0,
@@ -317,11 +311,11 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       // At 90° rotation, coordinates are transformed around center
       // This is a simplified test - exact values depend on transform implementation
       expect(result).toBeDefined()
-      expect(typeof result.x).toBe('number')
-      expect(typeof result.y).toBe('number')
+      expect(typeof result.x).toBe("number")
+      expect(typeof result.y).toBe("number")
     })
 
-    it('should handle 180° rotation', () => {
+    it("should handle 180° rotation", () => {
       const svg = createMockSvg({
         scale: 1,
         scrollLeft: 0,
@@ -336,11 +330,11 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
 
       // At 180° rotation, coordinates are flipped around center
       expect(result).toBeDefined()
-      expect(typeof result.x).toBe('number')
-      expect(typeof result.y).toBe('number')
+      expect(typeof result.x).toBe("number")
+      expect(typeof result.y).toBe("number")
     })
 
-    it('should handle 270° rotation', () => {
+    it("should handle 270° rotation", () => {
       const svg = createMockSvg({
         scale: 1,
         scrollLeft: 0,
@@ -355,11 +349,11 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
 
       // At 270° rotation, coordinates are transformed around center
       expect(result).toBeDefined()
-      expect(typeof result.x).toBe('number')
-      expect(typeof result.y).toBe('number')
+      expect(typeof result.x).toBe("number")
+      expect(typeof result.y).toBe("number")
     })
 
-    it('should normalize rotation values > 360°', () => {
+    it("should normalize rotation values > 360°", () => {
       const rendererStore = useRendererStore()
 
       rendererStore.setRotation(450) // Should normalize to 90°
@@ -369,7 +363,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(rendererStore.rotation).toBe(0)
     })
 
-    it('should normalize negative rotation values', () => {
+    it("should normalize negative rotation values", () => {
       const rendererStore = useRendererStore()
 
       rendererStore.setRotation(-90) // Should normalize to 270°
@@ -380,8 +374,8 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
     })
   })
 
-  describe('getSvgPoint() Function', () => {
-    it('should return correct coordinates from MouseEvent', () => {
+  describe("getSvgPoint() Function", () => {
+    it("should return correct coordinates from MouseEvent", () => {
       const svg = createMockSvg({ scale: 1, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(123, 456)
 
@@ -391,7 +385,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(456, 1)
     })
 
-    it('should handle CSS transforms correctly with scale', () => {
+    it("should handle CSS transforms correctly with scale", () => {
       const svg = createMockSvg({ scale: 2.5, scrollLeft: 0, scrollTop: 0 })
       const mouseEvent = createMockMouseEvent(500, 750)
 
@@ -402,7 +396,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(300, 1)
     })
 
-    it('should work with complex matrix transformations', () => {
+    it("should work with complex matrix transformations", () => {
       const svg = createMockSvg({
         scale: 1.5,
         scrollLeft: 100,
@@ -417,7 +411,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(300, 1)
     })
 
-    it('should use composable version correctly', () => {
+    it("should use composable version correctly", () => {
       const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
       const svg = createMockSvg({ scale: 2, scrollLeft: 50, scrollTop: 100 })
       const mouseEvent = createMockMouseEvent(250, 500)
@@ -429,7 +423,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result?.y).toBeCloseTo(200, 1)
     })
 
-    it('should return null when getScreenCTM returns null', () => {
+    it("should return null when getScreenCTM returns null", () => {
       const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()
 
       const invalidSvg = {
@@ -444,8 +438,8 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
     })
   })
 
-  describe('Renderer Store Integration', () => {
-    it('should update coordinates when scale changes in store', () => {
+  describe("Renderer Store Integration", () => {
+    it("should update coordinates when scale changes in store", () => {
       const rendererStore = useRendererStore()
       const svgPoint = { x: 100, y: 100 }
 
@@ -463,7 +457,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(svgPoint.y, 1)
     })
 
-    it('should update coordinates when scroll position changes in store', () => {
+    it("should update coordinates when scroll position changes in store", () => {
       const rendererStore = useRendererStore()
       const svgPoint = { x: 100, y: 100 }
 
@@ -486,7 +480,7 @@ describe('SVG Coordinate Conversion - Integration Tests', () => {
       expect(result.y).toBeCloseTo(svgPoint.y, 1)
     })
 
-    it('should combine store scale and position correctly', () => {
+    it("should combine store scale and position correctly", () => {
       const rendererStore = useRendererStore()
       const svgPoint = { x: 100, y: 150 }
 

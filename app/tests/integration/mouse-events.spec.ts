@@ -238,7 +238,9 @@ describe('Mouse Events Integration', () => {
       // Extract angle from transform string and verify it's close to 30 degrees
       const angleMatch = transform.match(/rotate\(([0-9.]+)/)
       expect(angleMatch).toBeTruthy()
-      expect(parseFloat(angleMatch![1])).toBeCloseTo(30, 5)
+      if (angleMatch) {
+        expect(parseFloat(angleMatch[1])).toBeCloseTo(30, 5)
+      }
     })
 
     it('should commit changes to store on drag release', () => {

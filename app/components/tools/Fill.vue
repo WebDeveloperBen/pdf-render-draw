@@ -27,7 +27,7 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
     />
 
     <!-- Completed fill rectangles -->
-    <g v-for="fill in completed" :key="fill.id" class="fill-rect-group">
+    <g v-for="fill in completed" :key="fill.id" class="fill-rect-group" :data-annotation-id="fill.id">
       <!-- Filled rectangle -->
       <rect
         :x="fill.x"
@@ -37,7 +37,7 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
         :fill="fill.color"
         :opacity="fill.opacity"
         class="fill-rect"
-        @click.stop="deleteFill(fill.id)"
+        :data-annotation-id="fill.id"
       />
 
       <!-- Border for visibility -->
@@ -50,11 +50,19 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
         stroke="#007acc"
         stroke-width="1"
         class="fill-border"
-        @click.stop="deleteFill(fill.id)"
+        :data-annotation-id="fill.id"
       />
 
-      <!-- Delete indicator on hover -->
-      <g class="delete-indicator">
+      <!-- Delete button on hover -->
+      <g class="delete-indicator" @click.stop="deleteFill(fill.id)">
+        <!-- Background circle for delete button -->
+        <circle
+          :cx="fill.x + fill.width / 2"
+          :cy="fill.y + fill.height / 2"
+          r="12"
+          fill="rgba(220, 53, 69, 0.9)"
+          class="delete-bg"
+        />
         <!-- X symbol in center -->
         <line :x1="fill.x + fill.width / 2 - 5" :y1="fill.y + fill.height / 2 - 5" :x2="fill.x + fill.width / 2 + 5" :y2="fill.y + fill.height / 2 + 5" stroke="white" stroke-width="2" />
         <line :x1="fill.x + fill.width / 2 + 5" :y1="fill.y + fill.height / 2 - 5" :x2="fill.x + fill.width / 2 - 5" :y2="fill.y + fill.height / 2 + 5" stroke="white" stroke-width="2" />
@@ -64,32 +72,39 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
 </template>
 
 <style scoped>
-.fill-point-group {
+.fill-rect-group {
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.fill-point,
-.fill-point-outer {
+.fill-rect,
+.fill-border {
   transition: all 0.2s;
 }
 
-.fill-point-group:hover .fill-point-outer {
-  r: 12;
-  opacity: 0.5;
-}
-
-.fill-point-group:hover .fill-point {
-  r: 6;
+.fill-rect-group:hover .fill-border {
+  stroke-width: 2;
+  stroke: #0056b3;
 }
 
 .delete-indicator {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
+  cursor: pointer;
 }
 
-.fill-point-group:hover .delete-indicator {
+.delete-indicator .delete-bg {
+  transition: all 0.2s;
+}
+
+.fill-rect-group:hover .delete-indicator {
   opacity: 1;
+  pointer-events: all;
+}
+
+.delete-indicator:hover .delete-bg {
+  fill: rgba(220, 53, 69, 1);
+  r: 14;
 }
 </style>

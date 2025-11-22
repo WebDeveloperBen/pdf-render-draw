@@ -302,7 +302,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   }
 
   // Get final state AFTER all updates
-  const _finalState = annotationStore.getAnnotationById(annotationId)
+  const finalState = annotationStore.getAnnotationById(annotationId)
 
   // Record history for the transformation
   if (finalState && originalAnnotationState.value) {
@@ -447,6 +447,7 @@ transformBase.setupEventListeners({
 }
 
 .corner-handle,
+.edge-handle,
 .rotation-handle {
   cursor: pointer;
   pointer-events: all;
@@ -459,6 +460,16 @@ transformBase.setupEventListeners({
 }
 
 .corner-handle.dragging {
+  fill: v-bind(colorBlueDarker);
+  stroke-width: 3;
+}
+
+.edge-handle:hover {
+  fill: v-bind(colorBlueDark);
+  stroke-width: 3;
+}
+
+.edge-handle.dragging {
   fill: v-bind(colorBlueDarker);
   stroke-width: 3;
 }
