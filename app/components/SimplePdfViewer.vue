@@ -122,6 +122,15 @@ async function renderPage(pageNum: number, renderScale?: number) {
       height: logicalViewport.height
     })
 
+    // Center the PDF on first load
+    if (!rendererStore.getPdfInitialised) {
+      rendererStore.setCanvasPos({
+        scrollLeft: -logicalViewport.width / 2,
+        scrollTop: -logicalViewport.height / 2
+      })
+      rendererStore.setPdfInitialised(true)
+    }
+
     // Render to canvas with DPR * scale
     const context = canvasRef.value.getContext("2d")
     if (!context) {
