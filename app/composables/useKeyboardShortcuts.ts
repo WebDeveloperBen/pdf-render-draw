@@ -18,6 +18,7 @@ export function useKeyboardShortcuts() {
   const historyStore = useHistoryStore()
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
+  const { isMac } = usePlatform()
 
   // Clipboard state (in-memory for now, could use Clipboard API later)
   const clipboard = ref<Annotation | null>(null)
@@ -69,8 +70,8 @@ export function useKeyboardShortcuts() {
     // Undo: Ctrl/Cmd+Z
     {
       key: "z",
-      ctrl: !isMac,
-      meta: isMac,
+      ctrl: !isMac.value,
+      meta: isMac.value,
       handler: (e) => {
         if (historyStore.canUndo) {
           e.preventDefault()
@@ -82,8 +83,8 @@ export function useKeyboardShortcuts() {
     // Redo: Ctrl/Cmd+Shift+Z
     {
       key: "z",
-      ctrl: !isMac,
-      meta: isMac,
+      ctrl: !isMac.value,
+      meta: isMac.value,
       shift: true,
       handler: (e) => {
         if (historyStore.canRedo) {
@@ -96,8 +97,8 @@ export function useKeyboardShortcuts() {
     // Redo (alternate): Ctrl/Cmd+Y
     {
       key: "y",
-      ctrl: !isMac,
-      meta: isMac,
+      ctrl: !isMac.value,
+      meta: isMac.value,
       handler: (e) => {
         if (historyStore.canRedo) {
           e.preventDefault()
@@ -109,8 +110,8 @@ export function useKeyboardShortcuts() {
     // Copy: Ctrl/Cmd+C
     {
       key: "c",
-      ctrl: !isMac,
-      meta: isMac,
+      ctrl: !isMac.value,
+      meta: isMac.value,
       handler: (e) => {
         if (annotationStore.selectedAnnotation) {
           e.preventDefault()
@@ -123,8 +124,8 @@ export function useKeyboardShortcuts() {
     // Paste: Ctrl/Cmd+V
     {
       key: "v",
-      ctrl: !isMac,
-      meta: isMac,
+      ctrl: !isMac.value,
+      meta: isMac.value,
       handler: (e) => {
         if (clipboard.value) {
           e.preventDefault()
@@ -136,8 +137,8 @@ export function useKeyboardShortcuts() {
     // Duplicate: Ctrl/Cmd+D
     {
       key: "d",
-      ctrl: !isMac,
-      meta: isMac,
+      ctrl: !isMac.value,
+      meta: isMac.value,
       handler: (e) => {
         if (annotationStore.selectedAnnotation) {
           e.preventDefault()
