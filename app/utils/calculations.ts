@@ -73,10 +73,12 @@ export function calculatePolygonArea(
     const j = (i + 1) % points.length
 
     // Convert to real-world coordinates
-    const x1 = points[i].x * pixelsToMm * scale
-    const y1 = points[i].y * pixelsToMm * scale
-    const x2 = points[j].x * pixelsToMm * scale
-    const y2 = points[j].y * pixelsToMm * scale
+    const p1 = assertArrayItem(points, i, `Point at index ${i} should exist`)
+    const p2 = assertArrayItem(points, j, `Point at index ${j} should exist`)
+    const x1 = p1.x * pixelsToMm * scale
+    const y1 = p1.y * pixelsToMm * scale
+    const x2 = p2.x * pixelsToMm * scale
+    const y2 = p2.y * pixelsToMm * scale
 
     area += x1 * y2 - x2 * y1
   }
@@ -174,5 +176,7 @@ export function distance(point1: Point, point2: Point): number {
  */
 export function parsePdfPageScale(scaleString: string): number {
   const match = scaleString.match(/1:(\d+)/)
-  return match ? parseInt(match[1]) : 1
+  if (!match) return 1
+  const scaleStr = assertArrayItem(match, 1, 'Scale match should have capture group')
+  return parseInt(scaleStr)
 }

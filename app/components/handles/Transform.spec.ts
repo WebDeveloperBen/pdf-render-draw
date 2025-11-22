@@ -47,8 +47,9 @@ describe('Transform Component', () => {
       // Get rotation transform - should include drag delta
       const transform = store.getRotationTransform(annotation)
       const angleMatch = transform.match(/rotate\(([0-9.]+)/)
-      expect(angleMatch).toBeTruthy()
-      expect(parseFloat(angleMatch![1])).toBeCloseTo(45, 5)
+      assertDefined(angleMatch, 'Should have rotation transform')
+      const angleStr = assertArrayItem(angleMatch, 1, 'Match should have capture group')
+      expect(parseFloat(angleStr)).toBeCloseTo(45, 5)
     })
 
     it('should stop rotation immediately when mouse is released', async () => {
@@ -95,7 +96,8 @@ describe('Transform Component', () => {
 
       // Verify rotation is committed to annotation
       const updated = store.getAnnotationById('test-2')
-      expect(updated?.rotation).toBeCloseTo(Math.PI / 4, 5)
+      assertDefined(updated, 'Annotation should exist')
+      expect(getTestRotation(updated)).toBeCloseTo(Math.PI / 4, 5)
     })
 
     it('should clear rotationDragDelta immediately on release', () => {
@@ -163,7 +165,8 @@ describe('Transform Component', () => {
 
       // Verify rotation is stored
       const updated = store.getAnnotationById('test-4')
-      expect(updated?.rotation).toBeCloseTo(Math.PI / 6, 5)
+      assertDefined(updated, 'Annotation should exist')
+      expect(getTestRotation(updated)).toBeCloseTo(Math.PI / 6, 5)
       expect(store.rotationDragDelta).toBe(0)
     })
   })
@@ -253,8 +256,9 @@ describe('Transform Component', () => {
 
       // Should contain the stored rotation (45 degrees)
       const angleMatch1 = transform.match(/rotate\(([0-9.]+)/)
-      expect(angleMatch1).toBeTruthy()
-      expect(parseFloat(angleMatch1![1])).toBeCloseTo(45, 5)
+      assertDefined(angleMatch1, 'Should have rotation transform')
+      const angleStr1 = assertArrayItem(angleMatch1, 1, 'Match should have capture group')
+      expect(parseFloat(angleStr1)).toBeCloseTo(45, 5)
 
       // Set a drag delta (simulating starting a new rotation)
       store.rotationDragDelta = Math.PI / 6 // 30 degrees
@@ -264,8 +268,9 @@ describe('Transform Component', () => {
 
       // Should contain 45 + 30 = 75 degrees (handle floating point precision)
       const angleMatch2 = transformWithDelta.match(/rotate\(([0-9.]+)/)
-      expect(angleMatch2).toBeTruthy()
-      expect(parseFloat(angleMatch2![1])).toBeCloseTo(75, 5)
+      assertDefined(angleMatch2, 'Should have rotation transform with delta')
+      const angleStr2 = assertArrayItem(angleMatch2, 1, 'Match should have capture group')
+      expect(parseFloat(angleStr2)).toBeCloseTo(75, 5)
 
       // Clear drag delta (simulating mouseup)
       store.rotationDragDelta = 0
@@ -273,8 +278,9 @@ describe('Transform Component', () => {
       // Get transform again - should be back to stored rotation only
       const transformAfterRelease = store.getRotationTransform(annotation)
       const angleMatch3 = transformAfterRelease.match(/rotate\(([0-9.]+)/)
-      expect(angleMatch3).toBeTruthy()
-      expect(parseFloat(angleMatch3![1])).toBeCloseTo(45, 5)
+      assertDefined(angleMatch3, 'Should have rotation transform after release')
+      const angleStr3 = assertArrayItem(angleMatch3, 1, 'Match should have capture group')
+      expect(parseFloat(angleStr3)).toBeCloseTo(45, 5)
     })
 
     it('should not apply drag delta after rotation is released', () => {
@@ -304,8 +310,9 @@ describe('Transform Component', () => {
 
       // Should only show stored rotation (90 degrees)
       const angleMatch = transform.match(/rotate\(([0-9.]+)/)
-      expect(angleMatch).toBeTruthy()
-      expect(parseFloat(angleMatch![1])).toBeCloseTo(90, 5)
+      assertDefined(angleMatch, 'Should have rotation transform')
+      const angleStr = assertArrayItem(angleMatch, 1, 'Match should have capture group')
+      expect(parseFloat(angleStr)).toBeCloseTo(90, 5)
     })
   })
 
@@ -336,18 +343,20 @@ describe('Transform Component', () => {
       store.rotationDragDelta = 0
 
       let updated = store.getAnnotationById('test-9')
-      expect(updated?.rotation).toBeCloseTo(Math.PI / 4, 5)
+      assertDefined(updated, 'Annotation should exist')
+      expect(getTestRotation(updated)).toBeCloseTo(Math.PI / 4, 5)
 
       // Second rotation: add another 30 degrees
       store.rotationDragDelta = Math.PI / 6
-      const existingRotation = updated?.rotation || 0
+      const existingRotation = getTestRotation(updated)
       store.updateAnnotation('test-9', { rotation: existingRotation + Math.PI / 6 })
       store.rotationDragDelta = 0
 
       updated = store.getAnnotationById('test-9')
+      assertDefined(updated, 'Annotation should exist after second rotation')
       // Should be 45 + 30 = 75 degrees (in radians)
       const expectedRotation = Math.PI / 4 + Math.PI / 6
-      expect(updated?.rotation).toBeCloseTo(expectedRotation, 5)
+      expect(getTestRotation(updated)).toBeCloseTo(expectedRotation, 5)
     })
 
     it('should handle negative rotations', () => {
@@ -376,9 +385,10 @@ describe('Transform Component', () => {
       store.rotationDragDelta = 0
 
       const updated = store.getAnnotationById('test-10')
+      assertDefined(updated, 'Annotation should exist')
       // Should be 45 - 30 = 15 degrees
       const expectedRotation = Math.PI / 4 - Math.PI / 6
-      expect(updated?.rotation).toBeCloseTo(expectedRotation, 5)
+      expect(getTestRotation(updated)).toBeCloseTo(expectedRotation, 5)
     })
 
     it('should handle rotations beyond 360 degrees', () => {
@@ -406,10 +416,11 @@ describe('Transform Component', () => {
       store.updateAnnotation('test-11', { rotation })
 
       const updated = store.getAnnotationById('test-11')
-      expect(updated?.rotation).toBeCloseTo(rotation, 5)
+      assertDefined(updated, 'Annotation should exist')
+      expect(getTestRotation(updated)).toBeCloseTo(rotation, 5)
 
       // Transform should still work correctly
-      const transform = store.getRotationTransform(updated!)
+      const transform = store.getRotationTransform(updated)
       expect(transform).toBeTruthy()
     })
   })
@@ -448,11 +459,16 @@ describe('Transform Component', () => {
 
       // Verify points were scaled
       const updated = store.getAnnotationById('test-12')
-      expect(updated?.points[0]).toEqual({ x: 100, y: 100 })
-      expect(updated?.points[1]).toEqual({ x: 300, y: 300 })
+      assertDefined(updated, 'Annotation should exist')
+      const updatedPoints = getTestPoints(updated)
+      assertDefined(updatedPoints, 'Should have points')
+      expect(updatedPoints[0]).toEqual({ x: 100, y: 100 })
+      expect(updatedPoints[1]).toEqual({ x: 300, y: 300 })
 
       // Verify distance was recalculated (should be ~2x original)
-      expect(updated?.distance).toBeGreaterThan(200)
+      const distance = getTestDistance(updated)
+      assertDefined(distance, 'Should have distance')
+      expect(distance).toBeGreaterThan(200)
     })
 
     it('should maintain aspect ratio when Shift key pressed during resize', () => {
@@ -491,8 +507,11 @@ describe('Transform Component', () => {
       store.updateAnnotation('test-13', { points: scaledPoints })
 
       const updated = store.getAnnotationById('test-13')
-      expect(updated?.points[0]).toEqual({ x: 100, y: 100 })
-      expect(updated?.points[1]).toEqual({ x: 250, y: 250 })
+      assertDefined(updated, 'Annotation should exist')
+      const updatedPoints = getTestPoints(updated)
+      assertDefined(updatedPoints, 'Should have points')
+      expect(updatedPoints[0]).toEqual({ x: 100, y: 100 })
+      expect(updatedPoints[1]).toEqual({ x: 250, y: 250 })
 
       // Verify aspect ratio maintained
       const newWidth = 150
@@ -527,8 +546,11 @@ describe('Transform Component', () => {
       store.updateAnnotation('test-14', { points: scaledPoints })
 
       const updated = store.getAnnotationById('test-14')
-      expect(updated?.points[0]).toEqual({ x: 100, y: 100 })
-      expect(updated?.points[1]).toEqual({ x: 300, y: 300 })
+      assertDefined(updated, 'Annotation should exist')
+      const updatedPoints = getTestPoints(updated)
+      assertDefined(updatedPoints, 'Should have points')
+      expect(updatedPoints[0]).toEqual({ x: 100, y: 100 })
+      expect(updatedPoints[1]).toEqual({ x: 300, y: 300 })
     })
   })
 
@@ -564,12 +586,17 @@ describe('Transform Component', () => {
 
       // Verify points were updated
       const updated = store.getAnnotationById('test-15')
-      expect(updated?.points[0]).toEqual({ x: 150, y: 130 })
-      expect(updated?.points[1]).toEqual({ x: 250, y: 230 })
+      assertDefined(updated, 'Annotation should exist')
+      const updatedPoints = getTestPoints(updated)
+      assertDefined(updatedPoints, 'Should have points')
+      expect(updatedPoints[0]).toEqual({ x: 150, y: 130 })
+      expect(updatedPoints[1]).toEqual({ x: 250, y: 230 })
 
       // Verify derived values were recalculated
-      expect(updated?.midpoint.x).toBeCloseTo(200, 5)
-      expect(updated?.midpoint.y).toBeCloseTo(180, 5)
+      const midpoint = getTestMidpoint(updated)
+      assertDefined(midpoint, 'Should have midpoint')
+      expect(midpoint.x).toBeCloseTo(200, 5)
+      expect(midpoint.y).toBeCloseTo(180, 5)
     })
 
     it('should move text annotations correctly', () => {
@@ -636,9 +663,12 @@ describe('Transform Component', () => {
       store.updateAnnotation('test-17', { points: movedPoints })
 
       const updated = store.getAnnotationById('test-17')
+      assertDefined(updated, 'Annotation should exist')
       // Verify rotation and label rotation preserved
-      expect((updated as any)?.rotation).toBeCloseTo(Math.PI / 4, 5)
-      expect(updated?.labelRotation).toBe(-45)
+      expect(getTestRotation(updated)).toBeCloseTo(Math.PI / 4, 5)
+      const labelRotation = getTestLabelRotation(updated)
+      assertDefined(labelRotation, 'Should have label rotation')
+      expect(labelRotation).toBe(-45)
     })
   })
 
@@ -802,13 +832,18 @@ describe('Transform Component', () => {
       store.updateAnnotation('test-23', { points: movedPoints })
 
       const updated = store.getAnnotationById('test-23')
+      assertDefined(updated, 'Annotation should exist')
 
       // Midpoint should be recalculated
-      expect(updated?.midpoint.x).toBeCloseTo(200, 5)
-      expect(updated?.midpoint.y).toBeCloseTo(100, 5)
+      const midpoint = getTestMidpoint(updated)
+      assertDefined(midpoint, 'Should have midpoint')
+      expect(midpoint.x).toBeCloseTo(200, 5)
+      expect(midpoint.y).toBeCloseTo(100, 5)
 
       // Distance should be recalculated
-      expect(updated?.distance).toBeGreaterThan(100)
+      const distance = getTestDistance(updated)
+      assertDefined(distance, 'Should have distance')
+      expect(distance).toBeGreaterThan(100)
     })
   })
 })

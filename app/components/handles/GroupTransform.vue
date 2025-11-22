@@ -12,7 +12,7 @@ import type { Annotation } from "~/types/annotations"
 import type { Point } from "~/types"
 
 const annotationStore = useAnnotationStore()
-const _historyStore = useHistoryStore()
+const historyStore = useHistoryStore()
 
 const selectedAnnotations = computed(() => annotationStore.selectedAnnotations)
 
@@ -248,8 +248,8 @@ function handleRotate(svgX: number, svgY: number) {
 
   // Apply rotation to annotations in real-time for visual feedback
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
-      const rotatedPoints = originalAnn.points.map((p: Annotation) => {
+    if (hasPoints(originalAnn)) {
+      const rotatedPoints = originalAnn.points.map((p: Point) => {
         const dx = p.x - centerX
         const dy = p.y - centerY
         const cos = Math.cos(rotationDelta)
@@ -261,8 +261,8 @@ function handleRotate(svgX: number, svgY: number) {
       })
 
       // For measurements, also update labelRotation to keep labels aligned
-      const updates: Annotation = { points: rotatedPoints }
-      if (originalAnn.type === 'measure' && 'labelRotation' in originalAnn) {
+      const updates: Record<string, any> = { points: rotatedPoints }
+      if (originalAnn.type === 'measure' && hasLabelRotation(originalAnn)) {
         const rotationDegrees = (rotationDelta * 180) / Math.PI
         updates.labelRotation = originalAnn.labelRotation + rotationDegrees
       }
@@ -277,13 +277,13 @@ function handleMove(deltaX: number, deltaY: number) {
 
   // Move all annotations by the same delta
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
-      const movedPoints = originalAnn.points.map((p: Annotation) => ({
+    if (hasPoints(originalAnn)) {
+      const movedPoints = originalAnn.points.map((p: Point) => ({
         x: p.x + deltaX,
         y: p.y + deltaY
       }))
       annotationStore.updateAnnotation(originalAnn.id, { points: movedPoints })
-    } else if ("x" in originalAnn && "y" in originalAnn) {
+    } else if (hasX(originalAnn) && hasY(originalAnn)) {
       annotationStore.updateAnnotation(originalAnn.id, {
         x: originalAnn.x + deltaX,
         y: originalAnn.y + deltaY
@@ -313,8 +313,8 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     // Rotate all annotations around group center
     // Only rotate the points - don't update individual rotation properties
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-      if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
-        const rotatedPoints = originalAnn.points.map((p: Annotation) => {
+      if (hasPoints(originalAnn)) {
+        const rotatedPoints = originalAnn.points.map((p: Point) => {
           const dx = p.x - centerX
           const dy = p.y - centerY
           const cos = Math.cos(transformBase.currentRotationDelta.value)
@@ -326,8 +326,8 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
         })
 
         // For measurements, also update labelRotation to keep labels aligned
-        const updates: Annotation = { points: rotatedPoints }
-        if (originalAnn.type === 'measure' && 'labelRotation' in originalAnn) {
+        const updates: Record<string, any> = { points: rotatedPoints }
+        if (originalAnn.type === 'measure' && hasLabelRotation(originalAnn)) {
           const rotationDegrees = (transformBase.currentRotationDelta.value * 180) / Math.PI
           updates.labelRotation = originalAnn.labelRotation + rotationDegrees
         }
@@ -356,25 +356,24 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     const finalState = _finalStates[index]
     if (finalState) {
       // Calculate the updates that were made during transformation
-      const updates: Partial<Annotation> = {}
+      const updates: Record<string, any> = {}
 
       // Compare key properties that might have changed
-      if (finalState.rotation !== originalAnn.rotation) {
+      if (hasRotation(finalState) && hasRotation(originalAnn) && finalState.rotation !== originalAnn.rotation) {
         updates.rotation = finalState.rotation
       }
-      if (finalState.points && originalAnn.points &&
+      if (hasPoints(finalState) && hasPoints(originalAnn) &&
           JSON.stringify(finalState.points) !== JSON.stringify(originalAnn.points)) {
         updates.points = finalState.points
       }
-      if ('x' in finalState && 'y' in finalState && 'width' in finalState && 'height' in finalState &&
-          ('x' in originalAnn && 'y' in originalAnn && 'width' in originalAnn && 'height' in originalAnn)) {
-        const orig = originalAnn as { x: number; y: number; width: number; height: number }
-        const fin = finalState as { x: number; y: number; width: number; height: number }
-        if (fin.x !== orig.x || fin.y !== orig.y || fin.width !== orig.width || fin.height !== orig.height) {
-          updates.x = fin.x
-          updates.y = fin.y
-          updates.width = fin.width
-          updates.height = fin.height
+      if (hasX(finalState) && hasY(finalState) && hasWidth(finalState) && hasHeight(finalState) &&
+          hasX(originalAnn) && hasY(originalAnn) && hasWidth(originalAnn) && hasHeight(originalAnn)) {
+        if (finalState.x !== originalAnn.x || finalState.y !== originalAnn.y ||
+            finalState.width !== originalAnn.width || finalState.height !== originalAnn.height) {
+          updates.x = finalState.x
+          updates.y = finalState.y
+          updates.width = finalState.width
+          updates.height = finalState.height
         }
       }
 
@@ -428,7 +427,7 @@ transformBase.setupEventListeners({
         :stroke="COLORS.SELECTION_BLUE"
         stroke-width="2"
         class="corner-handle"
-        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle === `corner-${index}` }"
+        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle.value === `corner-${index}` }"
         :data-handle="`corner-${index}`"
         @mousedown.stop="onStartDrag($event, `corner-${index}`, 'resize')"
       />
@@ -455,7 +454,7 @@ transformBase.setupEventListeners({
           :stroke="COLORS.SELECTION_BLUE"
           stroke-width="2"
           class="rotation-handle"
-          :class="{ dragging: transformBase.isDragging && transformBase.activeHandle === 'rotate' }"
+          :class="{ dragging: transformBase.isDragging && transformBase.activeHandle.value === 'rotate' }"
           @mousedown.stop="onStartDrag($event, 'rotate', 'rotate')"
         />
 

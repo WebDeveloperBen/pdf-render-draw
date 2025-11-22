@@ -50,6 +50,8 @@ describe('GroupTransform Component', () => {
     for (let i = 0; i < points.length; i++) {
       const start = points[i]
       const end = points[(i + 1) % points.length]
+      assertDefined(start, 'Start point should exist')
+      assertDefined(end, 'End point should exist')
       segments.push({
         start,
         end,

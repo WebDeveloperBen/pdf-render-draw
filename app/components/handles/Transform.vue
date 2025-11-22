@@ -116,18 +116,20 @@ const transformerTransform = computed(() => {
 function onStartDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | "move") {
   if (!bounds.value || !selectedAnnotation.value) return
 
+  const annotation = selectedAnnotation.value
+
   transformBase.startDrag(e, handle, mode, bounds.value, (svgPoint) => {
     // Store COMPLETE annotation state for undo/redo (deep clone)
-    originalAnnotationState.value = JSON.parse(JSON.stringify(selectedAnnotation.value))
+    originalAnnotationState.value = JSON.parse(JSON.stringify(annotation))
 
     // Store original points for point-based annotations
-    if ("points" in selectedAnnotation.value && Array.isArray(selectedAnnotation.value.points)) {
-      originalPoints.value = selectedAnnotation.value.points.map((p) => ({ x: p.x, y: p.y }))
+    if (hasPoints(annotation)) {
+      originalPoints.value = annotation.points.map((p) => ({ x: p.x, y: p.y }))
     }
 
     // For rotation, calculate the starting angle from center to mouse
     if (mode === "rotate" && transformBase.originalBounds.value) {
-      const center = getRotationCenter(selectedAnnotation.value, transformBase.originalBounds.value)
+      const center = getRotationCenter(annotation, transformBase.originalBounds.value)
       transformBase.startRotationAngle.value = Math.atan2(svgPoint.y - center.y, svgPoint.x - center.x)
     }
   })
@@ -316,31 +318,31 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   // Record history for the transformation
   if (finalState && originalAnnotationState.value) {
     // Calculate the updates that were made during transformation
-    const updates: Partial<Annotation> = {}
+    const updates: Record<string, any> = {}
 
     // Compare key properties that might have changed
-    if (finalState.rotation !== originalAnnotationState.value.rotation) {
+    if (hasRotation(finalState) && hasRotation(originalAnnotationState.value) && finalState.rotation !== originalAnnotationState.value.rotation) {
       updates.rotation = finalState.rotation
     }
     if (
-      finalState.points &&
-      originalAnnotationState.value.points &&
+      hasPoints(finalState) &&
+      hasPoints(originalAnnotationState.value) &&
       JSON.stringify(finalState.points) !== JSON.stringify(originalAnnotationState.value.points)
     ) {
       updates.points = finalState.points
     }
     if (
-      "x" in finalState &&
-      "y" in finalState &&
-      "width" in finalState &&
-      "height" in finalState &&
-      "x" in originalAnnotationState.value &&
-      "y" in originalAnnotationState.value &&
-      "width" in originalAnnotationState.value &&
-      "height" in originalAnnotationState.value
+      hasX(finalState) &&
+      hasY(finalState) &&
+      hasWidth(finalState) &&
+      hasHeight(finalState) &&
+      hasX(originalAnnotationState.value) &&
+      hasY(originalAnnotationState.value) &&
+      hasWidth(originalAnnotationState.value) &&
+      hasHeight(originalAnnotationState.value)
     ) {
-      const orig = originalAnnotationState.value as { x: number; y: number; width: number; height: number }
-      const fin = finalState as { x: number; y: number; width: number; height: number }
+      const orig = originalAnnotationState.value
+      const fin = finalState
       if (fin.x !== orig.x || fin.y !== orig.y || fin.width !== orig.width || fin.height !== orig.height) {
         updates.x = fin.x
         updates.y = fin.y
@@ -406,7 +408,7 @@ transformBase.setupEventListeners({
         :stroke="COLORS.SELECTION_BLUE"
         stroke-width="2"
         class="corner-handle"
-        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle === `corner-${index}` }"
+        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle.value === `corner-${index}` }"
         :data-handle="`corner-${index}`"
         @mousedown.stop="onStartDrag($event, `corner-${index}`, 'resize')"
       />
@@ -423,7 +425,7 @@ transformBase.setupEventListeners({
         :stroke="COLORS.SELECTION_BLUE"
         stroke-width="2"
         class="edge-handle"
-        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle === `edge-${index}` }"
+        :class="{ dragging: transformBase.isDragging && transformBase.activeHandle.value === `edge-${index}` }"
         :data-handle="`edge-${index}`"
         @mousedown.stop="onStartDrag($event, `edge-${index}`, 'resize')"
       />
@@ -450,7 +452,7 @@ transformBase.setupEventListeners({
           :stroke="COLORS.SELECTION_BLUE"
           stroke-width="2"
           class="rotation-handle"
-          :class="{ dragging: transformBase.isDragging && transformBase.activeHandle === 'rotate' }"
+          :class="{ dragging: transformBase.isDragging && transformBase.activeHandle.value === 'rotate' }"
           @mousedown.stop="onStartDrag($event, 'rotate', 'rotate')"
         />
 
