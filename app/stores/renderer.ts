@@ -197,6 +197,7 @@ export const useRendererStore = defineStore("renderer", () => {
     setScale,
     zoomIn,
     zoomOut,
+    zoomToScale,
     rotation,
     getRotation,
     getViewportLabelRotation,

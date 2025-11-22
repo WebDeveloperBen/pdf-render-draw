@@ -58,35 +58,15 @@ const isPanning = ref(false)
 const panStart = ref({ x: 0, y: 0 })
 const spacePressed = ref(false)
 
+// Zoom handling composable
+const { handleWheel: handleWheelZoom } = useZoom()
+
 // Handle wheel events (zoom + scroll)
 function handleWheel(e: WheelEvent) {
-  if (e.ctrlKey || e.metaKey) {
-    // Zoom with Ctrl/Cmd + scroll towards mouse position
-    e.preventDefault()
-    const delta = e.deltaY
+  const pdfContainer = document.querySelector(".pdf-container") as HTMLElement
+  if (!pdfContainer) return
 
-    // Get mouse position relative to PDF container (not canvas-area, which centers the PDF)
-    const pdfContainer = document.querySelector(".pdf-container") as HTMLElement
-    if (!pdfContainer) return
-
-    const rect = pdfContainer.getBoundingClientRect()
-    const mousePos = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    }
-
-    if (delta < 0) {
-      rendererStore.zoomIn(mousePos)
-    } else {
-      rendererStore.zoomOut(mousePos)
-    }
-  } else {
-    // Pan/scroll normally
-    rendererStore.setCanvasPos({
-      scrollTop: rendererStore.getCanvasPos.scrollTop - e.deltaY,
-      scrollLeft: rendererStore.getCanvasPos.scrollLeft - e.deltaX
-    })
-  }
+  handleWheelZoom(e, pdfContainer)
 }
 
 // Handle canvas panning (like Figma)
