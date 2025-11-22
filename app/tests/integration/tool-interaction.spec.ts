@@ -1,11 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest"
+import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
 import { mountSuspended } from "@nuxt/test-utils/runtime"
-import SvgAnnotationLayer from "~/components/SvgAnnotationLayer.vue"
+import SvgAnnotationLayer from "~/components/Layers/SvgAnnotation.vue"
 import { useAnnotationStore } from "~/stores/annotations"
 import { useRendererStore } from "~/stores/renderer"
-import { useSettingStore } from "~/stores/settings"
-import type { Fill, Measure } from "~/types/annotations"
+import type { Measurement } from "@/types/annotations"
 import { v4 as uuidv4 } from "uuid"
 
 describe("Tool Interaction Behavior", () => {
@@ -18,7 +17,6 @@ describe("Tool Interaction Behavior", () => {
 
     annotationStore = useAnnotationStore()
     rendererStore = useRendererStore()
-    const settingsStore = useSettingStore()
 
     // Setup basic canvas/PDF state
     rendererStore.setCanvasSize({ width: 1000, height: 1000 })
@@ -30,6 +28,7 @@ describe("Tool Interaction Behavior", () => {
       // Create and select an annotation
       const fill: Fill = {
         id: uuidv4(),
+        rotation: 0,
         type: "fill",
         pageNum: 1,
         x: 100,
@@ -62,6 +61,7 @@ describe("Tool Interaction Behavior", () => {
       // Create and select an annotation
       const fill: Fill = {
         id: uuidv4(),
+        rotation: 0,
         type: "fill",
         pageNum: 1,
         x: 100,
@@ -96,6 +96,7 @@ describe("Tool Interaction Behavior", () => {
         id: uuidv4(),
         type: "fill",
         pageNum: 1,
+        rotation: 0,
         x: 100,
         y: 100,
         width: 50,
@@ -106,6 +107,7 @@ describe("Tool Interaction Behavior", () => {
       const fill2: Fill = {
         id: uuidv4(),
         type: "fill",
+        rotation: 0,
         pageNum: 1,
         x: 200,
         y: 200,
@@ -139,6 +141,7 @@ describe("Tool Interaction Behavior", () => {
       const fill: Fill = {
         id: uuidv4(),
         type: "fill",
+        rotation: 0,
         pageNum: 1,
         x: 100,
         y: 100,
@@ -178,6 +181,7 @@ describe("Tool Interaction Behavior", () => {
       // Create a fill annotation
       const fill: Fill = {
         id: uuidv4(),
+        rotation: 0,
         type: "fill",
         pageNum: 1,
         x: 100,
@@ -217,8 +221,9 @@ describe("Tool Interaction Behavior", () => {
 
     it("should place area points when clicking on existing measurement with area tool active", async () => {
       // Create a measurement annotation
-      const measure: Measure = {
+      const measure: Measurement = {
         id: uuidv4(),
+        rotation: 0,
         type: "measure",
         pageNum: 1,
         points: [
@@ -260,6 +265,7 @@ describe("Tool Interaction Behavior", () => {
         id: uuidv4(),
         type: "fill",
         pageNum: 1,
+        rotation: 0,
         x: 100,
         y: 100,
         width: 100,
@@ -272,6 +278,7 @@ describe("Tool Interaction Behavior", () => {
         type: "fill",
         pageNum: 1,
         x: 300,
+        rotation: 0,
         y: 300,
         width: 100,
         height: 100,
@@ -303,6 +310,7 @@ describe("Tool Interaction Behavior", () => {
     it("should select annotation when clicked in selection mode", async () => {
       const fill: Fill = {
         id: uuidv4(),
+        rotation: 0,
         type: "fill",
         pageNum: 1,
         x: 100,
@@ -335,6 +343,7 @@ describe("Tool Interaction Behavior", () => {
         x: 100,
         y: 100,
         width: 100,
+        rotation: 0,
         height: 100,
         color: "#ff0000",
         opacity: 0.5
@@ -359,6 +368,7 @@ describe("Tool Interaction Behavior", () => {
         id: uuidv4(),
         type: "fill",
         pageNum: 1,
+        rotation: 0,
         x: 100,
         y: 100,
         width: 100,
@@ -385,6 +395,7 @@ describe("Tool Interaction Behavior", () => {
   describe("Edge Cases", () => {
     it("should not deselect during marquee selection", async () => {
       const fill: Fill = {
+        rotation: 0,
         id: uuidv4(),
         type: "fill",
         pageNum: 1,
@@ -450,6 +461,7 @@ describe("Tool Interaction Behavior", () => {
         pageNum: 1,
         x: 300,
         y: 300,
+        rotation: 0,
         width: 100,
         height: 100,
         color: "#ff0000",

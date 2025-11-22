@@ -13,6 +13,7 @@
  * Usage: Wrap your PDF editor page content with this component
  */
 
+// Initialize and provide modifier keys state for all child components
 const modifierKeys = useModifierKeys()
 
 // Set up global keyboard listeners when PDF editor is active
