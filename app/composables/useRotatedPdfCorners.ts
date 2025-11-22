@@ -30,7 +30,7 @@ export function useRotatedPdfCorners() {
     const halfWidth = (width * scale) / 2
     const halfHeight = (height * scale) / 2
 
-    const rotRad = rotation * (Math.PI / 180)
+    const rotRad = degreesToRadians(rotation)
 
     // Calculate corners relative to center, accounting for rotation
     const corners = [

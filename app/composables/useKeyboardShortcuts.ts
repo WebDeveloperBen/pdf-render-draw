@@ -39,71 +39,21 @@ export function useKeyboardShortcuts() {
     const original = clipboard.value
     const cursorPos = rendererStore.lastCursorPosition
 
-    // Create new annotation with new ID
-    const newAnnotation = {
-      ...original,
-      id: crypto.randomUUID(),
-    }
-
     // Calculate offset - either to cursor or default 20px offset
     let offsetX = 20
     let offsetY = 20
 
     if (cursorPos) {
-      // Calculate center of original annotation
-      let originalCenterX = 0
-      let originalCenterY = 0
-
-      if ('points' in original && Array.isArray(original.points) && original.points.length > 0) {
-        // Calculate centroid of points
-        const sumX = original.points.reduce((sum, p) => sum + p.x, 0)
-        const sumY = original.points.reduce((sum, p) => sum + p.y, 0)
-        originalCenterX = sumX / original.points.length
-        originalCenterY = sumY / original.points.length
-      } else if ('x' in original && 'y' in original) {
-        // Text annotation - use x, y as center
-        originalCenterX = original.x
-        originalCenterY = original.y
-      }
-
-      // Calculate offset to move center to cursor
-      offsetX = cursorPos.x - originalCenterX
-      offsetY = cursorPos.y - originalCenterY
+      // Calculate center of original annotation and offset to cursor
+      const originalCenter = getAnnotationCenter(original)
+      offsetX = cursorPos.x - originalCenter.x
+      offsetY = cursorPos.y - originalCenter.y
     }
 
-    // Apply offset based on annotation type
-    if ('points' in newAnnotation && Array.isArray(newAnnotation.points)) {
-      // Point-based annotation - offset all points
-      newAnnotation.points = newAnnotation.points.map((p: Point) => ({
-        x: p.x + offsetX,
-        y: p.y + offsetY,
-      }))
-
-      // Recalculate derived values (center, midpoint, etc.)
-      if ('center' in newAnnotation) {
-        newAnnotation.center = {
-          x: newAnnotation.center.x + offsetX,
-          y: newAnnotation.center.y + offsetY,
-        }
-      }
-      if ('midpoint' in newAnnotation) {
-        newAnnotation.midpoint = {
-          x: newAnnotation.midpoint.x + offsetX,
-          y: newAnnotation.midpoint.y + offsetY,
-        }
-      }
-      if ('segments' in newAnnotation && Array.isArray(newAnnotation.segments)) {
-        newAnnotation.segments = newAnnotation.segments.map((seg: PerimeterSegment): PerimeterSegment => ({
-          ...seg,
-          start: { x: seg.start.x + offsetX, y: seg.start.y + offsetY },
-          end: { x: seg.end.x + offsetX, y: seg.end.y + offsetY },
-          midpoint: { x: seg.midpoint.x + offsetX, y: seg.midpoint.y + offsetY },
-        }))
-      }
-    } else if ('x' in newAnnotation && 'y' in newAnnotation) {
-      // Text annotation - offset x, y
-      newAnnotation.x += offsetX
-      newAnnotation.y += offsetY
+    // Create new annotation with offset position and new ID
+    const newAnnotation = {
+      ...offsetAnnotation(original, offsetX, offsetY),
+      id: crypto.randomUUID(),
     }
 
     historyStore.addAnnotationWithHistory(newAnnotation)
@@ -203,28 +153,17 @@ export function useKeyboardShortcuts() {
       },
       description: 'Duplicate'
     },
-    // Delete: Delete key
-    {
-      key: 'Delete',
-      handler: (e) => {
+    // Delete annotation handler (works with both Delete and Backspace keys)
+    ...[{ key: 'Delete' }, { key: 'Backspace' }].map(({ key }) => ({
+      key,
+      handler: (e: KeyboardEvent) => {
         if (annotationStore.selectedAnnotation) {
           e.preventDefault()
           historyStore.deleteAnnotationWithHistory(annotationStore.selectedAnnotation.id)
         }
       },
       description: 'Delete annotation'
-    },
-    // Delete: Backspace key
-    {
-      key: 'Backspace',
-      handler: (e) => {
-        if (annotationStore.selectedAnnotation) {
-          e.preventDefault()
-          historyStore.deleteAnnotationWithHistory(annotationStore.selectedAnnotation.id)
-        }
-      },
-      description: 'Delete annotation'
-    },
+    })),
     // Escape: Deselect
     {
       key: 'Escape',

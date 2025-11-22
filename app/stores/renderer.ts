@@ -69,12 +69,9 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param newScale - The new scale value
    */
   const setScale = (newScale: number) => {
-    if (typeof newScale !== 'number' || !isFinite(newScale)) {
-      console.warn('Invalid scale value:', newScale)
-      return
-    }
+    if (!validateNumber(newScale, 'scale')) return
     // Clamp scale between min and max
-    scale.value = Math.max(RENDERING.MIN_SCALE, Math.min(RENDERING.MAX_SCALE, newScale))
+    scale.value = clamp(newScale, RENDERING.MIN_SCALE, RENDERING.MAX_SCALE)
   }
 
   const zoomIn = (mousePos?: { x: number; y: number }) => {
@@ -88,7 +85,7 @@ export const useRendererStore = defineStore("renderer", () => {
   const zoomToScale = (newScale: number, mousePos?: { x: number; y: number }) => {
     if (mousePos) {
       // Clamp scale first
-      const clampedScale = Math.max(RENDERING.MIN_SCALE, Math.min(RENDERING.MAX_SCALE, newScale))
+      const clampedScale = clamp(newScale, RENDERING.MIN_SCALE, RENDERING.MAX_SCALE)
       const currentScale = scale.value
 
       // With transform-origin: center center, we need to account for the centering offset
@@ -128,12 +125,9 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param deg - Rotation in degrees
    */
   const setRotation = (deg: number) => {
-    if (typeof deg !== 'number' || !isFinite(deg)) {
-      console.warn('Invalid rotation value:', deg)
-      return
-    }
+    if (!validateNumber(deg, 'rotation')) return
     // Normalize to 0-360 range
-    rotation.value = ((deg % 360) + 360) % 360
+    rotation.value = normalizeAngle(deg)
   }
 
   const rotateClockwise = () => {
@@ -160,15 +154,7 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param pos - Object containing scrollTop and scrollLeft
    */
   const setCanvasPos = (pos: { scrollTop: number; scrollLeft: number }) => {
-    if (
-      typeof pos.scrollTop !== 'number' ||
-      typeof pos.scrollLeft !== 'number' ||
-      !isFinite(pos.scrollTop) ||
-      !isFinite(pos.scrollLeft)
-    ) {
-      console.warn('Invalid canvas position:', pos)
-      return
-    }
+    if (!validateNumericProperties(pos, ['scrollTop', 'scrollLeft'], 'canvas position')) return
     canvasPos.value = pos
   }
   const setDocumentProxy = (doc: PDFDocumentProxy | undefined) => (DocumentProxy.value = doc)
@@ -179,14 +165,8 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param size - Object containing width and height
    */
   const setCanvasSize = (size: { width: number; height: number }) => {
-    if (
-      typeof size.width !== 'number' ||
-      typeof size.height !== 'number' ||
-      !isFinite(size.width) ||
-      !isFinite(size.height) ||
-      size.width < 0 ||
-      size.height < 0
-    ) {
+    if (!validateNumericProperties(size, ['width', 'height'], 'canvas size')) return
+    if (size.width < 0 || size.height < 0) {
       console.warn('Invalid canvas size:', size)
       return
     }
@@ -197,7 +177,8 @@ export const useRendererStore = defineStore("renderer", () => {
    * @param page - Page number (1-indexed)
    */
   const setCurrentPage = (page: number) => {
-    if (typeof page !== 'number' || !isFinite(page) || !Number.isInteger(page) || page < 1) {
+    if (!validateInteger(page, 'page number')) return
+    if (page < 1) {
       console.warn('Invalid page number:', page)
       return
     }

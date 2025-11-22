@@ -123,13 +123,13 @@ export function useBaseTool(options: BaseToolOptions) {
   function snapTo45Degrees(start: Point, end: Point): Point {
     const dx = end.x - start.x
     const dy = end.y - start.y
-    const angle = (Math.atan2(dy, dx) * 180) / Math.PI
-    const snappedAngle = Math.round(angle / 45) * 45
+    const angle = radiansToDegrees(Math.atan2(dy, dx))
+    const snappedAngle = snapToNearestAngle(angle, 45)
     const dist = Math.sqrt(dx * dx + dy * dy)
 
     return {
-      x: start.x + dist * Math.cos((snappedAngle * Math.PI) / 180),
-      y: start.y + dist * Math.sin((snappedAngle * Math.PI) / 180)
+      x: start.x + dist * Math.cos(degreesToRadians(snappedAngle)),
+      y: start.y + dist * Math.sin(degreesToRadians(snappedAngle))
     }
   }
 

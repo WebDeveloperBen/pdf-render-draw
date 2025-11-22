@@ -82,28 +82,10 @@ export const useAnnotationStore = defineStore('annotations', () => {
 
     if (rotation === 0) return ""
 
-    // Calculate center based on annotation type
-    let centerX: number, centerY: number
-
-    if (isMeasurement(annotation)) {
-      centerX = (annotation.points[0].x + annotation.points[1].x) / 2
-      centerY = (annotation.points[0].y + annotation.points[1].y) / 2
-    } else if (isArea(annotation) || isPerimeter(annotation)) {
-      centerX = annotation.center.x
-      centerY = annotation.center.y
-    } else if ('points' in annotation && Array.isArray(annotation.points)) {
-      // Line or other point-based annotation - calculate centroid
-      const sumX = annotation.points.reduce((sum, p) => sum + p.x, 0)
-      const sumY = annotation.points.reduce((sum, p) => sum + p.y, 0)
-      centerX = sumX / annotation.points.length
-      centerY = sumY / annotation.points.length
-    } else {
-      // Fallback for other types
-      return ""
-    }
-
-    const angleDeg = (rotation * 180) / Math.PI
-    return `rotate(${angleDeg} ${centerX} ${centerY})`
+    // Get annotation center using utility
+    const center = getAnnotationCenter(annotation)
+    const angleDeg = radiansToDegrees(rotation)
+    return `rotate(${angleDeg} ${center.x} ${center.y})`
   }
 
   // ============================================
@@ -118,7 +100,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     const settingsStore = useSettingStore()
     const pdfScale = settingsStore.getPdfScale
 
-    const derivedUpdates: any = {}
+    const derivedUpdates: Record<string, any> = {}
 
     if (isMeasurement(annotation)) {
       // Recalculate distance and midpoint
@@ -128,13 +110,6 @@ export const useAnnotationStore = defineStore('annotations', () => {
       if (p1 && p2) {
         derivedUpdates.distance = calc.calculateDistance(p1, p2, pdfScale)
         derivedUpdates.midpoint = calc.calculateMidpoint(p1, p2)
-      }
-    } else if (isArea(annotation)) {
-      // Recalculate area and center
-      const area = annotation as Area
-      if (area.points.length >= 3) {
-        derivedUpdates.area = calc.calculatePolygonArea(area.points, pdfScale)
-        derivedUpdates.center = calc.calculateCentroid(area.points)
       }
     } else if (isArea(annotation)) {
       // Recalculate area and center
