@@ -2,10 +2,9 @@
 import { TRANSFORM, COLORS } from "~/constants/ui"
 import { isMeasurement, isArea, isPerimeter, type Annotation } from "~/types/annotations"
 import type { Point } from "~/types"
-import { useTransformBase } from "~/composables/useTransformBase"
 
 const annotationStore = useAnnotationStore()
-const _historyStore = useHistoryStore()
+const historyStore = useHistoryStore()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
 
@@ -62,7 +61,11 @@ const bounds = computed(() => {
 // Use original bounds during rotation to keep transformer stable
 const displayBounds = computed(() => {
   // During rotation drag: use originalBounds to keep transformer stable
-  if (transformBase.isDragging.value && transformBase.dragMode.value === "rotate" && transformBase.originalBounds.value) {
+  if (
+    transformBase.isDragging.value &&
+    transformBase.dragMode.value === "rotate" &&
+    transformBase.originalBounds.value
+  ) {
     return transformBase.originalBounds.value
   }
   return bounds.value
@@ -153,14 +156,18 @@ function handleResize(deltaX: number, deltaY: number) {
 
   if (isEdgeHandle) {
     // Edge handles only resize in one dimension
-    if (handle === "edge-0") { // Top edge
+    if (handle === "edge-0") {
+      // Top edge
       newBounds.y += deltaY
       newBounds.height -= deltaY
-    } else if (handle === "edge-1") { // Right edge
+    } else if (handle === "edge-1") {
+      // Right edge
       newBounds.width += deltaX
-    } else if (handle === "edge-2") { // Bottom edge
+    } else if (handle === "edge-2") {
+      // Bottom edge
       newBounds.height += deltaY
-    } else if (handle === "edge-3") { // Left edge
+    } else if (handle === "edge-3") {
+      // Left edge
       newBounds.x += deltaX
       newBounds.width -= deltaX
     }
@@ -184,8 +191,10 @@ function handleResize(deltaX: number, deltaY: number) {
 
   // Constrain aspect ratio if Shift is pressed (only for corner handles)
   if (transformBase.isShiftPressed.value && !isEdgeHandle) {
-    const widthChangePct = Math.abs(newBounds.width - transformBase.originalBounds.value.width) / transformBase.originalBounds.value.width
-    const heightChangePct = Math.abs(newBounds.height - transformBase.originalBounds.value.height) / transformBase.originalBounds.value.height
+    const widthChangePct =
+      Math.abs(newBounds.width - transformBase.originalBounds.value.width) / transformBase.originalBounds.value.width
+    const heightChangePct =
+      Math.abs(newBounds.height - transformBase.originalBounds.value.height) / transformBase.originalBounds.value.height
 
     if (widthChangePct > heightChangePct) {
       const newHeight = newBounds.width / originalAspectRatio
@@ -313,22 +322,32 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     if (finalState.rotation !== originalAnnotationState.value.rotation) {
       updates.rotation = finalState.rotation
     }
-    if (finalState.points && originalAnnotationState.value.points &&
-        JSON.stringify(finalState.points) !== JSON.stringify(originalAnnotationState.value.points)) {
+    if (
+      finalState.points &&
+      originalAnnotationState.value.points &&
+      JSON.stringify(finalState.points) !== JSON.stringify(originalAnnotationState.value.points)
+    ) {
       updates.points = finalState.points
     }
-      if ('x' in finalState && 'y' in finalState && 'width' in finalState && 'height' in finalState &&
-          ('x' in originalAnnotationState.value && 'y' in originalAnnotationState.value &&
-           'width' in originalAnnotationState.value && 'height' in originalAnnotationState.value)) {
-        const orig = originalAnnotationState.value as { x: number; y: number; width: number; height: number }
-        const fin = finalState as { x: number; y: number; width: number; height: number }
-        if (fin.x !== orig.x || fin.y !== orig.y || fin.width !== orig.width || fin.height !== orig.height) {
-          updates.x = fin.x
-          updates.y = fin.y
-          updates.width = fin.width
-          updates.height = fin.height
-        }
+    if (
+      "x" in finalState &&
+      "y" in finalState &&
+      "width" in finalState &&
+      "height" in finalState &&
+      "x" in originalAnnotationState.value &&
+      "y" in originalAnnotationState.value &&
+      "width" in originalAnnotationState.value &&
+      "height" in originalAnnotationState.value
+    ) {
+      const orig = originalAnnotationState.value as { x: number; y: number; width: number; height: number }
+      const fin = finalState as { x: number; y: number; width: number; height: number }
+      if (fin.x !== orig.x || fin.y !== orig.y || fin.width !== orig.width || fin.height !== orig.height) {
+        updates.x = fin.x
+        updates.y = fin.y
+        updates.width = fin.width
+        updates.height = fin.height
       }
+    }
 
     // If any updates were made, record them in history
     if (Object.keys(updates).length > 0) {
@@ -346,11 +365,19 @@ transformBase.setupEventListeners({
   onResize: handleResize,
   onRotate: handleRotate,
   onMove: handleMove,
-  onEndDrag: handleEndDrag,
+  onEndDrag: handleEndDrag
 })
 </script>
 <template>
-  <g v-if="selectedAnnotation && displayBounds" :ref="(el) => { transformBase.svgRef.value = el as SVGGElement | null }" class="transform-handles">
+  <g
+    v-if="selectedAnnotation && displayBounds"
+    :ref="
+      (el) => {
+        transformBase.svgRef.value = el as SVGGElement | null
+      }
+    "
+    class="transform-handles"
+  >
     <!-- Apply rotation transform to entire transformer when rotating -->
     <g :transform="transformerTransform">
       <!-- Selection outline - draggable to move, click to deselect -->
