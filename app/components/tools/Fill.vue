@@ -6,22 +6,7 @@ if (!tool) {
   throw new Error("FillTool must be used within SvgAnnotationLayer")
 }
 
-const { completed, isDrawing, currentRect, deleteFill, selectAnnotation } = tool
-
-const annotationStore = useAnnotationStore()
-const { getRotationTransform, isAnnotationSelected, activeTool } = annotationStore
-
-// Handle clicks - allow selection but don't stop propagation for drawing tools
-function handleAnnotationClick(e: MouseEvent, id: string) {
-  // Always allow selection (needed for transforms/rotation)
-  selectAnnotation(id)
-
-  // Only stop propagation in selection mode
-  // This allows drawing tools to also process the click
-  if (activeTool === "selection" || activeTool === "") {
-    e.stopPropagation()
-  }
-}
+const { completed, isDrawing, currentRect, deleteFill } = tool
 </script>
 <template>
   <g class="fill-tool">
@@ -42,80 +27,78 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
     />
 
     <!-- Completed fill rectangles -->
-    <g
+    <BaseAnnotation
       v-for="fill in completed"
       :key="fill.id"
-      class="fill-rect-group"
-      :data-annotation-id="fill.id"
-      :class="{ selected: isAnnotationSelected(fill.id) }"
-      :transform="getRotationTransform(fill)"
-      @click="handleAnnotationClick($event, fill.id)"
+      :annotation="fill"
     >
-      <!-- Filled rectangle -->
-      <rect
-        :x="fill.x"
-        :y="fill.y"
-        :width="fill.width"
-        :height="fill.height"
-        :fill="fill.color"
-        :opacity="fill.opacity"
-        class="fill-rect"
-        :data-annotation-id="fill.id"
-      />
+      <template #content="{ annotation: fill, isSelected }">
+        <!-- Filled rectangle -->
+        <rect
+          :x="fill.x"
+          :y="fill.y"
+          :width="fill.width"
+          :height="fill.height"
+          :fill="fill.color"
+          :opacity="fill.opacity"
+          class="fill-rect"
+          :data-annotation-id="fill.id"
+        />
 
-      <!-- Border for visibility -->
-      <rect
-        :x="fill.x"
-        :y="fill.y"
-        :width="fill.width"
-        :height="fill.height"
-        fill="transparent"
-        stroke="#007acc"
-        stroke-width="1"
-        class="fill-border"
-        :data-annotation-id="fill.id"
-      />
+        <!-- Border for visibility -->
+        <rect
+          :x="fill.x"
+          :y="fill.y"
+          :width="fill.width"
+          :height="fill.height"
+          fill="transparent"
+          :stroke="isSelected ? '#0056b3' : '#007acc'"
+          :stroke-width="isSelected ? 2 : 1"
+          class="fill-border"
+          :data-annotation-id="fill.id"
+        />
 
-      <!-- Delete button on hover -->
-      <g class="delete-indicator" @click.stop="deleteFill(fill.id)">
-        <!-- Background circle for delete button -->
-        <circle
-          :cx="fill.x + fill.width / 2"
-          :cy="fill.y + fill.height / 2"
-          r="12"
-          fill="rgba(220, 53, 69, 0.9)"
-          class="delete-bg"
-        />
-        <!-- X symbol in center -->
-        <line
-          :x1="fill.x + fill.width / 2 - 5"
-          :y1="fill.y + fill.height / 2 - 5"
-          :x2="fill.x + fill.width / 2 + 5"
-          :y2="fill.y + fill.height / 2 + 5"
-          stroke="white"
-          stroke-width="2"
-        />
-        <line
-          :x1="fill.x + fill.width / 2 + 5"
-          :y1="fill.y + fill.height / 2 - 5"
-          :x2="fill.x + fill.width / 2 - 5"
-          :y2="fill.y + fill.height / 2 + 5"
-          stroke="white"
-          stroke-width="2"
-        />
-      </g>
-    </g>
+        <!-- Delete button on hover -->
+        <g class="delete-indicator" @click.stop="deleteFill(fill.id)">
+          <!-- Background circle for delete button -->
+          <circle
+            :cx="fill.x + fill.width / 2"
+            :cy="fill.y + fill.height / 2"
+            r="12"
+            fill="rgba(220, 53, 69, 0.9)"
+            class="delete-bg"
+          />
+          <!-- X symbol in center -->
+          <line
+            :x1="fill.x + fill.width / 2 - 5"
+            :y1="fill.y + fill.height / 2 - 5"
+            :x2="fill.x + fill.width / 2 + 5"
+            :y2="fill.y + fill.height / 2 + 5"
+            stroke="white"
+            stroke-width="2"
+          />
+          <line
+            :x1="fill.x + fill.width / 2 + 5"
+            :y1="fill.y + fill.height / 2 - 5"
+            :x2="fill.x + fill.width / 2 - 5"
+            :y2="fill.y + fill.height / 2 + 5"
+            stroke="white"
+            stroke-width="2"
+          />
+        </g>
+      </template>
+    </BaseAnnotation>
   </g>
 </template>
 
 <style scoped>
-.fill-rect-group {
+.fill-rect {
   cursor: pointer;
 }
 
-.fill-rect-group:hover .fill-border {
-  stroke-width: 2;
-  stroke: #0056b3;
+.fill-border {
+  transition: stroke-width 0.2s;
+  pointer-events: none;
 }
 
 .delete-indicator {
@@ -125,7 +108,8 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
   cursor: pointer;
 }
 
-.fill-rect-group:hover .delete-indicator {
+/* Show delete button on hover of parent BaseAnnotation */
+:deep(.base-annotation:hover) .delete-indicator {
   opacity: 1;
   pointer-events: all;
 }

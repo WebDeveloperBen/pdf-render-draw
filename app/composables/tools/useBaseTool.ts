@@ -10,7 +10,7 @@ export interface BaseToolOptions {
 /**
  * Base drawing tool composable
  *
- * Provides core functionality for all annotation drawing tools including
+ * s core functionality for all annotation drawing tools including
  * point management, snap-to-close detection, SVG coordinate conversion,
  * and 45-degree angle snapping.
  *

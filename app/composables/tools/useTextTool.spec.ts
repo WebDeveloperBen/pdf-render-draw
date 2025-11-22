@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
-import { useProvideTextTool, useTextToolState } from './useTextTool'
-import type { TextAnnotation } from '~/types/annotations'
-import { degreesToRadians } from '~/utils/math'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { defineComponent, h } from "vue"
+import { mount } from "@vue/test-utils"
+import { useTextTool, useTextToolState } from "./useTextTool"
+import type { TextAnnotation } from "~/types/annotations"
+import { degreesToRadians } from "~/utils/math"
 
 // Mock UUID to make tests deterministic
-vi.mock('uuid', () => ({
-  v4: () => 'test-uuid-123'
+vi.mock("uuid", () => ({
+  v4: () => "test-uuid-123"
 }))
 
 // Helper to create mock mouse event
@@ -38,22 +38,22 @@ function withSetup<T>(composable: () => T): T {
   const app = defineComponent({
     setup() {
       result = composable()
-      return () => h('div')
+      return () => h("div")
     }
   })
   mount(app)
   return result!
 }
 
-describe('useTextTool', () => {
+describe("useTextTool", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Injection State Pattern', () => {
-    it('should provide and consume state correctly', () => {
+  describe("Injection State Pattern", () => {
+    it("should provide and consume state correctly", () => {
       const result = withSetup(() => {
-        const provider = useProvideTextTool()
+        const provider = useTextTool()
         const consumer = useTextToolState()
         return { provider, consumer }
       })
@@ -63,15 +63,15 @@ describe('useTextTool', () => {
       expect(result.consumer?.completed).toBeDefined()
     })
 
-    it('should return null when consumer called without provider', () => {
+    it("should return null when consumer called without provider", () => {
       const result = withSetup(() => useTextToolState())
       expect(result).toBeUndefined()
     })
   })
 
-  describe('Text Annotation Creation', () => {
-    it('should create text annotation with rotation stamping', () => {
-      const tool = withSetup(() => useProvideTextTool())
+  describe("Text Annotation Creation", () => {
+    it("should create text annotation with rotation stamping", () => {
+      const tool = withSetup(() => useTextTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -86,54 +86,54 @@ describe('useTextTool', () => {
       const texts = annotationStore.annotations as TextAnnotation[]
       expect(texts).toHaveLength(1)
       expect(texts![0]!.rotation).toBe(degreesToRadians(-90)) // Counter-rotated (in radians)
-      expect(texts![0]!.content).toBe('Double-click to edit')
-      expect(texts![0]!.id).toBe('test-uuid-123')
+      expect(texts![0]!.content).toBe("Double-click to edit")
+      expect(texts![0]!.id).toBe("test-uuid-123")
     })
 
-    it('should set text as editing after creation', () => {
-      const tool = withSetup(() => useProvideTextTool())
+    it("should set text as editing after creation", () => {
+      const tool = withSetup(() => useTextTool())
 
       const mockEvent = createMockMouseEvent(100, 200)
 
       tool.handleClick(mockEvent)
 
-      expect(tool.editingId.value).toBe('test-uuid-123')
-      expect(tool.editingContent.value).toBe('Double-click to edit')
+      expect(tool.editingId.value).toBe("test-uuid-123")
+      expect(tool.editingContent.value).toBe("Double-click to edit")
     })
   })
 
-  describe('Page Awareness', () => {
-    it('should only show text annotations from current page', () => {
-      const tool = withSetup(() => useProvideTextTool())
+  describe("Page Awareness", () => {
+    it("should only show text annotations from current page", () => {
+      const tool = withSetup(() => useTextTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
       rendererStore.setCurrentPage(1)
       const text1: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Page 1',
+        content: "Page 1",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
 
       const text2: TextAnnotation = {
-        id: 'text-2',
-        type: 'text',
+        id: "text-2",
+        type: "text",
         pageNum: 2,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Page 2',
+        content: "Page 2",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
 
@@ -141,124 +141,124 @@ describe('useTextTool', () => {
       annotationStore.addAnnotation(text2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('text-1')
+      expect(tool.completed.value![0]!.id).toBe("text-1")
 
       rendererStore.setCurrentPage(2)
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('text-2')
+      expect(tool.completed.value![0]!.id).toBe("text-2")
     })
   })
 
-  describe('Editing Functionality', () => {
-    it('should start editing on double-click', () => {
-      const tool = withSetup(() => useProvideTextTool())
+  describe("Editing Functionality", () => {
+    it("should start editing on double-click", () => {
+      const tool = withSetup(() => useTextTool())
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Original content',
+        content: "Original content",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
 
       annotationStore.addAnnotation(text)
-      tool.handleDoubleClick('text-1')
+      tool.handleDoubleClick("text-1")
 
-      expect(tool.editingId.value).toBe('text-1')
-      expect(tool.editingContent.value).toBe('Original content')
+      expect(tool.editingId.value).toBe("text-1")
+      expect(tool.editingContent.value).toBe("Original content")
     })
 
-    it('should finish editing and save content', () => {
-      const tool = withSetup(() => useProvideTextTool())
+    it("should finish editing and save content", () => {
+      const tool = withSetup(() => useTextTool())
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Original',
+        content: "Original",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
 
       annotationStore.addAnnotation(text)
-      tool.handleDoubleClick('text-1')
-      tool.editingContent.value = 'Modified content'
+      tool.handleDoubleClick("text-1")
+      tool.editingContent.value = "Modified content"
       tool.finishEditing()
 
-      const updated = annotationStore.getAnnotationById('text-1') as TextAnnotation
-      expect(updated.content).toBe('Modified content')
+      const updated = annotationStore.getAnnotationById("text-1") as TextAnnotation
+      expect(updated.content).toBe("Modified content")
       expect(tool.editingId.value).toBeNull()
     })
   })
 
-  describe('Selection and Deletion', () => {
-    it('should select text annotation', () => {
-      const tool = withSetup(() => useProvideTextTool())
+  describe("Selection and Deletion", () => {
+    it("should select text annotation", () => {
+      const tool = withSetup(() => useTextTool())
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
 
       annotationStore.addAnnotation(text)
-      tool.selectAnnotation('text-1')
+      tool.selectAnnotation("text-1")
 
-      expect(annotationStore.selectedAnnotationId).toBe('text-1')
-      expect(tool.selected.value?.id).toBe('text-1')
+      expect(annotationStore.selectedAnnotationId).toBe("text-1")
+      expect(tool.selected.value?.id).toBe("text-1")
     })
 
-    it('should delete text annotation', () => {
-      const tool = withSetup(() => useProvideTextTool())
+    it("should delete text annotation", () => {
+      const tool = withSetup(() => useTextTool())
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
 
       annotationStore.addAnnotation(text)
       expect(annotationStore.annotations).toHaveLength(1)
 
-      tool.deleteText('text-1')
+      tool.deleteText("text-1")
       expect(annotationStore.annotations).toHaveLength(0)
     })
   })
 
-  describe('Rotation Stamping Regression Prevention', () => {
-    it('should maintain rotation as a static value (stamp behavior)', () => {
-      const tool = withSetup(() => useProvideTextTool())
+  describe("Rotation Stamping Regression Prevention", () => {
+    it("should maintain rotation as a static value (stamp behavior)", () => {
+      const tool = withSetup(() => useTextTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 

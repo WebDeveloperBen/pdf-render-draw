@@ -1,7 +1,5 @@
-import type { Perimeter, PerimeterSegment } from "~/types/annotations"
-import type { Point } from "~/types"
 import { createInjectionState } from "@vueuse/core"
-import { createBaseTool } from "./useToolComponent"
+import { useCreateBaseTool } from "./useCreateBaseTool"
 
 /**
  * Perimeter Tool - extends BaseTool
@@ -13,9 +11,9 @@ import { createBaseTool } from "./useToolComponent"
  *     ↓ extends
  *   PerimeterTool (segment-by-segment perimeter calculations)
  */
-const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
+const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   // Inherit base functionality
-  const base = createBaseTool()
+  const base = useCreateBaseTool()
   const settingsStore = base.settings
   const rendererStore = useRendererStore()
 
@@ -94,13 +92,16 @@ const [useProvidePerimeterTool, usePerimeterToolState] = createInjectionState(()
 
   // Return composed tool (like extending multiple classes)
   return {
-    ...base,      // Inherit: stores, getRotationTransform, selectAnnotation
-    ...drawing,   // Inherit: drawing behavior, events, state
+    ...base, // Inherit: stores, getRotationTransform, selectAnnotation
+    ...drawing, // Inherit: drawing behavior, events, state
     previewSegments // Add: tool-specific features
   }
 })
 
-export { useProvidePerimeterTool, usePerimeterToolState }
+export { usePerimeterTool, usePerimeterToolState }
 
-// Keep the original export name for provider for backwards compatibility
-export const usePerimeterTool = useProvidePerimeterTool
+// Register perimeter tool in the plugin system
+registerTool({
+  type: "perimeter",
+  component: defineAsyncComponent(() => import("~/components/tools/Perimeter.vue"))
+})

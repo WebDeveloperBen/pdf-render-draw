@@ -6,7 +6,9 @@
  */
 
 import type { Component } from "vue"
-import type { AnnotationType } from "~/types/annotations"
+
+// Extract the type discriminator from the Annotation union
+type AnnotationType = Annotation["type"]
 
 export interface ToolDefinition {
   /** Unique tool type identifier */

@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
-import { useProvidePerimeterTool, usePerimeterToolState } from './usePerimeterTool'
-import type { Perimeter } from '~/types/annotations'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { defineComponent, h } from "vue"
+import { mount } from "@vue/test-utils"
+import { usePerimeterTool, usePerimeterToolState } from "./usePerimeterTool"
+import type { Perimeter } from "~/types/annotations"
 
 // Mock UUID to make tests deterministic
-vi.mock('uuid', () => ({
-  v4: () => 'test-uuid-perimeter-123'
+vi.mock("uuid", () => ({
+  v4: () => "test-uuid-perimeter-123"
 }))
 
 // Helper to test composables within Vue setup context
@@ -16,7 +16,7 @@ function withSetup<T>(composable: () => T): T {
   const app = defineComponent({
     setup() {
       result = composable()
-      return () => h('div')
+      return () => h("div")
     }
   })
   mount(app)
@@ -44,15 +44,15 @@ function createMockMouseEvent(x: number, y: number, shiftKey = false): MouseEven
   } as unknown as MouseEvent
 }
 
-describe('usePerimeterTool', () => {
+describe("usePerimeterTool", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Injection State Pattern', () => {
-    it('should provide and consume state correctly', () => {
+  describe("Injection State Pattern", () => {
+    it("should provide and consume state correctly", () => {
       const result = withSetup(() => {
-        const provider = useProvidePerimeterTool()
+        const provider = usePerimeterTool()
         const consumer = usePerimeterToolState()
         return { provider, consumer }
       })
@@ -62,15 +62,15 @@ describe('usePerimeterTool', () => {
       expect(result.consumer?.completed).toBeDefined()
     })
 
-    it('should return undefined when consumer called without provider', () => {
+    it("should return undefined when consumer called without provider", () => {
       const result = withSetup(() => usePerimeterToolState())
       expect(result).toBeUndefined()
     })
   })
 
-  describe('Point Placement', () => {
-    it('should place first point on click', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Point Placement", () => {
+    it("should place first point on click", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -83,8 +83,8 @@ describe('usePerimeterTool', () => {
       expect(tool.points.value[0]).toEqual({ x: 100, y: 100 })
     })
 
-    it('should place second point and continue drawing', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should place second point and continue drawing", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -95,8 +95,8 @@ describe('usePerimeterTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should place third point and continue drawing until closed', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should place third point and continue drawing until closed", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -108,8 +108,8 @@ describe('usePerimeterTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not create perimeter with less than 3 points', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should not create perimeter with less than 3 points", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -120,9 +120,9 @@ describe('usePerimeterTool', () => {
     })
   })
 
-  describe('Snap to Close Polygon', () => {
-    it('should detect when near first point for closing', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Snap to Close Polygon", () => {
+    it("should detect when near first point for closing", () => {
+      const tool = withSetup(() => usePerimeterTool())
 
       tool.handleClick(createMockMouseEvent(100, 100))
       tool.handleClick(createMockMouseEvent(200, 100))
@@ -133,8 +133,8 @@ describe('usePerimeterTool', () => {
       expect(tool.canSnapToClose.value).toBe(true)
     })
 
-    it('should complete perimeter when clicking near first point', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should complete perimeter when clicking near first point", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -148,14 +148,14 @@ describe('usePerimeterTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       const perimeter = annotationStore.annotations[0] as Perimeter
-      expect(perimeter.type).toBe('perimeter')
+      expect(perimeter.type).toBe("perimeter")
       expect(perimeter.points).toHaveLength(3)
     })
   })
 
-  describe('Segment Calculation', () => {
-    it('should calculate individual segment lengths', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Segment Calculation", () => {
+    it("should calculate individual segment lengths", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       // Create a triangle
@@ -171,17 +171,17 @@ describe('usePerimeterTool', () => {
       expect(perimeter.segments).toHaveLength(3)
 
       // Each segment should have start, end, length, midpoint
-      perimeter.segments.forEach(segment => {
-        expect(segment).toHaveProperty('start')
-        expect(segment).toHaveProperty('end')
-        expect(segment).toHaveProperty('length')
-        expect(segment).toHaveProperty('midpoint')
+      perimeter.segments.forEach((segment) => {
+        expect(segment).toHaveProperty("start")
+        expect(segment).toHaveProperty("end")
+        expect(segment).toHaveProperty("length")
+        expect(segment).toHaveProperty("midpoint")
         expect(segment.length).toBeGreaterThan(0)
       })
     })
 
-    it('should calculate correct segment midpoints', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should calculate correct segment midpoints", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       // Create a square for easy midpoint verification
@@ -203,8 +203,8 @@ describe('usePerimeterTool', () => {
       expect(perimeter.segments![1]!.midpoint.y).toBeCloseTo(50, 1)
     })
 
-    it('should create closing segment from last to first point', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should create closing segment from last to first point", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -221,9 +221,9 @@ describe('usePerimeterTool', () => {
     })
   })
 
-  describe('Total Length Calculation', () => {
-    it('should calculate total perimeter length', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Total Length Calculation", () => {
+    it("should calculate total perimeter length", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(0, 0))
@@ -236,8 +236,8 @@ describe('usePerimeterTool', () => {
       expect(perimeter.totalLength).toBeGreaterThan(0)
     })
 
-    it('should sum all segment lengths correctly', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should sum all segment lengths correctly", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(0, 0))
@@ -254,9 +254,9 @@ describe('usePerimeterTool', () => {
     })
   })
 
-  describe('Centroid Calculation', () => {
-    it('should calculate centroid correctly', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Centroid Calculation", () => {
+    it("should calculate centroid correctly", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       // Create a square
@@ -275,9 +275,9 @@ describe('usePerimeterTool', () => {
     })
   })
 
-  describe('Preview Segments', () => {
-    it('should show preview segments while drawing', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Preview Segments", () => {
+    it("should show preview segments while drawing", () => {
+      const tool = withSetup(() => usePerimeterTool())
 
       tool.handleClick(createMockMouseEvent(100, 100))
       tool.handleClick(createMockMouseEvent(200, 100))
@@ -294,14 +294,14 @@ describe('usePerimeterTool', () => {
       expect(tool.previewSegments.value![1]!.end).toEqual({ x: 150, y: 200 })
     })
 
-    it('should not show preview segments before drawing starts', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should not show preview segments before drawing starts", () => {
+      const tool = withSetup(() => usePerimeterTool())
 
       expect(tool.previewSegments.value).toHaveLength(0)
     })
 
-    it('should update preview segments as mouse moves', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should update preview segments as mouse moves", () => {
+      const tool = withSetup(() => usePerimeterTool())
 
       tool.handleClick(createMockMouseEvent(100, 100))
       tool.handleClick(createMockMouseEvent(200, 100))
@@ -319,8 +319,8 @@ describe('usePerimeterTool', () => {
       expect(secondPreview!.end).toEqual({ x: 150, y: 250 })
     })
 
-    it('should calculate lengths for preview segments', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should calculate lengths for preview segments", () => {
+      const tool = withSetup(() => usePerimeterTool())
 
       tool.handleClick(createMockMouseEvent(0, 0))
       tool.handleClick(createMockMouseEvent(100, 0))
@@ -329,16 +329,16 @@ describe('usePerimeterTool', () => {
       expect(tool.previewSegments.value).toHaveLength(2)
 
       // Both segments should have calculated lengths
-      tool.previewSegments.value.forEach(segment => {
+      tool.previewSegments.value.forEach((segment) => {
         expect(segment.length).toBeGreaterThan(0)
         expect(segment.length).toBeDefined()
       })
     })
   })
 
-  describe('Escape Key Cancellation', () => {
-    it('should cancel perimeter drawing on Escape key', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Escape Key Cancellation", () => {
+    it("should cancel perimeter drawing on Escape key", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -348,7 +348,7 @@ describe('usePerimeterTool', () => {
       expect(annotationStore.isDrawing).toBe(true)
       expect(tool.points.value).toHaveLength(3)
 
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -356,8 +356,8 @@ describe('usePerimeterTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not affect completed perimeters on Escape', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should not affect completed perimeters on Escape", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -368,16 +368,16 @@ describe('usePerimeterTool', () => {
 
       expect(annotationStore.annotations).toHaveLength(1)
 
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       expect(annotationStore.annotations).toHaveLength(1)
     })
   })
 
-  describe('Delete Key', () => {
-    it('should delete selected perimeter on Delete key', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Delete Key", () => {
+    it("should delete selected perimeter on Delete key", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -392,14 +392,14 @@ describe('usePerimeterTool', () => {
       expect(annotationStore.selectedAnnotationId).toBe(perimeter.id)
       expect(annotationStore.annotations).toHaveLength(1)
 
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should delete selected perimeter on Backspace key', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should delete selected perimeter on Backspace key", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -411,14 +411,14 @@ describe('usePerimeterTool', () => {
       const perimeter = annotationStore.annotations[0] as Perimeter
       tool.selectAnnotation(perimeter.id)
 
-      const backspaceEvent = new KeyboardEvent('keydown', { key: 'Backspace' })
+      const backspaceEvent = new KeyboardEvent("keydown", { key: "Backspace" })
       tool.handleKeyDown(backspaceEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not delete when nothing is selected', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should not delete when nothing is selected", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -429,16 +429,16 @@ describe('usePerimeterTool', () => {
 
       expect(annotationStore.annotations).toHaveLength(1)
 
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       expect(annotationStore.annotations).toHaveLength(1)
     })
   })
 
-  describe('45° Angle Snapping', () => {
-    it('should snap to 45° when Shift pressed', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("45° Angle Snapping", () => {
+    it("should snap to 45° when Shift pressed", () => {
+      const tool = withSetup(() => usePerimeterTool())
 
       tool.handleClick(createMockMouseEvent(100, 100))
 
@@ -449,8 +449,8 @@ describe('usePerimeterTool', () => {
       expect(tool.tempEndPoint.value).not.toEqual({ x: 150, y: 130 })
     })
 
-    it('should complete with snapped point when Shift pressed on click', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should complete with snapped point when Shift pressed on click", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -466,9 +466,9 @@ describe('usePerimeterTool', () => {
     })
   })
 
-  describe('Page Awareness', () => {
-    it('should only show perimeters from current page', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Page Awareness", () => {
+    it("should only show perimeters from current page", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -478,16 +478,21 @@ describe('usePerimeterTool', () => {
       tool.handleClick(createMockMouseEvent(200, 100))
       tool.handleClick(createMockMouseEvent(150, 200))
       tool.handleMove(createMockMouseEvent(105, 105))
-       tool.handleClick(createMockMouseEvent(105, 105))
+      tool.handleClick(createMockMouseEvent(105, 105))
 
-       expect(tool.completed.value).toHaveLength(1)
-       expect(tool.completed.value![0]!.pageNum).toBe(1)
+      expect(tool.completed.value).toHaveLength(1)
+      expect(tool.completed.value![0]!.pageNum).toBe(1)
 
-       const perimeter2: Perimeter = {
-        id: 'perimeter-2',
-        type: 'perimeter',
+      const perimeter2: Perimeter = {
+        id: "perimeter-2",
+        type: "perimeter",
         pageNum: 2,
-        points: [{ x: 300, y: 300 }, { x: 400, y: 300 }, { x: 350, y: 400 }],
+        points: [
+          { x: 300, y: 300 },
+          { x: 400, y: 300 },
+          { x: 350, y: 400 }
+        ],
+        rotation: 0,
         segments: [
           {
             start: { x: 300, y: 300 },
@@ -520,14 +525,14 @@ describe('usePerimeterTool', () => {
       rendererStore.setCurrentPage(2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('perimeter-2')
+      expect(tool.completed.value![0]!.id).toBe("perimeter-2")
       expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 
-  describe('Selection Behavior', () => {
-    it('should select perimeter', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Selection Behavior", () => {
+    it("should select perimeter", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -543,8 +548,8 @@ describe('usePerimeterTool', () => {
       expect(tool.selected.value?.id).toBe(perimeter.id)
     })
 
-    it('should return null for selected when different type selected', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should return null for selected when different type selected", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -554,28 +559,28 @@ describe('usePerimeterTool', () => {
       tool.handleClick(createMockMouseEvent(105, 105))
 
       const textAnnotation = {
-        id: 'text-1',
-        type: 'text' as const,
+        id: "text-1",
+        type: "text" as const,
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
       annotationStore.addAnnotation(textAnnotation)
-      annotationStore.selectAnnotation('text-1')
+      annotationStore.selectAnnotation("text-1")
 
       expect(tool.selected.value).toBeNull()
     })
   })
 
-  describe('Rotation Stamping', () => {
-    it('should stamp counter-rotation from page rotation', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("Rotation Stamping", () => {
+    it("should stamp counter-rotation from page rotation", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -591,8 +596,8 @@ describe('usePerimeterTool', () => {
       expect(perimeter.labelRotation).toBe(-90)
     })
 
-    it('should maintain rotation as static value (not reactive to page rotation)', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+    it("should maintain rotation as static value (not reactive to page rotation)", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -614,9 +619,9 @@ describe('usePerimeterTool', () => {
     })
   })
 
-  describe('UUID Generation', () => {
-    it('should generate unique ID for each perimeter', () => {
-      const tool = withSetup(() => useProvidePerimeterTool())
+  describe("UUID Generation", () => {
+    it("should generate unique ID for each perimeter", () => {
+      const tool = withSetup(() => usePerimeterTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -626,7 +631,7 @@ describe('usePerimeterTool', () => {
       tool.handleClick(createMockMouseEvent(105, 105))
 
       const perimeter = annotationStore.annotations[0] as Perimeter
-      expect(perimeter.id).toBe('test-uuid-perimeter-123')
+      expect(perimeter.id).toBe("test-uuid-perimeter-123")
       expect(perimeter.id).toMatch(/^[a-z0-9-]+$/i)
     })
   })

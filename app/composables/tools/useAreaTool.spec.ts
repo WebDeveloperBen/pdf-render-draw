@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
-import { useProvideAreaTool, useAreaToolState } from './useAreaTool'
-import type { Area } from '~/types/annotations'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { defineComponent, h } from "vue"
+import { mount } from "@vue/test-utils"
+import { useAreaTool, useAreaToolState } from "./useAreaTool"
+import type { Area } from "~/types/annotations"
 
 // Mock UUID to make tests deterministic
-vi.mock('uuid', () => ({
-  v4: () => 'test-uuid-area-123'
+vi.mock("uuid", () => ({
+  v4: () => "test-uuid-area-123"
 }))
 
 // Helper to test composables within Vue setup context
@@ -16,7 +16,7 @@ function withSetup<T>(composable: () => T): T {
   const app = defineComponent({
     setup() {
       result = composable()
-      return () => h('div')
+      return () => h("div")
     }
   })
   mount(app)
@@ -44,15 +44,15 @@ function createMockMouseEvent(x: number, y: number, shiftKey = false): MouseEven
   } as unknown as MouseEvent
 }
 
-describe('useAreaTool', () => {
+describe("useAreaTool", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Injection State Pattern', () => {
-    it('should provide and consume state correctly', () => {
+  describe("Injection State Pattern", () => {
+    it("should provide and consume state correctly", () => {
       const result = withSetup(() => {
-        const provider = useProvideAreaTool()
+        const provider = useAreaTool()
         const consumer = useAreaToolState()
         return { provider, consumer }
       })
@@ -62,15 +62,15 @@ describe('useAreaTool', () => {
       expect(result.consumer?.completed).toBeDefined()
     })
 
-    it('should return undefined when consumer called without provider', () => {
+    it("should return undefined when consumer called without provider", () => {
       const result = withSetup(() => useAreaToolState())
       expect(result).toBeUndefined()
     })
   })
 
-  describe('Point Placement', () => {
-    it('should place first point on click', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Point Placement", () => {
+    it("should place first point on click", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -83,8 +83,8 @@ describe('useAreaTool', () => {
       expect(tool.points.value[0]).toEqual({ x: 100, y: 100 })
     })
 
-    it('should place second point and continue drawing', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should place second point and continue drawing", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // First click
@@ -101,8 +101,8 @@ describe('useAreaTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should place third point and continue drawing until closed', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should place third point and continue drawing until closed", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Place 3 points
@@ -116,8 +116,8 @@ describe('useAreaTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not create area with less than 3 points', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should not create area with less than 3 points", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Place only 2 points
@@ -129,9 +129,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('Snap to Close Polygon', () => {
-    it('should detect when near first point for closing', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Snap to Close Polygon", () => {
+    it("should detect when near first point for closing", () => {
+      const tool = withSetup(() => useAreaTool())
 
       // Place 3 points to form a triangle
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -145,8 +145,8 @@ describe('useAreaTool', () => {
       expect(tool.canSnapToClose.value).toBe(true)
     })
 
-    it('should complete polygon when clicking near first point', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should complete polygon when clicking near first point", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Place 3 points
@@ -166,14 +166,14 @@ describe('useAreaTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       const area = annotationStore.annotations[0] as Area
-      expect(area.type).toBe('area')
+      expect(area.type).toBe("area")
       expect(area.points).toHaveLength(3)
     })
   })
 
-  describe('Area Calculation', () => {
-    it('should calculate polygon area', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Area Calculation", () => {
+    it("should calculate polygon area", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create a triangle: (0, 0), (100, 0), (50, 100)
@@ -190,8 +190,8 @@ describe('useAreaTool', () => {
       expect(area.area).toBeGreaterThan(0)
     })
 
-    it('should calculate preview area while drawing', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should calculate preview area while drawing", () => {
+      const tool = withSetup(() => useAreaTool())
 
       // Place 2 points
       tool.handleClick(createMockMouseEvent(0, 0))
@@ -203,8 +203,8 @@ describe('useAreaTool', () => {
       expect(tool.previewArea.value).toBeGreaterThan(0)
     })
 
-    it('should not show preview area with less than 2 points', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should not show preview area with less than 2 points", () => {
+      const tool = withSetup(() => useAreaTool())
 
       // Place only 1 point
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -212,8 +212,8 @@ describe('useAreaTool', () => {
       expect(tool.previewArea.value).toBeNull()
     })
 
-    it('should update preview area as mouse moves', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should update preview area as mouse moves", () => {
+      const tool = withSetup(() => useAreaTool())
 
       // Place 2 points
       tool.handleClick(createMockMouseEvent(0, 0))
@@ -231,9 +231,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('Centroid Calculation', () => {
-    it('should calculate centroid correctly', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Centroid Calculation", () => {
+    it("should calculate centroid correctly", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create a square: (0, 0), (100, 0), (100, 100), (0, 100)
@@ -253,9 +253,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('Preview Polygon', () => {
-    it('should generate preview polygon path', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Preview Polygon", () => {
+    it("should generate preview polygon path", () => {
+      const tool = withSetup(() => useAreaTool())
 
       // Place 2 points
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -265,19 +265,19 @@ describe('useAreaTool', () => {
       tool.handleMove(createMockMouseEvent(150, 200))
 
       expect(tool.previewPolygon.value).toBeDefined()
-      expect(tool.previewPolygon.value).toContain('100,100')
-      expect(tool.previewPolygon.value).toContain('200,100')
-      expect(tool.previewPolygon.value).toContain('150,200')
+      expect(tool.previewPolygon.value).toContain("100,100")
+      expect(tool.previewPolygon.value).toContain("200,100")
+      expect(tool.previewPolygon.value).toContain("150,200")
     })
 
-    it('should not show preview polygon before drawing starts', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should not show preview polygon before drawing starts", () => {
+      const tool = withSetup(() => useAreaTool())
 
       expect(tool.previewPolygon.value).toBeNull()
     })
 
-    it('should update preview polygon as points are added', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should update preview polygon as points are added", () => {
+      const tool = withSetup(() => useAreaTool())
 
       // Place first point
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -295,9 +295,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('Escape Key Cancellation', () => {
-    it('should cancel area drawing on Escape key', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Escape Key Cancellation", () => {
+    it("should cancel area drawing on Escape key", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Start drawing
@@ -309,7 +309,7 @@ describe('useAreaTool', () => {
       expect(tool.points.value).toHaveLength(3)
 
       // Press Escape
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -317,8 +317,8 @@ describe('useAreaTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not affect completed areas on Escape', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should not affect completed areas on Escape", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Complete an area
@@ -331,7 +331,7 @@ describe('useAreaTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       // Press Escape
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       // Area should still exist
@@ -339,9 +339,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('Delete Key', () => {
-    it('should delete selected area on Delete key', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Delete Key", () => {
+    it("should delete selected area on Delete key", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create and select area
@@ -358,14 +358,14 @@ describe('useAreaTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       // Press Delete
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should delete selected area on Backspace key', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should delete selected area on Backspace key", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create and select area
@@ -379,14 +379,14 @@ describe('useAreaTool', () => {
       tool.selectAnnotation(area.id)
 
       // Press Backspace
-      const backspaceEvent = new KeyboardEvent('keydown', { key: 'Backspace' })
+      const backspaceEvent = new KeyboardEvent("keydown", { key: "Backspace" })
       tool.handleKeyDown(backspaceEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not delete when nothing is selected', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should not delete when nothing is selected", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create area without selecting
@@ -399,7 +399,7 @@ describe('useAreaTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       // Press Delete without selection
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       // Area should still exist
@@ -407,9 +407,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('45° Angle Snapping', () => {
-    it('should snap to 45° when Shift pressed', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("45° Angle Snapping", () => {
+    it("should snap to 45° when Shift pressed", () => {
+      const tool = withSetup(() => useAreaTool())
 
       // Place first point
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -423,8 +423,8 @@ describe('useAreaTool', () => {
       expect(tool.tempEndPoint.value).not.toEqual({ x: 150, y: 130 })
     })
 
-    it('should complete with snapped point when Shift pressed on click', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should complete with snapped point when Shift pressed on click", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Place 3 points with Shift on last one
@@ -444,9 +444,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('Page Awareness', () => {
-    it('should only show areas from current page', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Page Awareness", () => {
+    it("should only show areas from current page", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -465,10 +465,15 @@ describe('useAreaTool', () => {
 
       // Create another area on page 2
       const area2: Area = {
-        id: 'area-2',
-        type: 'area',
+        id: "area-2",
+        rotation: 0,
+        type: "area",
         pageNum: 2,
-        points: [{ x: 300, y: 300 }, { x: 400, y: 300 }, { x: 350, y: 400 }],
+        points: [
+          { x: 300, y: 300 },
+          { x: 400, y: 300 },
+          { x: 350, y: 400 }
+        ],
         area: 5000,
         center: { x: 350, y: 333 },
         labelRotation: 0
@@ -484,14 +489,14 @@ describe('useAreaTool', () => {
 
       // Should now show page 2 areas
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('area-2')
+      expect(tool.completed.value![0]!.id).toBe("area-2")
       expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 
-  describe('Selection Behavior', () => {
-    it('should select area', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Selection Behavior", () => {
+    it("should select area", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create area
@@ -510,8 +515,8 @@ describe('useAreaTool', () => {
       expect(tool.selected.value?.id).toBe(area.id)
     })
 
-    it('should return null for selected when different type selected', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should return null for selected when different type selected", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create area
@@ -523,29 +528,29 @@ describe('useAreaTool', () => {
 
       // Add different type annotation and select it
       const textAnnotation = {
-        id: 'text-1',
-        type: 'text' as const,
+        id: "text-1",
+        type: "text" as const,
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
       annotationStore.addAnnotation(textAnnotation)
-      annotationStore.selectAnnotation('text-1')
+      annotationStore.selectAnnotation("text-1")
 
       // selected should be null (wrong type)
       expect(tool.selected.value).toBeNull()
     })
   })
 
-  describe('Rotation Stamping', () => {
-    it('should stamp counter-rotation from page rotation', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("Rotation Stamping", () => {
+    it("should stamp counter-rotation from page rotation", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -564,8 +569,8 @@ describe('useAreaTool', () => {
       expect(area.labelRotation).toBe(-90)
     })
 
-    it('should maintain rotation as static value (not reactive to page rotation)', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+    it("should maintain rotation as static value (not reactive to page rotation)", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -591,9 +596,9 @@ describe('useAreaTool', () => {
     })
   })
 
-  describe('UUID Generation', () => {
-    it('should generate unique ID for each area', () => {
-      const tool = withSetup(() => useProvideAreaTool())
+  describe("UUID Generation", () => {
+    it("should generate unique ID for each area", () => {
+      const tool = withSetup(() => useAreaTool())
       const annotationStore = useAnnotationStore()
 
       // Create area
@@ -604,7 +609,7 @@ describe('useAreaTool', () => {
       tool.handleClick(createMockMouseEvent(105, 105))
 
       const area = annotationStore.annotations[0] as Area
-      expect(area.id).toBe('test-uuid-area-123')
+      expect(area.id).toBe("test-uuid-area-123")
       expect(area.id).toMatch(/^[a-z0-9-]+$/i)
     })
   })

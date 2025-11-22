@@ -11,83 +11,64 @@ if (!tool) {
 const {
   // From BaseTool (inherited):
   settings,
-  getRotationTransform,
-  selectAnnotation,
-  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
   tempEndPoint,
   completed,
-  selected: _selected,
   toSvgPoints
 } = tool
-
-const annotationStore = useAnnotationStore()
-
-// Handle clicks - allow selection but don't stop propagation for drawing tools
-function handleAnnotationClick(e: MouseEvent, id: string) {
-  // Always allow selection (needed for transforms/rotation)
-  selectAnnotation(id)
-
-  // Only stop propagation in selection mode
-  // This allows drawing tools to also process the click
-  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
-    e.stopPropagation()
-  }
-}
 </script>
 
 <template>
   <g class="line-tool">
     <!-- Completed lines -->
-    <g
+    <BaseAnnotation
       v-for="line in completed"
       :key="line.id"
-      :data-annotation-id="line.id"
-      :class="{ selected: isAnnotationSelected(line.id) }"
-      class="line"
-      :transform="getRotationTransform(line)"
-      @click="handleAnnotationClick($event, line.id)"
+      :annotation="line"
     >
-      <!-- Invisible wider hitbox for easier clicking -->
-      <polyline
-        :points="toSvgPoints(line.points)"
-        stroke="transparent"
-        stroke-width="20"
-        fill="none"
-        class="line-hitbox"
-      />
+      <template #content="{ annotation: line, isSelected }">
+        <!-- Invisible wider hitbox for easier clicking -->
+        <polyline
+          :points="toSvgPoints(line.points)"
+          stroke="transparent"
+          stroke-width="20"
+          fill="none"
+          class="line-hitbox"
+        />
 
-      <!-- Visible line -->
-      <polyline
-        :points="toSvgPoints(line.points)"
-        :stroke="settings.lineToolSettings.strokeColor"
-        :stroke-width="settings.lineToolSettings.strokeWidth"
-        fill="none"
-        class="line-path"
-      />
+        <!-- Visible line -->
+        <polyline
+          :points="toSvgPoints(line.points)"
+          :stroke="settings.lineToolSettings.strokeColor"
+          :stroke-width="settings.lineToolSettings.strokeWidth"
+          fill="none"
+          :class="{ 'selected-path': isSelected }"
+          class="line-path"
+        />
 
-      <!-- Start point marker -->
-      <circle
-        v-if="line.points[0]"
-        :cx="line.points[0].x"
-        :cy="line.points[0].y"
-        r="4"
-        :fill="settings.lineToolSettings.strokeColor"
-        class="start-marker"
-      />
+        <!-- Start point marker -->
+        <circle
+          v-if="line.points[0]"
+          :cx="line.points[0].x"
+          :cy="line.points[0].y"
+          r="4"
+          :fill="settings.lineToolSettings.strokeColor"
+          class="start-marker"
+        />
 
-      <!-- End point marker -->
-      <circle
-        v-if="line.points[line.points.length - 1]"
-        :cx="line.points[line.points.length - 1]?.x ?? 0"
-        :cy="line.points[line.points.length - 1]?.y ?? 0"
-        r="4"
-        :fill="settings.lineToolSettings.strokeColor"
-        class="end-marker"
-      />
-    </g>
+        <!-- End point marker -->
+        <circle
+          v-if="line.points[line.points.length - 1]"
+          :cx="line.points[line.points.length - 1]?.x ?? 0"
+          :cy="line.points[line.points.length - 1]?.y ?? 0"
+          r="4"
+          :fill="settings.lineToolSettings.strokeColor"
+          class="end-marker"
+        />
+      </template>
+    </BaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">
@@ -145,14 +126,15 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
   transition: stroke-width 0.2s;
 }
 
-/* Hover on the group (triggered by hitbox) */
-.line:hover .line-path {
+/* Hover effect */
+.line-path:hover,
+.line-hitbox:hover ~ .line-path {
   stroke-width: 3;
   stroke: orange;
 }
 
 /* Selected state */
-.line.selected .line-path {
+.line-path.selected-path {
   stroke: blue;
   stroke-width: 3;
 }

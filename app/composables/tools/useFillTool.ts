@@ -3,8 +3,9 @@ import type { Point } from "~/types"
 import { v4 as uuidv4 } from "uuid"
 import { createInjectionState } from "@vueuse/core"
 import { ref, computed } from "vue"
+import { registerTool } from "~/composables/useToolRegistry"
 
-const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
+const [useFillTool, useFillToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
   const settings = useSettingStore()
@@ -115,7 +116,10 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
   }
 })
 
-export { useProvideFillTool, useFillToolState }
+export { useFillTool, useFillToolState }
 
-// Keep the original export name for provider for backwards compatibility
-export const useFillTool = useProvideFillTool
+// Register fill tool in the plugin system
+registerTool({
+  type: "fill",
+  component: defineAsyncComponent(() => import("~/components/tools/Fill.vue"))
+})

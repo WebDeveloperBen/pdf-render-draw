@@ -1,7 +1,5 @@
-import type { Area } from "~/types/annotations"
-import type { Point } from "~/types"
 import { createInjectionState } from "@vueuse/core"
-import { createBaseTool } from "./useToolComponent"
+import { useCreateBaseTool } from "./useCreateBaseTool"
 
 /**
  * Area Tool - extends BaseTool
@@ -13,9 +11,9 @@ import { createBaseTool } from "./useToolComponent"
  *     ↓ extends
  *   AreaTool (polygon area calculations)
  */
-const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
+const [useAreaTool, useAreaToolState] = createInjectionState(() => {
   // Inherit base functionality
-  const base = createBaseTool()
+  const base = useCreateBaseTool()
   const settingsStore = base.settings
   const rendererStore = useRendererStore()
 
@@ -71,14 +69,17 @@ const [useProvideAreaTool, useAreaToolState] = createInjectionState(() => {
 
   // Return composed tool (like extending multiple classes)
   return {
-    ...base,      // Inherit: stores, getRotationTransform, selectAnnotation
-    ...drawing,   // Inherit: drawing behavior, events, state
-    previewArea,  // Add: tool-specific features
+    ...base, // Inherit: stores, getRotationTransform, selectAnnotation
+    ...drawing, // Inherit: drawing behavior, events, state
+    previewArea, // Add: tool-specific features
     previewPolygon
   }
 })
 
-export { useProvideAreaTool, useAreaToolState }
+export { useAreaTool, useAreaToolState }
 
-// Keep the original export name for provider for backwards compatibility
-export const useAreaTool = useProvideAreaTool
+// Register area tool in the plugin system
+registerTool({
+  type: "area",
+  component: defineAsyncComponent(() => import("~/components/tools/Area.vue"))
+})

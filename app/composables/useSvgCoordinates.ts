@@ -3,8 +3,6 @@
  * Shared utilities for converting between screen and SVG coordinates
  */
 
-import type { Point } from '~/types'
-
 export function useSvgCoordinates() {
   /**
    * Converts mouse event coordinates to SVG coordinate space
@@ -30,11 +28,11 @@ export function useSvgCoordinates() {
    * @returns Space-separated string of x,y coordinates
    */
   function toSvgPoints(points: Point[]): string {
-    return points.map(p => `${p.x},${p.y}`).join(' ')
+    return points.map((p) => `${p.x},${p.y}`).join(" ")
   }
 
   return {
     getSvgPoint,
-    toSvgPoints,
+    toSvgPoints
   }
 }

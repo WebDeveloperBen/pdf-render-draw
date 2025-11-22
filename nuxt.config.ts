@@ -12,6 +12,9 @@ export default defineNuxtConfig({
   pinia: {
     storesDirs: ["./stores/**"]
   },
+  imports: {
+    dirs: ["./types"]
+  },
   // required for pdfjs-dist top level await usage
   vite: {
     build: {

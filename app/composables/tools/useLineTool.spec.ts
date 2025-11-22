@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
-import { useProvideLineTool, useLineToolState } from './useLineTool'
-import type { Line } from '~/types/annotations'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { defineComponent, h } from "vue"
+import { mount } from "@vue/test-utils"
+import { useLineTool, useLineToolState } from "./useLineTool"
+import type { Line } from "~/types/annotations"
 
 // Mock UUID to make tests deterministic
-vi.mock('uuid', () => ({
-  v4: () => 'test-uuid-line-123'
+vi.mock("uuid", () => ({
+  v4: () => "test-uuid-line-123"
 }))
 
 // Helper to test composables within Vue setup context
@@ -16,7 +16,7 @@ function withSetup<T>(composable: () => T): T {
   const app = defineComponent({
     setup() {
       result = composable()
-      return () => h('div')
+      return () => h("div")
     }
   })
   mount(app)
@@ -44,15 +44,15 @@ function createMockMouseEvent(x: number, y: number, shiftKey = false): MouseEven
   } as unknown as MouseEvent
 }
 
-describe('useLineTool', () => {
+describe("useLineTool", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Injection State Pattern', () => {
-    it('should provide and consume state correctly', () => {
+  describe("Injection State Pattern", () => {
+    it("should provide and consume state correctly", () => {
       const result = withSetup(() => {
-        const provider = useProvideLineTool()
+        const provider = useLineTool()
         const consumer = useLineToolState()
         return { provider, consumer }
       })
@@ -62,15 +62,15 @@ describe('useLineTool', () => {
       expect(result.consumer?.completed).toBeDefined()
     })
 
-    it('should return undefined when consumer called without provider', () => {
+    it("should return undefined when consumer called without provider", () => {
       const result = withSetup(() => useLineToolState())
       expect(result).toBeUndefined()
     })
   })
 
-  describe('Point Placement', () => {
-    it('should place first point on click', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("Point Placement", () => {
+    it("should place first point on click", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -83,8 +83,8 @@ describe('useLineTool', () => {
       expect(tool.points.value[0]).toEqual({ x: 100, y: 100 })
     })
 
-    it('should complete line on second click', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should complete line on second click", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -101,15 +101,15 @@ describe('useLineTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       const line = annotationStore.annotations[0] as Line
-      expect(line.type).toBe('line')
+      expect(line.type).toBe("line")
       expect(line.points).toEqual([
         { x: 100, y: 100 },
         { x: 200, y: 200 }
       ])
     })
 
-    it('should not create line with less than 2 points', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should not create line with less than 2 points", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent = createMockMouseEvent(100, 100)
@@ -120,9 +120,9 @@ describe('useLineTool', () => {
     })
   })
 
-  describe('Multi-Point Lines', () => {
-    it('should create polyline with multiple points', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("Multi-Point Lines", () => {
+    it("should create polyline with multiple points", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       // Currently auto-completes at 2 points, but testing the concept
@@ -134,9 +134,9 @@ describe('useLineTool', () => {
     })
   })
 
-  describe('Mouse Move Preview', () => {
-    it('should update temp point on mouse move', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("Mouse Move Preview", () => {
+    it("should update temp point on mouse move", () => {
+      const tool = withSetup(() => useLineTool())
 
       tool.handleClick(createMockMouseEvent(100, 100))
 
@@ -149,8 +149,8 @@ describe('useLineTool', () => {
       expect(tool.tempEndPoint.value).toEqual({ x: 200, y: 200 })
     })
 
-    it('should update temp point even before drawing starts', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should update temp point even before drawing starts", () => {
+      const tool = withSetup(() => useLineTool())
 
       const mockEvent = createMockMouseEvent(250, 250)
       tool.handleMove(mockEvent)
@@ -159,9 +159,9 @@ describe('useLineTool', () => {
     })
   })
 
-  describe('Escape Key Cancellation', () => {
-    it('should cancel line drawing on Escape key', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("Escape Key Cancellation", () => {
+    it("should cancel line drawing on Escape key", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent = createMockMouseEvent(100, 100)
@@ -170,7 +170,7 @@ describe('useLineTool', () => {
       expect(annotationStore.isDrawing).toBe(true)
       expect(tool.points.value).toHaveLength(1)
 
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -178,8 +178,8 @@ describe('useLineTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not affect completed lines on Escape', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should not affect completed lines on Escape", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -189,16 +189,16 @@ describe('useLineTool', () => {
 
       expect(annotationStore.annotations).toHaveLength(1)
 
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       expect(annotationStore.annotations).toHaveLength(1)
     })
   })
 
-  describe('Delete Key', () => {
-    it('should delete selected line on Delete key', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("Delete Key", () => {
+    it("should delete selected line on Delete key", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -212,14 +212,14 @@ describe('useLineTool', () => {
       expect(annotationStore.selectedAnnotationId).toBe(line.id)
       expect(annotationStore.annotations).toHaveLength(1)
 
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should delete selected line on Backspace key', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should delete selected line on Backspace key", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -230,14 +230,14 @@ describe('useLineTool', () => {
       const line = annotationStore.annotations[0] as Line
       tool.selectAnnotation(line.id)
 
-      const backspaceEvent = new KeyboardEvent('keydown', { key: 'Backspace' })
+      const backspaceEvent = new KeyboardEvent("keydown", { key: "Backspace" })
       tool.handleKeyDown(backspaceEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not delete when nothing is selected', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should not delete when nothing is selected", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -247,16 +247,16 @@ describe('useLineTool', () => {
 
       expect(annotationStore.annotations).toHaveLength(1)
 
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       expect(annotationStore.annotations).toHaveLength(1)
     })
   })
 
-  describe('45° Angle Snapping', () => {
-    it('should snap to 45° when Shift pressed', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("45° Angle Snapping", () => {
+    it("should snap to 45° when Shift pressed", () => {
+      const tool = withSetup(() => useLineTool())
 
       tool.handleClick(createMockMouseEvent(100, 100))
 
@@ -267,8 +267,8 @@ describe('useLineTool', () => {
       expect(tool.tempEndPoint.value).not.toEqual({ x: 150, y: 130 })
     })
 
-    it('should complete with snapped point when Shift pressed on second click', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should complete with snapped point when Shift pressed on second click", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       tool.handleClick(createMockMouseEvent(100, 100))
@@ -282,9 +282,9 @@ describe('useLineTool', () => {
     })
   })
 
-  describe('Page Awareness', () => {
-    it('should only show lines from current page', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("Page Awareness", () => {
+    it("should only show lines from current page", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -299,10 +299,14 @@ describe('useLineTool', () => {
       expect(tool.completed.value![0]!.pageNum).toBe(1)
 
       const line2: Line = {
-        id: 'line-2',
-        type: 'line',
+        id: "line-2",
+        type: "line",
+        rotation: 0,
         pageNum: 2,
-        points: [{ x: 300, y: 300 }, { x: 400, y: 400 }]
+        points: [
+          { x: 300, y: 300 },
+          { x: 400, y: 400 }
+        ]
       }
       annotationStore.addAnnotation(line2)
 
@@ -312,14 +316,14 @@ describe('useLineTool', () => {
       rendererStore.setCurrentPage(2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('line-2')
+      expect(tool.completed.value![0]!.id).toBe("line-2")
       expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 
-  describe('Selection Behavior', () => {
-    it('should select line', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("Selection Behavior", () => {
+    it("should select line", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -335,8 +339,8 @@ describe('useLineTool', () => {
       expect(tool.selected.value?.id).toBe(line.id)
     })
 
-    it('should return null for selected when different type selected', () => {
-      const tool = withSetup(() => useProvideLineTool())
+    it("should return null for selected when different type selected", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -345,28 +349,28 @@ describe('useLineTool', () => {
       tool.handleClick(mockEvent2)
 
       const textAnnotation = {
-        id: 'text-1',
-        type: 'text' as const,
+        id: "text-1",
+        type: "text" as const,
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
       annotationStore.addAnnotation(textAnnotation)
-      annotationStore.selectAnnotation('text-1')
+      annotationStore.selectAnnotation("text-1")
 
       expect(tool.selected.value).toBeNull()
     })
   })
 
-  describe('UUID Generation', () => {
-    it('should generate unique ID for each line', () => {
-      const tool = withSetup(() => useProvideLineTool())
+  describe("UUID Generation", () => {
+    it("should generate unique ID for each line", () => {
+      const tool = withSetup(() => useLineTool())
       const annotationStore = useAnnotationStore()
 
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -375,7 +379,7 @@ describe('useLineTool', () => {
       tool.handleClick(mockEvent2)
 
       const line = annotationStore.annotations[0] as Line
-      expect(line.id).toBe('test-uuid-line-123')
+      expect(line.id).toBe("test-uuid-line-123")
       expect(line.id).toMatch(/^[a-z0-9-]+$/i)
     })
   })

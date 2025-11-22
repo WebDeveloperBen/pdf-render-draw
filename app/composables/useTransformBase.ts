@@ -1,13 +1,9 @@
 /**
  * Base Transform Composable
  *
- * Provides shared state and utilities for both single and group transformations.
+ * s shared state and utilities for both single and group transformations.
  * Extracted from Transform.vue to reduce duplication.
  */
-
-import { useSvgCoordinates } from "@/composables/useSvgCoordinates"
-import { debugLog } from "~/utils/debug"
-import type { Point } from "~/types"
 
 export interface TransformHandlers {
   onResize: (deltaX: number, deltaY: number) => void
@@ -164,6 +160,6 @@ export function useTransformBase() {
     getSvgPoint,
     startDrag,
     setupEventListeners,
-    cleanupState,
+    cleanupState
   }
 }

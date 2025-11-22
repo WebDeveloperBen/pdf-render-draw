@@ -14,95 +14,76 @@ if (!tool) {
 const {
   // From BaseTool (inherited):
   settings,
-  getRotationTransform,
-  selectAnnotation,
-  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
   tempEndPoint,
   completed,
-  selected: _selected,
   // From MeasureTool (specific):
   previewDistance
 } = tool
-
-const annotationStore = useAnnotationStore()
-
-// Handle clicks - allow selection but don't stop propagation for drawing tools
-function handleAnnotationClick(e: MouseEvent, id: string) {
-  // Always allow selection (needed for transforms/rotation)
-  selectAnnotation(id)
-
-  // Only stop propagation in selection mode
-  // This allows drawing tools to also process the click
-  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
-    e.stopPropagation()
-  }
-}
 </script>
 
 <template>
   <g class="measure-tool">
     <!-- Completed measurements -->
-    <g
+    <BaseAnnotation
       v-for="measure in completed"
       :key="measure.id"
-      :data-annotation-id="measure.id"
-      :class="{ selected: isAnnotationSelected(measure.id) }"
-      class="measurement"
-      :transform="getRotationTransform(measure)"
-      @click="handleAnnotationClick($event, measure.id)"
+      :annotation="measure"
     >
-      <!-- Invisible hit area (makes it easier to click thin lines) -->
-      <line
-        :x1="measure.points[0].x"
-        :y1="measure.points[0].y"
-        :x2="measure.points[1].x"
-        :y2="measure.points[1].y"
-        stroke="transparent"
-        stroke-width="15"
-        class="measurement-hit-area"
-      />
+      <template #content="{ annotation: measure, isSelected }">
+        <!-- Invisible hit area (makes it easier to click thin lines) -->
+        <line
+          :x1="measure.points[0].x"
+          :y1="measure.points[0].y"
+          :x2="measure.points[1].x"
+          :y2="measure.points[1].y"
+          stroke="transparent"
+          stroke-width="15"
+          class="measurement-hit-area"
+        />
 
-      <!-- Visible line -->
-      <line
-        :x1="measure.points[0].x"
-        :y1="measure.points[0].y"
-        :x2="measure.points[1].x"
-        :y2="measure.points[1].y"
-        :stroke="settings.measureToolSettings.strokeColor"
-        :stroke-width="settings.measureToolSettings.strokeWidth"
-        class="measurement-line"
-      />
+        <!-- Visible line -->
+        <line
+          :x1="measure.points[0].x"
+          :y1="measure.points[0].y"
+          :x2="measure.points[1].x"
+          :y2="measure.points[1].y"
+          :stroke="settings.measureToolSettings.strokeColor"
+          :stroke-width="settings.measureToolSettings.strokeWidth"
+          :class="{ 'selected-line': isSelected }"
+          class="measurement-line"
+        />
 
-      <!-- Label background with rotation -->
-      <rect
-        :x="measure.midpoint.x - 30"
-        :y="measure.midpoint.y - 10"
-        width="60"
-        height="20"
-        fill="white"
-        opacity="0.9"
-        rx="3"
-        :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
-      />
+        <!-- Label background with rotation -->
+        <rect
+          :x="measure.midpoint.x - 30"
+          :y="measure.midpoint.y - 10"
+          width="60"
+          height="20"
+          fill="white"
+          opacity="0.9"
+          rx="3"
+          :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
+        />
 
-      <!-- Label with rotation -->
-      <text
-        :x="measure.midpoint.x"
-        :y="measure.midpoint.y"
-        :fill="settings.measureToolSettings.labelColor"
-        :font-size="settings.measureToolSettings.labelSize"
-        :font-weight="settings.measureToolSettings.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        class="measurement-label"
-        :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
-      >
-        {{ measure.distance }}mm
-      </text>
-    </g>
+        <!-- Label with rotation -->
+        <text
+          :x="measure.midpoint.x"
+          :y="measure.midpoint.y"
+          :fill="settings.measureToolSettings.labelColor"
+          :font-size="settings.measureToolSettings.labelSize"
+          :font-weight="settings.measureToolSettings.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          class="measurement-label"
+          :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`"
+        >
+          {{ measure.distance }}mm
+        </text>
+      </template>
+    </BaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">
@@ -161,11 +142,6 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
 </template>
 
 <style scoped>
-.measurement {
-  cursor: pointer;
-  /* Removed transition: all to prevent lag during rotation */
-}
-
 .measurement-hit-area {
   pointer-events: stroke;
   cursor: pointer;
@@ -179,12 +155,12 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
   pointer-events: none;
 }
 
-.measurement:hover .measurement-line {
+.measurement-line:hover {
   stroke-width: 4;
   filter: drop-shadow(0 0 6px rgba(66, 153, 225, 0.8));
 }
 
-.measurement.selected .measurement-line {
+.measurement-line.selected-line {
   stroke: #4299e1;
   stroke-width: 3;
 }
@@ -193,10 +169,6 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
   pointer-events: none;
   user-select: none;
   transition: font-weight 0.15s;
-}
-
-.measurement:hover .measurement-label {
-  font-weight: bold;
 }
 
 .point-marker {

@@ -14,85 +14,62 @@ if (!tool) {
 const {
   // From BaseTool (inherited):
   settings,
-  getRotationTransform,
-  selectAnnotation,
-  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
   tempEndPoint,
   canSnapToClose,
   completed,
-  selected: _selected,
   toSvgPoints,
   // From AreaTool (specific):
   previewArea,
   previewPolygon
 } = tool
-
-const annotationStore = useAnnotationStore()
-
-// Handle clicks - allow selection but don't stop propagation for drawing tools
-function handleAnnotationClick(e: MouseEvent, id: string) {
-  // Always allow selection (needed for transforms/rotation)
-  selectAnnotation(id)
-
-  // Only stop propagation in selection mode
-  // This allows drawing tools to also process the click
-  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
-    e.stopPropagation()
-  }
-}
 </script>
 <template>
   <g class="area-tool">
     <!-- Completed areas -->
-    <g
-      v-for="area in completed"
-      :key="area.id"
-      :data-annotation-id="area.id"
-      :class="{ selected: isAnnotationSelected(area.id) }"
-      class="area"
-      :transform="getRotationTransform(area)"
-      @click="handleAnnotationClick($event, area.id)"
-    >
-      <!-- Polygon -->
-      <polygon
-        :points="toSvgPoints(area.points)"
-        :fill="settings.areaToolSettings.fillColor"
-        :fill-opacity="settings.areaToolSettings.opacity"
-        :stroke="settings.areaToolSettings.strokeColor"
-        :stroke-width="settings.areaToolSettings.strokeWidth"
-        class="area-polygon"
-      />
+    <BaseAnnotation v-for="area in completed" :key="area.id" :annotation="area">
+      <template #content="{ annotation: area, isSelected }">
+        <!-- Polygon -->
+        <polygon
+          :points="toSvgPoints(area.points)"
+          :fill="settings.areaToolSettings.fillColor"
+          :fill-opacity="settings.areaToolSettings.opacity"
+          :stroke="settings.areaToolSettings.strokeColor"
+          :stroke-width="settings.areaToolSettings.strokeWidth"
+          :class="{ 'selected-polygon': isSelected }"
+          class="area-polygon"
+        />
 
-      <!-- Label background with rotation -->
-      <rect
-        :x="area.center.x - 40"
-        :y="area.center.y - 12"
-        width="80"
-        height="24"
-        fill="white"
-        opacity="0.95"
-        rx="4"
-        :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
-      />
+        <!-- Label background with rotation -->
+        <rect
+          :x="area.center.x - 40"
+          :y="area.center.y - 12"
+          width="80"
+          height="24"
+          fill="white"
+          opacity="0.95"
+          rx="4"
+          :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
+        />
 
-      <!-- Label with rotation -->
-      <text
-        :x="area.center.x"
-        :y="area.center.y"
-        :fill="settings.areaToolSettings.labelColor"
-        :font-size="settings.areaToolSettings.labelSize"
-        font-weight="bold"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        class="area-label"
-        :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
-      >
-        {{ area.area }}m²
-      </text>
-    </g>
+        <!-- Label with rotation -->
+        <text
+          :x="area.center.x"
+          :y="area.center.y"
+          :fill="settings.areaToolSettings.labelColor"
+          :font-size="settings.areaToolSettings.labelSize"
+          font-weight="bold"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          class="area-label"
+          :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`"
+        >
+          {{ area.area }}m²
+        </text>
+      </template>
+    </BaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">
@@ -229,7 +206,7 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
   stroke-width: 3;
 }
 
-.area.selected .area-polygon {
+.area-polygon.selected-polygon {
   stroke: blue;
   stroke-width: 3;
 }

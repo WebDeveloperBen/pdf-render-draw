@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
-import { useProvideMeasureTool, useMeasureToolState } from './useMeasureTool'
-import type { Measurement } from '~/types/annotations'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { defineComponent, h } from "vue"
+import { mount } from "@vue/test-utils"
+import { useMeasureTool, useMeasureToolState } from "./useMeasureTool"
+import type { Measurement } from "~/types/annotations"
 
 // Mock UUID to make tests deterministic
-vi.mock('uuid', () => ({
-  v4: () => 'test-uuid-123'
+vi.mock("uuid", () => ({
+  v4: () => "test-uuid-123"
 }))
 
 // Helper to test composables within Vue setup context
@@ -16,7 +16,7 @@ function withSetup<T>(composable: () => T): T {
   const app = defineComponent({
     setup() {
       result = composable()
-      return () => h('div')
+      return () => h("div")
     }
   })
   mount(app)
@@ -43,11 +43,12 @@ function createMockMouseEvent(x: number, y: number, shiftKey = false): MouseEven
   const mockSvg = createMockSvg()
 
   // Override matrixTransform to return the specified coordinates
-  mockSvg.createSVGPoint = () => ({
-    x: 0,
-    y: 0,
-    matrixTransform: () => ({ x, y } as any)
-  } as any)
+  mockSvg.createSVGPoint = () =>
+    ({
+      x: 0,
+      y: 0,
+      matrixTransform: () => ({ x, y }) as any
+    }) as any
 
   return {
     currentTarget: mockSvg,
@@ -59,15 +60,15 @@ function createMockMouseEvent(x: number, y: number, shiftKey = false): MouseEven
   } as unknown as MouseEvent
 }
 
-describe('useMeasureTool', () => {
+describe("useMeasureTool", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Injection State Pattern', () => {
-    it('should provide and consume state correctly', () => {
+  describe("Injection State Pattern", () => {
+    it("should provide and consume state correctly", () => {
       const result = withSetup(() => {
-        const provider = useProvideMeasureTool()
+        const provider = useMeasureTool()
         const consumer = useMeasureToolState()
         return { provider, consumer }
       })
@@ -77,15 +78,15 @@ describe('useMeasureTool', () => {
       expect(result.consumer?.completed).toBeDefined()
     })
 
-    it('should return undefined when consumer called without provider', () => {
+    it("should return undefined when consumer called without provider", () => {
       const result = withSetup(() => useMeasureToolState())
       expect(result).toBeUndefined()
     })
   })
 
-  describe('Point Placement', () => {
-    it('should place first point on click', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Point Placement", () => {
+    it("should place first point on click", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -98,8 +99,8 @@ describe('useMeasureTool', () => {
       expect(tool.points.value[0]).toEqual({ x: 100, y: 100 })
     })
 
-    it('should place second point and complete measurement', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should place second point and complete measurement", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // First click
@@ -118,15 +119,15 @@ describe('useMeasureTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       const measurement = annotationStore.annotations[0] as Measurement
-      expect(measurement.type).toBe('measure')
+      expect(measurement.type).toBe("measure")
       expect(measurement.points).toEqual([
         { x: 100, y: 100 },
         { x: 200, y: 200 }
       ])
     })
 
-    it('should not create measurement with less than 2 points', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should not create measurement with less than 2 points", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Place only first point
@@ -138,9 +139,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('Distance Calculation', () => {
-    it('should calculate distance between two points', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Distance Calculation", () => {
+    it("should calculate distance between two points", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create measurement: (0, 0) to (3, 4) = 5 units
@@ -155,8 +156,8 @@ describe('useMeasureTool', () => {
       expect(measurement.distance).toBeGreaterThan(0)
     })
 
-    it('should calculate preview distance while hovering', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should calculate preview distance while hovering", () => {
+      const tool = withSetup(() => useMeasureTool())
 
       // Place first point
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -170,8 +171,8 @@ describe('useMeasureTool', () => {
       expect(tool.previewDistance.value).toBeGreaterThan(0)
     })
 
-    it('should not show preview distance before first point', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should not show preview distance before first point", () => {
+      const tool = withSetup(() => useMeasureTool())
 
       // Move mouse without placing first point
       const mockEvent = createMockMouseEvent(200, 200)
@@ -181,9 +182,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('Midpoint Calculation', () => {
-    it('should calculate midpoint correctly', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Midpoint Calculation", () => {
+    it("should calculate midpoint correctly", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create measurement: (100, 100) to (200, 200)
@@ -198,9 +199,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('Mouse Move Preview', () => {
-    it('should update temp point on mouse move', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Mouse Move Preview", () => {
+    it("should update temp point on mouse move", () => {
+      const tool = withSetup(() => useMeasureTool())
 
       // Place first point
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -219,8 +220,8 @@ describe('useMeasureTool', () => {
       expect(tool.tempEndPoint.value).toEqual({ x: 200, y: 200 })
     })
 
-    it('should update temp point even before drawing starts', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should update temp point even before drawing starts", () => {
+      const tool = withSetup(() => useMeasureTool())
 
       // Move mouse before any clicks
       const mockEvent = createMockMouseEvent(250, 250)
@@ -230,9 +231,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('Escape Key Cancellation', () => {
-    it('should cancel measurement on Escape key', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Escape Key Cancellation", () => {
+    it("should cancel measurement on Escape key", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Start drawing
@@ -243,7 +244,7 @@ describe('useMeasureTool', () => {
       expect(tool.points.value).toHaveLength(1)
 
       // Press Escape
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       expect(annotationStore.isDrawing).toBe(false)
@@ -251,8 +252,8 @@ describe('useMeasureTool', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not affect completed measurements on Escape', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should not affect completed measurements on Escape", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Complete a measurement
@@ -264,7 +265,7 @@ describe('useMeasureTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       // Press Escape
-      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' })
+      const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" })
       tool.handleKeyDown(escapeEvent)
 
       // Measurement should still exist
@@ -272,9 +273,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('Delete Key', () => {
-    it('should delete selected measurement on Delete key', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Delete Key", () => {
+    it("should delete selected measurement on Delete key", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create and select measurement
@@ -290,14 +291,14 @@ describe('useMeasureTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       // Press Delete
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should delete selected measurement on Backspace key', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should delete selected measurement on Backspace key", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create and select measurement
@@ -310,14 +311,14 @@ describe('useMeasureTool', () => {
       tool.selectAnnotation(measurement.id)
 
       // Press Backspace
-      const backspaceEvent = new KeyboardEvent('keydown', { key: 'Backspace' })
+      const backspaceEvent = new KeyboardEvent("keydown", { key: "Backspace" })
       tool.handleKeyDown(backspaceEvent)
 
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should not delete when nothing is selected', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should not delete when nothing is selected", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create measurement without selecting
@@ -329,7 +330,7 @@ describe('useMeasureTool', () => {
       expect(annotationStore.annotations).toHaveLength(1)
 
       // Press Delete without selection
-      const deleteEvent = new KeyboardEvent('keydown', { key: 'Delete' })
+      const deleteEvent = new KeyboardEvent("keydown", { key: "Delete" })
       tool.handleKeyDown(deleteEvent)
 
       // Measurement should still exist
@@ -337,9 +338,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('45° Angle Snapping', () => {
-    it('should snap to 45° when Shift pressed', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("45° Angle Snapping", () => {
+    it("should snap to 45° when Shift pressed", () => {
+      const tool = withSetup(() => useMeasureTool())
 
       // Place first point
       const mockEvent1 = createMockMouseEvent(100, 100)
@@ -354,8 +355,8 @@ describe('useMeasureTool', () => {
       expect(tool.tempEndPoint.value).not.toEqual({ x: 150, y: 130 })
     })
 
-    it('should complete with snapped point when Shift pressed on second click', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should complete with snapped point when Shift pressed on second click", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Place first point at (100, 100)
@@ -373,9 +374,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('Page Awareness', () => {
-    it('should only show measurements from current page', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Page Awareness", () => {
+    it("should only show measurements from current page", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -393,13 +394,17 @@ describe('useMeasureTool', () => {
 
       // Create another measurement on page 1
       const measurement2: Measurement = {
-        id: 'test-2',
-        type: 'measure',
+        id: "test-2",
+        type: "measure",
         pageNum: 2,
-        points: [{ x: 300, y: 300 }, { x: 400, y: 400 }],
+        points: [
+          { x: 300, y: 300 },
+          { x: 400, y: 400 }
+        ],
         distance: 141.42,
         midpoint: { x: 350, y: 350 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
       annotationStore.addAnnotation(measurement2)
 
@@ -412,14 +417,14 @@ describe('useMeasureTool', () => {
 
       // Should now show page 2 measurements
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('test-2')
+      expect(tool.completed.value![0]!.id).toBe("test-2")
       expect(tool.completed.value![0]!.pageNum).toBe(2)
     })
   })
 
-  describe('Selection Behavior', () => {
-    it('should select measurement', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Selection Behavior", () => {
+    it("should select measurement", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create measurement
@@ -437,8 +442,8 @@ describe('useMeasureTool', () => {
       expect(tool.selected.value?.id).toBe(measurement.id)
     })
 
-    it('should return null for selected when different type selected', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should return null for selected when different type selected", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create measurement
@@ -449,29 +454,29 @@ describe('useMeasureTool', () => {
 
       // Add different type annotation and select it
       const textAnnotation = {
-        id: 'text-1',
-        type: 'text' as const,
+        id: "text-1",
+        type: "text" as const,
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000000',
+        color: "#000000",
         rotation: 0
       }
       annotationStore.addAnnotation(textAnnotation)
-      annotationStore.selectAnnotation('text-1')
+      annotationStore.selectAnnotation("text-1")
 
       // selected should be null (wrong type)
       expect(tool.selected.value).toBeNull()
     })
   })
 
-  describe('Rotation Stamping', () => {
-    it('should stamp counter-rotation from page rotation', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("Rotation Stamping", () => {
+    it("should stamp counter-rotation from page rotation", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -489,8 +494,8 @@ describe('useMeasureTool', () => {
       expect(measurement.labelRotation).toBe(-90)
     })
 
-    it('should maintain rotation as static value (not reactive to page rotation)', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+    it("should maintain rotation as static value (not reactive to page rotation)", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -515,9 +520,9 @@ describe('useMeasureTool', () => {
     })
   })
 
-  describe('UUID Generation', () => {
-    it('should generate unique ID for each measurement', () => {
-      const tool = withSetup(() => useProvideMeasureTool())
+  describe("UUID Generation", () => {
+    it("should generate unique ID for each measurement", () => {
+      const tool = withSetup(() => useMeasureTool())
       const annotationStore = useAnnotationStore()
 
       // Create measurement
@@ -527,7 +532,7 @@ describe('useMeasureTool', () => {
       tool.handleClick(mockEvent2)
 
       const measurement = annotationStore.annotations[0] as Measurement
-      expect(measurement.id).toBe('test-uuid-123')
+      expect(measurement.id).toBe("test-uuid-123")
       expect(measurement.id).toMatch(/^[a-z0-9-]+$/i)
     })
   })

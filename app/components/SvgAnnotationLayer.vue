@@ -317,12 +317,7 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
       pointer-events="none"
     />
 
-    <!-- Transform handles -->
-    <!-- Single annotation: use Transform component -->
-    <HandlesTransform v-if="annotationStore.selectedAnnotationIds.length === 1" />
-
-    <!-- Multi-select: use GroupTransform component -->
-    <HandlesGroupTransform v-if="annotationStore.selectedAnnotationIds.length >= 2" />
+    <!-- Transform handles now rendered per-annotation via BaseAnnotation component -->
   </svg>
 </template>
 

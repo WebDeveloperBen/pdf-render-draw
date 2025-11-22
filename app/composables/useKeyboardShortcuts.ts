@@ -4,9 +4,6 @@
  * Handles global keyboard shortcuts for annotation operations using a command map pattern.
  */
 
-import type { Point } from '~/types'
-import type { Annotation, PerimeterSegment } from '~/types/annotations'
-
 interface ShortcutCommand {
   key: string
   ctrl?: boolean
@@ -24,10 +21,6 @@ export function useKeyboardShortcuts() {
 
   // Clipboard state (in-memory for now, could use Clipboard API later)
   const clipboard = ref<Annotation | null>(null)
-
-  // Detect Mac platform using userAgent (platform is deprecated)
-  const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent)
-  const _modKey: 'meta' | 'ctrl' = isMac ? 'meta' : 'ctrl'
 
   /**
    * Paste annotation from clipboard
@@ -53,7 +46,7 @@ export function useKeyboardShortcuts() {
     // Create new annotation with offset position and new ID
     const newAnnotation = {
       ...offsetAnnotation(original, offsetX, offsetY),
-      id: crypto.randomUUID(),
+      id: crypto.randomUUID()
     }
 
     historyStore.addAnnotationWithHistory(newAnnotation)
@@ -75,7 +68,7 @@ export function useKeyboardShortcuts() {
   const shortcuts: ShortcutCommand[] = [
     // Undo: Ctrl/Cmd+Z
     {
-      key: 'z',
+      key: "z",
       ctrl: !isMac,
       meta: isMac,
       handler: (e) => {
@@ -84,11 +77,11 @@ export function useKeyboardShortcuts() {
           historyStore.undo()
         }
       },
-      description: 'Undo'
+      description: "Undo"
     },
     // Redo: Ctrl/Cmd+Shift+Z
     {
-      key: 'z',
+      key: "z",
       ctrl: !isMac,
       meta: isMac,
       shift: true,
@@ -98,11 +91,11 @@ export function useKeyboardShortcuts() {
           historyStore.redo()
         }
       },
-      description: 'Redo'
+      description: "Redo"
     },
     // Redo (alternate): Ctrl/Cmd+Y
     {
-      key: 'y',
+      key: "y",
       ctrl: !isMac,
       meta: isMac,
       handler: (e) => {
@@ -111,25 +104,25 @@ export function useKeyboardShortcuts() {
           historyStore.redo()
         }
       },
-      description: 'Redo'
+      description: "Redo"
     },
     // Copy: Ctrl/Cmd+C
     {
-      key: 'c',
+      key: "c",
       ctrl: !isMac,
       meta: isMac,
       handler: (e) => {
         if (annotationStore.selectedAnnotation) {
           e.preventDefault()
           clipboard.value = JSON.parse(JSON.stringify(annotationStore.selectedAnnotation))
-          console.log('Copied annotation to clipboard')
+          console.log("Copied annotation to clipboard")
         }
       },
-      description: 'Copy'
+      description: "Copy"
     },
     // Paste: Ctrl/Cmd+V
     {
-      key: 'v',
+      key: "v",
       ctrl: !isMac,
       meta: isMac,
       handler: (e) => {
@@ -138,11 +131,11 @@ export function useKeyboardShortcuts() {
           pasteAnnotation()
         }
       },
-      description: 'Paste'
+      description: "Paste"
     },
     // Duplicate: Ctrl/Cmd+D
     {
-      key: 'd',
+      key: "d",
       ctrl: !isMac,
       meta: isMac,
       handler: (e) => {
@@ -151,10 +144,10 @@ export function useKeyboardShortcuts() {
           duplicateAnnotation()
         }
       },
-      description: 'Duplicate'
+      description: "Duplicate"
     },
     // Delete annotation handler (works with both Delete and Backspace keys)
-    ...[{ key: 'Delete' }, { key: 'Backspace' }].map(({ key }) => ({
+    ...[{ key: "Delete" }, { key: "Backspace" }].map(({ key }) => ({
       key,
       handler: (e: KeyboardEvent) => {
         if (annotationStore.selectedAnnotation) {
@@ -162,11 +155,11 @@ export function useKeyboardShortcuts() {
           historyStore.deleteAnnotationWithHistory(annotationStore.selectedAnnotation.id)
         }
       },
-      description: 'Delete annotation'
+      description: "Delete annotation"
     })),
     // Escape: Deselect
     {
-      key: 'Escape',
+      key: "Escape",
       handler: (e) => {
         // Check if any annotations are selected (multi-select support)
         if (annotationStore.selectedAnnotationIds.length > 0) {
@@ -175,7 +168,7 @@ export function useKeyboardShortcuts() {
         }
         // Cancel drawing handled by individual tool composables
       },
-      description: 'Deselect / Cancel'
+      description: "Deselect / Cancel"
     }
   ]
 
@@ -215,17 +208,17 @@ export function useKeyboardShortcuts() {
 
   // Set up event listener on mount, cleanup on unmount
   onMounted(() => {
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown)
   })
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeyDown)
+    window.removeEventListener("keydown", handleKeyDown)
   })
 
   return {
     clipboard,
     shortcuts, // Expose for debugging/UI
     pasteAnnotation,
-    duplicateAnnotation,
+    duplicateAnnotation
   }
 }

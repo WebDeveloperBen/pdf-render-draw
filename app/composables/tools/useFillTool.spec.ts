@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
-import { useProvideFillTool, useFillToolState } from './useFillTool'
-import type { Fill } from '~/types/annotations'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { defineComponent, h } from "vue"
+import { mount } from "@vue/test-utils"
+import { useFillTool, useFillToolState } from "./useFillTool"
+import type { Fill } from "~/types/annotations"
 
 // Mock UUID to make tests deterministic
-vi.mock('uuid', () => ({
-  v4: () => 'test-fill-uuid-456'
+vi.mock("uuid", () => ({
+  v4: () => "test-fill-uuid-456"
 }))
 
 // Helper to create mock mouse event
@@ -37,22 +37,22 @@ function withSetup<T>(composable: () => T): T {
   const app = defineComponent({
     setup() {
       result = composable()
-      return () => h('div')
+      return () => h("div")
     }
   })
   mount(app)
   return result!
 }
 
-describe('useFillTool', () => {
+describe("useFillTool", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Injection State Pattern', () => {
-    it('should provide and consume state correctly', () => {
+  describe("Injection State Pattern", () => {
+    it("should provide and consume state correctly", () => {
       const result = withSetup(() => {
-        const provider = useProvideFillTool()
+        const provider = useFillTool()
         const consumer = useFillToolState()
         return { provider, consumer }
       })
@@ -62,20 +62,20 @@ describe('useFillTool', () => {
       expect(result.consumer?.completed).toBeDefined()
     })
 
-    it('should return null when consumer called without provider', () => {
+    it("should return null when consumer called without provider", () => {
       const result = withSetup(() => useFillToolState())
       expect(result).toBeUndefined()
     })
   })
 
-  describe('Fill Annotation Creation', () => {
-    it('should create fill annotation on drag', () => {
-      const tool = withSetup(() => useProvideFillTool())
+  describe("Fill Annotation Creation", () => {
+    it("should create fill annotation on drag", () => {
+      const tool = withSetup(() => useFillTool())
       const annotationStore = useAnnotationStore()
       const settingsStore = useSettingStore()
 
       settingsStore.updateFillToolSettings({
-        fillColor: '#ff0000',
+        fillColor: "#ff0000",
         opacity: 0.5
       })
 
@@ -94,19 +94,19 @@ describe('useFillTool', () => {
       const fills = annotationStore.annotations as Fill[]
       expect(fills).toHaveLength(1)
       expect(fills[0]).toMatchObject({
-        id: 'test-fill-uuid-456',
-        type: 'fill',
+        id: "test-fill-uuid-456",
+        type: "fill",
         x: 150,
         y: 250,
         width: 50,
         height: 50,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       })
     })
 
-    it('should create fill with correct page number', () => {
-      const tool = withSetup(() => useProvideFillTool())
+    it("should create fill with correct page number", () => {
+      const tool = withSetup(() => useFillTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -130,34 +130,37 @@ describe('useFillTool', () => {
     })
   })
 
-  describe('Page Awareness', () => {
-    it('should only show fill annotations from current page', () => {
-      const tool = withSetup(() => useProvideFillTool())
+  describe("Page Awareness", () => {
+    it("should only show fill annotations from current page", () => {
+      const tool = withSetup(() => useFillTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
       rendererStore.setCurrentPage(1)
       const fill1: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+
+        rotation: 0,
+        type: "fill",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 50,
         height: 50,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
       const fill2: Fill = {
-        id: 'fill-2',
-        type: 'fill',
+        id: "fill-2",
+        type: "fill",
+        rotation: 0,
         pageNum: 2,
         x: 200,
         y: 200,
         width: 50,
         height: 50,
-        color: '#00ff00',
+        color: "#00ff00",
         opacity: 0.5
       }
 
@@ -165,27 +168,28 @@ describe('useFillTool', () => {
       annotationStore.addAnnotation(fill2)
 
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('fill-1')
+      expect(tool.completed.value![0]!.id).toBe("fill-1")
 
       rendererStore.setCurrentPage(2)
       expect(tool.completed.value).toHaveLength(1)
-      expect(tool.completed.value![0]!.id).toBe('fill-2')
+      expect(tool.completed.value![0]!.id).toBe("fill-2")
     })
 
-    it('should return empty array when page has no fills', () => {
-      const tool = withSetup(() => useProvideFillTool())
+    it("should return empty array when page has no fills", () => {
+      const tool = withSetup(() => useFillTool())
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
       const fill: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
+        rotation: 0,
         x: 100,
         y: 100,
         width: 50,
         height: 50,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
@@ -196,50 +200,52 @@ describe('useFillTool', () => {
     })
   })
 
-  describe('Selection and Deletion', () => {
-    it('should select fill annotation', () => {
-      const tool = withSetup(() => useProvideFillTool())
+  describe("Selection and Deletion", () => {
+    it("should select fill annotation", () => {
+      const tool = withSetup(() => useFillTool())
       const annotationStore = useAnnotationStore()
 
       const fill: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
+        rotation: 0,
         pageNum: 1,
         x: 100,
         y: 100,
         width: 50,
         height: 50,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
       annotationStore.addAnnotation(fill)
-      tool.selectAnnotation('fill-1')
+      tool.selectAnnotation("fill-1")
 
-      expect(annotationStore.selectedAnnotationId).toBe('fill-1')
-      expect(tool.selected.value?.id).toBe('fill-1')
+      expect(annotationStore.selectedAnnotationId).toBe("fill-1")
+      expect(tool.selected.value?.id).toBe("fill-1")
     })
 
-    it('should delete fill annotation', () => {
-      const tool = withSetup(() => useProvideFillTool())
+    it("should delete fill annotation", () => {
+      const tool = withSetup(() => useFillTool())
       const annotationStore = useAnnotationStore()
 
       const fill: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 100,
+        rotation: 0,
         y: 100,
         width: 50,
         height: 50,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
       annotationStore.addAnnotation(fill)
       expect(annotationStore.annotations).toHaveLength(1)
 
-      tool.deleteFill('fill-1')
+      tool.deleteFill("fill-1")
       expect(annotationStore.annotations).toHaveLength(0)
     })
   })

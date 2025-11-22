@@ -1,10 +1,7 @@
-import type { TextAnnotation } from "~/types/annotations"
-import type { Point } from "~/types"
 import { v4 as uuidv4 } from "uuid"
 import { createInjectionState } from "@vueuse/core"
-import { degreesToRadians } from "~/utils/math"
 
-const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
+const [useTextTool, useTextToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
 
@@ -110,7 +107,16 @@ const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
   }
 })
 
-export { useProvideTextTool, useTextToolState }
+export { useTextTool, useTextToolState }
 
-// Keep the original export name for provider for backwards compatibility
-export const useTextTool = useProvideTextTool
+// Register text tool in the plugin system
+registerTool({
+  type: "text",
+  component: defineAsyncComponent(() => import("~/components/tools/Text.vue")),
+  onDoubleClick: (id: string) => {
+    const tool = useTextToolState()
+    if (tool) {
+      tool.handleDoubleClick(id)
+    }
+  }
+})

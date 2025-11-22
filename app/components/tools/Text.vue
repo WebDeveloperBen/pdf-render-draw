@@ -6,22 +6,7 @@ if (!tool) {
   throw new Error('TextTool must be used within SvgAnnotationLayer')
 }
 
-const { completed, editingId, editingContent, handleDoubleClick, finishEditing, deleteText, selectAnnotation } = tool
-
-const annotationStore = useAnnotationStore()
-const { getRotationTransform, isAnnotationSelected, activeTool } = annotationStore
-
-// Handle clicks - allow selection but don't stop propagation for drawing tools
-function handleAnnotationClick(e: MouseEvent, id: string) {
-  // Always allow selection (needed for transforms/rotation)
-  selectAnnotation(id)
-
-  // Only stop propagation in selection mode
-  // This allows drawing tools to also process the click
-  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
-    e.stopPropagation()
-  }
-}
+const { completed, editingId, editingContent, finishEditing, deleteText } = tool
 
 // Store ref to currently editing textarea
 const currentTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -43,121 +28,118 @@ watch(editingId, (newId, oldId) => {
   }
 })
 </script>
+
 <template>
   <g class="text-tool">
-    <g
+    <!-- Each text annotation uses BaseAnnotation for common functionality -->
+    <BaseAnnotation
       v-for="text in completed"
       :key="text.id"
-      class="text-annotation-group"
-      :data-annotation-id="text.id"
-      :class="{ selected: isAnnotationSelected(text.id) }"
-      :transform="getRotationTransform(text)"
-      @click="handleAnnotationClick($event, text.id)"
+      :annotation="text"
     >
-      <!-- Non-editing mode: display text -->
-      <g v-if="editingId !== text.id">
-        <!-- Background for better readability -->
-        <rect
-          :x="text.x - 5"
-          :y="text.y - text.fontSize - 2"
-          :width="text.width + 10"
-          :height="text.height + 4"
-          fill="white"
-          opacity="0.8"
-          rx="3"
-          class="text-background"
-          :data-annotation-id="text.id"
-          @dblclick.stop="handleDoubleClick(text.id)"
-        />
-
-        <!-- Text content -->
-        <text
-          :x="text.x"
-          :y="text.y"
-          :font-size="text.fontSize"
-          :fill="text.color"
-          class="text-annotation"
-          :data-annotation-id="text.id"
-          @dblclick.stop="handleDoubleClick(text.id)"
-        >
-          {{ text.content }}
-        </text>
-
-        <!-- Delete button (shown on hover) -->
-        <g class="delete-button" @click.stop="deleteText(text.id)">
-          <circle :cx="text.x + text.width + 15" :cy="text.y - text.fontSize / 2" r="8" fill="red" opacity="0.8" />
-          <line
-            :x1="text.x + text.width + 15 - 4"
-            :y1="text.y - text.fontSize / 2 - 4"
-            :x2="text.x + text.width + 15 + 4"
-            :y2="text.y - text.fontSize / 2 + 4"
-            stroke="white"
-            stroke-width="2"
+      <!-- Custom content for text annotations -->
+      <template #content="{ annotation: text, isSelected }">
+        <!-- Non-editing mode: display text -->
+        <g v-if="editingId !== text.id">
+          <!-- Background for better readability -->
+          <rect
+            :x="text.x - 5"
+            :y="text.y - text.fontSize - 2"
+            :width="text.width + 10"
+            :height="text.height + 4"
+            fill="white"
+            opacity="0.8"
+            rx="3"
+            class="text-background"
+            :class="{ selected: isSelected }"
           />
-          <line
-            :x1="text.x + text.width + 15 + 4"
-            :y1="text.y - text.fontSize / 2 - 4"
-            :x2="text.x + text.width + 15 - 4"
-            :y2="text.y - text.fontSize / 2 + 4"
-            stroke="white"
-            stroke-width="2"
-          />
+
+          <!-- Text content -->
+          <text
+            :x="text.x"
+            :y="text.y"
+            :font-size="text.fontSize"
+            :fill="text.color"
+            class="text-annotation"
+          >
+            {{ text.content }}
+          </text>
+
+          <!-- Delete button (shown on hover) -->
+          <g class="delete-button" @click.stop="deleteText(text.id)">
+            <circle :cx="text.x + text.width + 15" :cy="text.y - text.fontSize / 2" r="8" fill="red" opacity="0.8" />
+            <line
+              :x1="text.x + text.width + 15 - 4"
+              :y1="text.y - text.fontSize / 2 - 4"
+              :x2="text.x + text.width + 15 + 4"
+              :y2="text.y - text.fontSize / 2 + 4"
+              stroke="white"
+              stroke-width="2"
+            />
+            <line
+              :x1="text.x + text.width + 15 + 4"
+              :y1="text.y - text.fontSize / 2 - 4"
+              :x2="text.x + text.width + 15 - 4"
+              :y2="text.y - text.fontSize / 2 + 4"
+              stroke="white"
+              stroke-width="2"
+            />
+          </g>
         </g>
-      </g>
 
-      <!-- Editing mode: use foreignObject for HTML input -->
-      <!-- Extra space: border (2px * 2) + shadow (3px * 2) + padding = ~14px extra on each side -->
-      <foreignObject
-        v-else
-        :x="text.x - 12"
-        :y="text.y - text.fontSize - 9"
-        :width="text.width + 24"
-        :height="text.height + 18"
-        style="pointer-events: all; overflow: visible"
-        @click.stop
-        @mousedown.stop
-      >
-        <div xmlns="http://www.w3.org/1999/xhtml" class="text-editor-wrapper">
-          <textarea
-            :ref="(el) => setTextareaRef(el, text.id)"
-            v-model="editingContent"
-            class="text-editor"
-            :style="{
-              fontSize: text.fontSize + 'px',
-              color: text.color,
-              width: text.width + 'px',
-              height: text.height + 'px'
-            }"
-            @blur="finishEditing"
-            @keydown.enter.exact.prevent="finishEditing"
-            @keydown.escape="finishEditing"
-            @click.stop
-            @mousedown.stop
-          />
-        </div>
-      </foreignObject>
-    </g>
+        <!-- Editing mode: use foreignObject for HTML input -->
+        <!-- Extra space: border (2px * 2) + shadow (3px * 2) + padding = ~14px extra on each side -->
+        <foreignObject
+          v-else
+          :x="text.x - 12"
+          :y="text.y - text.fontSize - 9"
+          :width="text.width + 24"
+          :height="text.height + 18"
+          style="pointer-events: all; overflow: visible"
+          @click.stop
+          @mousedown.stop
+        >
+          <div xmlns="http://www.w3.org/1999/xhtml" class="text-editor-wrapper">
+            <textarea
+              :ref="(el) => setTextareaRef(el, text.id)"
+              v-model="editingContent"
+              class="text-editor"
+              :style="{
+                fontSize: text.fontSize + 'px',
+                color: text.color,
+                width: text.width + 'px',
+                height: text.height + 'px'
+              }"
+              @blur="finishEditing"
+              @keydown.enter.exact.prevent="finishEditing"
+              @keydown.escape="finishEditing"
+              @click.stop
+              @mousedown.stop
+            />
+          </div>
+        </foreignObject>
+      </template>
+
+      <!-- Transform handles are now handled by BaseAnnotation -->
+      <!-- No need to manually include them here -->
+    </BaseAnnotation>
   </g>
 </template>
 
 <style scoped>
-.text-annotation-group {
-  cursor: pointer;
-}
-
 .text-background {
   transition: opacity 0.2s;
+}
+
+.text-background.selected:hover {
+  opacity: 0.95;
+  stroke: #ccc;
+  stroke-width: 1;
 }
 
 .text-annotation {
   user-select: none;
   pointer-events: all;
-}
-
-.text-annotation-group:hover .text-background {
-  opacity: 0.95;
-  stroke: #ccc;
-  stroke-width: 1;
 }
 
 .delete-button {
@@ -167,7 +149,8 @@ watch(editingId, (newId, oldId) => {
   pointer-events: all;
 }
 
-.text-annotation-group:hover .delete-button {
+.text-background:hover ~ .delete-button,
+.delete-button:hover {
   opacity: 1;
 }
 

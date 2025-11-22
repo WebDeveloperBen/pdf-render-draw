@@ -14,112 +14,93 @@ if (!tool) {
 const {
   // From BaseTool (inherited):
   settings,
-  getRotationTransform,
-  selectAnnotation,
-  isAnnotationSelected,
   // From DrawingTool (inherited):
   isDrawing,
   points,
   tempEndPoint,
   canSnapToClose,
   completed,
-  selected: _selected,
   toSvgPoints,
   // From PerimeterTool (specific):
   previewSegments
 } = tool
-
-const annotationStore = useAnnotationStore()
-
-// Handle clicks - allow selection but don't stop propagation for drawing tools
-function handleAnnotationClick(e: MouseEvent, id: string) {
-  // Always allow selection (needed for transforms/rotation)
-  selectAnnotation(id)
-
-  // Only stop propagation in selection mode
-  // This allows drawing tools to also process the click
-  if (annotationStore.activeTool === "selection" || annotationStore.activeTool === "") {
-    e.stopPropagation()
-  }
-}
 </script>
 <template>
   <g class="perimeter-tool">
     <!-- Completed perimeters -->
-    <g
+    <BaseAnnotation
       v-for="perimeter in completed"
       :key="perimeter.id"
-      :data-annotation-id="perimeter.id"
-      :class="{ selected: isAnnotationSelected(perimeter.id) }"
-      class="perimeter"
-      :transform="getRotationTransform(perimeter)"
-      @click="handleAnnotationClick($event, perimeter.id)"
+      :annotation="perimeter"
     >
-      <!-- Polygon -->
-      <polygon
-        :points="toSvgPoints(perimeter.points)"
-        :fill="settings.perimeterToolSettings.fillColor"
-        :fill-opacity="settings.perimeterToolSettings.opacity"
-        :stroke="settings.perimeterToolSettings.strokeColor"
-        :stroke-width="settings.perimeterToolSettings.strokeWidth"
-        class="perimeter-polygon"
-      />
-
-      <!-- Individual segment labels with rotation -->
-      <g v-for="(segment, idx) in perimeter.segments" :key="idx">
-        <!-- Label background with rotation -->
-        <rect
-          :x="segment.midpoint.x - 25"
-          :y="segment.midpoint.y - 10"
-          width="50"
-          height="20"
-          fill="white"
-          opacity="0.9"
-          rx="3"
-          :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+      <template #content="{ annotation: perimeter, isSelected }">
+        <!-- Polygon -->
+        <polygon
+          :points="toSvgPoints(perimeter.points)"
+          :fill="settings.perimeterToolSettings.fillColor"
+          :fill-opacity="settings.perimeterToolSettings.opacity"
+          :stroke="settings.perimeterToolSettings.strokeColor"
+          :stroke-width="settings.perimeterToolSettings.strokeWidth"
+          :class="{ 'selected-polygon': isSelected }"
+          class="perimeter-polygon"
         />
 
-        <!-- Segment length label with rotation -->
+        <!-- Individual segment labels with rotation -->
+        <g v-for="(segment, idx) in perimeter.segments" :key="idx">
+          <!-- Label background with rotation -->
+          <rect
+            :x="segment.midpoint.x - 25"
+            :y="segment.midpoint.y - 10"
+            width="50"
+            height="20"
+            fill="white"
+            opacity="0.9"
+            rx="3"
+            :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+          />
+
+          <!-- Segment length label with rotation -->
+          <text
+            :x="segment.midpoint.x"
+            :y="segment.midpoint.y"
+            :fill="settings.perimeterToolSettings.labelColor"
+            :font-size="settings.perimeterToolSettings.labelSize"
+            font-weight="bold"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            class="segment-label"
+            :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+          >
+            {{ segment.length }}mm
+          </text>
+        </g>
+
+        <!-- Total perimeter label at center with rotation -->
+        <rect
+          :x="perimeter.center.x - 40"
+          :y="perimeter.center.y - 12"
+          width="80"
+          height="24"
+          fill="white"
+          opacity="0.95"
+          rx="4"
+          :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
+        />
         <text
-          :x="segment.midpoint.x"
-          :y="segment.midpoint.y"
+          :x="perimeter.center.x"
+          :y="perimeter.center.y"
           :fill="settings.perimeterToolSettings.labelColor"
-          :font-size="settings.perimeterToolSettings.labelSize"
+          :font-size="settings.perimeterToolSettings.labelSize + 2"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
-          class="segment-label"
-          :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+          class="total-label"
+          :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
         >
-          {{ segment.length }}mm
+          Total: {{ perimeter.totalLength }}mm
         </text>
-      </g>
-
-      <!-- Total perimeter label at center with rotation -->
-      <rect
-        :x="perimeter.center.x - 40"
-        :y="perimeter.center.y - 12"
-        width="80"
-        height="24"
-        fill="white"
-        opacity="0.95"
-        rx="4"
-        :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
-      />
-      <text
-        :x="perimeter.center.x"
-        :y="perimeter.center.y"
-        :fill="settings.perimeterToolSettings.labelColor"
-        :font-size="settings.perimeterToolSettings.labelSize + 2"
-        font-weight="bold"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        class="total-label"
-        :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`"
-      >
-        Total: {{ perimeter.totalLength }}mm
-      </text>
-    </g>
+      </template>
+    </BaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">
@@ -231,7 +212,7 @@ function handleAnnotationClick(e: MouseEvent, id: string) {
   stroke-width: 3;
 }
 
-.perimeter.selected .perimeter-polygon {
+.perimeter-polygon.selected-polygon {
   stroke: blue;
   stroke-width: 3;
 }

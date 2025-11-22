@@ -1,5 +1,3 @@
-import type { Annotation } from "~/types/annotations"
-
 /**
  * Base tool factory - acts like a base class for all annotation tools
  *
@@ -8,12 +6,12 @@ import type { Annotation } from "~/types/annotations"
  * - Rotation transform helpers
  * - Selection handlers
  *
- * Tools "extend" this by calling createBaseTool() and spreading the result
+ * Tools "extend" this by calling useCreateBaseTool() and spreading the result
  *
  * @example
  * // In a tool composable:
  * export function createMeasureTool() {
- *   const base = createBaseTool()
+ *   const base = useCreateBaseTool()
  *   const tool = useDrawingTool({ ... })
  *
  *   return {
@@ -23,7 +21,7 @@ import type { Annotation } from "~/types/annotations"
  *   }
  * }
  */
-export function createBaseTool() {
+export function useCreateBaseTool() {
   const settings = useSettingStore()
   const annotationStore = useAnnotationStore()
 
@@ -54,9 +52,3 @@ export function createBaseTool() {
     selectAnnotation
   }
 }
-
-/**
- * @deprecated Use createBaseTool instead
- * Kept for backwards compatibility
- */
-export const useToolComponent = createBaseTool

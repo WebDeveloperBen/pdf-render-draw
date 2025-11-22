@@ -1,7 +1,5 @@
-import type { Line } from "~/types/annotations"
-import type { Point } from "~/types"
 import { createInjectionState } from "@vueuse/core"
-import { createBaseTool } from "./useToolComponent"
+import { useCreateBaseTool } from "./useCreateBaseTool"
 
 /**
  * Line Tool - extends BaseTool
@@ -13,9 +11,9 @@ import { createBaseTool } from "./useToolComponent"
  *     ↓ extends
  *   LineTool (simple line drawing, no calculations)
  */
-const [useProvideLineTool, useLineToolState] = createInjectionState(() => {
+const [useLineTool, useLineToolState] = createInjectionState(() => {
   // Inherit base functionality
-  const base = createBaseTool()
+  const base = useCreateBaseTool()
 
   // Add drawing behavior via composition
   const drawing = useDrawingTool<Line>({
@@ -34,12 +32,15 @@ const [useProvideLineTool, useLineToolState] = createInjectionState(() => {
 
   // Return composed tool (like extending multiple classes)
   return {
-    ...base,      // Inherit: stores, getRotationTransform, selectAnnotation
-    ...drawing    // Inherit: drawing behavior, events, state
+    ...base, // Inherit: stores, getRotationTransform, selectAnnotation
+    ...drawing // Inherit: drawing behavior, events, state
   }
 })
 
-export { useProvideLineTool, useLineToolState }
+export { useLineTool, useLineToolState }
 
-// Keep the original export name for provider for backwards compatibility
-export const useLineTool = useProvideLineTool
+// Register line tool in the plugin system
+registerTool({
+  type: "line",
+  component: defineAsyncComponent(() => import("~/components/tools/Line.vue"))
+})

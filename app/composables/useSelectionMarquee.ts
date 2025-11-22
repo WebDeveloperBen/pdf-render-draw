@@ -5,8 +5,6 @@
  * Similar to Figma, Illustrator, etc.
  */
 
-import type { Point } from "~/types"
-
 export function useSelectionMarquee() {
   const annotationStore = useAnnotationStore()
   const { getSvgPoint: getSvgPointUtil } = useSvgCoordinates()

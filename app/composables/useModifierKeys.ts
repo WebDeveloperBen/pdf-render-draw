@@ -1,11 +1,11 @@
 /**
  * Feature-scoped Modifier Key Tracking
  *
- * Provides reactive state for modifier keys (Shift, Ctrl, Alt, Meta) that tools can use
+ * s reactive state for modifier keys (Shift, Ctrl, Alt, Meta) that tools can use
  * to modify their behavior. Uses createInjectionState for feature-scoped state.
  *
  * Usage:
- * - Provider: useProvideModifierKeys() in PdfEditorProvider component
+ * - r: useModifierKeys() in PdfEditorr component
  * - Consumer: useModifierKeys() in any child component (tools, etc.)
  *
  * Common modifier patterns:
@@ -16,7 +16,7 @@
 
 import { createInjectionState } from "@vueuse/core"
 
-const [useProvideModifierKeys, useModifierKeys] = createInjectionState(() => {
+const [useModifierKeys, useModifierKeysState] = createInjectionState(() => {
   // State - which keys are currently pressed
   const shift = ref(false)
   const ctrl = ref(false)
@@ -75,4 +75,4 @@ const [useProvideModifierKeys, useModifierKeys] = createInjectionState(() => {
   }
 })
 
-export { useProvideModifierKeys, useModifierKeys }
+export { useModifierKeys, useModifierKeysState }

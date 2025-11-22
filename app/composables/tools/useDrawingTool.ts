@@ -1,5 +1,3 @@
-import type { Annotation, BaseAnnotation } from "~/types/annotations"
-import type { Point } from "~/types"
 import { v4 as uuidv4 } from "uuid"
 
 export interface DrawingToolConfig<T extends Annotation> {
