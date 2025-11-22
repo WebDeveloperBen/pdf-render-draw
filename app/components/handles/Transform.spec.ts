@@ -439,7 +439,8 @@ describe('Transform Component', () => {
         ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       store.addAnnotation(annotation)
@@ -484,7 +485,8 @@ describe('Transform Component', () => {
         ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       store.addAnnotation(annotation)
@@ -532,7 +534,8 @@ describe('Transform Component', () => {
         ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       store.addAnnotation(annotation)
@@ -568,7 +571,8 @@ describe('Transform Component', () => {
         ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       store.addAnnotation(annotation)

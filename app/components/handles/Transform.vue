@@ -212,14 +212,27 @@ function handleResize(deltaX: number, deltaY: number) {
   }
 
   // Enforce minimum dimensions
-  const minSize = TRANSFORM.MIN_BOUNDS
-  if (newBounds.width < minSize) {
-    if (isLeft) newBounds.x = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width - minSize
-    newBounds.width = minSize
+  // For text annotations, use content-based minimum size
+  let minWidth: number = TRANSFORM.MIN_BOUNDS
+  let minHeight: number = TRANSFORM.MIN_BOUNDS
+
+  if (annotation.type === 'text' && 'content' in annotation && 'fontSize' in annotation) {
+    // Estimate minimum width based on text content
+    // Average character width is roughly 0.6 * fontSize (for proportional fonts)
+    const estimatedTextWidth = annotation.content.length * annotation.fontSize * 0.6
+    minWidth = Math.max(estimatedTextWidth, 50) // At least 50px
+
+    // Minimum height should accommodate the font size with padding
+    minHeight = Math.max(annotation.fontSize * 1.5, 30)
   }
-  if (newBounds.height < minSize) {
-    if (isTop) newBounds.y = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height - minSize
-    newBounds.height = minSize
+
+  if (newBounds.width < minWidth) {
+    if (isLeft) newBounds.x = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width - minWidth
+    newBounds.width = minWidth
+  }
+  if (newBounds.height < minHeight) {
+    if (isTop) newBounds.y = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height - minHeight
+    newBounds.height = minHeight
   }
 
   // Update annotation based on type
@@ -318,7 +331,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   // Record history for the transformation
   if (finalState && originalAnnotationState.value) {
     // Calculate the updates that were made during transformation
-    const updates: Record<string, any> = {}
+    const updates: Record<string, unknown> = {}
 
     // Compare key properties that might have changed
     if (hasRotation(finalState) && hasRotation(originalAnnotationState.value) && finalState.rotation !== originalAnnotationState.value.rotation) {

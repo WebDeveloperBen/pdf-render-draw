@@ -211,8 +211,10 @@ describe("Text Annotation Rotation", () => {
     const fontSize = 16
 
     // Calculate expected text position to center on cursor
+    // Visual center: (x + width/2, y - fontSize - 2 + height/2)
+    // To center on cursor: x = cursorX - width/2, y = cursorY + fontSize + 2 - height/2
     const expectedX = cursorX - width / 2
-    const expectedY = cursorY + fontSize - height / 2
+    const expectedY = cursorY + fontSize + 2 - height / 2
 
     const text: TextAnnotation = {
       id: "text-1",
