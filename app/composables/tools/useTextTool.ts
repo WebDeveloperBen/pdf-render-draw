@@ -1,24 +1,27 @@
-import type { TextAnnotation } from '~/types/annotations'
-import type { Point } from '~/types'
-import { v4 as uuidv4 } from 'uuid'
-import { createInjectionState } from '@vueuse/core'
+import type { TextAnnotation } from "~/types/annotations"
+import type { Point } from "~/types"
+import { v4 as uuidv4 } from "uuid"
+import { createInjectionState } from "@vueuse/core"
 
 const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
 
-  const completed = computed(() =>
-    annotationStore.getAnnotationsByTypeAndPage('text', rendererStore.getCurrentPage) as TextAnnotation[]
+  // Get modifier keys for multi-select support (optional for tests)
+  const modifierKeys = useModifierKeys()!
+
+  const completed = computed(
+    () => annotationStore.getAnnotationsByTypeAndPage("text", rendererStore.getCurrentPage) as TextAnnotation[]
   )
 
   const selected = computed(() => {
     if (!annotationStore.selectedAnnotation) return null
-    if (annotationStore.selectedAnnotation.type !== 'text') return null
+    if (annotationStore.selectedAnnotation.type !== "text") return null
     return annotationStore.selectedAnnotation as TextAnnotation
   })
 
   const editingId = ref<string | null>(null)
-  const editingContent = ref<string>('')
+  const editingContent = ref<string>("")
 
   function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
@@ -34,16 +37,16 @@ const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
 
     const text: TextAnnotation = {
       id: uuidv4(),
-      type: 'text',
+      type: "text",
       pageNum: rendererStore.currentPage,
       x: point.x,
       y: point.y,
       width: 200,
       height: 50,
-      content: 'Double-click to edit',
+      content: "Double-click to edit",
       fontSize: 16,
-      color: '#000000',
-      rotation: -rendererStore.rotation, // Counter-rotate to appear upright, then "stamp" it
+      color: "#000000",
+      rotation: -rendererStore.rotation // Counter-rotate to appear upright, then "stamp" it
     }
 
     annotationStore.addAnnotation(text)
@@ -60,13 +63,14 @@ const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
   }
 
   function selectAnnotation(id: string) {
-    annotationStore.selectAnnotation(id)
+    // Support Shift+click for multi-select (fallback to false if not provided)
+    annotationStore.selectAnnotation(id, { addToSelection: modifierKeys?.isShiftPressed.value ?? false })
   }
 
   function updateText(id: string, content: string) {
     annotationStore.updateAnnotation(id, { content })
     editingId.value = null
-    editingContent.value = ''
+    editingContent.value = ""
   }
 
   function finishEditing() {
@@ -74,7 +78,7 @@ const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
       annotationStore.updateAnnotation(editingId.value, { content: editingContent.value })
     }
     editingId.value = null
-    editingContent.value = ''
+    editingContent.value = ""
   }
 
   function deleteText(id: string) {
@@ -91,7 +95,7 @@ const [useProvideTextTool, useTextToolState] = createInjectionState(() => {
     selectAnnotation,
     updateText,
     finishEditing,
-    deleteText,
+    deleteText
   }
 })
 

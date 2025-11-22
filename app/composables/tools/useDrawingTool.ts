@@ -18,6 +18,9 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
   const historyStore = useHistoryStore()
   const settingsStore = useSettingStore()
 
+  // Get modifier keys for multi-select support (optional for tests)
+  const modifierKeys = useModifierKeys()!
+
   const base = useBaseTool({
     type: config.type,
     minPoints: config.minPoints,
@@ -130,7 +133,8 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
   }
 
   function selectAnnotation(id: string) {
-    annotationStore.selectAnnotation(id)
+    // Support Shift+click for multi-select (fallback to false if not provided)
+    annotationStore.selectAnnotation(id, { addToSelection: modifierKeys?.isShiftPressed.value ?? false })
   }
 
   function deleteAnnotation(id: string) {

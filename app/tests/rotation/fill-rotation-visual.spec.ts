@@ -174,15 +174,19 @@ describe("Fill Rotation - Visual Consistency", () => {
       expect(updated2.x - updated1.x).toBe(100)
       expect(updated3.x - updated2.x).toBe(100)
 
-      // Transforms should all use the same group center
+      // Transforms should each use their own center (orbiting handled by position updates)
       const transform1 = store.getRotationTransform(updated1)
       const transform2 = store.getRotationTransform(updated2)
       const transform3 = store.getRotationTransform(updated3)
 
       const angleDeg = 45
-      expect(transform1).toBe(`rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`)
-      expect(transform2).toBe(`rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`)
-      expect(transform3).toBe(`rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`)
+      const fill1Center = { x: fill1.x + fill1.width / 2, y: fill1.y + fill1.height / 2 }
+      const fill2Center = { x: fill2.x + fill2.width / 2, y: fill2.y + fill2.height / 2 }
+      const fill3Center = { x: fill3.x + fill3.width / 2, y: fill3.y + fill3.height / 2 }
+
+      expect(transform1).toBe(`rotate(${angleDeg} ${fill1Center.x} ${fill1Center.y})`)
+      expect(transform2).toBe(`rotate(${angleDeg} ${fill2Center.x} ${fill2Center.y})`)
+      expect(transform3).toBe(`rotate(${angleDeg} ${fill3Center.x} ${fill3Center.y})`)
     })
 
     it("Test 44: rotate fills of different sizes → verify proportional rotation", () => {
@@ -246,13 +250,17 @@ describe("Fill Rotation - Visual Consistency", () => {
       expect(parseFloat(matchMedium![1]!)).toBeCloseTo(60, 1)
       expect(parseFloat(matchLarge![1]!)).toBeCloseTo(60, 1)
 
-      // All should rotate around the same group center
-      expect(parseFloat(matchSmall![2]!)).toBe(groupCenter.x)
-      expect(parseFloat(matchSmall![3]!)).toBe(groupCenter.y)
-      expect(parseFloat(matchMedium![2]!)).toBe(groupCenter.x)
-      expect(parseFloat(matchMedium![3]!)).toBe(groupCenter.y)
-      expect(parseFloat(matchLarge![2]!)).toBe(groupCenter.x)
-      expect(parseFloat(matchLarge![3]!)).toBe(groupCenter.y)
+      // Each should rotate around its own center (orbiting handled by position updates)
+      const smallCenter = { x: smallFill.x + smallFill.width / 2, y: smallFill.y + smallFill.height / 2 }
+      const mediumCenter = { x: mediumFill.x + mediumFill.width / 2, y: mediumFill.y + mediumFill.height / 2 }
+      const largeCenter = { x: largeFill.x + largeFill.width / 2, y: largeFill.y + largeFill.height / 2 }
+
+      expect(parseFloat(matchSmall![2]!)).toBe(smallCenter.x)
+      expect(parseFloat(matchSmall![3]!)).toBe(smallCenter.y)
+      expect(parseFloat(matchMedium![2]!)).toBe(mediumCenter.x)
+      expect(parseFloat(matchMedium![3]!)).toBe(mediumCenter.y)
+      expect(parseFloat(matchLarge![2]!)).toBe(largeCenter.x)
+      expect(parseFloat(matchLarge![3]!)).toBe(largeCenter.y)
     })
   })
 })

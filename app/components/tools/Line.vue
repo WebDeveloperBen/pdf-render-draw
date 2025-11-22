@@ -36,7 +36,16 @@ const {
       :transform="getRotationTransform(line)"
       @click.stop="selectAnnotation(line.id)"
     >
-      <!-- Polyline for multi-segment lines -->
+      <!-- Invisible wider hitbox for easier clicking -->
+      <polyline
+        :points="toSvgPoints(line.points)"
+        stroke="transparent"
+        stroke-width="20"
+        fill="none"
+        class="line-hitbox"
+      />
+
+      <!-- Visible line -->
       <polyline
         :points="toSvgPoints(line.points)"
         :stroke="settings.lineToolSettings.strokeColor"
@@ -111,16 +120,24 @@ const {
 </template>
 
 <style scoped>
-.line-path {
+/* Invisible hitbox for easier clicking */
+.line-hitbox {
   cursor: pointer;
+}
+
+/* Visual line - no pointer events, styling controlled by parent hover */
+.line-path {
+  pointer-events: none;
   transition: stroke-width 0.2s;
 }
 
-.line-path:hover {
+/* Hover on the group (triggered by hitbox) */
+.line:hover .line-path {
   stroke-width: 3;
   stroke: orange;
 }
 
+/* Selected state */
 .line.selected .line-path {
   stroke: blue;
   stroke-width: 3;

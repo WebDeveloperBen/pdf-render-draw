@@ -1,21 +1,24 @@
-import type { Fill } from '~/types/annotations'
-import type { Point } from '~/types'
-import { v4 as uuidv4 } from 'uuid'
-import { createInjectionState } from '@vueuse/core'
-import { ref, computed } from 'vue'
+import type { Fill } from "~/types/annotations"
+import type { Point } from "~/types"
+import { v4 as uuidv4 } from "uuid"
+import { createInjectionState } from "@vueuse/core"
+import { ref, computed } from "vue"
 
 const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
   const settings = useSettingStore()
 
-  const completed = computed(() =>
-    annotationStore.getAnnotationsByTypeAndPage('fill', rendererStore.getCurrentPage) as Fill[]
+  // Get modifier keys for multi-select support (optional for tests)
+  const modifierKeys = useModifierKeys()!
+
+  const completed = computed(
+    () => annotationStore.getAnnotationsByTypeAndPage("fill", rendererStore.getCurrentPage) as Fill[]
   )
 
   const selected = computed(() => {
     if (!annotationStore.selectedAnnotation) return null
-    if (annotationStore.selectedAnnotation.type !== 'fill') return null
+    if (annotationStore.selectedAnnotation.type !== "fill") return null
     return annotationStore.selectedAnnotation as Fill
   })
 
@@ -71,14 +74,14 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
 
     const fill: Fill = {
       id: uuidv4(),
-      type: 'fill',
+      type: "fill",
       pageNum: rendererStore.currentPage,
       x: currentRect.value.x,
       y: currentRect.value.y,
       width: currentRect.value.width,
       height: currentRect.value.height,
       color: settings.fillToolSettings.fillColor,
-      opacity: settings.fillToolSettings.opacity,
+      opacity: settings.fillToolSettings.opacity
     }
 
     annotationStore.addAnnotation(fill)
@@ -90,7 +93,8 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
   }
 
   function selectAnnotation(id: string) {
-    annotationStore.selectAnnotation(id)
+    // Support Shift+click for multi-select (fallback to false if not provided)
+    annotationStore.selectAnnotation(id, { addToSelection: modifierKeys?.isShiftPressed.value ?? false })
   }
 
   function deleteFill(id: string) {
@@ -106,7 +110,7 @@ const [useProvideFillTool, useFillToolState] = createInjectionState(() => {
     handleMouseMove,
     handleMouseUp,
     selectAnnotation,
-    deleteFill,
+    deleteFill
   }
 })
 

@@ -6,10 +6,10 @@ if (!tool) {
   throw new Error("FillTool must be used within SvgAnnotationLayer")
 }
 
-const { completed, isDrawing, currentRect, deleteFill } = tool
+const { completed, isDrawing, currentRect, deleteFill, selectAnnotation } = tool
 
 const annotationStore = useAnnotationStore()
-const { getRotationTransform, isAnnotationSelected, selectAnnotation } = annotationStore
+const { getRotationTransform, isAnnotationSelected } = annotationStore
 </script>
 <template>
   <g class="fill-tool">
