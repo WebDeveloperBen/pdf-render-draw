@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest"
-import { useTextEditingState } from "~/composables/useTextEditingState"
+import { useTextEditingState } from "@/composables/useTextEditingState"
 import { useAnnotationStore } from "~/stores/annotations"
 import type { TextAnnotation } from "~/types/annotations"
 

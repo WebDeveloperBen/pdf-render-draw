@@ -5,7 +5,7 @@
  * Provides cursor-aware zooming for better UX.
  */
 
-import { RENDERING } from '~/constants/rendering'
+import { RENDERING } from '@/constants/rendering'
 
 export function useZoom() {
   const rendererStore = useRendererStore()

@@ -1,13 +1,6 @@
 import { createInjectionState } from "@vueuse/core"
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { registerTool } from "~/composables/useToolRegistry"
-
-// Register line tool metadata immediately when module loads
-registerTool({
-  type: "line",
-  name: "Line",
-  icon: "—"
-})
+import { registerTool } from "@/composables/useToolRegistry"
 
 /**
  * Line Tool - extends BaseTool
@@ -32,10 +25,24 @@ const [useLineTool, useLineToolState] = createInjectionState(() => {
   })
 
   // Return composed tool (like extending multiple classes)
-  return {
+  const tool = {
     ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     ...drawing // Inherit: drawing behavior, events, state
   }
+
+  // Register tool with full metadata and event handlers
+  registerTool({
+    type: "line",
+    name: "Line",
+    icon: "—",
+    component: defineAsyncComponent(() => import("@/components/tools/Line.vue")),
+    onClick: tool.handleClick,
+    onMouseMove: tool.handleMove,
+    onMouseLeave: tool.clearPreview,
+    onKeyDown: tool.handleKeyDown
+  })
+
+  return tool
 })
 
 export { useLineTool, useLineToolState }

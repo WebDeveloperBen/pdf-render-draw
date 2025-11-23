@@ -1,18 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { createInjectionState } from "@vueuse/core"
-import { registerTool } from "~/composables/useToolRegistry"
-
-// Register text tool metadata immediately when module loads
-registerTool({
-  type: "text",
-  name: "Text",
-  icon: "T",
-  onDoubleClick: (id: string) => {
-    // Use global text editing state (singleton composable, no injection needed)
-    const textEditing = useTextEditingState()
-    textEditing.startEditing(id)
-  }
-})
+import { registerTool } from "@/composables/useToolRegistry"
 
 const [useTextTool, useTextToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
@@ -99,7 +87,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     annotationStore.deleteAnnotation(id)
   }
 
-  return {
+  const tool = {
     completed,
     selected,
     editingId,
@@ -111,6 +99,22 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     finishEditing,
     deleteText
   }
+
+  // Register tool with full metadata and event handlers
+  registerTool({
+    type: "text",
+    name: "Text",
+    icon: "T",
+    component: defineAsyncComponent(() => import("@/components/tools/Text.vue")),
+    onClick: tool.handleClick,
+    onDoubleClick: (id: string) => {
+      // Use global text editing state (singleton composable, no injection needed)
+      const textEditing = useTextEditingState()
+      textEditing.startEditing(id)
+    }
+  })
+
+  return tool
 })
 
 export { useTextTool, useTextToolState }

@@ -18,6 +18,11 @@ const {
   completed,
   toSvgPoints
 } = tool
+
+// Debug: watch completed to see when it changes
+watch(completed, (newVal) => {
+  console.log('[Line.vue] Completed lines changed:', newVal.length, newVal)
+}, { immediate: true })
 </script>
 
 <template>

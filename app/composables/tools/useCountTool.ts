@@ -1,14 +1,8 @@
 import { v4 as uuidv4 } from "uuid"
 import { createInjectionState } from "@vueuse/core"
-import { registerTool } from "~/composables/useToolRegistry"
+import { defineAsyncComponent } from "vue"
+import { registerTool } from "@/composables/useToolRegistry"
 import type { Count } from "~/types/annotations"
-
-// Register count tool metadata immediately when module loads
-registerTool({
-  type: "count",
-  name: "Count",
-  icon: "🔢"
-})
 
 const [useCountTool, useCountToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
@@ -33,7 +27,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     if (existingCounts.length === 0) return 1
 
     // Find the highest number on this page
-    const maxNumber = Math.max(...existingCounts.map(c => c.number))
+    const maxNumber = Math.max(...existingCounts.map((c) => c.number))
     return maxNumber + 1
   })
 
@@ -74,20 +68,40 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     annotationStore.deleteAnnotation(id)
   }
 
-  function updateCount(id: string, updates: Partial<Pick<Count, 'number' | 'label'>>) {
+  function updateCount(id: string, updates: Partial<Pick<Count, "number" | "label">>) {
     annotationStore.updateAnnotation(id, updates)
   }
 
-  return {
+  // Keyboard shortcut handler (optional)
+  function handleKeyDown(_e: KeyboardEvent) {
+    // Count tool can handle keyboard shortcuts here if needed
+    // For now, it's a no-op
+  }
+
+  const tool = {
     completed,
     selected,
     nextCountNumber,
     cursorPosition,
     handleClick,
+    handleKeyDown,
     selectAnnotation,
     deleteCount,
     updateCount
   }
+
+  // Register tool with full metadata and event handlers
+  registerTool({
+    type: "count",
+    name: "Count",
+    icon: "🔢",
+    component: defineAsyncComponent(() => import("@/components/tools/Count.vue")),
+    onClick: tool.handleClick,
+    onKeyDown: tool.handleKeyDown
+  })
+
+  return tool
 })
 
 export { useCountTool, useCountToolState }
+

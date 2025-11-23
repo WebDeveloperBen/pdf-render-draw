@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
-import { useDragState } from "~/composables/useDragState"
+import { useDragState } from "@/composables/useDragState"
 import { useAnnotationStore } from "~/stores/annotations"
 import { useTimeoutFn } from "@vueuse/core"
 

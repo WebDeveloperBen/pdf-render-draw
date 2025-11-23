@@ -1,13 +1,6 @@
 import { createInjectionState } from "@vueuse/core"
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { registerTool } from "~/composables/useToolRegistry"
-
-// Register area tool metadata immediately when module loads
-registerTool({
-  type: "area",
-  name: "Area",
-  icon: "📐"
-})
+import { registerTool } from "@/composables/useToolRegistry"
 
 /**
  * Area Tool - extends BaseTool
@@ -69,12 +62,26 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
   })
 
   // Return composed tool (like extending multiple classes)
-  return {
+  const tool = {
     ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     ...drawing, // Inherit: drawing behavior, events, state
     previewArea, // Add: tool-specific features
     previewPolygon
   }
+
+  // Register tool with full metadata and event handlers
+  registerTool({
+    type: "area",
+    name: "Area",
+    icon: "📐",
+    component: defineAsyncComponent(() => import("@/components/tools/Area.vue")),
+    onClick: tool.handleClick,
+    onMouseMove: tool.handleMove,
+    onMouseLeave: tool.clearPreview,
+    onKeyDown: tool.handleKeyDown
+  })
+
+  return tool
 })
 
 export { useAreaTool, useAreaToolState }

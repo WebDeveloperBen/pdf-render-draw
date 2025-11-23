@@ -1,13 +1,6 @@
 import { createInjectionState } from "@vueuse/core"
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { registerTool } from "~/composables/useToolRegistry"
-
-// Register perimeter tool metadata immediately when module loads
-registerTool({
-  type: "perimeter",
-  name: "Perimeter",
-  icon: "⬡"
-})
+import { registerTool } from "@/composables/useToolRegistry"
 
 /**
  * Perimeter Tool - extends BaseTool
@@ -92,11 +85,25 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   })
 
   // Return composed tool (like extending multiple classes)
-  return {
+  const tool = {
     ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     ...drawing, // Inherit: drawing behavior, events, state
     previewSegments // Add: tool-specific features
   }
+
+  // Register tool with full metadata and event handlers
+  registerTool({
+    type: "perimeter",
+    name: "Perimeter",
+    icon: "⬡",
+    component: defineAsyncComponent(() => import("@/components/tools/Perimeter.vue")),
+    onClick: tool.handleClick,
+    onMouseMove: tool.handleMove,
+    onMouseLeave: tool.clearPreview,
+    onKeyDown: tool.handleKeyDown
+  })
+
+  return tool
 })
 
 export { usePerimeterTool, usePerimeterToolState }

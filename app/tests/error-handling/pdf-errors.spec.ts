@@ -100,7 +100,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('https://example.com/nonexistent.pdf', { onError })
 
       await nextTick()
@@ -117,7 +117,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, new Error('Invalid PDF source')))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('', { onError })
 
       await nextTick()
@@ -130,7 +130,7 @@ describe('PDF Error Handling', () => {
     it('should handle null source', async () => {
       const onError = vi.fn()
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF(null, { onError })
 
       await nextTick()
@@ -144,7 +144,7 @@ describe('PDF Error Handling', () => {
     it('should handle undefined source', async () => {
       const onError = vi.fn()
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF(undefined, { onError })
 
       await nextTick()
@@ -161,7 +161,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('not-a-valid-url', { onError })
 
       await nextTick()
@@ -178,7 +178,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('/corrupted.pdf', { onError })
 
       await nextTick()
@@ -195,7 +195,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('/fake.pdf', { onError })
 
       await nextTick()
@@ -212,7 +212,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('/encrypted.pdf', { onError })
 
       await nextTick()
@@ -232,7 +232,7 @@ describe('PDF Error Handling', () => {
 
       // Re-import to get fresh module instance
       vi.resetModules()
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
 
       // This should throw since it's synchronous
       expect(() => {
@@ -253,7 +253,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('https://example.com/slow.pdf', { onError })
 
       await nextTick()
@@ -271,7 +271,7 @@ describe('PDF Error Handling', () => {
       const loadingTask = createMockLoadingTask(false, undefined, error)
       mockGetDocument.mockReturnValue(loadingTask)
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('https://example.com/large.pdf', {
         onProgress,
         onError,
@@ -297,7 +297,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('https://external-domain.com/file.pdf', { onError })
 
       await nextTick()
@@ -317,7 +317,7 @@ describe('PDF Error Handling', () => {
       const loadingTask = createMockLoadingTask(true, { numPages: 3 })
       mockGetDocument.mockReturnValue(loadingTask)
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('/test.pdf', { onProgress, onError })
 
       // Trigger progress callback
@@ -341,7 +341,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, loadingError))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
 
       usePDF('/test.pdf', { onError })
 
@@ -360,7 +360,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, expectedError))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       usePDF('/test.pdf', { onError })
 
       await nextTick()
@@ -376,7 +376,7 @@ describe('PDF Error Handling', () => {
       const error = new Error('PDF error without callback')
       mockGetDocument.mockReturnValue(createMockLoadingTask(false, undefined, error))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('/test.pdf')
 
       await nextTick()
@@ -406,7 +406,7 @@ describe('PDF Error Handling', () => {
         return callCount === 1 ? loadingTask1 : loadingTask2
       })
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF(pdfUrl, { onError })
 
       await nextTick()
@@ -445,7 +445,7 @@ describe('PDF Error Handling', () => {
         return task
       })
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF(pdfUrl, { onError })
 
       await nextTick()
@@ -473,7 +473,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(true, { numPages: 5 }))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF(pdfUrl)
 
       await nextTick()
@@ -496,7 +496,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(true, { numPages: 7 }))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF(pdfUrl)
 
       await nextTick()
@@ -520,7 +520,7 @@ describe('PDF Error Handling', () => {
     it('should configure worker only once', async () => {
       // Worker is already configured at module load time, so we verify
       // that the worker port is set and multiple PDF loads don't recreate it
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(true, { numPages: 1 }))
 
@@ -556,7 +556,7 @@ describe('PDF Error Handling', () => {
     it('should handle PDF with zero pages', async () => {
       mockGetDocument.mockReturnValue(createMockLoadingTask(true, { numPages: 0 }))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('/empty.pdf')
 
       await nextTick()
@@ -569,7 +569,7 @@ describe('PDF Error Handling', () => {
     it('should handle extremely large PDF (1000+ pages)', async () => {
       mockGetDocument.mockReturnValue(createMockLoadingTask(true, { numPages: 1500 }))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF('/large.pdf')
 
       await nextTick()
@@ -590,7 +590,7 @@ describe('PDF Error Handling', () => {
 
       mockGetDocument.mockReturnValue(createMockLoadingTask(true, { numPages: 3 }))
 
-      const { usePDF } = await import('~/composables/usePDF')
+      const { usePDF } = await import('@/composables/usePDF')
       const { pdf, totalPages } = usePDF(customParams, { onError })
 
       await nextTick()

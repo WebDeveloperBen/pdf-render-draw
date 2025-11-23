@@ -3,14 +3,7 @@ import type { Point } from "~/types"
 import { v4 as uuidv4 } from "uuid"
 import { createInjectionState } from "@vueuse/core"
 import { ref, computed } from "vue"
-import { registerTool } from "~/composables/useToolRegistry"
-
-// Register fill tool metadata immediately when module loads
-registerTool({
-  type: "fill",
-  name: "Fill",
-  icon: "🎨"
-})
+import { registerTool } from "@/composables/useToolRegistry"
 
 const [useFillTool, useFillToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
@@ -110,7 +103,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     annotationStore.deleteAnnotation(id)
   }
 
-  return {
+  const tool = {
     completed,
     selected,
     isDrawing,
@@ -121,6 +114,19 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     selectAnnotation,
     deleteFill
   }
+
+  // Register tool with full metadata and event handlers
+  registerTool({
+    type: "fill",
+    name: "Fill",
+    icon: "🎨",
+    component: defineAsyncComponent(() => import("@/components/tools/Fill.vue")),
+    onMouseDown: tool.handleMouseDown,
+    onMouseMove: tool.handleMouseMove,
+    onMouseUp: tool.handleMouseUp
+  })
+
+  return tool
 })
 
 export { useFillTool, useFillToolState }

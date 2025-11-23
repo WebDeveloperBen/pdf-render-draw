@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach } from "vitest"
 import { useAnnotationStore } from "~/stores/annotations"
-import { useModifierKeys } from "~/composables/useModifierKeys"
+import { useModifierKeys } from "@/composables/useModifierKeys"
 
 describe("Regression: Multi-Select Interactions", () => {
   beforeEach(() => {

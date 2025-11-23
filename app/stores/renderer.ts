@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from "pdfjs-dist"
-import { RENDERING } from "~/constants/rendering"
+import { RENDERING } from "@/constants/rendering"
 
 export const useRendererStore = defineStore("renderer", () => {
   /**

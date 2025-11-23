@@ -1,12 +1,6 @@
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { registerTool } from "~/composables/useToolRegistry"
-
-// Register measure tool metadata immediately when module loads
-registerTool({
-  type: "measure",
-  name: "Measure",
-  icon: "📏"
-})
+import { defineAsyncComponent } from "vue"
+import { registerTool } from "@/composables/useToolRegistry"
 
 /**
  * Measure Tool - extends BaseTool
@@ -59,11 +53,26 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
   })
 
   // Return composed tool (like extending multiple classes)
-  return {
+  const tool = {
     ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     ...drawing, // Inherit: drawing behavior, events, state
     previewDistance // Add: tool-specific features
   }
+
+  // Register tool with full metadata and event handlers
+  // This happens once when the composable is first called
+  registerTool({
+    type: "measure",
+    name: "Measure",
+    icon: "📏",
+    component: defineAsyncComponent(() => import("@/components/tools/Measure.vue")),
+    onClick: tool.handleClick,
+    onMouseMove: tool.handleMove,
+    onMouseLeave: tool.clearPreview,
+    onKeyDown: tool.handleKeyDown
+  })
+
+  return tool
 })
 
 export { useMeasureTool, useMeasureToolState }

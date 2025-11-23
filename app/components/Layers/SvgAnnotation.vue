@@ -3,6 +3,15 @@ import { useEventListener } from "@vueuse/core"
 import { SELECTION } from "~/constants/ui"
 import { debugLog } from "~/utils/debug"
 
+// Import tool components directly
+import ToolsMeasure from "~/components/tools/Measure.vue"
+import ToolsCount from "~/components/tools/Count.vue"
+import ToolsArea from "~/components/tools/Area.vue"
+import ToolsPerimeter from "~/components/tools/Perimeter.vue"
+import ToolsLine from "~/components/tools/Line.vue"
+import ToolsFill from "~/components/tools/Fill.vue"
+import ToolsText from "~/components/tools/Text.vue"
+
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
 
@@ -14,41 +23,59 @@ const pdfWidth = computed(() => rendererStore.getCanvasSize.width)
 const pdfHeight = computed(() => rendererStore.getCanvasSize.height)
 
 // SVG positioning (overlays PDF exactly)
-// SVG scales by changing dimensions (not CSS transform) to maintain crisp vector rendering
+// SVG scales via CSS transform like the canvas to maintain coordinate consistency
 const svgStyle = computed(() => {
-  const scaledWidth = pdfWidth.value * rendererStore.getScale
-  const scaledHeight = pdfHeight.value * rendererStore.getScale
-
-  // Calculate offset to keep centered when scaling
-  const offsetX = (scaledWidth - pdfWidth.value) / 2
-  const offsetY = (scaledHeight - pdfHeight.value) / 2
-
   return {
     position: "absolute" as const,
     top: "0",
     left: "0",
-    width: `${scaledWidth}px`,
-    height: `${scaledHeight}px`,
-    transform: rendererStore.getSvgTransform(offsetX, offsetY),
+    width: `${pdfWidth.value}px`,
+    height: `${pdfHeight.value}px`,
+    transform: rendererStore.getCanvasTransform,
     transformOrigin: "center center" as const,
     pointerEvents: "all" as const,
-    zIndex: 10,
-    willChange: "width, height, transform" as const
+    zIndex: 1001,
+    willChange: "transform" as const
   }
 })
 
-const countTool = useCountTool()
-const measureTool = useMeasureTool()
-const areaTool = useAreaTool()
-const perimeterTool = usePerimeterTool()
-const lineTool = useLineTool()
-const fillTool = useFillTool()
-const textTool = useTextTool()
+// Initialize all tools (they register themselves when first called AND provide injection context)
+useCountTool()!
+useMeasureTool()!
+useAreaTool()!
+usePerimeterTool()!
+useLineTool()!
+useTextTool()!
+const fillTool = useFillTool()!
+
 const selectionMarquee = useSelectionMarquee()
 const dragState = useDragState()
+const toolRegistry = useToolRegistry()
 
 // Enable keyboard shortcuts (undo/redo, copy/paste, etc.)
 useKeyboardShortcuts()
+
+// Get all registered tools for dynamic rendering
+const registeredTools = computed(() => {
+  const tools = toolRegistry.getAllTools()
+  console.log(
+    "[SvgAnnotation] Registered tools count:",
+    tools.length,
+    tools.map((t) => ({ type: t.type, hasComponent: !!t.component, componentType: typeof t.component }))
+  )
+  return tools
+})
+
+// Map of tool types to their components
+const toolComponents = {
+  measure: ToolsMeasure,
+  count: ToolsCount,
+  area: ToolsArea,
+  perimeter: ToolsPerimeter,
+  line: ToolsLine,
+  fill: ToolsFill,
+  text: ToolsText
+}
 
 function handleMouseDown(e: MouseEvent) {
   const tool = annotationStore.activeTool
@@ -90,16 +117,15 @@ function handleMouseUp(e: MouseEvent) {
 
 function handleMouseLeave(e: MouseEvent) {
   // Clear cursor preview for all tools when mouse leaves canvas
-  // (fillTool, textTool, and countTool don't have preview states, so they don't need clearPreview)
-  measureTool.clearPreview?.()
-  areaTool.clearPreview?.()
-  perimeterTool.clearPreview?.()
-  lineTool.clearPreview?.()
+  for (const toolDef of toolRegistry.getAllTools()) {
+    toolDef.clearPreview?.()
+  }
 
-  // Complete fill tool drawing if mouse leaves while dragging
+  // Call registered tool's onMouseLeave handler
   const tool = annotationStore.activeTool
-  if (tool === "fill" && fillTool.isDrawing) {
-    fillTool.handleMouseUp(e)
+  const toolDef = toolRegistry.getTool(tool as Annotation["type"])
+  if (toolDef?.onMouseLeave) {
+    toolDef.onMouseLeave(e)
   }
 }
 
@@ -134,42 +160,21 @@ function handleClick(e: MouseEvent) {
     // Don't return - allow drawing tools to continue processing the click
   }
 
-  debugLog("SVG Layer", "Click:", {
-    tool,
-    target: e.target,
-    clientX: e.clientX,
-    clientY: e.clientY,
-    svgRef: svgRef.value
-  })
+  // debugLog("SVG Layer", "Click:", {
+  //   tool,
+  //   target: e.target,
+  //   clientX: e.clientX,
+  //   clientY: e.clientY,
+  //   svgRef: svgRef.value
+  // })
 
-  switch (tool) {
-    case "measure":
-      debugLog("SVG Layer", "Calling measure tool handleClick")
-      measureTool.handleClick(e)
-      break
-    case "area":
-      debugLog("SVG Layer", "Calling area tool handleClick")
-      areaTool.handleClick(e)
-      break
-    case "perimeter":
-      debugLog("SVG Layer", "Calling perimeter tool handleClick")
-      perimeterTool.handleClick(e)
-      break
-    case "line":
-      debugLog("SVG Layer", "Calling line tool handleClick")
-      lineTool.handleClick(e)
-      break
-
-    case "text":
-      debugLog("SVG Layer", "Calling text tool handleClick")
-      textTool.handleClick(e)
-      break
-    case "count":
-      debugLog("SVG Layer", "Calling count tool handleClick")
-      countTool.handleClick(e)
-      break
-    default:
-      debugLog("SVG Layer", "No tool selected or unknown tool:", tool)
+  // Call registered tool's onClick handler
+  const toolDef = toolRegistry.getTool(tool as Annotation["type"])
+  if (toolDef?.onClick) {
+    debugLog("SVG Layer", `Calling ${tool} tool onClick`)
+    toolDef.onClick(e)
+  } else if (tool) {
+    debugLog("SVG Layer", "No onClick handler for tool:", tool)
   }
 }
 
@@ -193,27 +198,12 @@ function handleMove(e: MouseEvent) {
     return // Don't process tool moves while selecting
   }
 
-  switch (tool) {
-    case "measure":
-      measureTool.handleMove(e)
-      break
-    case "area":
-      areaTool.handleMove(e)
-      break
-    case "perimeter":
-      perimeterTool.handleMove(e)
-      break
-    case "line":
-      lineTool.handleMove(e)
-      break
-    case "fill":
-      fillTool.handleMouseMove(e)
-      break
-    case "count":
-      // Count tool doesn't need move handling (no preview)
-      break
-    default:
-      debugLog("SVG Layer", "No matching tool for handleMove:", tool)
+  // Call registered tool's onMouseMove handler
+  const toolDef = toolRegistry.getTool(tool as Annotation["type"])
+  if (toolDef?.onMouseMove) {
+    toolDef.onMouseMove(e)
+  } else if (tool && tool !== "selection") {
+    debugLog("SVG Layer", "No onMouseMove handler for tool:", tool)
   }
 }
 
@@ -222,11 +212,10 @@ function handleMove(e: MouseEvent) {
 
 // Keyboard shortcuts
 function handleKeyDown(e: KeyboardEvent) {
-  measureTool.handleKeyDown(e)
-  areaTool.handleKeyDown(e)
-  perimeterTool.handleKeyDown(e)
-  lineTool.handleKeyDown(e)
-  countTool.handleKeyDown?.(e)
+  // Call all registered tools' onKeyDown handlers
+  for (const toolDef of toolRegistry.getAllTools()) {
+    toolDef.onKeyDown?.(e)
+  }
 
   // Global shortcuts
   if (e.key === "Escape") {
@@ -253,34 +242,22 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
     :viewBox="`0 0 ${pdfWidth} ${pdfHeight}`"
     :style="svgStyle"
     class="svg-annotation-layer"
+    preserveAspectRatio="xMidYMid meet"
     @click="handleClick"
     @mousedown="handleMouseDown"
     @mousemove="handleMove"
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseLeave"
   >
-    <!-- Render active tool + all completed annotations -->
-    <ToolsMeasure
-      v-if="annotationStore.activeTool === 'measure' || annotationStore.getAnnotationsByType('measure').length > 0"
-    />
-    <ToolsArea
-      v-if="annotationStore.activeTool === 'area' || annotationStore.getAnnotationsByType('area').length > 0"
-    />
-    <ToolsPerimeter
-      v-if="annotationStore.activeTool === 'perimeter' || annotationStore.getAnnotationsByType('perimeter').length > 0"
-    />
-    <ToolsLine
-      v-if="annotationStore.activeTool === 'line' || annotationStore.getAnnotationsByType('line').length > 0"
-    />
-    <ToolsFill
-      v-if="annotationStore.activeTool === 'fill' || annotationStore.getAnnotationsByType('fill').length > 0"
-    />
-    <ToolsText
-      v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0"
-    />
-    <ToolsCount
-      v-if="annotationStore.activeTool === 'count' || annotationStore.getAnnotationsByType('count').length > 0"
-    />
+    <!-- Render all registered tool components dynamically -->
+    <template v-for="toolDef in registeredTools" :key="toolDef.type">
+      <component
+        :is="toolComponents[toolDef.type as keyof typeof toolComponents]"
+        v-if="
+          annotationStore.activeTool === toolDef.type || annotationStore.getAnnotationsByType(toolDef.type).length > 0
+        "
+      />
+    </template>
 
     <!-- Selection marquee (drag-to-select rectangle) -->
     <rect

@@ -29,23 +29,37 @@ export interface ToolDefinition {
   /** Optional: Handler for context menu events */
   onContextMenu?: (annotationId: string) => void
 
-  /** Optional: Custom event handlers */
-  eventHandlers?: Record<string, (annotationId: string, event: Event) => void>
+  /** Optional: Event handlers for SVG layer events */
+  onClick?: (event: MouseEvent) => void
+  onMouseDown?: (event: MouseEvent) => void
+  onMouseUp?: (event: MouseEvent) => void
+  onMouseMove?: (event: MouseEvent) => void
+  onMouseLeave?: (event: MouseEvent) => void
+  onKeyDown?: (event: KeyboardEvent) => void
+
+  /** Optional: Method to clear preview state when mouse leaves */
+  clearPreview?: () => void
 }
 
-// Tool registry - reactive singleton storage
-const toolRegistry = ref(new Map<AnnotationType, ToolDefinition>())
+// Tool registry - use shallowRef to avoid making components reactive
+// Components should not be made reactive for performance reasons
+const toolRegistry = shallowRef(new Map<AnnotationType, ToolDefinition>())
 
 /**
  * Register a tool in the system
  * Call this in your tool's module to make it available
  */
 export function registerTool(definition: ToolDefinition) {
+  console.log('[ToolRegistry] Registering tool:', definition.type, 'hasComponent:', !!definition.component, 'component:', definition.component)
+
   if (toolRegistry.value.has(definition.type)) {
     console.warn(`Tool "${definition.type}" is already registered. Overwriting.`)
   }
 
   toolRegistry.value.set(definition.type, definition)
+
+  // Trigger reactivity update by creating new Map reference
+  toolRegistry.value = new Map(toolRegistry.value)
 }
 
 /**

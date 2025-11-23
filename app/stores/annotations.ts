@@ -1,15 +1,15 @@
-import { defineStore } from 'pinia'
-import type { Annotation, Measurement, Area, Perimeter, PerimeterSegment } from '~/types/annotations'
-import { validateAnnotation, isMeasurement, isArea, isPerimeter } from '~/types/annotations'
-import * as calc from '~/utils/calculations'
+import { defineStore } from "pinia"
+import type { Annotation, Measurement, Area, Perimeter, PerimeterSegment } from "~/types/annotations"
+import { validateAnnotation, isMeasurement, isArea, isPerimeter } from "~/types/annotations"
+import * as calc from "~/utils/calculations"
 
-export const useAnnotationStore = defineStore('annotations', () => {
+export const useAnnotationStore = defineStore("annotations", () => {
   // ============================================
   // State - DRASTICALLY SIMPLIFIED
   // ============================================
 
   const annotations = ref<Annotation[]>([])
-  const activeTool = ref<Annotation['type'] | 'selection' | 'rotate' | ''>('')
+  const activeTool = ref<Annotation["type"] | "selection" | "rotate" | "">("")
   const selectedAnnotationIds = ref<string[]>([]) // Multi-select support
   const isDrawing = ref(false)
 
@@ -21,19 +21,27 @@ export const useAnnotationStore = defineStore('annotations', () => {
   // ============================================
 
   function getAnnotationsByPage(pageNum: number) {
-    return annotations.value.filter(a => a.pageNum === pageNum)
+    return annotations.value.filter((a) => a.pageNum === pageNum)
   }
 
-  function getAnnotationsByType(type: Annotation['type']) {
-    return annotations.value.filter(a => a.type === type)
+  function getAnnotationsByType(type: Annotation["type"]) {
+    return annotations.value.filter((a) => a.type === type)
   }
 
-  function getAnnotationsByTypeAndPage(type: Annotation['type'], pageNum: number) {
-    return annotations.value.filter(a => a.type === type && a.pageNum === pageNum)
+  function getAnnotationsByTypeAndPage(type: Annotation["type"], pageNum: number) {
+    const result = annotations.value.filter((a) => a.type === type && a.pageNum === pageNum)
+    console.log(
+      `[AnnotationStore] getAnnotationsByTypeAndPage(${type}, ${pageNum}):`,
+      result.length,
+      "of",
+      annotations.value.length,
+      "total"
+    )
+    return result
   }
 
   function getAnnotationById(id: string) {
-    return annotations.value.find(a => a.id === id)
+    return annotations.value.find((a) => a.id === id)
   }
 
   // Backwards compatible: returns first selected annotation (or null)
@@ -48,7 +56,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
   // Multi-select: returns all selected annotations
   const selectedAnnotations = computed(() => {
     return selectedAnnotationIds.value
-      .map(id => getAnnotationById(id))
+      .map((id) => getAnnotationById(id))
       .filter((ann): ann is Annotation => ann !== undefined)
   })
 
@@ -68,7 +76,8 @@ export const useAnnotationStore = defineStore('annotations', () => {
     // During multi-select rotation drag, don't apply individual drag delta
     // (group rotation is handled at the SvgAnnotationLayer level)
     const isMultiSelectRotating = selectedAnnotationIds.value.length > 1 && rotationDragDelta.value !== 0
-    const isMultiSelected = selectedAnnotationIds.value.length > 1 && selectedAnnotationIds.value.includes(annotation.id)
+    const isMultiSelected =
+      selectedAnnotationIds.value.length > 1 && selectedAnnotationIds.value.includes(annotation.id)
     let rotation = storedRotation
 
     if (isMultiSelectRotating && isMultiSelected) {
@@ -76,9 +85,8 @@ export const useAnnotationStore = defineStore('annotations', () => {
       rotation = storedRotation
     } else {
       // Single annotation: add drag delta if being rotated
-      rotation = selectedAnnotationId.value === annotation.id
-        ? storedRotation + rotationDragDelta.value
-        : storedRotation
+      rotation =
+        selectedAnnotationId.value === annotation.id ? storedRotation + rotationDragDelta.value : storedRotation
     }
 
     if (rotation === 0) return ""
@@ -106,7 +114,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     const settingsStore = useSettingStore()
     const pdfScale = settingsStore.getPdfScale
 
-    const derivedUpdates: Record<string, any> = {}
+    const derivedUpdates: Record<string, unknown> = {}
 
     if (isMeasurement(annotation)) {
       // Recalculate distance and midpoint
@@ -163,10 +171,17 @@ export const useAnnotationStore = defineStore('annotations', () => {
    */
   function addAnnotation(annotation: Annotation) {
     if (!validateAnnotation(annotation)) {
-      console.error('Invalid annotation:', annotation)
+      console.error("Invalid annotation:", annotation)
       throw new Error(`Invalid annotation: missing or malformed data`)
     }
     annotations.value.push(annotation)
+    console.log(
+      "[AnnotationStore] Added annotation:",
+      annotation.type,
+      annotation.id,
+      "Total annotations:",
+      annotations.value.length
+    )
   }
 
   /**
@@ -175,7 +190,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
    * @throws {Error} If updated annotation is invalid
    */
   function updateAnnotation(id: string, updates: Partial<Annotation>) {
-    const index = annotations.value.findIndex(a => a.id === id)
+    const index = annotations.value.findIndex((a) => a.id === id)
     if (index === -1) {
       console.warn(`Annotation with id ${id} not found`)
       return
@@ -185,13 +200,13 @@ export const useAnnotationStore = defineStore('annotations', () => {
     let updated = { ...annotations.value[index], ...updates }
 
     // If points were updated, recalculate derived values (distance, midpoint, area, center, etc.)
-    if ('points' in updates && updates.points) {
+    if ("points" in updates && updates.points) {
       const derivedValues = recalculateDerivedValues(updated as Annotation) as any
       updated = { ...updated, ...derivedValues }
     }
 
     if (!validateAnnotation(updated)) {
-      console.error('Invalid annotation update:', updated)
+      console.error("Invalid annotation update:", updated)
       throw new Error(`Invalid annotation update for id ${id}`)
     }
 
@@ -199,7 +214,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
   }
 
   function deleteAnnotation(id: string) {
-    const index = annotations.value.findIndex(a => a.id === id)
+    const index = annotations.value.findIndex((a) => a.id === id)
     if (index !== -1) {
       annotations.value.splice(index, 1)
     }
@@ -210,7 +225,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     }
   }
 
-  function setActiveTool(tool: Annotation['type'] | 'selection' | 'rotate' | '') {
+  function setActiveTool(tool: Annotation["type"] | "selection" | "rotate" | "") {
     activeTool.value = tool
     selectedAnnotationIds.value = []
     isDrawing.value = false
@@ -236,7 +251,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
     const ids = Array.isArray(id) ? id : [id]
 
     // Validate all IDs exist
-    const invalidIds = ids.filter(id => !annotations.value.some(a => a.id === id))
+    const invalidIds = ids.filter((id) => !annotations.value.some((a) => a.id === id))
     if (invalidIds.length > 0) {
       console.warn(`Cannot select annotations: not found:`, invalidIds)
       return
@@ -245,14 +260,14 @@ export const useAnnotationStore = defineStore('annotations', () => {
     // Handle multi-select modes
     if (options.addToSelection) {
       // Add to selection (Shift+Click)
-      ids.forEach(id => {
+      ids.forEach((id) => {
         if (!selectedAnnotationIds.value.includes(id)) {
           selectedAnnotationIds.value.push(id)
         }
       })
     } else if (options.toggle) {
       // Toggle selection (Cmd/Ctrl+Click)
-      ids.forEach(id => {
+      ids.forEach((id) => {
         const index = selectedAnnotationIds.value.indexOf(id)
         if (index !== -1) {
           selectedAnnotationIds.value.splice(index, 1)
@@ -267,7 +282,7 @@ export const useAnnotationStore = defineStore('annotations', () => {
 
     // Switch to selection tool if anything is selected
     if (selectedAnnotationIds.value.length > 0) {
-      activeTool.value = 'selection'
+      activeTool.value = "selection"
     } else {
       rotationDragDelta.value = 0
     }
@@ -299,9 +314,9 @@ export const useAnnotationStore = defineStore('annotations', () => {
    */
   function setAnnotations(newAnnotations: Annotation[]) {
     // Validate all annotations before setting
-    const invalidAnnotations = newAnnotations.filter(ann => !validateAnnotation(ann))
+    const invalidAnnotations = newAnnotations.filter((ann) => !validateAnnotation(ann))
     if (invalidAnnotations.length > 0) {
-      console.error('Invalid annotations found:', invalidAnnotations)
+      console.error("Invalid annotations found:", invalidAnnotations)
       throw new Error(`Cannot set annotations: ${invalidAnnotations.length} invalid annotation(s)`)
     }
     annotations.value = newAnnotations
@@ -312,29 +327,29 @@ export const useAnnotationStore = defineStore('annotations', () => {
   // ============================================
 
   async function saveAnnotations(documentUrl: string, authorId: string) {
-    const payload = annotations.value.map(ann => ({
+    const payload = annotations.value.map((ann) => ({
       id: ann.id,
       document_url: documentUrl,
       author_id: authorId,
       page_num: ann.pageNum,
       type: ann.type,
-      data: ann, // Entire annotation as JSON - NO NORMALIZATION!
+      data: ann // Entire annotation as JSON - NO NORMALIZATION!
     }))
 
-    await $fetch('/api/annotations/upsert', {
-      method: 'POST',
-      body: payload,
+    await $fetch("/api/annotations/upsert", {
+      method: "POST",
+      body: payload
     })
   }
 
   async function loadAnnotations(documentUrl: string) {
-    const { data } = await $fetch<{ data: Array<{ data: Annotation }> }>('/api/annotations/fetch', {
-      method: 'POST',
-      body: { documentSlug: documentUrl },
+    const { data } = await $fetch<{ data: Array<{ data: Annotation }> }>("/api/annotations/fetch", {
+      method: "POST",
+      body: { documentSlug: documentUrl }
     })
 
     // Data is already in the right format - NO DENORMALIZATION!
-    annotations.value = data.map(item => item.data)
+    annotations.value = data.map((item) => item.data)
   }
 
   // ============================================
@@ -354,27 +369,27 @@ export const useAnnotationStore = defineStore('annotations', () => {
       const imported = JSON.parse(jsonString) as Annotation[]
 
       // Validate all imported annotations
-      const invalidAnnotations = imported.filter(ann => !validateAnnotation(ann))
+      const invalidAnnotations = imported.filter((ann) => !validateAnnotation(ann))
       if (invalidAnnotations.length > 0) {
-        console.error('Invalid annotations in import:', invalidAnnotations)
+        console.error("Invalid annotations in import:", invalidAnnotations)
         throw new Error(`Import contains ${invalidAnnotations.length} invalid annotation(s)`)
       }
 
       annotations.value = imported
     } catch (error) {
-      console.error('Failed to import annotations:', error)
+      console.error("Failed to import annotations:", error)
       if (error instanceof Error) {
         throw error
       }
-      throw new Error('Invalid JSON format')
+      throw new Error("Invalid JSON format")
     }
   }
 
-  function downloadJSON(filename: string = 'annotations.json') {
+  function downloadJSON(filename: string = "annotations.json") {
     const json = exportToJSON()
-    const blob = new Blob([json], { type: 'application/json' })
+    const blob = new Blob([json], { type: "application/json" })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const a = document.createElement("a")
     a.href = url
     a.download = filename
     a.click()
@@ -400,6 +415,23 @@ export const useAnnotationStore = defineStore('annotations', () => {
     isAnnotationSelected, // Check if ID is selected
     getRotationTransform,
 
+    // Debug: watch annotations for changes
+    ...(import.meta.client
+      ? {
+          _debug: watch(
+            annotations,
+            (newVal) => {
+              console.log(
+                "[AnnotationStore] Annotations changed! Count:",
+                newVal.length,
+                newVal.map((a) => a.type)
+              )
+            },
+            { deep: true }
+          )
+        }
+      : {}),
+
     // Actions
     addAnnotation,
     updateAnnotation,
@@ -414,6 +446,6 @@ export const useAnnotationStore = defineStore('annotations', () => {
     loadAnnotations,
     exportToJSON,
     importFromJSON,
-    downloadJSON,
+    downloadJSON
   }
 })
