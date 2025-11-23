@@ -1,9 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useHistoryStore } from './history'
-import { useAnnotationStore } from './annotations'
-import type { Point } from '~/types'
-import type { Measurement, Area, Perimeter, TextAnnotation } from '~/types/annotations'
+import { describe, it, expect, beforeEach } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { useHistoryStore } from "./history"
+import { useAnnotationStore } from "./annotations"
 
 // Import command classes directly from the store file to avoid Pinia proxy issues
 // These are exported at the end of the store definition
@@ -58,11 +56,7 @@ class UpdateAnnotationCommand implements Command {
   }
 
   undo() {
-    this.store.setAnnotations(
-      this.store.annotations.map(ann =>
-        ann.id === this.annotationId ? this.oldState : ann
-      )
-    )
+    this.store.setAnnotations(this.store.annotations.map((ann) => (ann.id === this.annotationId ? this.oldState : ann)))
   }
 }
 
@@ -96,7 +90,7 @@ class BatchCommand implements Command {
   }
 
   execute() {
-    this.commands.forEach(cmd => cmd.execute())
+    this.commands.forEach((cmd) => cmd.execute())
   }
 
   undo() {
@@ -107,28 +101,29 @@ class BatchCommand implements Command {
   }
 }
 
-describe('History Store', () => {
+describe("History Store", () => {
   beforeEach(() => {
     // Create a fresh pinia instance for each test
     setActivePinia(createPinia())
   })
 
-  describe('Command Execution', () => {
-    it('should execute command and add to undo stack', () => {
+  describe("Command Execution", () => {
+    it("should execute command and add to undo stack", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const command = new AddAnnotationCommand(measurement, annotationStore)
@@ -136,41 +131,43 @@ describe('History Store', () => {
 
       // Command should be executed
       expect(annotationStore.annotations).toHaveLength(1)
-      expect(annotationStore.annotations[0]?.id).toBe('measure-1')
+      expect(annotationStore.annotations[0]?.id).toBe("measure-1")
 
       // Command should be in undo stack
       expect(historyStore.undoStack).toHaveLength(1)
       expect(historyStore.canUndo).toBe(true)
     })
 
-    it('should clear redo stack when new command is executed', () => {
+    it("should clear redo stack when new command is executed", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement1: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
+        rotation: 0,
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const measurement2: Measurement = {
-        id: 'measure-2',
-        type: 'measure',
+        id: "measure-2",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 200, y: 200 },
-          { x: 300, y: 300 },
+          { x: 300, y: 300 }
         ],
         distance: 141.42,
         midpoint: { x: 250, y: 250 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       // Add first annotation
@@ -190,7 +187,7 @@ describe('History Store', () => {
       expect(historyStore.canRedo).toBe(false)
     })
 
-    it('should enforce max history size', () => {
+    it("should enforce max history size", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
@@ -201,15 +198,16 @@ describe('History Store', () => {
       for (let i = 0; i < 5; i++) {
         const measurement: Measurement = {
           id: `measure-${i}`,
-          type: 'measure',
+          rotation: 0,
+          type: "measure",
           pageNum: 1,
           points: [
             { x: i * 10, y: 0 },
-            { x: i * 10 + 100, y: 100 },
+            { x: i * 10 + 100, y: 100 }
           ],
           distance: 141.42,
           midpoint: { x: i * 10 + 50, y: 50 },
-          labelRotation: 0,
+          labelRotation: 0
         }
 
         const command = new AddAnnotationCommand(measurement, annotationStore)
@@ -221,22 +219,23 @@ describe('History Store', () => {
     })
   })
 
-  describe('Undo Functionality', () => {
-    it('should undo last command', () => {
+  describe("Undo Functionality", () => {
+    it("should undo last command", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
@@ -256,7 +255,7 @@ describe('History Store', () => {
       expect(historyStore.canUndo).toBe(false)
     })
 
-    it('should not undo when stack is empty', () => {
+    it("should not undo when stack is empty", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
@@ -270,21 +269,21 @@ describe('History Store', () => {
       expect(historyStore.redoStack).toHaveLength(0)
     })
 
-    it('should move command from undo stack to redo stack', () => {
+    it("should move command from undo stack to redo stack", () => {
       const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
@@ -299,22 +298,23 @@ describe('History Store', () => {
     })
   })
 
-  describe('Redo Functionality', () => {
-    it('should redo last undone command', () => {
+  describe("Redo Functionality", () => {
+    it("should redo last undone command", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
@@ -326,7 +326,7 @@ describe('History Store', () => {
 
       // Annotation should be re-added
       expect(annotationStore.annotations).toHaveLength(1)
-      expect(annotationStore.annotations[0]?.id).toBe('measure-1')
+      expect(annotationStore.annotations[0]?.id).toBe("measure-1")
 
       // Command should be back in undo stack
       expect(historyStore.undoStack).toHaveLength(1)
@@ -337,7 +337,7 @@ describe('History Store', () => {
       expect(historyStore.canRedo).toBe(false)
     })
 
-    it('should not redo when stack is empty', () => {
+    it("should not redo when stack is empty", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
@@ -351,21 +351,21 @@ describe('History Store', () => {
       expect(historyStore.redoStack).toHaveLength(0)
     })
 
-    it('should move command from redo stack to undo stack', () => {
+    it("should move command from redo stack to undo stack", () => {
       const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
@@ -381,24 +381,24 @@ describe('History Store', () => {
     })
   })
 
-  describe('Can Undo/Redo Flags', () => {
-    it('should return correct canUndo flag', () => {
+  describe("Can Undo/Redo Flags", () => {
+    it("should return correct canUndo flag", () => {
       const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
 
       expect(historyStore.canUndo).toBe(false)
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
+        rotation: 0,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
@@ -410,23 +410,23 @@ describe('History Store', () => {
       expect(historyStore.canUndo).toBe(false)
     })
 
-    it('should return correct canRedo flag', () => {
+    it("should return correct canRedo flag", () => {
       const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
 
       expect(historyStore.canRedo).toBe(false)
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
@@ -443,73 +443,73 @@ describe('History Store', () => {
     })
   })
 
-  describe('Command Descriptions', () => {
-    it('should return undo description', () => {
+  describe("Command Descriptions", () => {
+    it("should return undo description", () => {
       const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
 
       expect(historyStore.undoDescription).toBeNull()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
 
-      expect(historyStore.undoDescription).toBe('Add measure')
+      expect(historyStore.undoDescription).toBe("Add measure")
     })
 
-    it('should return redo description', () => {
+    it("should return redo description", () => {
       const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
 
       expect(historyStore.redoDescription).toBeNull()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
       historyStore.undo()
 
-      expect(historyStore.redoDescription).toBe('Add measure')
+      expect(historyStore.redoDescription).toBe("Add measure")
     })
   })
 
-  describe('Clear History', () => {
-    it('should clear both undo and redo stacks', () => {
+  describe("Clear History", () => {
+    it("should clear both undo and redo stacks", () => {
       const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
@@ -527,46 +527,46 @@ describe('History Store', () => {
     })
   })
 
-  describe('AddAnnotationCommand', () => {
-    it('should add annotation on execute', () => {
-      const historyStore = useHistoryStore()
+  describe("AddAnnotationCommand", () => {
+    it("should add annotation on execute", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const command = new AddAnnotationCommand(measurement, annotationStore)
       command.execute()
 
       expect(annotationStore.annotations).toHaveLength(1)
-      expect(annotationStore.annotations[0]?.id).toBe('measure-1')
+      expect(annotationStore.annotations[0]?.id).toBe("measure-1")
     })
 
-    it('should remove annotation on undo', () => {
-      const historyStore = useHistoryStore()
+    it("should remove annotation on undo", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const command = new AddAnnotationCommand(measurement, annotationStore)
@@ -579,137 +579,134 @@ describe('History Store', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should have correct description', () => {
-      const historyStore = useHistoryStore()
+    it("should have correct description", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const command = new AddAnnotationCommand(measurement, annotationStore)
 
-      expect(command.description).toBe('Add measure')
+      expect(command.description).toBe("Add measure")
     })
   })
 
-  describe('UpdateAnnotationCommand', () => {
-    it('should update annotation on execute', () => {
-      const historyStore = useHistoryStore()
+  describe("UpdateAnnotationCommand", () => {
+    it("should update annotation on execute", () => {
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Original',
+        content: "Original",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       annotationStore.addAnnotation(text)
 
-      const oldState = annotationStore.getAnnotationById('text-1')!
-      const updates = { content: 'Updated' }
+      const oldState = annotationStore.getAnnotationById("text-1")!
+      const updates = { content: "Updated" }
 
-      const command = new UpdateAnnotationCommand('text-1', oldState, updates, annotationStore)
+      const command = new UpdateAnnotationCommand("text-1", oldState, updates, annotationStore)
       command.execute()
 
-      const updated = annotationStore.getAnnotationById('text-1') as TextAnnotation
-      expect(updated.content).toBe('Updated')
+      const updated = annotationStore.getAnnotationById("text-1") as TextAnnotation
+      expect(updated.content).toBe("Updated")
     })
 
-    it('should restore old state on undo', () => {
-      const historyStore = useHistoryStore()
+    it("should restore old state on undo", () => {
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Original',
+        content: "Original",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       annotationStore.addAnnotation(text)
 
-      const oldState = annotationStore.getAnnotationById('text-1')!
-      const updates = { content: 'Updated' }
+      const oldState = annotationStore.getAnnotationById("text-1")!
+      const updates = { content: "Updated" }
 
-      const command = new UpdateAnnotationCommand('text-1', oldState, updates, annotationStore)
+      const command = new UpdateAnnotationCommand("text-1", oldState, updates, annotationStore)
       command.execute()
 
       command.undo()
 
-      const restored = annotationStore.getAnnotationById('text-1') as TextAnnotation
-      expect(restored.content).toBe('Original')
+      const restored = annotationStore.getAnnotationById("text-1") as TextAnnotation
+      expect(restored.content).toBe("Original")
     })
 
-    it('should have correct description', () => {
-      const historyStore = useHistoryStore()
+    it("should have correct description", () => {
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Original',
+        content: "Original",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       annotationStore.addAnnotation(text)
 
-      const oldState = annotationStore.getAnnotationById('text-1')!
-      const updates = { content: 'Updated' }
+      const oldState = annotationStore.getAnnotationById("text-1")!
+      const updates = { content: "Updated" }
 
-      const command = new UpdateAnnotationCommand('text-1', oldState, updates, annotationStore)
+      const command = new UpdateAnnotationCommand("text-1", oldState, updates, annotationStore)
 
-      expect(command.description).toBe('Update text')
+      expect(command.description).toBe("Update text")
     })
   })
 
-  describe('DeleteAnnotationCommand', () => {
-    it('should delete annotation on execute', () => {
-      const historyStore = useHistoryStore()
+  describe("DeleteAnnotationCommand", () => {
+    it("should delete annotation on execute", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       annotationStore.addAnnotation(measurement)
@@ -720,21 +717,21 @@ describe('History Store', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should restore annotation on undo', () => {
-      const historyStore = useHistoryStore()
+    it("should restore annotation on undo", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       annotationStore.addAnnotation(measurement)
@@ -747,110 +744,112 @@ describe('History Store', () => {
       command.undo()
 
       expect(annotationStore.annotations).toHaveLength(1)
-      expect(annotationStore.annotations[0]?.id).toBe('measure-1')
+      expect(annotationStore.annotations[0]?.id).toBe("measure-1")
     })
 
-    it('should have correct description', () => {
-      const historyStore = useHistoryStore()
+    it("should have correct description", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const command = new DeleteAnnotationCommand(measurement, annotationStore)
 
-      expect(command.description).toBe('Delete measure')
+      expect(command.description).toBe("Delete measure")
     })
   })
 
-  describe('BatchCommand', () => {
-    it('should execute multiple commands', () => {
-      const historyStore = useHistoryStore()
+  describe("BatchCommand", () => {
+    it("should execute multiple commands", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement1: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const measurement2: Measurement = {
-        id: 'measure-2',
-        type: 'measure',
+        id: "measure-2",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 200, y: 200 },
-          { x: 300, y: 300 },
+          { x: 300, y: 300 }
         ],
         distance: 141.42,
         midpoint: { x: 250, y: 250 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const commands = [
         new AddAnnotationCommand(measurement1, annotationStore),
-        new AddAnnotationCommand(measurement2, annotationStore),
+        new AddAnnotationCommand(measurement2, annotationStore)
       ]
 
-      const batchCommand = new BatchCommand(commands, 'Add multiple measurements')
+      const batchCommand = new BatchCommand(commands, "Add multiple measurements")
       batchCommand.execute()
 
       expect(annotationStore.annotations).toHaveLength(2)
     })
 
-    it('should undo multiple commands in reverse order', () => {
-      const historyStore = useHistoryStore()
+    it("should undo multiple commands in reverse order", () => {
       const annotationStore = useAnnotationStore()
 
       const measurement1: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const measurement2: Measurement = {
-        id: 'measure-2',
-        type: 'measure',
+        id: "measure-2",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 200, y: 200 },
-          { x: 300, y: 300 },
+          { x: 300, y: 300 }
         ],
         distance: 141.42,
         midpoint: { x: 250, y: 250 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const commands = [
         new AddAnnotationCommand(measurement1, annotationStore),
-        new AddAnnotationCommand(measurement2, annotationStore),
+        new AddAnnotationCommand(measurement2, annotationStore)
       ]
 
-      const batchCommand = new BatchCommand(commands, 'Add multiple measurements')
+      const batchCommand = new BatchCommand(commands, "Add multiple measurements")
       batchCommand.execute()
 
       expect(annotationStore.annotations).toHaveLength(2)
@@ -860,190 +859,193 @@ describe('History Store', () => {
       expect(annotationStore.annotations).toHaveLength(0)
     })
 
-    it('should have custom description', () => {
-      const historyStore = useHistoryStore()
-      const annotationStore = useAnnotationStore()
-
+    it("should have custom description", () => {
       const commands: any[] = []
-      const batchCommand = new BatchCommand(commands, 'Custom batch description')
+      const batchCommand = new BatchCommand(commands, "Custom batch description")
 
-      expect(batchCommand.description).toBe('Custom batch description')
+      expect(batchCommand.description).toBe("Custom batch description")
     })
   })
 
-  describe('AddAnnotationWithHistory Helper', () => {
-    it('should add annotation and create command', () => {
+  describe("AddAnnotationWithHistory Helper", () => {
+    it("should add annotation and create command", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
+        rotation: 0,
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       historyStore.addAnnotationWithHistory(measurement)
 
       expect(annotationStore.annotations).toHaveLength(1)
       expect(historyStore.canUndo).toBe(true)
-      expect(historyStore.undoDescription).toBe('Add measure')
+      expect(historyStore.undoDescription).toBe("Add measure")
     })
   })
 
-  describe('UpdateAnnotationWithHistory Helper', () => {
-    it('should update annotation and create command', () => {
+  describe("UpdateAnnotationWithHistory Helper", () => {
+    it("should update annotation and create command", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Original',
+        content: "Original",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       annotationStore.addAnnotation(text)
 
-      historyStore.updateAnnotationWithHistory('text-1', { content: 'Updated' })
+      historyStore.updateAnnotationWithHistory("text-1", { content: "Updated" })
 
-      const updated = annotationStore.getAnnotationById('text-1') as TextAnnotation
-      expect(updated.content).toBe('Updated')
+      const updated = annotationStore.getAnnotationById("text-1") as TextAnnotation
+      expect(updated.content).toBe("Updated")
       expect(historyStore.canUndo).toBe(true)
-      expect(historyStore.undoDescription).toBe('Update text')
+      expect(historyStore.undoDescription).toBe("Update text")
     })
 
-    it('should not create command if annotation not found', () => {
+    it("should not create command if annotation not found", () => {
       const historyStore = useHistoryStore()
 
-      historyStore.updateAnnotationWithHistory('non-existent', { content: 'Updated' })
+      historyStore.updateAnnotationWithHistory("non-existent", { content: "Updated" })
 
       expect(historyStore.canUndo).toBe(false)
     })
   })
 
-  describe('DeleteAnnotationWithHistory Helper', () => {
-    it('should delete annotation and create command', () => {
+  describe("DeleteAnnotationWithHistory Helper", () => {
+    it("should delete annotation and create command", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       annotationStore.addAnnotation(measurement)
 
-      historyStore.deleteAnnotationWithHistory('measure-1')
+      historyStore.deleteAnnotationWithHistory("measure-1")
 
       expect(annotationStore.annotations).toHaveLength(0)
       expect(historyStore.canUndo).toBe(true)
-      expect(historyStore.undoDescription).toBe('Delete measure')
+      expect(historyStore.undoDescription).toBe("Delete measure")
     })
 
-    it('should not create command if annotation not found', () => {
+    it("should not create command if annotation not found", () => {
       const historyStore = useHistoryStore()
 
-      historyStore.deleteAnnotationWithHistory('non-existent')
+      historyStore.deleteAnnotationWithHistory("non-existent")
 
       expect(historyStore.canUndo).toBe(false)
     })
   })
 
-  describe('ExecuteBatchCommand Helper', () => {
-    it('should execute batch command', () => {
+  describe("ExecuteBatchCommand Helper", () => {
+    it("should execute batch command", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement1: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const measurement2: Measurement = {
-        id: 'measure-2',
-        type: 'measure',
+        id: "measure-2",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 200, y: 200 },
-          { x: 300, y: 300 },
+          { x: 300, y: 300 }
         ],
         distance: 141.42,
         midpoint: { x: 250, y: 250 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const commands = [
         new AddAnnotationCommand(measurement1, annotationStore),
-        new AddAnnotationCommand(measurement2, annotationStore),
+        new AddAnnotationCommand(measurement2, annotationStore)
       ]
 
-      historyStore.executeBatchCommand(commands, 'Add multiple measurements')
+      historyStore.executeBatchCommand(commands, "Add multiple measurements")
 
       expect(annotationStore.annotations).toHaveLength(2)
       expect(historyStore.canUndo).toBe(true)
-      expect(historyStore.undoDescription).toBe('Add multiple measurements')
+      expect(historyStore.undoDescription).toBe("Add multiple measurements")
     })
   })
 
-  describe('Multiple Undo/Redo Cycles', () => {
-    it('should handle multiple undo/redo operations correctly', () => {
+  describe("Multiple Undo/Redo Cycles", () => {
+    it("should handle multiple undo/redo operations correctly", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement1: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const measurement2: Measurement = {
-        id: 'measure-2',
-        type: 'measure',
+        id: "measure-2",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 200, y: 200 },
-          { x: 300, y: 300 },
+          { x: 300, y: 300 }
         ],
         distance: 141.42,
         midpoint: { x: 250, y: 250 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       // Add two annotations
@@ -1062,7 +1064,7 @@ describe('History Store', () => {
       historyStore.redo()
 
       expect(annotationStore.annotations).toHaveLength(1)
-      expect(annotationStore.annotations[0]?.id).toBe('measure-1')
+      expect(annotationStore.annotations[0]?.id).toBe("measure-1")
 
       // Redo again
       historyStore.redo()
@@ -1071,52 +1073,54 @@ describe('History Store', () => {
     })
   })
 
-  describe('Group Operations with Batch Commands', () => {
-    it('should handle group rotation as a batch command', () => {
+  describe("Group Operations with Batch Commands", () => {
+    it("should handle group rotation as a batch command", () => {
       const historyStore = useHistoryStore()
       const annotationStore = useAnnotationStore()
 
       const measurement1: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       const measurement2: Measurement = {
-        id: 'measure-2',
-        type: 'measure',
+        id: "measure-2",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 200, y: 200 },
-          { x: 300, y: 300 },
+          { x: 300, y: 300 }
         ],
         distance: 141.42,
         midpoint: { x: 250, y: 250 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
       annotationStore.addAnnotation(measurement1)
       annotationStore.addAnnotation(measurement2)
 
-      const oldState1 = annotationStore.getAnnotationById('measure-1')!
-      const oldState2 = annotationStore.getAnnotationById('measure-2')!
+      const oldState1 = annotationStore.getAnnotationById("measure-1")!
+      const oldState2 = annotationStore.getAnnotationById("measure-2")!
 
       const commands = [
-        new UpdateAnnotationCommand('measure-1', oldState1, { rotation: 45 }, annotationStore),
-        new UpdateAnnotationCommand('measure-2', oldState2, { rotation: 45 }, annotationStore),
+        new UpdateAnnotationCommand("measure-1", oldState1, { rotation: 45 }, annotationStore),
+        new UpdateAnnotationCommand("measure-2", oldState2, { rotation: 45 }, annotationStore)
       ]
 
-      historyStore.executeBatchCommand(commands, 'Rotate group')
+      historyStore.executeBatchCommand(commands, "Rotate group")
 
-      const updated1 = annotationStore.getAnnotationById('measure-1') as Measurement
-      const updated2 = annotationStore.getAnnotationById('measure-2') as Measurement
+      const updated1 = annotationStore.getAnnotationById("measure-1") as Measurement
+      const updated2 = annotationStore.getAnnotationById("measure-2") as Measurement
 
       expect(updated1.rotation).toBe(45)
       expect(updated2.rotation).toBe(45)
@@ -1124,8 +1128,8 @@ describe('History Store', () => {
       // Undo batch operation
       historyStore.undo()
 
-      const restored1 = annotationStore.getAnnotationById('measure-1') as Measurement
-      const restored2 = annotationStore.getAnnotationById('measure-2') as Measurement
+      const restored1 = annotationStore.getAnnotationById("measure-1") as Measurement
+      const restored2 = annotationStore.getAnnotationById("measure-2") as Measurement
 
       expect(restored1.rotation).toBeUndefined()
       expect(restored2.rotation).toBeUndefined()

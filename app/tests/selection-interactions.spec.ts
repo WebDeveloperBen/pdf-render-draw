@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import type { MeasureAnnotation, AreaAnnotation, FillAnnotation, LineAnnotation } from "~/types/annotations"
+import type { Measurement, Area, Fill, Line } from "~/types/annotations"
+import type { Point } from "~/types"
 
 /**
  * Selection Interactions Test Suite
@@ -20,7 +21,7 @@ describe("Selection Interactions", () => {
 
     // Set up minimal renderer state
     const rendererStore = useRendererStore()
-    rendererStore.currentPageIdx = 0
+    rendererStore.currentPage = 1
     rendererStore.scale = 1
   })
 
@@ -29,17 +30,17 @@ describe("Selection Interactions", () => {
       const annotationStore = useAnnotationStore()
 
       // Create and select a measurement
-      const measure: MeasureAnnotation = {
+      const measure: Measurement = {
         id: "m1",
         type: "measure",
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }
-        ],
+          { x: 200, y: 100 }] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(measure)
@@ -56,30 +57,30 @@ describe("Selection Interactions", () => {
       const annotationStore = useAnnotationStore()
 
       // Create multiple annotations
-      const m1: MeasureAnnotation = {
+      const m1: Measurement = {
         id: "m1",
         type: "measure",
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }
-        ],
+          { x: 200, y: 100 }] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
-      const m2: MeasureAnnotation = {
+      const m2: Measurement = {
         id: "m2",
         type: "measure",
         pageNum: 1,
         points: [
           { x: 100, y: 200 },
-          { x: 200, y: 200 }
-        ],
+          { x: 200, y: 200 }] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 200 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(m1)
@@ -99,7 +100,7 @@ describe("Selection Interactions", () => {
     it("should maintain selection when switching tools", () => {
       const annotationStore = useAnnotationStore()
 
-      const fill: FillAnnotation = {
+      const fill: Fill = {
         id: "f1",
         type: "fill",
         pageNum: 1,
@@ -108,7 +109,8 @@ describe("Selection Interactions", () => {
         width: 100,
         height: 100,
         color: "#ff0000",
-        opacity: 0.5
+        opacity: 0.5,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(fill)
@@ -126,30 +128,30 @@ describe("Selection Interactions", () => {
     it("should replace selection when selecting different annotation without addToSelection", () => {
       const annotationStore = useAnnotationStore()
 
-      const m1: MeasureAnnotation = {
+      const m1: Measurement = {
         id: "m1",
         type: "measure",
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }
-        ],
+          { x: 200, y: 100 }] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
-      const m2: MeasureAnnotation = {
+      const m2: Measurement = {
         id: "m2",
         type: "measure",
         pageNum: 1,
         points: [
           { x: 100, y: 200 },
-          { x: 200, y: 200 }
-        ],
+          { x: 200, y: 200 }] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 200 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(m1)
@@ -167,8 +169,9 @@ describe("Selection Interactions", () => {
     it("should add to selection when using addToSelection option", () => {
       const annotationStore = useAnnotationStore()
 
-      const line1: LineAnnotation = {
+      const line1: Line = {
         id: "l1",
+        rotation: 0,
         type: "line",
         pageNum: 1,
         points: [
@@ -177,9 +180,10 @@ describe("Selection Interactions", () => {
         ]
       }
 
-      const line2: LineAnnotation = {
+      const line2: Line = {
         id: "l2",
         type: "line",
+        rotation: 0,
         pageNum: 1,
         points: [
           { x: 150, y: 150 },
@@ -205,7 +209,7 @@ describe("Selection Interactions", () => {
     it("should allow drawing tools to be active while annotations are selected", () => {
       const annotationStore = useAnnotationStore()
 
-      const area: AreaAnnotation = {
+      const area: Area = {
         id: "a1",
         type: "area",
         pageNum: 1,
@@ -216,7 +220,8 @@ describe("Selection Interactions", () => {
         ],
         area: 17640,
         center: { x: 150, y: 133.33 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(area)
@@ -234,17 +239,17 @@ describe("Selection Interactions", () => {
     it("should allow changing tools while selection persists", () => {
       const annotationStore = useAnnotationStore()
 
-      const measure: MeasureAnnotation = {
+      const measure: Measurement = {
         id: "m1",
         type: "measure",
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }
-        ],
+          { x: 200, y: 100 }] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(measure)
@@ -269,7 +274,7 @@ describe("Selection Interactions", () => {
     it("should support deselecting by calling selectAnnotation(null)", () => {
       const annotationStore = useAnnotationStore()
 
-      const fill: FillAnnotation = {
+      const fill: Fill = {
         id: "f1",
         type: "fill",
         pageNum: 1,
@@ -278,10 +283,11 @@ describe("Selection Interactions", () => {
         width: 100,
         height: 100,
         color: "#ff0000",
-        opacity: 0.5
+        opacity: 0.5,
+        rotation: 0
       }
 
-      const fill2: FillAnnotation = {
+      const fill2: Fill = {
         id: "f2",
         type: "fill",
         pageNum: 1,
@@ -290,7 +296,8 @@ describe("Selection Interactions", () => {
         width: 100,
         height: 100,
         color: "#00ff00",
-        opacity: 0.5
+        opacity: 0.5,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(fill)
@@ -311,8 +318,9 @@ describe("Selection Interactions", () => {
     it("should work regardless of active tool", () => {
       const annotationStore = useAnnotationStore()
 
-      const line: LineAnnotation = {
+      const line: Line = {
         id: "l1",
+        rotation: 0,
         type: "line",
         pageNum: 1,
         points: [
@@ -357,11 +365,11 @@ describe("Selection Interactions", () => {
           pageNum: 1,
           points: [
             { x: 100, y: 100 },
-            { x: 200, y: 100 }
-          ],
+            { x: 200, y: 100 }] as [Point, Point],
           distance: 3528,
           midpoint: { x: 150, y: 100 },
-          labelRotation: 0
+          labelRotation: 0,
+          rotation: 0
         },
         {
           id: "m2",
@@ -369,11 +377,11 @@ describe("Selection Interactions", () => {
           pageNum: 1,
           points: [
             { x: 100, y: 200 },
-            { x: 200, y: 200 }
-          ],
+            { x: 200, y: 200 }] as [Point, Point],
           distance: 3528,
           midpoint: { x: 150, y: 200 },
-          labelRotation: 0
+          labelRotation: 0,
+          rotation: 0
         },
         {
           id: "m3",
@@ -381,11 +389,11 @@ describe("Selection Interactions", () => {
           pageNum: 1,
           points: [
             { x: 100, y: 300 },
-            { x: 200, y: 300 }
-          ],
+            { x: 200, y: 300 }] as [Point, Point],
           distance: 3528,
           midpoint: { x: 150, y: 300 },
-          labelRotation: 0
+          labelRotation: 0,
+          rotation: 0
         }
       ]
 
@@ -409,7 +417,7 @@ describe("Selection Interactions", () => {
     it("should toggle annotation when using toggle option", () => {
       const annotationStore = useAnnotationStore()
 
-      const fill: FillAnnotation = {
+      const fill: Fill = {
         id: "f1",
         type: "fill",
         pageNum: 1,
@@ -418,7 +426,8 @@ describe("Selection Interactions", () => {
         width: 100,
         height: 100,
         color: "#ff0000",
-        opacity: 0.5
+        opacity: 0.5,
+        rotation: 0
       }
 
       annotationStore.addAnnotation(fill)

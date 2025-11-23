@@ -1,26 +1,27 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useKeyboardShortcuts } from './useKeyboardShortcuts'
-import { useAnnotationStore } from '~/stores/annotations'
-import { useRendererStore } from '~/stores/renderer'
+import { describe, it, expect, beforeEach } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { useKeyboardShortcuts } from "./useKeyboardShortcuts"
+import { useAnnotationStore } from "~/stores/annotations"
+import { useRendererStore } from "~/stores/renderer"
 
-import type { Measurement, Area } from '~/types/annotations'
+import type { Measurement, Area } from "~/types/annotations"
 
-describe('Keyboard Shortcuts', () => {
+describe("Keyboard Shortcuts", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Paste at Cursor', () => {
-    it('should paste annotation at cursor position when cursor position is available', () => {
+  describe("Paste at Cursor", () => {
+    it("should paste annotation at cursor position when cursor position is available", () => {
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
       const shortcuts = useKeyboardShortcuts()
 
       // Create an annotation at position (100, 100) to (200, 200)
       const originalAnnotation: Measurement = {
-        id: 'test-1',
-        type: 'measure',
+        id: "test-1",
+        type: "measure",
+        rotation: 0,
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
@@ -32,7 +33,7 @@ describe('Keyboard Shortcuts', () => {
       }
 
       annotationStore.addAnnotation(originalAnnotation)
-      annotationStore.selectAnnotation('test-1')
+      annotationStore.selectAnnotation("test-1")
 
       // Copy annotation to clipboard
       shortcuts.clipboard.value = JSON.parse(JSON.stringify(annotationStore.selectedAnnotation))
@@ -56,20 +57,21 @@ describe('Keyboard Shortcuts', () => {
       expect(pastedCenterY).toBeCloseTo(400, 1)
 
       // Verify it has a new ID
-      expect(pastedAnnotation.id).not.toBe('test-1')
+      expect(pastedAnnotation.id).not.toBe("test-1")
 
       // Verify it's selected
       expect(annotationStore.selectedAnnotationId).toBe(pastedAnnotation.id)
     })
 
-    it('should paste annotation with default offset when no cursor position', () => {
+    it("should paste annotation with default offset when no cursor position", () => {
       const annotationStore = useAnnotationStore()
       const shortcuts = useKeyboardShortcuts()
 
       // Create an annotation
       const originalAnnotation: Measurement = {
-        id: 'test-2',
-        type: 'measure',
+        id: "test-2",
+        rotation: 0,
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
@@ -81,7 +83,7 @@ describe('Keyboard Shortcuts', () => {
       }
 
       annotationStore.addAnnotation(originalAnnotation)
-      annotationStore.selectAnnotation('test-2')
+      annotationStore.selectAnnotation("test-2")
 
       // Copy annotation
       shortcuts.clipboard.value = JSON.parse(JSON.stringify(annotationStore.selectedAnnotation))
@@ -102,16 +104,17 @@ describe('Keyboard Shortcuts', () => {
       expect(pastedAnnotation.points[1].y).toBe(220)
     })
 
-    it('should paste area annotation at cursor position', () => {
+    it("should paste area annotation at cursor position", () => {
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
       const shortcuts = useKeyboardShortcuts()
 
       // Create an area annotation (triangle)
       const originalAnnotation: Area = {
-        id: 'test-3',
-        type: 'area',
+        id: "test-3",
+        type: "area",
         pageNum: 1,
+        rotation: 0,
         points: [
           { x: 100, y: 100 },
           { x: 200, y: 100 },
@@ -123,7 +126,7 @@ describe('Keyboard Shortcuts', () => {
       }
 
       annotationStore.addAnnotation(originalAnnotation)
-      annotationStore.selectAnnotation('test-3')
+      annotationStore.selectAnnotation("test-3")
 
       // Copy annotation
       shortcuts.clipboard.value = JSON.parse(JSON.stringify(annotationStore.selectedAnnotation))
@@ -150,17 +153,18 @@ describe('Keyboard Shortcuts', () => {
     })
   })
 
-  describe('Duplicate Annotation', () => {
-    it('should duplicate annotation at cursor position', () => {
+  describe("Duplicate Annotation", () => {
+    it("should duplicate annotation at cursor position", () => {
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
       const shortcuts = useKeyboardShortcuts()
 
       // Create an annotation
       const originalAnnotation: Measurement = {
-        id: 'test-4',
-        type: 'measure',
+        id: "test-4",
+        type: "measure",
         pageNum: 1,
+        rotation: 0,
         points: [
           { x: 100, y: 100 },
           { x: 200, y: 200 }
@@ -171,7 +175,7 @@ describe('Keyboard Shortcuts', () => {
       }
 
       annotationStore.addAnnotation(originalAnnotation)
-      annotationStore.selectAnnotation('test-4')
+      annotationStore.selectAnnotation("test-4")
 
       // Set cursor position
       rendererStore.setLastCursorPosition({ x: 300, y: 300 })
