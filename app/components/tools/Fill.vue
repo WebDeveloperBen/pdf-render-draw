@@ -54,6 +54,43 @@ const { completed, isDrawing, currentRect, deleteFill } = tool
           :data-annotation-id="annotation.id"
         />
 
+        <!-- Trail line showing center movement (from original to current) -->
+        <line
+          v-if="isSelected && '_originalCenter' in annotation && annotation._originalCenter"
+          :x1="annotation._originalCenter.x"
+          :y1="annotation._originalCenter.y"
+          :x2="annotation.x + annotation.width / 2"
+          :y2="annotation.y + annotation.height / 2"
+          stroke="purple"
+          stroke-width="2"
+          stroke-dasharray="4 4"
+          pointer-events="none"
+        />
+
+        <!-- Original center dot (where it started) -->
+        <circle
+          v-if="isSelected && '_originalCenter' in annotation && annotation._originalCenter"
+          :cx="annotation._originalCenter.x"
+          :cy="annotation._originalCenter.y"
+          r="3"
+          fill="purple"
+          stroke="white"
+          stroke-width="1"
+          pointer-events="none"
+        />
+
+        <!-- Current center dot for visual tracking when selected -->
+        <circle
+          v-if="isSelected"
+          :cx="annotation.x + annotation.width / 2"
+          :cy="annotation.y + annotation.height / 2"
+          r="3"
+          fill="blue"
+          stroke="white"
+          stroke-width="1"
+          pointer-events="none"
+        />
+
         <!-- Delete button on hover -->
         <g class="delete-indicator" @click.stop="deleteFill(annotation.id)">
           <!-- Background circle for delete button -->

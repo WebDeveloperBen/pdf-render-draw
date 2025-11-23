@@ -32,12 +32,16 @@ const cumulativeGroupRotation = ref(0) // Track cumulative rotation for visual h
 const frozenTransformerBounds = ref<Bounds | null>(null) // Keep transformer bounds frozen after rotation
 const originalCombinedBounds = ref<Bounds | null>(null) // Store combined bounds at drag start for delta calculation
 
+// Debug: track center positions for visual trails
+const centerTrail = ref<Point | null>(null) // Original center position at drag start
+
 // Reset state when selection changes
 watch(
   () => annotationStore.selectedAnnotationIds,
   () => {
     cumulativeGroupRotation.value = 0
     frozenTransformerBounds.value = null
+    centerTrail.value = null
   },
   { deep: true }
 )
@@ -168,11 +172,13 @@ const edges = computed(() => {
 })
 
 // Transform for rotating the entire transformer box (group rotation around combined center)
+// Only rotate the transformer AFTER a rotation is committed (not during drag)
 const transformerTransform = computed(() => {
   if (!displayBounds.value) return ""
 
-  const dragDelta = annotationStore.rotationDragDelta
-  const totalRotation = cumulativeGroupRotation.value + dragDelta
+  // Only use cumulative rotation (committed rotations), NOT drag delta
+  // During drag, the transformer stays fixed and fills rotate around its center
+  const totalRotation = cumulativeGroupRotation.value
 
   if (totalRotation === 0) return ""
 
@@ -207,6 +213,9 @@ function onStartDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | 
       const centerX = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width / 2
       const centerY = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height / 2
       transformBase.startRotationAngle.value = Math.atan2(svgPoint.y - centerY, svgPoint.x - centerX)
+
+      // Store original center position for trail
+      centerTrail.value = { x: centerX, y: centerY }
     }
   })
 }
@@ -349,6 +358,29 @@ function handleRotate(svgX: number, svgY: number) {
   // Update visual rotation delta for real-time feedback
   annotationStore.rotationDragDelta = rotationDelta
 
+  if (Math.abs(rotationDelta * 180 / Math.PI) % 45 < 2) { // Log every ~45 degrees
+    console.log("[GroupTransform] handleRotate", {
+      rotationDeg: (rotationDelta * 180) / Math.PI,
+      originalBounds: {
+        x: transformBase.originalBounds.value.x,
+        y: transformBase.originalBounds.value.y,
+        width: transformBase.originalBounds.value.width,
+        height: transformBase.originalBounds.value.height,
+        center: { x: centerX, y: centerY }
+      },
+      currentCombinedBounds: combinedBounds.value ? {
+        x: combinedBounds.value.x,
+        y: combinedBounds.value.y,
+        width: combinedBounds.value.width,
+        height: combinedBounds.value.height
+      } : null,
+      boundsChanged: combinedBounds.value ? (
+        Math.abs(combinedBounds.value.x - transformBase.originalBounds.value.x) > 0.1 ||
+        Math.abs(combinedBounds.value.y - transformBase.originalBounds.value.y) > 0.1
+      ) : false
+    })
+  }
+
   // Apply rotation to annotations in real-time for visual feedback
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
     if (hasPoints(originalAnn)) {
@@ -373,30 +405,13 @@ function handleRotate(svgX: number, svgY: number) {
       annotationStore.updateAnnotation(originalAnn.id, updates)
     } else if (hasX(originalAnn) && hasY(originalAnn)) {
       // Handle fill/text annotations with x,y position
-      // For group rotation, update position (to orbit around group center)
-      // but DON'T update rotation property - that's handled by getRotationTransform
+      // DON'T update position during drag - let SVG transform handle visual rotation
+      // We'll calculate final position on drag end
       if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-        // Calculate fill's center position
-        const fillCenterX = originalAnn.x + originalAnn.width / 2
-        const fillCenterY = originalAnn.y + originalAnn.height / 2
-
-        // Rotate the center around the group center
-        const dx = fillCenterX - centerX
-        const dy = fillCenterY - centerY
-        const cos = Math.cos(rotationDelta)
-        const sin = Math.sin(rotationDelta)
-        const rotatedCenterX = centerX + dx * cos - dy * sin
-        const rotatedCenterY = centerY + dx * sin + dy * cos
-
-        // Calculate new x,y position from rotated center
-        const newX = rotatedCenterX - originalAnn.width / 2
-        const newY = rotatedCenterY - originalAnn.height / 2
-
-        // Only update position during drag
-        // getRotationTransform will apply the rotation visually
+        // Store the GROUP center for rotation transform
+        // This allows fills to rotate around the group center visually
         annotationStore.updateAnnotation(originalAnn.id, {
-          x: newX,
-          y: newY
+          _groupCenter: { x: centerX, y: centerY }
         })
       }
     }
@@ -435,6 +450,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   if (!moved && mode === "move") {
     annotationStore.selectAnnotation(null)
     originalAnnotationStates.value = []
+    centerTrail.value = null
     return
   }
 
@@ -448,34 +464,28 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     const centerX = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width / 2
     const centerY = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height / 2
 
-    // Rotate all annotations around group center
-    // Only rotate the points - don't update individual rotation properties
+    // Commit rotation for all annotations
+    // Point-based annotations: recalculate from original (they were updated during drag)
+    // Fill/text annotations: just update rotation property (position already updated during drag)
     originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
       if (hasPoints(originalAnn)) {
-        const rotatedPoints = originalAnn.points.map((p: Point) => {
-          const dx = p.x - centerX
-          const dy = p.y - centerY
-          const cos = Math.cos(transformBase.currentRotationDelta.value)
-          const sin = Math.sin(transformBase.currentRotationDelta.value)
-          return {
-            x: centerX + dx * cos - dy * sin,
-            y: centerY + dx * sin + dy * cos
-          }
-        })
-
+        // Point-based: rotation was already applied during drag, just get current state
+        // (points were updated in real-time during handleRotate)
         // For measurements, also update labelRotation to keep labels aligned
-        const updates: Record<string, unknown> = { points: rotatedPoints }
         if (originalAnn.type === "measure" && hasLabelRotation(originalAnn)) {
           const rotationDegrees = (transformBase.currentRotationDelta.value * 180) / Math.PI
-          updates.labelRotation = originalAnn.labelRotation + rotationDegrees
+          annotationStore.updateAnnotation(originalAnn.id, {
+            labelRotation: originalAnn.labelRotation + rotationDegrees
+          })
         }
-
-        annotationStore.updateAnnotation(originalAnn.id, updates)
+        // Points already updated during drag, nothing more to do
       } else if (hasX(originalAnn) && hasY(originalAnn)) {
-        // Handle fill/text annotations with x,y position
-        // For group rotation, update BOTH position (to orbit around group center) AND rotation property
+        // Fill/text annotations: calculate final orbited position
         if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-          // Calculate fill's center position
+          // Get the current annotation to see what transform was applied
+          const currentAnn = annotationStore.getAnnotationById(originalAnn.id)
+
+          // Calculate fill's ORIGINAL center position (from stored state at drag start)
           const fillCenterX = originalAnn.x + originalAnn.width / 2
           const fillCenterY = originalAnn.y + originalAnn.height / 2
 
@@ -491,11 +501,22 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           const newX = rotatedCenterX - originalAnn.width / 2
           const newY = rotatedCenterY - originalAnn.height / 2
 
-          const originalRotation = (originalAnn.rotation as number) || 0
+          console.log("[GroupTransform] handleEndDrag - final fill position:", {
+            id: originalAnn.id,
+            originalPos: { x: originalAnn.x, y: originalAnn.y },
+            originalCenter: { x: fillCenterX, y: fillCenterY },
+            currentPos: currentAnn ? { x: currentAnn.x, y: currentAnn.y } : 'not found',
+            groupCenter: { x: centerX, y: centerY },
+            rotationDeg: transformBase.currentRotationDelta.value * (180 / Math.PI),
+            rotatedCenter: { x: rotatedCenterX, y: rotatedCenterY },
+            newPos: { x: newX, y: newY }
+          })
+
+          // Update to final orbited position, and remove the temporary group center
           annotationStore.updateAnnotation(originalAnn.id, {
             x: newX,
             y: newY,
-            rotation: originalRotation + transformBase.currentRotationDelta.value
+            _groupCenter: undefined
           })
         }
       }
@@ -504,9 +525,17 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     // Add to cumulative group rotation so handles stay visually rotated
     cumulativeGroupRotation.value += transformBase.currentRotationDelta.value
 
-    // Keep transformer at original size/position (just rotated)
-    // Don't recalculate bounds - this prevents the bounding box from expanding
+    // CRITICAL: Keep transformer at ORIGINAL position (where it started)
+    // The fills have orbited to new positions, but the transformer stays centered
+    // on the original group center point
     frozenTransformerBounds.value = { ...transformBase.originalBounds.value }
+
+    console.log("[GroupTransform] handleEndDrag - rotation ended", {
+      frozenTransformerBounds: frozenTransformerBounds.value,
+      currentCombinedBounds: combinedBounds.value,
+      originalBounds: transformBase.originalBounds.value,
+      cumulativeRotationDeg: (cumulativeGroupRotation.value * 180) / Math.PI
+    })
   }
 
   // For resize/move: update frozen bounds to match what was displayed during drag
@@ -584,6 +613,9 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   // Clean up
   originalAnnotationStates.value = []
   originalCombinedBounds.value = null
+
+  // Don't clear centerTrail on rotation end - keep it visible to show drift
+  // centerTrail.value = null
 }
 
 // Set up event listeners with handlers
@@ -653,6 +685,42 @@ transformBase.setupEventListeners({
         :class="{ dragging: transformBase.isDragging && transformBase.activeHandle.value === `edge-${index}` }"
         :data-handle="`edge-${index}`"
         @mousedown.stop="onStartDrag($event, `edge-${index}`, 'resize')"
+      />
+
+      <!-- Trail line showing center movement during rotation -->
+      <line
+        v-if="centerTrail"
+        :x1="centerTrail.x"
+        :y1="centerTrail.y"
+        :x2="displayBounds.x + displayBounds.width / 2"
+        :y2="displayBounds.y + displayBounds.height / 2"
+        stroke="orange"
+        stroke-width="3"
+        stroke-dasharray="6 6"
+        pointer-events="none"
+      />
+
+      <!-- Original center dot (where rotation started) -->
+      <circle
+        v-if="centerTrail"
+        :cx="centerTrail.x"
+        :cy="centerTrail.y"
+        r="3"
+        fill="orange"
+        stroke="white"
+        stroke-width="1"
+        pointer-events="none"
+      />
+
+      <!-- Center dot for visual tracking -->
+      <circle
+        :cx="displayBounds.x + displayBounds.width / 2"
+        :cy="displayBounds.y + displayBounds.height / 2"
+        r="4"
+        fill="red"
+        stroke="white"
+        stroke-width="1"
+        pointer-events="none"
       />
 
       <!-- Rotation handle -->

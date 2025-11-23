@@ -70,31 +70,44 @@ export const useAnnotationStore = defineStore("annotations", () => {
   function getRotationTransform(annotation: Annotation): string {
     const storedRotation = (annotation as { rotation?: number }).rotation || 0
 
-    // During multi-select rotation drag, don't apply individual drag delta
-    // (group rotation is handled at the SvgAnnotationLayer level)
+    // For multi-select during rotation drag: apply drag delta as transform
+    // This rotates fills around their own center to match the transform handles angle
     const isMultiSelected =
       selectedAnnotationIds.value.length > 1 && selectedAnnotationIds.value.includes(annotation.id)
-    let rotation = storedRotation
+    const isDragging = rotationDragDelta.value !== 0
 
-    if (!isMultiSelected && selectedAnnotationId.value === annotation.id) {
-      // Single annotation: add drag delta if being rotated
-      rotation = storedRotation + rotationDragDelta.value
-    } else {
-      // Multi-select: always use stored rotation; drag delta is applied at group level
-      rotation = storedRotation
+    if (isMultiSelected && isDragging) {
+      // Multi-select during drag:
+      // - Fills: rotate around the GROUP center (stored in _groupCenter)
+      // - Point-based: rotate around their own center (points are updated, so no transform needed)
+      if (isFill(annotation)) {
+        // For fills: rotate around the GROUP center, not their own center
+        // This makes them orbit AND rotate visually during drag
+        const rotation = rotationDragDelta.value
+        if (rotation === 0) return ""
+
+        // Use group center if stored, otherwise calculate from selection
+        const groupCenter = "_groupCenter" in annotation && annotation._groupCenter
+          ? annotation._groupCenter
+          : { x: 0, y: 0 } // Fallback (shouldn't happen)
+
+        const angleDeg = radiansToDegrees(rotation)
+        return `rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`
+      }
+
+      // For point-based annotations: no transform (points are updated directly)
+      return ""
     }
+
+    // Single select OR multi-select when not dragging: apply rotation transform
+    const isSingleSelected = selectedAnnotationId.value === annotation.id
+    const rotation = isSingleSelected ? storedRotation + rotationDragDelta.value : storedRotation
 
     if (rotation === 0) return ""
 
-    // Get rotation center
-    // Always rotate around annotation's own center
-    // For fills/text, orbiting around group center is handled by updating their x,y position in GroupTransform
     const center = getAnnotationCenter(annotation)
-    const centerX = center.x
-    const centerY = center.y
-
     const angleDeg = radiansToDegrees(rotation)
-    return `rotate(${angleDeg} ${centerX} ${centerY})`
+    return `rotate(${angleDeg} ${center.x} ${center.y})`
   }
 
   // ============================================
@@ -190,7 +203,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
     if ("rotation" in updates) {
       console.log("[AnnotationStore] updateAnnotation - rotation update", {
         id,
-        type: before.type,
+        type: before,
         beforeRotation: (before as { rotation?: number }).rotation,
         beforeRotationDeg: ((before as { rotation?: number }).rotation || 0) * (180 / Math.PI),
         updateRotation: updates.rotation,
