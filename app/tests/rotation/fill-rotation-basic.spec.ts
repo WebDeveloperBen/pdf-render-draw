@@ -343,4 +343,138 @@ describe("Fill Rotation - Basic Group Rotation", () => {
       expect(updatedF.y).toBe(150)
     })
   })
+
+  // User Impact Tests - Testing actual user-facing rotation behavior
+  describe("User Impact - Visual Rotation Behavior", () => {
+    it("should allow user to rotate fill annotation 90 degrees via rotation handle", () => {
+      const store = useAnnotationStore()
+
+      const fill = createFill("fill-1", 100, 100, 50, 50)
+      store.addAnnotation(fill)
+      store.selectAnnotation("fill-1")
+
+      // Simulate user dragging rotation handle 90 degrees
+      const rotationAngle = Math.PI / 2 // 90 degrees
+
+      // Apply rotation as if user dragged the handle
+      store.updateAnnotation("fill-1", {
+        rotation: rotationAngle
+      })
+
+      const rotated = store.getAnnotationById("fill-1") as Fill
+      expect(rotated.rotation).toBeCloseTo(Math.PI / 2, 5)
+
+      // Verify the annotation is still selectable and manipulable
+      expect(store.selectedAnnotationIds).toContain("fill-1")
+    })
+
+    it("should allow user to rotate measurement annotation and see updated visual", () => {
+      const store = useAnnotationStore()
+
+      const measurement = createMeasurement("measure-1", [
+        { x: 100, y: 100 },
+        { x: 200, y: 100 }
+      ])
+      store.addAnnotation(measurement)
+      store.selectAnnotation("measure-1")
+
+      // Simulate user rotating the measurement 45 degrees
+      const rotationAngle = Math.PI / 4
+
+      // For measurements, rotation affects the points
+      const center = { x: 150, y: 100 }
+      const cos = Math.cos(rotationAngle)
+      const sin = Math.sin(rotationAngle)
+
+      const rotatedPoints = [
+        {
+          x: center.x + (100 - center.x) * cos - (100 - center.y) * sin,
+          y: center.y + (100 - center.x) * sin + (100 - center.y) * cos
+        },
+        {
+          x: center.x + (200 - center.x) * cos - (100 - center.y) * sin,
+          y: center.y + (200 - center.x) * sin + (100 - center.y) * cos
+        }
+      ]
+
+      store.updateAnnotation("measure-1", { points: rotatedPoints })
+
+      const rotated = store.getAnnotationById("measure-1") as Measurement
+      expect(rotated.points[0].x).not.toBe(100) // Points should have moved
+      expect(rotated.points[1].x).not.toBe(200)
+
+      // Distance should remain the same (rotation doesn't change length)
+      const newDistance = calculateDistance(rotated.points[0], rotated.points[1], '1:1')
+      expect(newDistance).toBeCloseTo(35, 1) // Same as original ~35mm
+    })
+
+    it("should allow user to rotate multiple selected annotations together", () => {
+      const store = useAnnotationStore()
+
+      const fill1 = createFill("fill-1", 100, 100, 50, 50)
+      const fill2 = createFill("fill-2", 200, 200, 50, 50)
+      const measurement = createMeasurement("measure-1", [
+        { x: 50, y: 50 },
+        { x: 150, y: 50 }
+      ])
+
+      store.addAnnotation(fill1)
+      store.addAnnotation(fill2)
+      store.addAnnotation(measurement)
+      store.selectAnnotations(["fill-1", "fill-2", "measure-1"])
+
+      // Simulate group rotation 45 degrees
+      const rotationAngle = Math.PI / 4
+      const groupCenter = calculateGroupCenter([fill1, fill2, measurement])
+
+      applyGroupRotation(store, rotationAngle, groupCenter)
+
+      // Verify all annotations were rotated
+      const rotatedFill1 = store.getAnnotationById("fill-1") as Fill
+      const rotatedFill2 = store.getAnnotationById("fill-2") as Fill
+      const rotatedMeasure = store.getAnnotationById("measure-1") as Measurement
+
+      expect(rotatedFill1.rotation).toBeCloseTo(Math.PI / 4, 5)
+      expect(rotatedFill2.rotation).toBeCloseTo(Math.PI / 4, 5)
+      expect(rotatedMeasure.points[0].x).not.toBe(50) // Points rotated
+
+      // All should still be selected
+      expect(store.selectedAnnotationIds).toEqual(["fill-1", "fill-2", "measure-1"])
+    })
+
+    it("should preserve annotation functionality after rotation", () => {
+      const store = useAnnotationStore()
+
+      const fill = createFill("fill-1", 100, 100, 50, 50)
+      store.addAnnotation(fill)
+      store.selectAnnotation("fill-1")
+
+      // Rotate the fill
+      store.updateAnnotation("fill-1", {
+        rotation: Math.PI / 3 // 60 degrees
+      })
+
+      // Verify it can still be moved
+      store.updateAnnotation("fill-1", {
+        x: 150,
+        y: 150
+      })
+
+      const moved = store.getAnnotationById("fill-1") as Fill
+      expect(moved.x).toBe(150)
+      expect(moved.y).toBe(150)
+      expect(moved.rotation).toBeCloseTo(Math.PI / 3, 5) // Rotation preserved
+
+      // Verify it can still be resized
+      store.updateAnnotation("fill-1", {
+        width: 75,
+        height: 75
+      })
+
+      const resized = store.getAnnotationById("fill-1") as Fill
+      expect(resized.width).toBe(75)
+      expect(resized.height).toBe(75)
+      expect(resized.rotation).toBeCloseTo(Math.PI / 3, 5) // Rotation still preserved
+    })
+  })
 })

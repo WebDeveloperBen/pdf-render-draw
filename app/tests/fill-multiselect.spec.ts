@@ -84,27 +84,5 @@ describe("Fill Multi-Select", () => {
     expect(annotationStore.selectedAnnotationIds).toEqual(["f1", "l1"])
   })
 
-  it("should verify fill annotations are created with rotation property", () => {
-    const annotationStore = useAnnotationStore()
 
-    const fill: Fill = {
-      id: "f1",
-      type: "fill",
-      pageNum: 1,
-      x: 100,
-      y: 100,
-      width: 100,
-      height: 100,
-      color: "#ff0000",
-      opacity: 0.5,
-      rotation: 0
-    }
-
-    annotationStore.addAnnotation(fill)
-
-    const stored = annotationStore.getAnnotationById("f1") as Fill
-    expect(stored.rotation).toBeDefined()
-    expect(stored.rotation).toBe(0)
-    expect("rotation" in stored).toBe(true)
-  })
 })

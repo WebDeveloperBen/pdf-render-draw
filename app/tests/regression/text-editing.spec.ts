@@ -31,9 +31,6 @@ describe("Regression: Text Editing", () => {
       const textEditing1 = useTextEditingState()
       const textEditing2 = useTextEditingState()
 
-      // THEN: They should be the same instance (singleton via createGlobalState)
-      expect(textEditing1).toBe(textEditing2)
-
       // WHEN: One instance starts editing
       const annotationStore = useAnnotationStore()
       const annotation: TextAnnotation = {
@@ -53,7 +50,9 @@ describe("Regression: Text Editing", () => {
 
       textEditing1.startEditing("text-1")
 
-      // THEN: Both instances see the editing state
+      // THEN: Both instances share the same refs (global state)
+      expect(textEditing1.editingId).toBe(textEditing2.editingId)
+      expect(textEditing1.editingContent).toBe(textEditing2.editingContent)
       expect(textEditing2.editingId.value).toBe("text-1")
       expect(textEditing2.editingContent.value).toBe("Test")
     })
@@ -71,9 +70,10 @@ describe("Regression: Text Editing", () => {
       expect(simulateEventHandler).not.toThrow()
       expect(textEditingInHandler).toBeDefined()
 
-      // AND: Should be the same singleton instance
+      // AND: Should share the same global refs
       const textEditingInSetup = useTextEditingState()
-      expect(textEditingInHandler).toBe(textEditingInSetup)
+      expect(textEditingInHandler!.editingId).toBe(textEditingInSetup.editingId)
+      expect(textEditingInHandler!.editingContent).toBe(textEditingInSetup.editingContent)
     })
   })
 

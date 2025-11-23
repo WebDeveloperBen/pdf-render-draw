@@ -1,17 +1,17 @@
-import { createGlobalState } from "@vueuse/core"
-
 /**
  * Global text editing state
  *
- * Uses createGlobalState to share editing state across all components
- * without needing injection or store. This is a singleton composable
+ * Uses exported refs to share editing state across all components
+ * without needing injection or store. This is a singleton pattern
  * that maintains shared state automatically.
  */
-export const useTextEditingState = createGlobalState(() => {
-  const annotationStore = useAnnotationStore()
 
-  const editingId = ref<string | null>(null)
-  const editingContent = ref<string>("")
+// Global state refs
+const editingId = ref<string | null>(null)
+const editingContent = ref<string>("")
+
+export const useTextEditingState = () => {
+  const annotationStore = useAnnotationStore()
 
   function startEditing(id: string) {
     const annotation = annotationStore.getAnnotationById(id)
@@ -41,4 +41,4 @@ export const useTextEditingState = createGlobalState(() => {
     finishEditing,
     cancelEditing,
   }
-})
+}

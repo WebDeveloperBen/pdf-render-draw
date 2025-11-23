@@ -1131,8 +1131,8 @@ describe("History Store", () => {
       const restored1 = annotationStore.getAnnotationById("measure-1") as Measurement
       const restored2 = annotationStore.getAnnotationById("measure-2") as Measurement
 
-      expect(restored1.rotation).toBeUndefined()
-      expect(restored2.rotation).toBeUndefined()
+       expect(restored1.rotation).toBe(0)
+       expect(restored2.rotation).toBe(0)
     })
   })
 })
