@@ -1,15 +1,16 @@
 import { createInjectionState } from "@vueuse/core"
 import { useCreateBaseTool } from "./useCreateBaseTool"
+import { registerTool } from "~/composables/useToolRegistry"
+
+// Register perimeter tool metadata immediately when module loads
+registerTool({
+  type: "perimeter",
+  name: "Perimeter",
+  icon: "⬡"
+})
 
 /**
  * Perimeter Tool - extends BaseTool
- *
- * Hierarchy:
- *   BaseTool (stores, rotation, selection)
- *     ↓ extends
- *   DrawingTool (drawing logic, points, events)
- *     ↓ extends
- *   PerimeterTool (segment-by-segment perimeter calculations)
  */
 const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   // Inherit base functionality
@@ -99,9 +100,3 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
 })
 
 export { usePerimeterTool, usePerimeterToolState }
-
-// Register perimeter tool in the plugin system
-registerTool({
-  type: "perimeter",
-  component: defineAsyncComponent(() => import("~/components/tools/Perimeter.vue"))
-})

@@ -152,16 +152,15 @@ onMounted(() => {
 useEventListener(window, "keydown", handleKeyDown)
 useEventListener(window, "keyup", handleKeyUp)
 
-// Tool list
-const tools = [
-  { id: "measure", name: "Measure", icon: "📏" },
-  { id: "area", name: "Area", icon: "📐" },
-  { id: "perimeter", name: "Perimeter", icon: "⬡" },
-  { id: "line", name: "Line", icon: "—" },
-  { id: "fill", name: "Fill", icon: "🎨" },
-  { id: "text", name: "Text", icon: "T" },
-  { id: "rotate", name: "Rotate", icon: "🔄" }
-] as const
+// Tool list from registry + manual tools
+const toolRegistry = useToolRegistry()
+const tools = computed(() => {
+  const registeredTools = toolRegistry.getToolbarTools()
+  const manualTools = [
+    { id: "rotate", name: "Rotate", icon: "🔄" }
+  ]
+  return [...registeredTools, ...manualTools]
+})
 
 // Get annotation count
 const annotationCount = computed(() => annotationStore.annotations.length)

@@ -3,7 +3,7 @@ import type { Point } from './index'
 // Base annotation type
 export interface BaseAnnotation {
   id: string
-  type: 'measure' | 'area' | 'perimeter' | 'line' | 'fill' | 'text'
+  type: 'measure' | 'area' | 'perimeter' | 'line' | 'fill' | 'text' | 'count'
   pageNum: number
   rotation: number // Required for all annotations (in radians) - enables group transforms
   createdAt?: string
@@ -76,6 +76,15 @@ export interface TextAnnotation extends BaseAnnotation {
   // Note: Text uses rotation differently - it's baked in at creation time, not for transforms
 }
 
+export interface Count extends BaseAnnotation {
+  type: 'count'
+  x: number
+  y: number
+  number: number // The count number (1, 2, 3...)
+  label?: string // Optional custom label
+  // rotation inherited from BaseAnnotation
+}
+
 // Union type for all annotations
 export type Annotation =
   | Measurement
@@ -84,6 +93,7 @@ export type Annotation =
   | Line
   | Fill
   | TextAnnotation
+  | Count
 
 // Type guards
 export function isMeasurement(ann: Annotation): ann is Measurement {
@@ -108,6 +118,10 @@ export function isFill(ann: Annotation): ann is Fill {
 
 export function isText(ann: Annotation): ann is TextAnnotation {
   return ann.type === 'text'
+}
+
+export function isCount(ann: Annotation): ann is Count {
+  return ann.type === 'count'
 }
 
 /**
@@ -214,6 +228,17 @@ export function validateAnnotation(ann: unknown): ann is Annotation {
         t.fontSize > 0 &&
         typeof t.color === 'string' &&
         typeof t.rotation === 'number'
+      )
+    }
+
+    case 'count': {
+      const c = ann as Count
+      return (
+        typeof c.x === 'number' &&
+        typeof c.y === 'number' &&
+        typeof c.number === 'number' &&
+        c.number > 0 &&
+        (c.label === undefined || typeof c.label === 'string')
       )
     }
 

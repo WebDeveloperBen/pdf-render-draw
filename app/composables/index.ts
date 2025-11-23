@@ -1,5 +1,6 @@
 export { useAreaTool } from "./tools/useAreaTool"
 export { useBaseTool, type BaseToolOptions } from "./tools/useBaseTool"
+export { useCountTool } from "./tools/useCountTool"
 export { type DrawingToolConfig, useDrawingTool } from "./tools/useDrawingTool"
 export { useFillTool } from "./tools/useFillTool"
 export { useLineTool } from "./tools/useLineTool"

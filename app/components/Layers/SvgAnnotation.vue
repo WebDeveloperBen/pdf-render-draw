@@ -6,9 +6,6 @@ import { debugLog } from "~/utils/debug"
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
 
-// Note: Group rotation transform removed to prevent unselected annotations from rotating
-// Group rotation now only applies to selected annotations on drag end
-
 // SVG element ref
 const svgRef = ref<SVGSVGElement>()
 
@@ -40,6 +37,7 @@ const svgStyle = computed(() => {
   }
 })
 
+const countTool = useCountTool()
 const measureTool = useMeasureTool()
 const areaTool = useAreaTool()
 const perimeterTool = usePerimeterTool()
@@ -92,7 +90,7 @@ function handleMouseUp(e: MouseEvent) {
 
 function handleMouseLeave(e: MouseEvent) {
   // Clear cursor preview for all tools when mouse leaves canvas
-  // (fillTool and textTool don't have preview states, so they don't need clearPreview)
+  // (fillTool, textTool, and countTool don't have preview states, so they don't need clearPreview)
   measureTool.clearPreview?.()
   areaTool.clearPreview?.()
   perimeterTool.clearPreview?.()
@@ -120,9 +118,6 @@ function handleClick(e: MouseEvent) {
     target.closest(".group-transform-handles") ||
     target.classList?.contains("transform-handles") ||
     target.classList?.contains("group-transform-handles")
-
-  // Note: Annotation click handling removed - now handled by BaseAnnotation component
-  // This prevents double-handling of clicks where both layers would process the same click
 
   // Click outside any annotation - deselect regardless of active tool
   // But only if not drawing marquee or actively drawing with a tool
@@ -169,6 +164,10 @@ function handleClick(e: MouseEvent) {
       debugLog("SVG Layer", "Calling text tool handleClick")
       textTool.handleClick(e)
       break
+    case "count":
+      debugLog("SVG Layer", "Calling count tool handleClick")
+      countTool.handleClick(e)
+      break
     default:
       debugLog("SVG Layer", "No tool selected or unknown tool:", tool)
   }
@@ -210,6 +209,9 @@ function handleMove(e: MouseEvent) {
     case "fill":
       fillTool.handleMouseMove(e)
       break
+    case "count":
+      // Count tool doesn't need move handling (no preview)
+      break
     default:
       debugLog("SVG Layer", "No matching tool for handleMove:", tool)
   }
@@ -224,6 +226,7 @@ function handleKeyDown(e: KeyboardEvent) {
   areaTool.handleKeyDown(e)
   perimeterTool.handleKeyDown(e)
   lineTool.handleKeyDown(e)
+  countTool.handleKeyDown?.(e)
 
   // Global shortcuts
   if (e.key === "Escape") {
@@ -274,6 +277,9 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
     />
     <ToolsText
       v-if="annotationStore.activeTool === 'text' || annotationStore.getAnnotationsByType('text').length > 0"
+    />
+    <ToolsCount
+      v-if="annotationStore.activeTool === 'count' || annotationStore.getAnnotationsByType('count').length > 0"
     />
 
     <!-- Selection marquee (drag-to-select rectangle) -->

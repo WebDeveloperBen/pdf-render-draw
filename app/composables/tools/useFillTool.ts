@@ -5,6 +5,13 @@ import { createInjectionState } from "@vueuse/core"
 import { ref, computed } from "vue"
 import { registerTool } from "~/composables/useToolRegistry"
 
+// Register fill tool metadata immediately when module loads
+registerTool({
+  type: "fill",
+  name: "Fill",
+  icon: "🎨"
+})
+
 const [useFillTool, useFillToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
@@ -117,9 +124,3 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
 })
 
 export { useFillTool, useFillToolState }
-
-// Register fill tool in the plugin system
-registerTool({
-  type: "fill",
-  component: defineAsyncComponent(() => import("~/components/tools/Fill.vue"))
-})

@@ -15,7 +15,13 @@ export interface ToolDefinition {
   type: AnnotationType
 
   /** Vue component that renders the tool's annotations */
-  component: Component
+  component?: Component
+
+  /** Display name for the toolbar */
+  name: string
+
+  /** Toolbar icon (emoji or text) */
+  icon: string
 
   /** Optional: Handler for double-click events on this tool's annotations */
   onDoubleClick?: (annotationId: string) => void
@@ -27,47 +33,58 @@ export interface ToolDefinition {
   eventHandlers?: Record<string, (annotationId: string, event: Event) => void>
 }
 
-// Tool registry - singleton storage
-const toolRegistry = new Map<AnnotationType, ToolDefinition>()
+// Tool registry - reactive singleton storage
+const toolRegistry = ref(new Map<AnnotationType, ToolDefinition>())
 
 /**
  * Register a tool in the system
  * Call this in your tool's module to make it available
  */
 export function registerTool(definition: ToolDefinition) {
-  if (toolRegistry.has(definition.type)) {
+  if (toolRegistry.value.has(definition.type)) {
     console.warn(`Tool "${definition.type}" is already registered. Overwriting.`)
   }
 
-  toolRegistry.set(definition.type, definition)
+  toolRegistry.value.set(definition.type, definition)
 }
 
 /**
  * Unregister a tool (useful for testing or dynamic tool loading)
  */
 export function unregisterTool(type: AnnotationType) {
-  toolRegistry.delete(type)
+  toolRegistry.value.delete(type)
 }
 
 /**
  * Get a specific tool definition
  */
 export function getTool(type: AnnotationType): ToolDefinition | undefined {
-  return toolRegistry.get(type)
+  return toolRegistry.value.get(type)
 }
 
 /**
  * Get all registered tools
  */
 export function getAllTools(): ToolDefinition[] {
-  return Array.from(toolRegistry.values())
+  return Array.from(toolRegistry.value.values())
+}
+
+/**
+ * Get toolbar-ready tool definitions
+ */
+export function getToolbarTools() {
+  return getAllTools().map(tool => ({
+    id: tool.type,
+    name: tool.name,
+    icon: tool.icon
+  }))
 }
 
 /**
  * Check if a tool is registered
  */
 export function isToolRegistered(type: AnnotationType): boolean {
-  return toolRegistry.has(type)
+  return toolRegistry.value.has(type)
 }
 
 /**
@@ -79,6 +96,7 @@ export function useToolRegistry() {
     unregisterTool,
     getTool,
     getAllTools,
+    getToolbarTools,
     isToolRegistered
   }
 }

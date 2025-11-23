@@ -1,4 +1,12 @@
 import { useCreateBaseTool } from "./useCreateBaseTool"
+import { registerTool } from "~/composables/useToolRegistry"
+
+// Register measure tool metadata immediately when module loads
+registerTool({
+  type: "measure",
+  name: "Measure",
+  icon: "📏"
+})
 
 /**
  * Measure Tool - extends BaseTool
@@ -59,10 +67,3 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
 })
 
 export { useMeasureTool, useMeasureToolState }
-
-// Register measure tool in the plugin system
-registerTool({
-  type: "measure",
-  component: defineAsyncComponent(() => import("~/components/tools/Measure.vue"))
-  // No double-click handler needed for measure tool
-})

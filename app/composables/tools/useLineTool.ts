@@ -1,15 +1,16 @@
 import { createInjectionState } from "@vueuse/core"
 import { useCreateBaseTool } from "./useCreateBaseTool"
+import { registerTool } from "~/composables/useToolRegistry"
+
+// Register line tool metadata immediately when module loads
+registerTool({
+  type: "line",
+  name: "Line",
+  icon: "—"
+})
 
 /**
  * Line Tool - extends BaseTool
- *
- * Hierarchy:
- *   BaseTool (stores, rotation, selection)
- *     ↓ extends
- *   DrawingTool (drawing logic, points, events)
- *     ↓ extends
- *   LineTool (simple line drawing, no calculations)
  */
 const [useLineTool, useLineToolState] = createInjectionState(() => {
   // Inherit base functionality
@@ -38,9 +39,3 @@ const [useLineTool, useLineToolState] = createInjectionState(() => {
 })
 
 export { useLineTool, useLineToolState }
-
-// Register line tool in the plugin system
-registerTool({
-  type: "line",
-  component: defineAsyncComponent(() => import("~/components/tools/Line.vue"))
-})

@@ -31,13 +31,25 @@ export function calculateBounds(annotation: Annotation): Bounds | null {
     }
   }
 
-  // Fill annotations have explicit bounds (x,y is top-left)
+  // Fill and Count annotations have explicit bounds (x,y is top-left)
   if ('x' in annotation && 'y' in annotation && 'width' in annotation && 'height' in annotation) {
     return {
       x: annotation.x,
       y: annotation.y,
       width: annotation.width,
       height: annotation.height,
+    }
+  }
+
+  // Count annotations are point-based with circular markers
+  if (annotation.type === 'count' && 'x' in annotation && 'y' in annotation) {
+    // Use a reasonable bounding box around the count marker (15px radius + some padding)
+    const radius = 20 // Match the hitbox radius from Count.vue
+    return {
+      x: annotation.x - radius,
+      y: annotation.y - radius,
+      width: radius * 2,
+      height: radius * 2,
     }
   }
 

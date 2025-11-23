@@ -1,15 +1,16 @@
 import { createInjectionState } from "@vueuse/core"
 import { useCreateBaseTool } from "./useCreateBaseTool"
+import { registerTool } from "~/composables/useToolRegistry"
+
+// Register area tool metadata immediately when module loads
+registerTool({
+  type: "area",
+  name: "Area",
+  icon: "📐"
+})
 
 /**
  * Area Tool - extends BaseTool
- *
- * Hierarchy:
- *   BaseTool (stores, rotation, selection)
- *     ↓ extends
- *   DrawingTool (drawing logic, points, events)
- *     ↓ extends
- *   AreaTool (polygon area calculations)
  */
 const [useAreaTool, useAreaToolState] = createInjectionState(() => {
   // Inherit base functionality
@@ -77,9 +78,3 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
 })
 
 export { useAreaTool, useAreaToolState }
-
-// Register area tool in the plugin system
-registerTool({
-  type: "area",
-  component: defineAsyncComponent(() => import("~/components/tools/Area.vue"))
-})
