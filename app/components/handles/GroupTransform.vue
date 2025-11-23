@@ -371,33 +371,30 @@ function handleRotate(svgX: number, svgY: number) {
       }
 
       annotationStore.updateAnnotation(originalAnn.id, updates)
-    } else if (hasX(originalAnn) && hasY(originalAnn)) {
+    } else if (hasX(originalAnn) && hasY(originalAnn) && hasWidth(originalAnn) && hasHeight(originalAnn)) {
       // Handle fill/text annotations with x,y position
       // For group rotation, update BOTH position (to orbit around group center) AND rotation property
-      if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-        // Calculate fill's center position
-        const fillCenterX = originalAnn.x + originalAnn.width / 2
-        const fillCenterY = originalAnn.y + originalAnn.height / 2
+      const fillCenterX = originalAnn.x + originalAnn.width / 2
+      const fillCenterY = originalAnn.y + originalAnn.height / 2
 
-        // Rotate the center around the group center
-        const dx = fillCenterX - centerX
-        const dy = fillCenterY - centerY
-        const cos = Math.cos(rotationDelta)
-        const sin = Math.sin(rotationDelta)
-        const rotatedCenterX = centerX + dx * cos - dy * sin
-        const rotatedCenterY = centerY + dx * sin + dy * cos
+      // Rotate the center around the group center
+      const dx = fillCenterX - centerX
+      const dy = fillCenterY - centerY
+      const cos = Math.cos(rotationDelta)
+      const sin = Math.sin(rotationDelta)
+      const rotatedCenterX = centerX + dx * cos - dy * sin
+      const rotatedCenterY = centerY + dx * sin + dy * cos
 
-        // Calculate new x,y position from rotated center
-        const newX = rotatedCenterX - originalAnn.width / 2
-        const newY = rotatedCenterY - originalAnn.height / 2
+      // Calculate new x,y position from rotated center
+      const newX = rotatedCenterX - originalAnn.width / 2
+      const newY = rotatedCenterY - originalAnn.height / 2
 
-        const originalRotation = (originalAnn.rotation as number) || 0
-        annotationStore.updateAnnotation(originalAnn.id, {
-          x: newX,
-          y: newY,
-          rotation: originalRotation + rotationDelta
-        })
-      }
+      const originalRotation = ("rotation" in originalAnn ? originalAnn.rotation : 0) || 0
+      annotationStore.updateAnnotation(originalAnn.id, {
+        x: newX,
+        y: newY,
+        rotation: originalRotation + rotationDelta
+      })
     }
   })
 }
@@ -472,31 +469,9 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
         annotationStore.updateAnnotation(originalAnn.id, updates)
       } else if (hasX(originalAnn) && hasY(originalAnn)) {
         // Handle fill/text annotations with x,y position
-        // For group rotation, update BOTH position (to orbit around group center) AND rotation property
-        if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-          // Calculate fill's center position
-          const fillCenterX = originalAnn.x + originalAnn.width / 2
-          const fillCenterY = originalAnn.y + originalAnn.height / 2
-
-          // Rotate the center around the group center
-          const dx = fillCenterX - centerX
-          const dy = fillCenterY - centerY
-          const cos = Math.cos(transformBase.currentRotationDelta.value)
-          const sin = Math.sin(transformBase.currentRotationDelta.value)
-          const rotatedCenterX = centerX + dx * cos - dy * sin
-          const rotatedCenterY = centerY + dx * sin + dy * cos
-
-          // Calculate new x,y position from rotated center
-          const newX = rotatedCenterX - originalAnn.width / 2
-          const newY = rotatedCenterY - originalAnn.height / 2
-
-          const originalRotation = (originalAnn.rotation as number) || 0
-          annotationStore.updateAnnotation(originalAnn.id, {
-            x: newX,
-            y: newY,
-            rotation: originalRotation + transformBase.currentRotationDelta.value
-          })
-        }
+        // For group rotation, the position and rotation have already been updated during handleRotate
+        // We don't need to recalculate here - just let those updates persist
+        // (handleRotate already correctly updated both position and rotation properties)
       }
     })
 
@@ -571,6 +546,11 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           updates.width = finalState.width
           updates.height = finalState.height
         }
+      }
+
+      // Also check for rotation changes on fills/text annotations
+      if (hasRotation(finalState) && hasRotation(originalAnn) && finalState.rotation !== originalAnn.rotation) {
+        updates.rotation = finalState.rotation
       }
 
       // If any updates were made, record them in history

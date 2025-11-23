@@ -297,14 +297,16 @@ function handleRotate(svgX: number, svgY: number) {
 }
 
 function handleMove(deltaX: number, deltaY: number) {
-  if (!selectedAnnotation.value) return
+  if (!selectedAnnotation.value || !originalAnnotationState.value) return
 
   const annotation = selectedAnnotation.value
   const tool = toolRegistry.getTool(annotation.type)
 
   // Use tool's registered move handler if available
+  // IMPORTANT: Pass the ORIGINAL annotation state, not the current reactive one
+  // This prevents cumulative delta compounding on each mousemove
   if (tool?.transform?.applyMove) {
-    const updates = tool.transform.applyMove(annotation, deltaX, deltaY)
+    const updates = tool.transform.applyMove(originalAnnotationState.value, deltaX, deltaY)
     annotationStore.updateAnnotation(annotation.id, updates)
     return
   }
@@ -318,11 +320,15 @@ function handleMove(deltaX: number, deltaY: number) {
     }))
 
     annotationStore.updateAnnotation(annotation.id, { points: movedPoints })
-  } else if ("x" in annotation && "y" in annotation && transformBase.originalBounds.value) {
-    // Text annotation - update x, y position
+  } else if ("x" in annotation && "y" in annotation && originalAnnotationState.value) {
+    // Fill/text annotation - update x, y position from ORIGINAL state, not bounds
+    // Use originalAnnotationState instead of originalBounds to ensure we have the exact original x,y
+    const originalX = (originalAnnotationState.value as { x: number }).x
+    const originalY = (originalAnnotationState.value as { y: number }).y
+
     annotationStore.updateAnnotation(annotation.id, {
-      x: transformBase.originalBounds.value.x + deltaX,
-      y: transformBase.originalBounds.value.y + deltaY
+      x: originalX + deltaX,
+      y: originalY + deltaY
     })
   }
 }

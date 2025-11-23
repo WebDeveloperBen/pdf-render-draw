@@ -4,8 +4,8 @@
  */
 
 // Type guards for checking if properties exist
-export function hasRotation(annotation: Annotation): annotation is Measurement | Area | Perimeter | Line {
-  return "rotation" in annotation
+export function hasRotation(annotation: Annotation): annotation is Annotation & { rotation: number } {
+  return "rotation" in annotation && typeof (annotation as { rotation?: unknown }).rotation === "number"
 }
 
 export function hasPoints(annotation: Annotation): annotation is Measurement | Area | Perimeter | Line {
