@@ -62,7 +62,6 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     type: "measure",
     name: "Measure",
     icon: "📏",
-    // component: defineAsyncComponent(() => import("~/components/tools/Measure.vue")), // Not needed for direct rendering
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

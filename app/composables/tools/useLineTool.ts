@@ -33,7 +33,6 @@ const [useLineTool, useLineToolState] = createInjectionState(() => {
     type: "line",
     name: "Line",
     icon: "—",
-    component: defineAsyncComponent(() => import("@/components/tools/Line.vue")),
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

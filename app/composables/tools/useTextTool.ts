@@ -2,23 +2,21 @@ import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 
 const [useTextTool, useTextToolState] = createInjectionState(() => {
-  const annotationStore = useAnnotationStore()
+  // Inherit base functionality
+  const base = useCreateBaseTool()
   const rendererStore = useRendererStore()
-
-  // Get modifier keys for multi-select support (optional for tests)
-  const modifierKeys = useModifierKeys()!
 
   // Use global text editing state (singleton composable)
   const textEditing = useTextEditingState()
 
   const completed = computed(
-    () => annotationStore.getAnnotationsByTypeAndPage("text", rendererStore.getCurrentPage) as TextAnnotation[]
+    () => base.annotationStore.getAnnotationsByTypeAndPage("text", rendererStore.getCurrentPage) as TextAnnotation[]
   )
 
   const selected = computed(() => {
-    if (!annotationStore.selectedAnnotation) return null
-    if (annotationStore.selectedAnnotation.type !== "text") return null
-    return annotationStore.selectedAnnotation as TextAnnotation
+    if (!base.annotationStore.selectedAnnotation) return null
+    if (base.annotationStore.selectedAnnotation.type !== "text") return null
+    return base.annotationStore.selectedAnnotation as TextAnnotation
   })
 
   const editingId = textEditing.editingId
@@ -41,11 +39,6 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     const height = 50
     const fontSize = 16
 
-    // Center text on cursor position
-    // Visual bounds: (x - 5, y - fontSize - 2, width + 10, height + 4)
-    // Visual center: (x + width/2, y - fontSize - 2 + height/2)
-    // To center on cursor: x + width/2 = point.x → x = point.x - width/2
-    //                      y - fontSize - 2 + height/2 = point.y → y = point.y + fontSize + 2 - height/2
     const text: TextAnnotation = {
       id: uuidv4(),
       type: "text",
@@ -60,7 +53,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
       rotation: degreesToRadians(-rendererStore.rotation) // Counter-rotate to appear upright in viewport
     }
 
-    annotationStore.addAnnotation(text)
+    base.annotationStore.addAnnotation(text)
     textEditing.startEditing(text.id)
   }
 
@@ -68,13 +61,8 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     textEditing.startEditing(id)
   }
 
-  function selectAnnotation(id: string) {
-    // Support Shift+click for multi-select (fallback to false if not provided)
-    annotationStore.selectAnnotation(id, { addToSelection: modifierKeys?.isShiftPressed.value ?? false })
-  }
-
   function updateText(id: string, content: string) {
-    annotationStore.updateAnnotation(id, { content })
+    base.annotationStore.updateAnnotation(id, { content })
     textEditing.cancelEditing()
   }
 
@@ -83,17 +71,17 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
   }
 
   function deleteText(id: string) {
-    annotationStore.deleteAnnotation(id)
+    base.annotationStore.deleteAnnotation(id)
   }
 
   const tool = {
+    ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     completed,
     selected,
     editingId,
     editingContent,
     handleClick,
     handleDoubleClick,
-    selectAnnotation,
     updateText,
     finishEditing,
     deleteText
@@ -104,7 +92,6 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     type: "text",
     name: "Text",
     icon: "T",
-    component: defineAsyncComponent(() => import("@/components/tools/Text.vue")),
     onClick: tool.handleClick,
     onDoubleClick: (id: string) => {
       // Use global text editing state (singleton composable, no injection needed)

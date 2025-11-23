@@ -1,19 +1,4 @@
 <script setup lang="ts">
-/**
- * Example: Minimal PDF Editor with SVG Annotations
- *
- * This shows the bare minimum needed to render a PDF with annotation tools.
- * No auth, no DB, no persistence - just pure rendering.
- */
-
-import { useEventListener } from "@vueuse/core"
-import PdfPageSidebar from "~/components/PdfPageSidebar.vue"
-
-// Default test PDF - using a sample PDF from PDF.js demo
-// Replace with your own PDF path: "/sample.pdf" if you add one to /public folder
-// const pdfString = ref<string>(
-//   "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf"
-// )
 const pdfString = ref<string>("/house.pdf")
 
 // Load PDF from file input

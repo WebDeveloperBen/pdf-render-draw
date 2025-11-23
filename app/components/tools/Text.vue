@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTextToolState } from "~/composables/tools/useTextTool"
+import { useTextToolState } from "@/composables/tools/useTextTool"
 
 const tool = useTextToolState()
 if (!tool) {

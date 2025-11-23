@@ -94,7 +94,6 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
     type: "perimeter",
     name: "Perimeter",
     icon: "⬡",
-    component: defineAsyncComponent(() => import("@/components/tools/Perimeter.vue")),
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

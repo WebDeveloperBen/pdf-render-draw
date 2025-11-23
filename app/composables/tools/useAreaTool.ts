@@ -72,7 +72,6 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
     type: "area",
     name: "Area",
     icon: "📐",
-    component: defineAsyncComponent(() => import("@/components/tools/Area.vue")),
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

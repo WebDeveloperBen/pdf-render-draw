@@ -2,20 +2,18 @@ import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 
 const [useCountTool, useCountToolState] = createInjectionState(() => {
-  const annotationStore = useAnnotationStore()
+  // Inherit base functionality
+  const base = useCreateBaseTool()
   const rendererStore = useRendererStore()
 
-  // Get modifier keys for multi-select support (optional for tests)
-  const modifierKeys = useModifierKeys()!
-
   const completed = computed(
-    () => annotationStore.getAnnotationsByTypeAndPage("count", rendererStore.getCurrentPage) as Count[]
+    () => base.annotationStore.getAnnotationsByTypeAndPage("count", rendererStore.getCurrentPage) as Count[]
   )
 
   const selected = computed(() => {
-    if (!annotationStore.selectedAnnotation) return null
-    if (annotationStore.selectedAnnotation.type !== "count") return null
-    return annotationStore.selectedAnnotation as Count
+    if (!base.annotationStore.selectedAnnotation) return null
+    if (base.annotationStore.selectedAnnotation.type !== "count") return null
+    return base.annotationStore.selectedAnnotation as Count
   })
 
   // Track the next count number for this page
@@ -53,20 +51,15 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
       rotation: 0 // Counts don't rotate with page
     }
 
-    annotationStore.addAnnotation(count)
-  }
-
-  function selectAnnotation(id: string) {
-    // Support Shift+click for multi-select (fallback to false if not provided)
-    annotationStore.selectAnnotation(id, { addToSelection: modifierKeys?.isShiftPressed.value ?? false })
+    base.annotationStore.addAnnotation(count)
   }
 
   function deleteCount(id: string) {
-    annotationStore.deleteAnnotation(id)
+    base.annotationStore.deleteAnnotation(id)
   }
 
   function updateCount(id: string, updates: Partial<Pick<Count, "number" | "label">>) {
-    annotationStore.updateAnnotation(id, updates)
+    base.annotationStore.updateAnnotation(id, updates)
   }
 
   // Keyboard shortcut handler (optional)
@@ -76,13 +69,13 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
   }
 
   const tool = {
+    ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     completed,
     selected,
     nextCountNumber,
     cursorPosition,
     handleClick,
     handleKeyDown,
-    selectAnnotation,
     deleteCount,
     updateCount
   }
@@ -92,7 +85,6 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     type: "count",
     name: "Count",
     icon: "🔢",
-    component: defineAsyncComponent(() => import("@/components/tools/Count.vue")),
     onClick: tool.handleClick,
     onKeyDown: tool.handleKeyDown
   })

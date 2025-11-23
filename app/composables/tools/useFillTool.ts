@@ -2,21 +2,18 @@ import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 
 const [useFillTool, useFillToolState] = createInjectionState(() => {
-  const annotationStore = useAnnotationStore()
+  // Inherit base functionality
+  const base = useCreateBaseTool()
   const rendererStore = useRendererStore()
-  const settings = useSettingStore()
-
-  // Get modifier keys for multi-select support (optional for tests)
-  const modifierKeys = useModifierKeys()!
 
   const completed = computed(
-    () => annotationStore.getAnnotationsByTypeAndPage("fill", rendererStore.getCurrentPage) as Fill[]
+    () => base.annotationStore.getAnnotationsByTypeAndPage("fill", rendererStore.getCurrentPage) as Fill[]
   )
 
   const selected = computed(() => {
-    if (!annotationStore.selectedAnnotation) return null
-    if (annotationStore.selectedAnnotation.type !== "fill") return null
-    return annotationStore.selectedAnnotation as Fill
+    if (!base.annotationStore.selectedAnnotation) return null
+    if (base.annotationStore.selectedAnnotation.type !== "fill") return null
+    return base.annotationStore.selectedAnnotation as Fill
   })
 
   // Drawing state
@@ -86,12 +83,12 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
       y: currentRect.value.y,
       width: currentRect.value.width,
       height: currentRect.value.height,
-      color: settings.fillToolSettings.fillColor,
-      opacity: settings.fillToolSettings.opacity,
+      color: base.settings.fillToolSettings.fillColor,
+      opacity: base.settings.fillToolSettings.opacity,
       rotation: 0
     }
 
-    annotationStore.addAnnotation(fill)
+    base.annotationStore.addAnnotation(fill)
 
     // Reset drawing state
     isDrawing.value = false
@@ -99,16 +96,12 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     currentRect.value = null
   }
 
-  function selectAnnotation(id: string) {
-    // Support Shift+click for multi-select (fallback to false if not provided)
-    annotationStore.selectAnnotation(id, { addToSelection: modifierKeys?.isShiftPressed.value ?? false })
-  }
-
   function deleteFill(id: string) {
-    annotationStore.deleteAnnotation(id)
+    base.annotationStore.deleteAnnotation(id)
   }
 
   const tool = {
+    ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     completed,
     selected,
     isDrawing,
@@ -116,7 +109,6 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-    selectAnnotation,
     deleteFill
   }
 
@@ -125,7 +117,6 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     type: "fill",
     name: "Fill",
     icon: "🎨",
-    // component: defineAsyncComponent(() => import("~/components/tools/Fill.vue")), // Not needed for direct rendering
     onMouseDown: tool.handleMouseDown,
     onMouseMove: tool.handleMouseMove,
     onMouseUp: tool.handleMouseUp

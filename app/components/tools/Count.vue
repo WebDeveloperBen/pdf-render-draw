@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useCountToolState } from "~/composables/tools/useCountTool"
+import { useCountToolState } from "@/composables/tools/useCountTool"
 
 const tool = useCountToolState()
 if (!tool) {
