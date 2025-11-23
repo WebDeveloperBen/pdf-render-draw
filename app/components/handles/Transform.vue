@@ -136,15 +136,8 @@ function handleResize(deltaX: number, deltaY: number) {
   const annotation = selectedAnnotation.value
   const handle = transformBase.activeHandle.value
 
-  // Get annotation rotation and rotate deltas into local space
-  // When annotation is rotated, mouse deltas are in global space but need to be in local space
+  // Get annotation rotation
   const rotation = (annotation as { rotation?: number }).rotation || 0
-
-  // Rotate deltas by -rotation to convert from global to local coordinate system
-  const cos = Math.cos(-rotation)
-  const sin = Math.sin(-rotation)
-  const localDeltaX = deltaX * cos - deltaY * sin
-  const localDeltaY = deltaX * sin + deltaY * cos
 
   // Determine which corner or edge is being dragged
   const isLeft = handle === "corner-0" || handle === "corner-3" || handle === "edge-3"
@@ -158,41 +151,64 @@ function handleResize(deltaX: number, deltaY: number) {
   // Calculate original aspect ratio
   const originalAspectRatio = transformBase.originalBounds.value.width / transformBase.originalBounds.value.height
 
-  // Calculate new bounds based on corner/edge drag (using local deltas)
+  // Calculate new bounds based on corner/edge drag
+  // For rotated annotations, we need to work in global space
   const newBounds = { ...transformBase.originalBounds.value }
 
-  if (isEdgeHandle) {
-    // Edge handles only resize in one dimension (using local deltas)
-    if (handle === "edge-0") {
-      // Top edge
-      newBounds.y += localDeltaY
-      newBounds.height -= localDeltaY
-    } else if (handle === "edge-1") {
-      // Right edge
-      newBounds.width += localDeltaX
-    } else if (handle === "edge-2") {
-      // Bottom edge
-      newBounds.height += localDeltaY
-    } else if (handle === "edge-3") {
-      // Left edge
-      newBounds.x += localDeltaX
-      newBounds.width -= localDeltaX
+  if (rotation !== 0) {
+    // For rotated annotations: convert mouse delta to local space to understand
+    // how much to scale in width/height
+    const cos = Math.cos(-rotation)
+    const sin = Math.sin(-rotation)
+    const localDeltaX = deltaX * cos - deltaY * sin
+    const localDeltaY = deltaX * sin + deltaY * cos
+
+    // Apply local deltas to dimensions only
+    if (isEdgeHandle) {
+      if (handle === "edge-0") {
+        newBounds.height -= localDeltaY
+      } else if (handle === "edge-1") {
+        newBounds.width += localDeltaX
+      } else if (handle === "edge-2") {
+        newBounds.height += localDeltaY
+      } else if (handle === "edge-3") {
+        newBounds.width -= localDeltaX
+      }
+    } else {
+      if (isLeft) newBounds.width -= localDeltaX
+      if (isRight) newBounds.width += localDeltaX
+      if (isTop) newBounds.height -= localDeltaY
+      if (isBottom) newBounds.height += localDeltaY
     }
   } else {
-    // Corner handles resize in both dimensions (using local deltas)
-    if (isLeft) {
-      newBounds.x += localDeltaX
-      newBounds.width -= localDeltaX
-    }
-    if (isRight) {
-      newBounds.width += localDeltaX
-    }
-    if (isTop) {
-      newBounds.y += localDeltaY
-      newBounds.height -= localDeltaY
-    }
-    if (isBottom) {
-      newBounds.height += localDeltaY
+    // No rotation - simple case, use global deltas directly
+    if (isEdgeHandle) {
+      if (handle === "edge-0") {
+        newBounds.y += deltaY
+        newBounds.height -= deltaY
+      } else if (handle === "edge-1") {
+        newBounds.width += deltaX
+      } else if (handle === "edge-2") {
+        newBounds.height += deltaY
+      } else if (handle === "edge-3") {
+        newBounds.x += deltaX
+        newBounds.width -= deltaX
+      }
+    } else {
+      if (isLeft) {
+        newBounds.x += deltaX
+        newBounds.width -= deltaX
+      }
+      if (isRight) {
+        newBounds.width += deltaX
+      }
+      if (isTop) {
+        newBounds.y += deltaY
+        newBounds.height -= deltaY
+      }
+      if (isBottom) {
+        newBounds.height += deltaY
+      }
     }
   }
 
@@ -207,12 +223,12 @@ function handleResize(deltaX: number, deltaY: number) {
       const newHeight = newBounds.width / originalAspectRatio
       const heightDiff = newHeight - newBounds.height
       newBounds.height = newHeight
-      if (isTop) newBounds.y -= heightDiff
+      if (isTop && rotation === 0) newBounds.y -= heightDiff
     } else {
       const newWidth = newBounds.height * originalAspectRatio
       const widthDiff = newWidth - newBounds.width
       newBounds.width = newWidth
-      if (isLeft) newBounds.x -= widthDiff
+      if (isLeft && rotation === 0) newBounds.x -= widthDiff
     }
   }
 
@@ -232,11 +248,11 @@ function handleResize(deltaX: number, deltaY: number) {
   }
 
   if (newBounds.width < minWidth) {
-    if (isLeft) newBounds.x = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width - minWidth
+    if (isLeft && rotation === 0) newBounds.x = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width - minWidth
     newBounds.width = minWidth
   }
   if (newBounds.height < minHeight) {
-    if (isTop)
+    if (isTop && rotation === 0)
       newBounds.y = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height - minHeight
     newBounds.height = minHeight
   }
@@ -255,12 +271,32 @@ function handleResize(deltaX: number, deltaY: number) {
     const scaleX = newBounds.width / transformBase.originalBounds.value.width
     const scaleY = newBounds.height / transformBase.originalBounds.value.height
 
-    const scaledPoints = originalPoints.value.map((p) => ({
-      x: newBounds.x + (p.x - transformBase.originalBounds.value!.x) * scaleX,
-      y: newBounds.y + (p.y - transformBase.originalBounds.value!.y) * scaleY
-    }))
+    if (rotation === 0) {
+      // No rotation - simple case: scale in global space
+      const scaledPoints = originalPoints.value.map((p) => ({
+        x: newBounds.x + (p.x - transformBase.originalBounds.value!.x) * scaleX,
+        y: newBounds.y + (p.y - transformBase.originalBounds.value!.y) * scaleY
+      }))
 
-    annotationStore.updateAnnotation(annotation.id, { points: scaledPoints })
+      annotationStore.updateAnnotation(annotation.id, { points: scaledPoints })
+    } else {
+      // With rotation: Scale points around the center, not around top-left
+      // This way the shape scales uniformly regardless of rotation
+      const center = getRotationCenter(annotation, transformBase.originalBounds.value)
+
+      const scaledPoints = originalPoints.value.map((p) => {
+        // Scale relative to center
+        const relX = p.x - center.x
+        const relY = p.y - center.y
+
+        return {
+          x: center.x + relX * scaleX,
+          y: center.y + relY * scaleY
+        }
+      })
+
+      annotationStore.updateAnnotation(annotation.id, { points: scaledPoints })
+    }
   }
 }
 
