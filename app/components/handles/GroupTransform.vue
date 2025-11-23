@@ -358,7 +358,8 @@ function handleRotate(svgX: number, svgY: number) {
   // Update visual rotation delta for real-time feedback
   annotationStore.rotationDragDelta = rotationDelta
 
-  if (Math.abs(rotationDelta * 180 / Math.PI) % 45 < 2) { // Log every ~45 degrees
+  if (Math.abs((rotationDelta * 180) / Math.PI) % 45 < 2) {
+    // Log every ~45 degrees
     console.log("[GroupTransform] handleRotate", {
       rotationDeg: (rotationDelta * 180) / Math.PI,
       originalBounds: {
@@ -368,16 +369,18 @@ function handleRotate(svgX: number, svgY: number) {
         height: transformBase.originalBounds.value.height,
         center: { x: centerX, y: centerY }
       },
-      currentCombinedBounds: combinedBounds.value ? {
-        x: combinedBounds.value.x,
-        y: combinedBounds.value.y,
-        width: combinedBounds.value.width,
-        height: combinedBounds.value.height
-      } : null,
-      boundsChanged: combinedBounds.value ? (
-        Math.abs(combinedBounds.value.x - transformBase.originalBounds.value.x) > 0.1 ||
-        Math.abs(combinedBounds.value.y - transformBase.originalBounds.value.y) > 0.1
-      ) : false
+      currentCombinedBounds: combinedBounds.value
+        ? {
+            x: combinedBounds.value.x,
+            y: combinedBounds.value.y,
+            width: combinedBounds.value.width,
+            height: combinedBounds.value.height
+          }
+        : null,
+      boundsChanged: combinedBounds.value
+        ? Math.abs(combinedBounds.value.x - transformBase.originalBounds.value.x) > 0.1 ||
+          Math.abs(combinedBounds.value.y - transformBase.originalBounds.value.y) > 0.1
+        : false
     })
   }
 
@@ -485,13 +488,13 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           // Get the current annotation to see what transform was applied
           const currentAnn = annotationStore.getAnnotationById(originalAnn.id)
 
-          // Calculate fill's ORIGINAL center position (from stored state at drag start)
-          const fillCenterX = originalAnn.x + originalAnn.width / 2
-          const fillCenterY = originalAnn.y + originalAnn.height / 2
+          // Calculate annotation's ORIGINAL center position (from stored state at drag start)
+          const annCenterX = originalAnn.x + originalAnn.width / 2
+          const annCenterY = originalAnn.y + originalAnn.height / 2
 
           // Rotate the center around the group center
-          const dx = fillCenterX - centerX
-          const dy = fillCenterY - centerY
+          const dx = annCenterX - centerX
+          const dy = annCenterY - centerY
           const cos = Math.cos(transformBase.currentRotationDelta.value)
           const sin = Math.sin(transformBase.currentRotationDelta.value)
           const rotatedCenterX = centerX + dx * cos - dy * sin
@@ -501,21 +504,39 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           const newX = rotatedCenterX - originalAnn.width / 2
           const newY = rotatedCenterY - originalAnn.height / 2
 
-          console.log("[GroupTransform] handleEndDrag - final fill position:", {
+          console.log("[GroupTransform] handleEndDrag - final annotation position:", {
             id: originalAnn.id,
+            type: originalAnn.type,
             originalPos: { x: originalAnn.x, y: originalAnn.y },
-            originalCenter: { x: fillCenterX, y: fillCenterY },
-            currentPos: currentAnn ? { x: currentAnn.x, y: currentAnn.y } : 'not found',
+            originalCenter: { x: annCenterX, y: annCenterY },
+            currentPos: currentAnn && hasX(currentAnn) && hasY(currentAnn)
+              ? { x: currentAnn.x, y: currentAnn.y }
+              : "not found",
             groupCenter: { x: centerX, y: centerY },
             rotationDeg: transformBase.currentRotationDelta.value * (180 / Math.PI),
             rotatedCenter: { x: rotatedCenterX, y: rotatedCenterY },
             newPos: { x: newX, y: newY }
           })
 
-          // Update to final orbited position, and remove the temporary group center
+          // Update to final orbited position AND rotation
+          // The annotation orbits to a new position AND rotates to match the drag angle
+          const currentRotation = (originalAnn as { rotation?: number }).rotation || 0
+          const newRotation = currentRotation + transformBase.currentRotationDelta.value
+
+          console.log("[GroupTransform] handleEndDrag - setting final position:", {
+            id: originalAnn.id,
+            type: originalAnn.type,
+            newPos: { x: newX, y: newY },
+            currentRotation,
+            rotationDelta: transformBase.currentRotationDelta.value,
+            newRotation,
+            newRotationDeg: newRotation * (180 / Math.PI)
+          })
+
           annotationStore.updateAnnotation(originalAnn.id, {
             x: newX,
             y: newY,
+            rotation: newRotation,
             _groupCenter: undefined
           })
         }

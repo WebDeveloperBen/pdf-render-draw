@@ -11,6 +11,10 @@ export interface BaseAnnotation {
   rotation: number // Required for all annotations (in radians) - enables group transforms
   createdAt?: string
   updatedAt?: string
+
+  // Temporary transform metadata (not persisted, used during group transformations)
+  _groupCenter?: Point // Group center position during multi-select rotation drag
+  _originalCenter?: Point // Original center position before transformation (for visual debugging)
 }
 
 // Specific annotation types
@@ -63,7 +67,7 @@ export interface Fill extends BaseAnnotation {
   height: number
   color: string
   opacity: number
-  // rotation inherited from BaseAnnotation
+  // rotation, _groupCenter, _originalCenter inherited from BaseAnnotation
 }
 
 export interface TextAnnotation extends BaseAnnotation {
@@ -75,7 +79,7 @@ export interface TextAnnotation extends BaseAnnotation {
   content: string
   fontSize: number
   color: string
-  // rotation inherited from BaseAnnotation (in radians)
+  // rotation, _groupCenter, _originalCenter inherited from BaseAnnotation (in radians)
   // Note: Text uses rotation differently - it's baked in at creation time, not for transforms
 }
 

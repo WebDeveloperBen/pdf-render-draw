@@ -78,18 +78,18 @@ export const useAnnotationStore = defineStore("annotations", () => {
 
     if (isMultiSelected && isDragging) {
       // Multi-select during drag:
-      // - Fills: rotate around the GROUP center (stored in _groupCenter)
-      // - Point-based: rotate around their own center (points are updated, so no transform needed)
-      if (isFill(annotation)) {
-        // For fills: rotate around the GROUP center, not their own center
+      // - Fills & Text: rotate around the GROUP center (orbit + rotate)
+      // - Point-based: no transform (points are updated directly)
+      if (isFill(annotation) || isText(annotation)) {
+        // For fills & text: rotate around the GROUP center
         // This makes them orbit AND rotate visually during drag
         const rotation = rotationDragDelta.value
         if (rotation === 0) return ""
 
-        // Use group center if stored, otherwise calculate from selection
+        // Use group center stored during drag
         const groupCenter = "_groupCenter" in annotation && annotation._groupCenter
           ? annotation._groupCenter
-          : { x: 0, y: 0 } // Fallback (shouldn't happen)
+          : { x: 0, y: 0 } // Fallback
 
         const angleDeg = radiansToDegrees(rotation)
         return `rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`
