@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { TRANSFORM, COLORS } from "~/constants/ui"
-import { isMeasurement, isArea, isPerimeter, isFill, isText, isCount, type Annotation } from "~/types/annotations"
-import type { Point } from "~/types"
-import { getAnnotationCenter } from "~/utils/annotation-geometry"
 
 defineProps<{
   annotation: Annotation
@@ -39,9 +36,45 @@ function getRotationCenter(annotation: Annotation): { x: number; y: number } {
 }
 
 // Calculate bounding box for selected annotation
+// If rotated, use the rotated rectangle bounds so handles wrap the visible shape
+function getRotatedBounds(annotation: Annotation): Bounds | null {
+  const base = calculateBounds(annotation)
+  if (!base) return null
+
+  const rotation = (annotation as { rotation?: number }).rotation || 0
+  if (rotation === 0 || !("x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation)) {
+    return base
+  }
+
+  const center = getRotationCenter(annotation)
+  const corners = [
+    { x: annotation.x, y: annotation.y },
+    { x: annotation.x + annotation.width, y: annotation.y },
+    { x: annotation.x + annotation.width, y: annotation.y + annotation.height },
+    { x: annotation.x, y: annotation.y + annotation.height }
+  ]
+
+  const cos = Math.cos(rotation)
+  const sin = Math.sin(rotation)
+  const rotated = corners.map((p) => ({
+    x: center.x + (p.x - center.x) * cos - (p.y - center.y) * sin,
+    y: center.y + (p.x - center.x) * sin + (p.y - center.y) * cos
+  }))
+
+  const xs = rotated.map((p) => p.x)
+  const ys = rotated.map((p) => p.y)
+
+  return {
+    x: Math.min(...xs),
+    y: Math.min(...ys),
+    width: Math.max(...xs) - Math.min(...xs),
+    height: Math.max(...ys) - Math.min(...ys)
+  }
+}
+
 const bounds = computed(() => {
   if (!selectedAnnotation.value) return null
-  return calculateBounds(selectedAnnotation.value)
+  return getRotatedBounds(selectedAnnotation.value)
 })
 
 // Use original bounds during rotation to keep transformer stable
@@ -362,7 +395,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
   if (mode === "rotate" && transformBase.currentRotationDelta.value !== 0) {
     const tool = toolRegistry.getTool(selectedAnnotation.value.type)
 
-    console.log('[Transform] Committing rotation:', {
+    console.log("[Transform] Committing rotation:", {
       type: selectedAnnotation.value.type,
       currentRotation: selectedAnnotation.value.rotation,
       delta: transformBase.currentRotationDelta.value,
@@ -372,7 +405,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     // Use tool's registered rotation handler if available
     if (tool?.transform?.applyRotation) {
       const updates = tool.transform.applyRotation(selectedAnnotation.value, transformBase.currentRotationDelta.value)
-      console.log('[Transform] Applying rotation updates:', updates)
+      console.log("[Transform] Applying rotation updates:", updates)
       annotationStore.updateAnnotation(annotationId, updates)
     } else {
       // Fallback

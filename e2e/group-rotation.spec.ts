@@ -192,28 +192,44 @@ test.describe("Group Rotation E2E", () => {
       y: rotationHandleBox.y + rotationHandleBox.height / 2
     })
 
-    // Calculate rotation - combined center is at (175, 125) in PDF coords
-    const combinedCenterX = svgBox.x + 175
-    const combinedCenterY = svgBox.y + 125
+    // Group center in SVG coords (from actual fills)
+    const groupCenterSvgX = (initialPositions[0].x + initialPositions[0].width / 2 + initialPositions[1].x + initialPositions[1].width / 2) / 2
+    const groupCenterSvgY = (initialPositions[0].y + initialPositions[0].height / 2 + initialPositions[1].y + initialPositions[1].height / 2) / 2
 
-    // Calculate where to drag handle for 45° rotation
-    // Rotation handle is 30px above center (ROTATION_DISTANCE)
-    // We want to rotate 45° clockwise
-    const targetAngle = -Math.PI / 4 // Start from -90° (up), rotate to -45°
-    const radius = 30
+    // Map center to screen via CTM to avoid double-translates
+    const { centerScreenX, centerScreenY } = await page.evaluate(([cx, cy]) => {
+      const svg = document.querySelector("svg") as SVGSVGElement | null
+      const ctm = svg?.getScreenCTM()
+      if (svg && ctm) {
+        const pt = svg.createSVGPoint()
+        pt.x = cx
+        pt.y = cy
+        const screen = pt.matrixTransform(ctm)
+        return { centerScreenX: screen.x, centerScreenY: screen.y }
+      }
+      return { centerScreenX: 0, centerScreenY: 0 }
+    }, [groupCenterSvgX, groupCenterSvgY] as const)
 
-    const targetX = combinedCenterX + Math.cos(targetAngle) * radius
-    const targetY = combinedCenterY + Math.sin(targetAngle) * radius
+    // Rotation handle radius: half height (25) + ROTATION_DISTANCE (30) = 55
+    const radius = 55
+    const targetAngle = -Math.PI / 4
+    const targetX = centerScreenX + Math.cos(targetAngle) * radius
+    const targetY = centerScreenY + Math.sin(targetAngle) * radius
 
+    const handleCenterScreenX = rotationHandleBox.x + rotationHandleBox.width / 2
+    const handleCenterScreenY = rotationHandleBox.y + rotationHandleBox.height / 2
+
+    console.log("📐 Group center (SVG):", { x: groupCenterSvgX, y: groupCenterSvgY })
+    console.log("📐 Group center (screen):", { x: centerScreenX, y: centerScreenY })
     console.log("🔄 Rotating handle from:", {
-      x: rotationHandleBox.x + rotationHandleBox.width / 2,
-      y: rotationHandleBox.y + rotationHandleBox.height / 2
+      x: handleCenterScreenX,
+      y: handleCenterScreenY
     })
     console.log("   To:", { x: targetX, y: targetY })
-    console.log("   Around center:", { x: combinedCenterX, y: combinedCenterY })
+    console.log("   Around center:", { x: centerScreenX, y: centerScreenY })
 
     // Perform the rotation drag
-    await page.mouse.move(rotationHandleBox.x + rotationHandleBox.width / 2, rotationHandleBox.y + rotationHandleBox.height / 2)
+    await page.mouse.move(handleCenterScreenX, handleCenterScreenY)
     await page.mouse.down()
     await page.waitForTimeout(100)
 

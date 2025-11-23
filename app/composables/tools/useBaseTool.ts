@@ -62,7 +62,7 @@ export function useBaseTool(options: BaseToolOptions) {
 
   function updateTempPoint(point: Point) {
     tempEndPoint.value = point
-    debugLog("BaseTool", "updateTempPoint called:", point, "tempEndPoint.value:", tempEndPoint.value)
+    //debugLog("BaseTool", "updateTempPoint called:", point, "tempEndPoint.value:", tempEndPoint.value)
   }
 
   function reset() {

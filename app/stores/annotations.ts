@@ -72,18 +72,16 @@ export const useAnnotationStore = defineStore("annotations", () => {
 
     // During multi-select rotation drag, don't apply individual drag delta
     // (group rotation is handled at the SvgAnnotationLayer level)
-    const isMultiSelectRotating = selectedAnnotationIds.value.length > 1 && rotationDragDelta.value !== 0
     const isMultiSelected =
       selectedAnnotationIds.value.length > 1 && selectedAnnotationIds.value.includes(annotation.id)
     let rotation = storedRotation
 
-    if (isMultiSelectRotating && isMultiSelected) {
-      // Only apply stored rotation, not drag delta
-      rotation = storedRotation
-    } else {
+    if (!isMultiSelected && selectedAnnotationId.value === annotation.id) {
       // Single annotation: add drag delta if being rotated
-      rotation =
-        selectedAnnotationId.value === annotation.id ? storedRotation + rotationDragDelta.value : storedRotation
+      rotation = storedRotation + rotationDragDelta.value
+    } else {
+      // Multi-select: always use stored rotation; drag delta is applied at group level
+      rotation = storedRotation
     }
 
     if (rotation === 0) return ""
@@ -186,6 +184,21 @@ export const useAnnotationStore = defineStore("annotations", () => {
       return
     }
 
+    const before = annotations.value[index]
+
+    // Log rotation updates specifically
+    if ("rotation" in updates) {
+      console.log("[AnnotationStore] updateAnnotation - rotation update", {
+        id,
+        type: before.type,
+        beforeRotation: (before as { rotation?: number }).rotation,
+        beforeRotationDeg: ((before as { rotation?: number }).rotation || 0) * (180 / Math.PI),
+        updateRotation: updates.rotation,
+        updateRotationDeg: (updates.rotation as number) * (180 / Math.PI),
+        allUpdates: Object.keys(updates)
+      })
+    }
+
     // Merge updates with existing annotation
     let updated = { ...annotations.value[index], ...updates }
 
@@ -201,6 +214,15 @@ export const useAnnotationStore = defineStore("annotations", () => {
     }
 
     annotations.value[index] = updated
+
+    // Log what was actually saved for rotation updates
+    if ("rotation" in updates) {
+      console.log("[AnnotationStore] updateAnnotation - after save", {
+        id,
+        savedRotation: (annotations.value[index] as { rotation?: number }).rotation,
+        savedRotationDeg: ((annotations.value[index] as { rotation?: number }).rotation || 0) * (180 / Math.PI)
+      })
+    }
   }
 
   function deleteAnnotation(id: string) {

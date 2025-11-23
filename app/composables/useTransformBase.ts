@@ -25,6 +25,7 @@ export function useTransformBase() {
   const currentRotationDelta = ref(0)
   const isShiftPressed = ref(false)
   const hasMoved = ref(false)
+  const lastClientPosition = ref<{ x: number; y: number } | null>(null)
 
   const svgRef = ref<SVGGElement | null>(null)
 
@@ -45,6 +46,7 @@ export function useTransformBase() {
 
       const deltaX = svgPoint.x - dragStart.value.x
       const deltaY = svgPoint.y - dragStart.value.y
+      lastClientPosition.value = { x: e.clientX, y: e.clientY }
 
       // Track if mouse actually moved (to distinguish click from drag)
       if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
@@ -66,6 +68,13 @@ export function useTransformBase() {
     return () => {
       const annotationStore = useAnnotationStore()
 
+      debugLog("TransformBase", "createEndDragHandler", {
+        wasDragging: isDragging.value,
+        mode: dragMode.value,
+        moved: hasMoved.value,
+        currentRotationDelta: currentRotationDelta.value
+      })
+
       // Clear drag delta IMMEDIATELY
       annotationStore.rotationDragDelta = 0
 
@@ -77,19 +86,31 @@ export function useTransformBase() {
       isDragging.value = false
 
       if (!wasDragging) {
+        debugLog("TransformBase", "Not dragging, cleanup early")
         cleanupState()
         return
       }
 
       // Call the specific end drag handler
+      debugLog("TransformBase", "Calling onEndDrag handler")
       handlers.onEndDrag(mode, moved)
 
       // Clean up state
+      debugLog("TransformBase", "Cleanup state after onEndDrag")
       cleanupState()
     }
   }
 
   function cleanupState() {
+    debugLog("TransformBase", "cleanupState", {
+      beforeCleanup: {
+        activeHandle: activeHandle.value,
+        dragMode: dragMode.value,
+        currentRotationDelta: currentRotationDelta.value,
+        startRotationAngle: startRotationAngle.value
+      }
+    })
+
     activeHandle.value = null
     dragMode.value = null
     dragStart.value = null
@@ -97,6 +118,9 @@ export function useTransformBase() {
     startRotationAngle.value = 0
     currentRotationDelta.value = 0
     hasMoved.value = false
+    lastClientPosition.value = null
+
+    debugLog("TransformBase", "cleanupState complete")
   }
 
   // Set up event listeners
@@ -133,6 +157,7 @@ export function useTransformBase() {
     dragStart.value = svgPoint
     originalBounds.value = { ...bounds }
     hasMoved.value = false
+    lastClientPosition.value = { x: e.clientX, y: e.clientY }
 
     // Allow component-specific initialization
     if (onStart) {
@@ -155,6 +180,7 @@ export function useTransformBase() {
     isShiftPressed,
     hasMoved,
     svgRef,
+    lastClientPosition,
 
     // Functions
     getSvgPoint,
