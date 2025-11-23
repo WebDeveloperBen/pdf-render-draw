@@ -1,13 +1,31 @@
 <script setup lang="ts">
-const pdfString = ref<string>("/house.pdf")
+// Props for data-driven approach
+interface Props {
+  initialTool?: ToolType
+}
 
-// Load PDF from file input
+const props = withDefaults(defineProps<Props>(), {
+  initialTool: "measure"
+})
+
+// Use defineModel for two-way binding of pdfUrl
+const pdfUrl = defineModel<string>("pdfUrl", { default: "/house.pdf" })
+
+const pdfString = ref<string>(pdfUrl.value)
+
+// Define emits for parent communication
+const emit = defineEmits<{
+  fileUploaded: [file: File]
+}>()
+
+// Load PDF from file input - update v-model directly
 function handleFileUpload(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
     const url = URL.createObjectURL(file)
-    pdfString.value = url
+    pdfUrl.value = url // Update v-model directly
+    emit("fileUploaded", file) // Still emit for parent awareness
   }
 }
 
@@ -17,7 +35,6 @@ const { pdf } = usePDF(pdfString)
 // Stores
 const annotationStore = useAnnotationStore()
 const rendererStore = useRendererStore()
-const settingsStore = useSettingStore()
 
 // Sidebar state
 const sidebarOpen = ref(false)
@@ -25,16 +42,25 @@ function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value
 }
 
-// PDF scale input
-const scaleInput = ref(settingsStore.getPdfScale)
+// Use defineModel for PDF scale too
+const pdfScale = defineModel<string>("pdfScale", { default: "1:100" })
+
+// PDF scale input - update v-model directly
+const scaleInput = ref(pdfScale.value)
+
+// Keep input in sync with v-model
+watch(pdfScale, (newScale) => {
+  scaleInput.value = newScale
+})
+
 function updatePdfScale() {
   // Validate format (1:50, 1:100, etc.)
   const scaleRegex = /^1:\d+$/
   if (scaleRegex.test(scaleInput.value)) {
-    settingsStore.setPdfScale(scaleInput.value)
+    pdfScale.value = scaleInput.value // Update v-model directly
   } else {
     // Reset to current valid value if invalid
-    scaleInput.value = settingsStore.getPdfScale
+    scaleInput.value = pdfScale.value
   }
 }
 
@@ -130,7 +156,7 @@ watch(
 
 // Set initial tool on mount
 onMounted(() => {
-  annotationStore.setActiveTool("measure")
+  annotationStore.setActiveTool(props.initialTool)
 })
 
 // Keyboard event listeners using VueUse for automatic cleanup
@@ -208,7 +234,7 @@ const annotationCount = computed(() => annotationStore.annotations.length)
           @blur="updatePdfScale"
           @keyup.enter="updatePdfScale"
         />
-        <span class="scale-hint">{{ settingsStore.getPdfScale }}</span>
+        <span class="scale-hint">{{ pdfScale }}</span>
       </div>
 
       <!-- Page Navigation Controls -->

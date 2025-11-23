@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils"
 import { setActivePinia, createPinia } from "pinia"
 import Transform from "./Transform.vue"
 import { useAnnotationStore } from "~/stores/annotations"
+import type { Measurement } from "~/types/annotations"
 
 // Mock debug utils
 vi.mock("~/utils/debug", () => ({
@@ -19,7 +20,7 @@ describe("Transform Component", () => {
     it("should render when annotation is selected", () => {
       const store = useAnnotationStore()
 
-      const annotation = {
+      const annotation: Measurement = {
         id: "test-1",
         type: "measure",
         pageNum: 1,
@@ -44,7 +45,7 @@ describe("Transform Component", () => {
     })
 
     it("should handle unselected annotation gracefully", () => {
-      const annotation = {
+      const annotation: Measurement = {
         id: "test-1",
         type: "measure",
         pageNum: 1,
