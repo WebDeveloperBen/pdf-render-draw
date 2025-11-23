@@ -39,6 +39,13 @@ const [useLineTool, useLineToolState] = createInjectionState(() => {
     onMouseLeave: tool.clearPreview,
     onKeyDown: tool.handleKeyDown,
     transform: {
+      // Transform metadata
+      structure: "point-based",
+      groupRotation: "update-points",
+      supportsGroupResize: true,
+      supportsGroupMove: true,
+      rotationCenter: "centroid",
+
       // Get rotation center - centroid of all points
       getCenter: (annotation) => {
         const line = annotation as Line

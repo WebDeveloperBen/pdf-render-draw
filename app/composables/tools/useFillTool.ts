@@ -120,6 +120,13 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     onMouseMove: tool.handleMouseMove,
     onMouseUp: tool.handleMouseUp,
     transform: {
+      // Transform metadata
+      structure: "positioned",
+      groupRotation: "update-position-and-rotation",
+      supportsGroupResize: true,
+      supportsGroupMove: true,
+      rotationCenter: "geometric-center",
+
       // Get rotation center - center of the rectangle
       getCenter: (annotation) => {
         const fill = annotation as Fill

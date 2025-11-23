@@ -316,27 +316,32 @@ function handleResize(deltaX: number, deltaY: number) {
   const scaleY = newBounds.height / transformBase.originalBounds.value.height
 
   // Scale all annotations proportionally
+  // Use tool registry to determine resize behavior
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    if ("points" in originalAnn && Array.isArray(originalAnn.points)) {
-      // Point-based annotation - scale all points relative to combined bounds
-      const scaledPoints = originalAnn.points.map((p: Point) => ({
-        x: newBounds.x + (p.x - transformBase.originalBounds.value!.x) * scaleX,
-        y: newBounds.y + (p.y - transformBase.originalBounds.value!.y) * scaleY
-      }))
-      annotationStore.updateAnnotation(originalAnn.id, { points: scaledPoints })
-    } else if ("x" in originalAnn && "y" in originalAnn && "width" in originalAnn && "height" in originalAnn) {
-      // Text annotation - scale bounds
-      const scaledX = newBounds.x + (originalAnn.x - transformBase.originalBounds.value!.x) * scaleX
-      const scaledY = newBounds.y + (originalAnn.y - transformBase.originalBounds.value!.y) * scaleY
-      const scaledWidth = originalAnn.width * scaleX
-      const scaledHeight = originalAnn.height * scaleY
+    if (isPointBasedTool(originalAnn.type)) {
+      // Point-based tools: scale all points relative to combined bounds
+      if (hasPoints(originalAnn)) {
+        const scaledPoints = originalAnn.points.map((p: Point) => ({
+          x: newBounds.x + (p.x - transformBase.originalBounds.value!.x) * scaleX,
+          y: newBounds.y + (p.y - transformBase.originalBounds.value!.y) * scaleY
+        }))
+        annotationStore.updateAnnotation(originalAnn.id, { points: scaledPoints })
+      }
+    } else if (isPositionedTool(originalAnn.type)) {
+      // Positioned tools: scale bounds (x, y, width, height)
+      if (hasX(originalAnn) && hasY(originalAnn) && hasWidth(originalAnn) && hasHeight(originalAnn)) {
+        const scaledX = newBounds.x + (originalAnn.x - transformBase.originalBounds.value!.x) * scaleX
+        const scaledY = newBounds.y + (originalAnn.y - transformBase.originalBounds.value!.y) * scaleY
+        const scaledWidth = originalAnn.width * scaleX
+        const scaledHeight = originalAnn.height * scaleY
 
-      annotationStore.updateAnnotation(originalAnn.id, {
-        x: scaledX,
-        y: scaledY,
-        width: scaledWidth,
-        height: scaledHeight
-      })
+        annotationStore.updateAnnotation(originalAnn.id, {
+          x: scaledX,
+          y: scaledY,
+          width: scaledWidth,
+          height: scaledHeight
+        })
+      }
     }
   })
 }
@@ -386,7 +391,12 @@ function handleRotate(svgX: number, svgY: number) {
 
   // Apply rotation to annotations in real-time for visual feedback
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    if (hasPoints(originalAnn)) {
+    // Use tool registry to determine rotation behavior
+    if (shouldUpdatePoints(originalAnn.type)) {
+      // Point-based tools: update points directly during drag
+      // Type guard: verify annotation has points property
+      if (!hasPoints(originalAnn)) return
+
       const rotatedPoints = originalAnn.points.map((p: Point) => {
         const dx = p.x - centerX
         const dy = p.y - centerY
@@ -406,18 +416,14 @@ function handleRotate(svgX: number, svgY: number) {
       }
 
       annotationStore.updateAnnotation(originalAnn.id, updates)
-    } else if (hasX(originalAnn) && hasY(originalAnn)) {
-      // Handle fill/text annotations with x,y position
-      // DON'T update position during drag - let SVG transform handle visual rotation
-      // We'll calculate final position on drag end
-      if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-        // Store the GROUP center for rotation transform
-        // This allows fills to rotate around the group center visually
-        annotationStore.updateAnnotation(originalAnn.id, {
-          _groupCenter: { x: centerX, y: centerY }
-        })
-      }
+    } else if (shouldApplyRotationTransform(originalAnn.type)) {
+      // Positioned tools: store group center for SVG transform (visual rotation during drag)
+      // Don't update position yet - calculate final position on drag end
+      annotationStore.updateAnnotation(originalAnn.id, {
+        _groupCenter: { x: centerX, y: centerY }
+      })
     }
+    // Tools with groupRotation: "none" don't get updated during rotation
   })
 }
 
@@ -425,18 +431,25 @@ function handleMove(deltaX: number, deltaY: number) {
   if (originalAnnotationStates.value.length === 0) return
 
   // Move all annotations by the same delta
+  // Use tool registry to determine move behavior
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    if (hasPoints(originalAnn)) {
-      const movedPoints = originalAnn.points.map((p: Point) => ({
-        x: p.x + deltaX,
-        y: p.y + deltaY
-      }))
-      annotationStore.updateAnnotation(originalAnn.id, { points: movedPoints })
-    } else if (hasX(originalAnn) && hasY(originalAnn)) {
-      annotationStore.updateAnnotation(originalAnn.id, {
-        x: originalAnn.x + deltaX,
-        y: originalAnn.y + deltaY
-      })
+    if (isPointBasedTool(originalAnn.type)) {
+      // Point-based tools: move all points
+      if (hasPoints(originalAnn)) {
+        const movedPoints = originalAnn.points.map((p: Point) => ({
+          x: p.x + deltaX,
+          y: p.y + deltaY
+        }))
+        annotationStore.updateAnnotation(originalAnn.id, { points: movedPoints })
+      }
+    } else if (isPositionedTool(originalAnn.type)) {
+      // Positioned tools: move x,y position
+      if (hasX(originalAnn) && hasY(originalAnn)) {
+        annotationStore.updateAnnotation(originalAnn.id, {
+          x: originalAnn.x + deltaX,
+          y: originalAnn.y + deltaY
+        })
+      }
     }
   })
 }
@@ -468,11 +481,10 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     const centerY = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height / 2
 
     // Commit rotation for all annotations
-    // Point-based annotations: recalculate from original (they were updated during drag)
-    // Fill/text annotations: just update rotation property (position already updated during drag)
+    // Use tool registry to determine how to finalize rotation
     originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-      if (hasPoints(originalAnn)) {
-        // Point-based: rotation was already applied during drag, just get current state
+      if (shouldUpdatePoints(originalAnn.type)) {
+        // Point-based tools: rotation was already applied during drag, just get current state
         // (points were updated in real-time during handleRotate)
         // For measurements, also update labelRotation to keep labels aligned
         if (originalAnn.type === "measure" && hasLabelRotation(originalAnn)) {
@@ -482,9 +494,9 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           })
         }
         // Points already updated during drag, nothing more to do
-      } else if (hasX(originalAnn) && hasY(originalAnn)) {
-        // Fill/text annotations: calculate final orbited position
-        if ("rotation" in originalAnn && hasWidth(originalAnn) && hasHeight(originalAnn)) {
+      } else if (shouldApplyRotationTransform(originalAnn.type)) {
+        // Positioned tools: calculate final orbited position
+        if (hasX(originalAnn) && hasY(originalAnn) && hasWidth(originalAnn) && hasHeight(originalAnn)) {
           // Get the current annotation to see what transform was applied
           const currentAnn = annotationStore.getAnnotationById(originalAnn.id)
 

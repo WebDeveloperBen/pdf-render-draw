@@ -67,6 +67,13 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     onMouseLeave: tool.clearPreview,
     onKeyDown: tool.handleKeyDown,
     transform: {
+      // Transform metadata
+      structure: "point-based",
+      groupRotation: "update-points",
+      supportsGroupResize: true,
+      supportsGroupMove: true,
+      rotationCenter: "midpoint",
+
       // Get rotation center - midpoint of the line
       getCenter: (annotation) => {
         const measure = annotation as Measurement

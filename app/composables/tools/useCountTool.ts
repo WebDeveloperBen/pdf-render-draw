@@ -88,6 +88,13 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     onClick: tool.handleClick,
     onKeyDown: tool.handleKeyDown,
     transform: {
+      // Transform metadata
+      structure: "positioned",
+      groupRotation: "none", // Count markers don't rotate
+      supportsGroupResize: false,
+      supportsGroupMove: true,
+      rotationCenter: "geometric-center",
+
       // Get rotation center - x,y is already the center point of the count marker
       getCenter: (annotation) => {
         const count = annotation as Count

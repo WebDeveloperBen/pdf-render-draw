@@ -99,6 +99,13 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
       textEditing.startEditing(id)
     },
     transform: {
+      // Transform metadata
+      structure: "positioned",
+      groupRotation: "update-position-and-rotation",
+      supportsGroupResize: true,
+      supportsGroupMove: true,
+      rotationCenter: "geometric-center",
+
       // Get rotation center - center of text box
       getCenter: (annotation) => {
         const text = annotation as TextAnnotation

@@ -100,6 +100,13 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
     onMouseLeave: tool.clearPreview,
     onKeyDown: tool.handleKeyDown,
     transform: {
+      // Transform metadata
+      structure: "point-based",
+      groupRotation: "update-points",
+      supportsGroupResize: true,
+      supportsGroupMove: true,
+      rotationCenter: "centroid",
+
       // Get rotation center - stored center point
       getCenter: (annotation) => {
         const perimeter = annotation as Perimeter
