@@ -89,6 +89,17 @@ export function getToolbarTools() {
 }
 
 /**
+ * Get complete toolbar tools including manual tools (rotate, etc.)
+ */
+export function getCompleteToolbarTools() {
+  const registeredTools = getToolbarTools()
+  const manualTools: Array<{ id: ToolType | "selection" | "rotate" | ""; name: string; icon: string }> = [
+    { id: "rotate", name: "Rotate", icon: "🔄" }
+  ]
+  return [...registeredTools, ...manualTools]
+}
+
+/**
  * Check if a tool is registered
  */
 export function isToolRegistered(type: ToolType): boolean {
@@ -105,6 +116,7 @@ export function useToolRegistry() {
     getTool,
     getAllTools,
     getToolbarTools,
+    getCompleteToolbarTools,
     isToolRegistered
   }
 }
