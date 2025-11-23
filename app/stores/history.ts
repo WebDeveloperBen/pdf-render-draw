@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import type { Annotation } from '~/types/annotations'
+import { defineStore } from "pinia"
 
 /**
  * Command Pattern for Undo/Redo
@@ -66,11 +65,7 @@ class UpdateAnnotationCommand implements Command {
 
   undo() {
     // Restore to old state (need to pass full annotation, not just updates)
-    this.store.setAnnotations(
-      this.store.annotations.map(ann =>
-        ann.id === this.annotationId ? this.oldState : ann
-      )
-    )
+    this.store.setAnnotations(this.store.annotations.map((ann) => (ann.id === this.annotationId ? this.oldState : ann)))
   }
 }
 
@@ -111,7 +106,7 @@ class BatchCommand implements Command {
   }
 
   execute() {
-    this.commands.forEach(cmd => cmd.execute())
+    this.commands.forEach((cmd) => cmd.execute())
   }
 
   undo() {
@@ -125,7 +120,7 @@ class BatchCommand implements Command {
 /**
  * History Store - Manages undo/redo stack
  */
-export const useHistoryStore = defineStore('history', () => {
+export const useHistoryStore = defineStore("history", () => {
   const annotationStore = useAnnotationStore()
 
   // ============================================
@@ -180,7 +175,7 @@ export const useHistoryStore = defineStore('history', () => {
    */
   function undo() {
     if (!canUndo.value) {
-      console.warn('Nothing to undo')
+      console.warn("Nothing to undo")
       return
     }
 
@@ -194,7 +189,7 @@ export const useHistoryStore = defineStore('history', () => {
    */
   function redo() {
     if (!canRedo.value) {
-      console.warn('Nothing to redo')
+      console.warn("Nothing to redo")
       return
     }
 
@@ -287,6 +282,6 @@ export const useHistoryStore = defineStore('history', () => {
     AddAnnotationCommand,
     UpdateAnnotationCommand,
     DeleteAnnotationCommand,
-    BatchCommand,
+    BatchCommand
   }
 })

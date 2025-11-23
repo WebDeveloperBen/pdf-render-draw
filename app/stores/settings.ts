@@ -1,5 +1,3 @@
-import type { ModifierKeys, SupportedMeasurementUnits, TextStyle } from "~/types/tools"
-
 // ============================================
 // Type Definitions
 // ============================================
@@ -89,7 +87,7 @@ export const useSettingStore = defineStore("settings", () => {
     maximumScaleSize: 5,
     annotationDefaultDistance: 15,
     zoomIncrementsForTrackPad: 0.25,
-    zoomModifierKey: "ctrl",
+    zoomModifierKey: "ctrl"
   })
 
   const general = ref<GeneralSettings>({
@@ -101,7 +99,7 @@ export const useSettingStore = defineStore("settings", () => {
     showAnnotations: true,
     showAllCanvasObjects: false,
     selectHighlightColor: "blue",
-    pdfScale: "1:100",
+    pdfScale: "1:100"
   })
 
   const measureTool = ref<MeasureToolSettings>({
@@ -111,7 +109,7 @@ export const useSettingStore = defineStore("settings", () => {
     opacity: 0.2,
     strokeWidth: 1,
     labelSize: 8,
-    labelStrokeStyle: "bold",
+    labelStrokeStyle: "bold"
   })
 
   const areaTool = ref<AreaToolSettings>({
@@ -121,7 +119,7 @@ export const useSettingStore = defineStore("settings", () => {
     strokeColor: "#f05a24",
     strokeWidth: 1,
     opacity: 0.2,
-    labelStrokeStyle: "bold",
+    labelStrokeStyle: "bold"
   })
 
   const perimeterTool = ref<PerimeterToolSettings>({
@@ -131,14 +129,14 @@ export const useSettingStore = defineStore("settings", () => {
     strokeWidth: 1,
     opacity: 0.2,
     labelSize: 10,
-    labelStrokeStyle: "bold",
+    labelStrokeStyle: "bold"
   })
 
   const lineTool = ref<LineToolSettings>({
     strokeColor: "blue",
     fillColor: "blue",
     strokeWidth: 3,
-    opacity: 0.2,
+    opacity: 0.2
   })
 
   const fillTool = ref<FillToolSettings>({
@@ -146,12 +144,12 @@ export const useSettingStore = defineStore("settings", () => {
     strokeColor: "black",
     fillColor: "green",
     opacity: 0.3,
-    strokeWidth: 1,
+    strokeWidth: 1
   })
 
   const textTool = ref<TextToolSettings>({
     fontSize: 16,
-    color: "black",
+    color: "black"
   })
 
   /**
@@ -253,7 +251,7 @@ export const useSettingStore = defineStore("settings", () => {
     // Convenience actions
     setPdfScale,
     toggleShowAnnotations,
-    toggleShowAllCanvasObjects,
+    toggleShowAllCanvasObjects
   }
 })
 

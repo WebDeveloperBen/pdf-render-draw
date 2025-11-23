@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
 import { useAnnotationStore } from "./annotations"
-import type { Point } from "~/types"
-import type { TextAnnotation, Measurement, Area, Perimeter } from "~/types/annotations"
 
 describe("Annotation Store", () => {
   beforeEach(() => {

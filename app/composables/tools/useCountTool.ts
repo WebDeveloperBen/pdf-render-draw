@@ -1,8 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { createInjectionState } from "@vueuse/core"
-import { defineAsyncComponent } from "vue"
-import { registerTool } from "@/composables/useToolRegistry"
-import type { Count } from "~/types/annotations"
+import { useCreateBaseTool } from "./useCreateBaseTool"
 
 const [useCountTool, useCountToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
@@ -104,4 +101,3 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
 })
 
 export { useCountTool, useCountToolState }
-

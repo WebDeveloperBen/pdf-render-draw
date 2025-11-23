@@ -1,5 +1,3 @@
-import type { Point } from '~/types'
-
 /**
  * Calculate real-world distance between two points
  *
@@ -20,17 +18,9 @@ import type { Point } from '~/types'
  *   72
  * ) // Returns 2540 (1 inch * 25.4mm * 100 scale)
  */
-export function calculateDistance(
-  point1: Point,
-  point2: Point,
-  scaleString: string,
-  dpi: number = 72
-): number {
+export function calculateDistance(point1: Point, point2: Point, scaleString: string, dpi: number = 72): number {
   // Distance in PDF units (points)
-  const distanceInPoints = Math.sqrt(
-    Math.pow(point2.x - point1.x, 2) +
-    Math.pow(point2.y - point1.y, 2)
-  )
+  const distanceInPoints = Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2))
 
   // Convert points to millimeters (1 point = 1/72 inch)
   const distanceInMm = (distanceInPoints / dpi) * 25.4
@@ -60,11 +50,7 @@ export function calculateDistance(
  *   72
  * ) // Returns area of 1-inch square scaled to 100x (6.45 m²)
  */
-export function calculatePolygonArea(
-  points: Point[],
-  scaleString: string,
-  dpi: number = 72
-): number {
+export function calculatePolygonArea(points: Point[], scaleString: string, dpi: number = 72): number {
   let area = 0
   const scale = parsePdfPageScale(scaleString)
   const pixelsToMm = 25.4 / dpi
@@ -105,10 +91,7 @@ export function calculatePolygonArea(
  * ]) // Returns { x: 66.67, y: 33.33 }
  */
 export function calculateCentroid(points: Point[]): Point {
-  const sum = points.reduce(
-    (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
-    { x: 0, y: 0 }
-  )
+  const sum = points.reduce((acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }), { x: 0, y: 0 })
 
   return {
     x: sum.x / points.length,
@@ -152,10 +135,7 @@ export function calculateMidpoint(point1: Point, point2: Point): Point {
  * // Returns 5 (Pythagorean theorem: sqrt(3² + 4²))
  */
 export function distance(point1: Point, point2: Point): number {
-  return Math.sqrt(
-    Math.pow(point2.x - point1.x, 2) +
-    Math.pow(point2.y - point1.y, 2)
-  )
+  return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2))
 }
 
 /**
@@ -177,6 +157,6 @@ export function distance(point1: Point, point2: Point): number {
 export function parsePdfPageScale(scaleString: string): number {
   const match = scaleString.match(/1:(\d+)/)
   if (!match) return 1
-  const scaleStr = assertArrayItem(match, 1, 'Scale match should have capture group')
+  const scaleStr = assertArrayItem(match, 1, "Scale match should have capture group")
   return parseInt(scaleStr)
 }

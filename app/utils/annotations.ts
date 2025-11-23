@@ -1,5 +1,3 @@
-import type { Annotation, Measurement, Area, Perimeter, Line, Fill, TextAnnotation } from '~/types/annotations'
-
 /**
  * Safe property access utilities for Annotation union types
  * These help avoid TypeScript errors when accessing properties that don't exist on all annotation types
@@ -7,47 +5,47 @@ import type { Annotation, Measurement, Area, Perimeter, Line, Fill, TextAnnotati
 
 // Type guards for checking if properties exist
 export function hasRotation(annotation: Annotation): annotation is Measurement | Area | Perimeter | Line {
-  return 'rotation' in annotation
+  return "rotation" in annotation
 }
 
 export function hasPoints(annotation: Annotation): annotation is Measurement | Area | Perimeter | Line {
-  return 'points' in annotation
+  return "points" in annotation
 }
 
 export function hasX(annotation: Annotation): annotation is Fill | TextAnnotation {
-  return 'x' in annotation
+  return "x" in annotation
 }
 
 export function hasY(annotation: Annotation): annotation is Fill | TextAnnotation {
-  return 'y' in annotation
+  return "y" in annotation
 }
 
 export function hasWidth(annotation: Annotation): annotation is Fill | TextAnnotation {
-  return 'width' in annotation
+  return "width" in annotation
 }
 
 export function hasHeight(annotation: Annotation): annotation is Fill | TextAnnotation {
-  return 'height' in annotation
+  return "height" in annotation
 }
 
 export function hasLabelRotation(annotation: Annotation): annotation is Measurement | Area | Perimeter {
-  return 'labelRotation' in annotation
+  return "labelRotation" in annotation
 }
 
 export function hasMidpoint(annotation: Annotation): annotation is Measurement {
-  return 'midpoint' in annotation
+  return "midpoint" in annotation
 }
 
 export function hasCenter(annotation: Annotation): annotation is Area | Perimeter {
-  return 'center' in annotation
+  return "center" in annotation
 }
 
 export function hasDistance(annotation: Annotation): annotation is Measurement {
-  return 'distance' in annotation
+  return "distance" in annotation
 }
 
 export function hasArea(annotation: Annotation): annotation is Area {
-  return 'area' in annotation
+  return "area" in annotation
 }
 
 // Safe property getters with fallbacks
@@ -95,28 +93,29 @@ export function getArea(annotation: Annotation): number | undefined {
   return hasArea(annotation) ? annotation.area : undefined
 }
 
+// Helper function to check if we're in selection mode
+export function isSelectionMode(tool: string) {
+  return tool === "selection" || tool === ""
+}
+
 // Utility for creating safe partial updates
-export function createSafeAnnotationUpdate(updates: Record<string, any>): Partial<Annotation> {
-  const safeUpdates: Partial<Annotation> = {}
+export function createSafeAnnotationUpdate(updates: Record<string, unknown>): Partial<Annotation> {
+  const safeUpdates: Record<string, unknown> = {}
 
   // Only include properties that exist on at least one annotation type
-  Object.keys(updates).forEach(key => {
+  Object.keys(updates).forEach((key) => {
     if (updates[key] !== undefined) {
-      (safeUpdates as any)[key] = updates[key]
+      safeUpdates[key] = updates[key]
     }
   })
 
-  return safeUpdates
+  return safeUpdates as Partial<Annotation>
 }
 
 // Utility for checking if two annotation property values are different
-export function annotationPropertyChanged(
-  current: Annotation,
-  original: Annotation,
-  property: string
-): boolean {
-  const currentValue = (current as any)[property]
-  const originalValue = (original as any)[property]
+export function annotationPropertyChanged(current: Annotation, original: Annotation, property: string): boolean {
+  const currentValue = (current as unknown as Record<string, unknown>)[property]
+  const originalValue = (original as unknown as Record<string, unknown>)[property]
 
   if (currentValue === undefined && originalValue === undefined) return false
   if (currentValue === undefined || originalValue === undefined) return true
@@ -126,8 +125,12 @@ export function annotationPropertyChanged(
     return JSON.stringify(currentValue) !== JSON.stringify(originalValue)
   }
 
-  if (typeof currentValue === 'object' && typeof originalValue === 'object' &&
-      currentValue !== null && originalValue !== null) {
+  if (
+    typeof currentValue === "object" &&
+    typeof originalValue === "object" &&
+    currentValue !== null &&
+    originalValue !== null
+  ) {
     return JSON.stringify(currentValue) !== JSON.stringify(originalValue)
   }
 

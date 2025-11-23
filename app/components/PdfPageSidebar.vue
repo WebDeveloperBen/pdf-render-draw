@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PDFDocumentProxy } from "pdfjs-dist"
-import { watchThrottled } from "@vueuse/core"
 import { DIMENSIONS } from "~/constants/dimensions"
 
 const props = defineProps<{

@@ -1,7 +1,4 @@
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { defineAsyncComponent } from "vue"
-import { registerTool } from "@/composables/useToolRegistry"
-
 /**
  * Measure Tool - extends BaseTool
  *
@@ -65,7 +62,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     type: "measure",
     name: "Measure",
     icon: "📏",
-    component: defineAsyncComponent(() => import("@/components/tools/Measure.vue")),
+    // component: defineAsyncComponent(() => import("~/components/tools/Measure.vue")), // Not needed for direct rendering
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

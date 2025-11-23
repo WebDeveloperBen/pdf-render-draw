@@ -1,9 +1,5 @@
-import type { Fill } from "~/types/annotations"
-import type { Point } from "~/types"
 import { v4 as uuidv4 } from "uuid"
-import { createInjectionState } from "@vueuse/core"
-import { ref, computed } from "vue"
-import { registerTool } from "@/composables/useToolRegistry"
+import { useCreateBaseTool } from "./useCreateBaseTool"
 
 const [useFillTool, useFillToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()
@@ -37,6 +33,15 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
   }
 
   function handleMouseDown(e: MouseEvent) {
+    // Only start drawing if NOT clicking on an existing annotation
+    const target = e.target as SVGElement
+    const annotationId =
+      target.dataset?.annotationId || target.closest("[data-annotation-id]")?.getAttribute("data-annotation-id")
+
+    if (annotationId) {
+      return // Don't start fill drawing on existing annotations
+    }
+
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 
@@ -120,7 +125,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     type: "fill",
     name: "Fill",
     icon: "🎨",
-    component: defineAsyncComponent(() => import("@/components/tools/Fill.vue")),
+    // component: defineAsyncComponent(() => import("~/components/tools/Fill.vue")), // Not needed for direct rendering
     onMouseDown: tool.handleMouseDown,
     onMouseMove: tool.handleMouseMove,
     onMouseUp: tool.handleMouseUp

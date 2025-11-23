@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { createInjectionState } from "@vueuse/core"
-import { registerTool } from "@/composables/useToolRegistry"
+import { useCreateBaseTool } from "./useCreateBaseTool"
 
 const [useTextTool, useTextToolState] = createInjectionState(() => {
   const annotationStore = useAnnotationStore()

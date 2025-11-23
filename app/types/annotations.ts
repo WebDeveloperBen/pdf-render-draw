@@ -1,9 +1,12 @@
 import type { Point } from './index'
 
+// Tool types
+export type ToolType = 'measure' | 'area' | 'perimeter' | 'line' | 'fill' | 'text' | 'count'
+
 // Base annotation type
 export interface BaseAnnotation {
   id: string
-  type: 'measure' | 'area' | 'perimeter' | 'line' | 'fill' | 'text' | 'count'
+  type: ToolType
   pageNum: number
   rotation: number // Required for all annotations (in radians) - enables group transforms
   createdAt?: string

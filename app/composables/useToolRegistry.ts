@@ -6,15 +6,14 @@
  */
 
 import type { Component } from "vue"
-
-// Extract the type discriminator from the Annotation union
-type AnnotationType = Annotation["type"]
+import { ref, markRaw, triggerRef } from "vue"
+import type { ToolType } from "~/types/annotations"
 
 export interface ToolDefinition {
   /** Unique tool type identifier */
-  type: AnnotationType
+  type: ToolType
 
-  /** Vue component that renders the tool's annotations */
+  /** Vue component that renders the tool's annotations (optional for direct rendering) */
   component?: Component
 
   /** Display name for the toolbar */
@@ -41,38 +40,33 @@ export interface ToolDefinition {
   clearPreview?: () => void
 }
 
-// Tool registry - use shallowRef to avoid making components reactive
-// Components should not be made reactive for performance reasons
-const toolRegistry = shallowRef(new Map<AnnotationType, ToolDefinition>())
+// Tool registry - use ref with markRaw to avoid deep reactivity on components
+// while still allowing mutations to trigger updates
+const toolRegistry = ref(markRaw(new Map<ToolType, ToolDefinition>()))
 
 /**
  * Register a tool in the system
  * Call this in your tool's module to make it available
  */
 export function registerTool(definition: ToolDefinition) {
-  console.log('[ToolRegistry] Registering tool:', definition.type, 'hasComponent:', !!definition.component, 'component:', definition.component)
-
-  if (toolRegistry.value.has(definition.type)) {
-    console.warn(`Tool "${definition.type}" is already registered. Overwriting.`)
-  }
-
   toolRegistry.value.set(definition.type, definition)
-
-  // Trigger reactivity update by creating new Map reference
-  toolRegistry.value = new Map(toolRegistry.value)
+  // Trigger reactivity update since the Map is marked raw
+  triggerRef(toolRegistry)
 }
 
 /**
- * Unregister a tool (useful for testing or dynamic tool loading)
+ * Unregister a tool
  */
-export function unregisterTool(type: AnnotationType) {
+export function unregisterTool(type: ToolType) {
   toolRegistry.value.delete(type)
+  // Trigger reactivity update since the Map is marked raw
+  triggerRef(toolRegistry)
 }
 
 /**
  * Get a specific tool definition
  */
-export function getTool(type: AnnotationType): ToolDefinition | undefined {
+export function getTool(type: ToolType): ToolDefinition | undefined {
   return toolRegistry.value.get(type)
 }
 
@@ -87,7 +81,7 @@ export function getAllTools(): ToolDefinition[] {
  * Get toolbar-ready tool definitions
  */
 export function getToolbarTools() {
-  return getAllTools().map(tool => ({
+  return getAllTools().map((tool) => ({
     id: tool.type,
     name: tool.name,
     icon: tool.icon
@@ -97,7 +91,7 @@ export function getToolbarTools() {
 /**
  * Check if a tool is registered
  */
-export function isToolRegistered(type: AnnotationType): boolean {
+export function isToolRegistered(type: ToolType): boolean {
   return toolRegistry.value.has(type)
 }
 

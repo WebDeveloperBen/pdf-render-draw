@@ -1,5 +1,3 @@
-import type { Annotation } from '~/types/annotations'
-
 /**
  * Test helper utilities for safely accessing annotation properties
  * These help avoid TypeScript errors in test files
@@ -10,7 +8,7 @@ import type { Annotation } from '~/types/annotations'
  */
 export function getTestRotation(annotation: Annotation | undefined): number {
   if (!annotation) return 0
-  return 'rotation' in annotation ? annotation.rotation ?? 0 : 0
+  return "rotation" in annotation ? (annotation.rotation ?? 0) : 0
 }
 
 /**
@@ -18,7 +16,7 @@ export function getTestRotation(annotation: Annotation | undefined): number {
  */
 export function getTestPoints(annotation: Annotation | undefined): Array<{ x: number; y: number }> | undefined {
   if (!annotation) return undefined
-  return 'points' in annotation ? annotation.points : undefined
+  return "points" in annotation ? annotation.points : undefined
 }
 
 /**
@@ -26,7 +24,7 @@ export function getTestPoints(annotation: Annotation | undefined): Array<{ x: nu
  */
 export function getTestMidpoint(annotation: Annotation | undefined): { x: number; y: number } | undefined {
   if (!annotation) return undefined
-  return 'midpoint' in annotation ? annotation.midpoint : undefined
+  return "midpoint" in annotation ? annotation.midpoint : undefined
 }
 
 /**
@@ -34,7 +32,7 @@ export function getTestMidpoint(annotation: Annotation | undefined): { x: number
  */
 export function getTestDistance(annotation: Annotation | undefined): number | undefined {
   if (!annotation) return undefined
-  return 'distance' in annotation ? annotation.distance : undefined
+  return "distance" in annotation ? annotation.distance : undefined
 }
 
 /**
@@ -42,7 +40,7 @@ export function getTestDistance(annotation: Annotation | undefined): number | un
  */
 export function getTestLabelRotation(annotation: Annotation | undefined): number | undefined {
   if (!annotation) return undefined
-  return 'labelRotation' in annotation ? annotation.labelRotation : undefined
+  return "labelRotation" in annotation ? annotation.labelRotation : undefined
 }
 
 /**
@@ -51,6 +49,6 @@ export function getTestLabelRotation(annotation: Annotation | undefined): number
  */
 export function assertDefined<T>(value: T | undefined | null, message?: string): asserts value is T {
   if (value === undefined || value === null) {
-    throw new Error(message || 'Expected value to be defined')
+    throw new Error(message || "Expected value to be defined")
   }
 }

@@ -156,7 +156,7 @@ useEventListener(window, "keyup", handleKeyUp)
 const toolRegistry = useToolRegistry()
 const tools = computed(() => {
   const registeredTools = toolRegistry.getToolbarTools()
-  const manualTools = [
+  const manualTools: Array<{ id: ToolType | "selection" | "rotate" | ""; name: string; icon: string }> = [
     { id: "rotate", name: "Rotate", icon: "🔄" }
   ]
   return [...registeredTools, ...manualTools]

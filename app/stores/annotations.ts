@@ -1,7 +1,4 @@
 import { defineStore } from "pinia"
-import type { Annotation, Measurement, Area, Perimeter, PerimeterSegment } from "~/types/annotations"
-import { validateAnnotation, isMeasurement, isArea, isPerimeter } from "~/types/annotations"
-import * as calc from "~/utils/calculations"
 
 export const useAnnotationStore = defineStore("annotations", () => {
   // ============================================
@@ -9,7 +6,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
   // ============================================
 
   const annotations = ref<Annotation[]>([])
-  const activeTool = ref<Annotation["type"] | "selection" | "rotate" | "">("")
+  const activeTool = ref<ToolType | "selection" | "rotate" | "">("")
   const selectedAnnotationIds = ref<string[]>([]) // Multi-select support
   const isDrawing = ref(false)
 
@@ -24,11 +21,11 @@ export const useAnnotationStore = defineStore("annotations", () => {
     return annotations.value.filter((a) => a.pageNum === pageNum)
   }
 
-  function getAnnotationsByType(type: Annotation["type"]) {
+  function getAnnotationsByType(type: ToolType) {
     return annotations.value.filter((a) => a.type === type)
   }
 
-  function getAnnotationsByTypeAndPage(type: Annotation["type"], pageNum: number) {
+  function getAnnotationsByTypeAndPage(type: ToolType, pageNum: number) {
     const result = annotations.value.filter((a) => a.type === type && a.pageNum === pageNum)
     console.log(
       `[AnnotationStore] getAnnotationsByTypeAndPage(${type}, ${pageNum}):`,
@@ -110,7 +107,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
    * Recalculate derived values for annotations when points change
    * This ensures labels (midpoint, center) update when dragging/transforming
    */
-  function recalculateDerivedValues(annotation: Annotation): Partial<Annotation> {
+  function recalculateDerivedValues(annotation: Annotation): Record<string, unknown> {
     const settingsStore = useSettingStore()
     const pdfScale = settingsStore.getPdfScale
 
@@ -122,15 +119,15 @@ export const useAnnotationStore = defineStore("annotations", () => {
       const [p1, p2] = measurement.points
 
       if (p1 && p2) {
-        derivedUpdates.distance = calc.calculateDistance(p1, p2, pdfScale)
-        derivedUpdates.midpoint = calc.calculateMidpoint(p1, p2)
+        derivedUpdates.distance = calculateDistance(p1, p2, pdfScale)
+        derivedUpdates.midpoint = calculateMidpoint(p1, p2)
       }
     } else if (isArea(annotation)) {
       // Recalculate area and center
       const area = annotation as Area
       if (area.points.length >= 3) {
-        derivedUpdates.area = calc.calculatePolygonArea(area.points, pdfScale)
-        derivedUpdates.center = calc.calculateCentroid(area.points)
+        derivedUpdates.area = calculatePolygonArea(area.points, pdfScale)
+        derivedUpdates.center = calculateCentroid(area.points)
       }
     } else if (isPerimeter(annotation)) {
       // Recalculate segments, totalLength, and center
@@ -144,21 +141,21 @@ export const useAnnotationStore = defineStore("annotations", () => {
           const end = perimeter.points[(i + 1) % perimeter.points.length]
 
           if (start && end) {
-            const segmentLength = calc.calculateDistance(start, end, pdfScale)
+            const segmentLength = calculateDistance(start, end, pdfScale)
             totalLength += segmentLength
 
             segments.push({
               start,
               end,
               length: segmentLength,
-              midpoint: calc.calculateMidpoint(start, end)
+              midpoint: calculateMidpoint(start, end)
             })
           }
         }
 
         derivedUpdates.segments = segments
         derivedUpdates.totalLength = totalLength
-        derivedUpdates.center = calc.calculateCentroid(perimeter.points)
+        derivedUpdates.center = calculateCentroid(perimeter.points)
       }
     }
 
@@ -201,7 +198,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
 
     // If points were updated, recalculate derived values (distance, midpoint, area, center, etc.)
     if ("points" in updates && updates.points) {
-      const derivedValues = recalculateDerivedValues(updated as Annotation) as any
+      const derivedValues = recalculateDerivedValues(updated as Annotation)
       updated = { ...updated, ...derivedValues }
     }
 
@@ -225,7 +222,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
     }
   }
 
-  function setActiveTool(tool: Annotation["type"] | "selection" | "rotate" | "") {
+  function setActiveTool(tool: ToolType | "selection" | "rotate" | "") {
     activeTool.value = tool
     selectedAnnotationIds.value = []
     isDrawing.value = false

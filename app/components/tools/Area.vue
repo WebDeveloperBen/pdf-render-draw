@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useAreaToolState } from "@/composables/tools/useAreaTool"
-
 // Get viewport-relative label rotation from renderer store (defined at top level)
 const rendererStore = useRendererStore()
 

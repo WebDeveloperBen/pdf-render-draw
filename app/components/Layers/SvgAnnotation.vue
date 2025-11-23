@@ -2,6 +2,7 @@
 import { useEventListener } from "@vueuse/core"
 import { SELECTION } from "~/constants/ui"
 import { debugLog } from "~/utils/debug"
+import type { ToolType } from "~/types/annotations"
 
 // Import tool components directly
 import ToolsMeasure from "~/components/tools/Measure.vue"
@@ -12,11 +13,32 @@ import ToolsLine from "~/components/tools/Line.vue"
 import ToolsFill from "~/components/tools/Fill.vue"
 import ToolsText from "~/components/tools/Text.vue"
 
+// Map of tool types to their components for direct rendering
+const toolComponents = {
+  measure: ToolsMeasure,
+  count: ToolsCount,
+  area: ToolsArea,
+  perimeter: ToolsPerimeter,
+  line: ToolsLine,
+  fill: ToolsFill,
+  text: ToolsText
+} as const
+
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()
 
 // SVG element ref
 const svgRef = ref<SVGSVGElement>()
+
+// Helper function to check if we should update the selection marquee during dragging
+function shouldUpdateSelectionMarquee(tool: string) {
+  return selectionMarquee.isDrawing.value && isSelectionMode(tool) && !!svgRef.value
+}
+
+// Helper function to check if we have an active drawing tool (not selection mode)
+function hasActiveDrawingTool(tool: string) {
+  return tool && tool !== "selection"
+}
 
 // PDF dimensions
 const pdfWidth = computed(() => rendererStore.getCanvasSize.width)
@@ -46,7 +68,7 @@ useAreaTool()!
 usePerimeterTool()!
 useLineTool()!
 useTextTool()!
-const fillTool = useFillTool()!
+useFillTool()!
 
 const selectionMarquee = useSelectionMarquee()
 const dragState = useDragState()
@@ -56,26 +78,7 @@ const toolRegistry = useToolRegistry()
 useKeyboardShortcuts()
 
 // Get all registered tools for dynamic rendering
-const registeredTools = computed(() => {
-  const tools = toolRegistry.getAllTools()
-  console.log(
-    "[SvgAnnotation] Registered tools count:",
-    tools.length,
-    tools.map((t) => ({ type: t.type, hasComponent: !!t.component, componentType: typeof t.component }))
-  )
-  return tools
-})
-
-// Map of tool types to their components
-const toolComponents = {
-  measure: ToolsMeasure,
-  count: ToolsCount,
-  area: ToolsArea,
-  perimeter: ToolsPerimeter,
-  line: ToolsLine,
-  fill: ToolsFill,
-  text: ToolsText
-}
+const registeredTools = computed(() => toolRegistry.getAllTools())
 
 function handleMouseDown(e: MouseEvent) {
   const tool = annotationStore.activeTool
@@ -87,14 +90,14 @@ function handleMouseDown(e: MouseEvent) {
   // 1. In selection mode or no tool active
   // 2. Clicking on empty space (not on annotation)
   // 3. Not clicking on transform handles
-  if ((tool === "selection" || tool === "") && !annotationId && svgRef.value) {
+  if (isSelectionMode(tool) && !annotationId && svgRef.value) {
     selectionMarquee.startMarquee(e, svgRef.value)
   }
 
-  // Handle fill tool mouse down
-  // Only start drawing if NOT clicking on an existing annotation
-  if (tool === "fill" && !annotationId) {
-    fillTool.handleMouseDown(e)
+  // Call registered tool's onMouseDown handler for the active tool
+  const toolDef = toolRegistry.getTool(tool as ToolType)
+  if (toolDef?.onMouseDown) {
+    toolDef.onMouseDown(e)
   }
 }
 
@@ -104,14 +107,11 @@ function handleMouseUp(e: MouseEvent) {
     return
   }
 
+  // Call registered tool's onMouseUp handler for the active tool
   const tool = annotationStore.activeTool
-  switch (tool) {
-    case "fill":
-      fillTool.handleMouseUp(e)
-      break
-    default:
-      // Other tools don't need mouse up handling
-      break
+  const toolDef = toolRegistry.getTool(tool as ToolType)
+  if (toolDef?.onMouseUp) {
+    toolDef.onMouseUp(e)
   }
 }
 
@@ -123,7 +123,7 @@ function handleMouseLeave(e: MouseEvent) {
 
   // Call registered tool's onMouseLeave handler
   const tool = annotationStore.activeTool
-  const toolDef = toolRegistry.getTool(tool as Annotation["type"])
+  const toolDef = toolRegistry.getTool(tool as ToolType)
   if (toolDef?.onMouseLeave) {
     toolDef.onMouseLeave(e)
   }
@@ -169,7 +169,7 @@ function handleClick(e: MouseEvent) {
   // })
 
   // Call registered tool's onClick handler
-  const toolDef = toolRegistry.getTool(tool as Annotation["type"])
+  const toolDef = toolRegistry.getTool(tool as ToolType)
   if (toolDef?.onClick) {
     debugLog("SVG Layer", `Calling ${tool} tool onClick`)
     toolDef.onClick(e)
@@ -182,33 +182,33 @@ function handleMove(e: MouseEvent) {
   const tool = annotationStore.activeTool
   // debugLog("SVG Layer", "handleMove:", { tool, hasTarget: !!e.target })
 
-  // Track cursor position for paste operations
-  if (svgRef.value) {
-    const svg = svgRef.value
-    const pt = svg.createSVGPoint()
-    pt.x = e.clientX
-    pt.y = e.clientY
-    const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse())
-    rendererStore.setLastCursorPosition({ x: svgP.x, y: svgP.y })
+  // Early return if SVG ref doesn't exist
+  if (!svgRef.value) {
+    return
   }
 
+  // Track cursor position for paste operations
+  const svg = svgRef.value
+  const pt = svg.createSVGPoint()
+  pt.x = e.clientX
+  pt.y = e.clientY
+  const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse())
+  rendererStore.setLastCursorPosition({ x: svgP.x, y: svgP.y })
+
   // Update selection marquee if dragging (only in selection mode)
-  if (selectionMarquee.isDrawing.value && (tool === "selection" || tool === "") && svgRef.value) {
+  if (shouldUpdateSelectionMarquee(tool)) {
     selectionMarquee.updateMarquee(e, svgRef.value)
     return // Don't process tool moves while selecting
   }
 
   // Call registered tool's onMouseMove handler
-  const toolDef = toolRegistry.getTool(tool as Annotation["type"])
+  const toolDef = toolRegistry.getTool(tool as ToolType)
   if (toolDef?.onMouseMove) {
     toolDef.onMouseMove(e)
-  } else if (tool && tool !== "selection") {
+  } else if (hasActiveDrawingTool(tool)) {
     debugLog("SVG Layer", "No onMouseMove handler for tool:", tool)
   }
 }
-
-// Double-click handling removed - let native events bubble to BaseAnnotation components
-// BaseAnnotation.vue handles double-click delegation to tools via @dblclick listener
 
 // Keyboard shortcuts
 function handleKeyDown(e: KeyboardEvent) {
@@ -227,11 +227,12 @@ function handleKeyDown(e: KeyboardEvent) {
 // Keyboard event listener using VueUse for automatic cleanup
 useEventListener(window, "keydown", handleKeyDown)
 
-// Global mouseup listener to complete fill tool drawing even if released outside SVG
+// Global mouseup listener to complete tool drawing even if released outside SVG
 useEventListener(window, "mouseup", (e: MouseEvent) => {
   const tool = annotationStore.activeTool
-  if (tool === "fill" && fillTool.isDrawing) {
-    fillTool.handleMouseUp(e)
+  const toolDef = toolRegistry.getTool(tool as ToolType)
+  if (toolDef?.onMouseUp) {
+    toolDef.onMouseUp(e)
   }
 })
 </script>

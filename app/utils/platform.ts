@@ -9,9 +9,6 @@
  * const cmdKey = getKbdKey('meta') // Returns '⌘' on Mac, 'Ctrl' on Windows
  */
 
-import { computed, reactive, onMounted } from "vue"
-import { createSharedComposable } from "@vueuse/core"
-
 type KbdKeysSpecificMap = {
   meta: string
   alt: string
@@ -47,9 +44,7 @@ export type KbdKey = keyof typeof kbdKeysMap
 export type KbdKeySpecific = keyof KbdKeysSpecificMap
 
 const _usePlatform = () => {
-  const userAgent = computed(() =>
-    import.meta.client && navigator?.userAgent ? navigator.userAgent : ""
-  )
+  const userAgent = computed(() => (import.meta.client && navigator?.userAgent ? navigator.userAgent : ""))
 
   // Operating Systems
   const isMacOS = computed(() => /Macintosh;/i.test(userAgent.value))
@@ -67,10 +62,7 @@ const _usePlatform = () => {
   const macOS = computed(() => isMacOS.value) // Alias for compatibility
 
   // Touch support
-  const hasTouch = computed(() =>
-    import.meta.client &&
-    ('ontouchstart' in window || navigator.maxTouchPoints > 0)
-  )
+  const hasTouch = computed(() => import.meta.client && ("ontouchstart" in window || navigator.maxTouchPoints > 0))
 
   // Keyboard key display mapping (platform-specific)
   const kbdKeysSpecificMap = reactive({

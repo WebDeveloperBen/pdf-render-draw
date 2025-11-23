@@ -2,12 +2,6 @@
  * Annotation geometry utilities for calculating centers, offsets, and transformations
  */
 
-import { toRaw } from "vue"
-import type { Point } from "~/types"
-import type { Annotation, PerimeterSegment } from "~/types/annotations"
-import { isMeasurement, isLine, isArea, isPerimeter, isFill, isText } from "~/types/annotations"
-import { calculateCentroid, calculateMidpoint } from "~/utils/calculations"
-
 /**
  * Get the center point of any annotation type
  * Handles different annotation types appropriately
@@ -41,7 +35,14 @@ export function getAnnotationCenter(annotation: Annotation): Point {
 
   // Text tool: calculate center from x,y,width,height
   // Note: In SVG, text y is the baseline, so we need to offset by fontSize to get visual center
-  if (isText(annotation) && "x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation && "fontSize" in annotation) {
+  if (
+    isText(annotation) &&
+    "x" in annotation &&
+    "y" in annotation &&
+    "width" in annotation &&
+    "height" in annotation &&
+    "fontSize" in annotation
+  ) {
     // Visual bounds match the background rect in Text.vue
     const visualY = annotation.y - annotation.fontSize - 2
     return {

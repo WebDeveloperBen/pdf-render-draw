@@ -1,6 +1,4 @@
-import { createInjectionState } from "@vueuse/core"
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { registerTool } from "@/composables/useToolRegistry"
 
 /**
  * Perimeter Tool - extends BaseTool

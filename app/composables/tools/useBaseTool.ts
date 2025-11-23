@@ -1,5 +1,3 @@
-import type { Point } from "~/types"
-
 export interface BaseToolOptions {
   type: string
   minPoints?: number

@@ -31,7 +31,7 @@ function performSelection() {
   const tool = annotationStore.activeTool
 
   // Only handle selection in selection mode or when no tool is active
-  if (tool === "selection" || tool === "") {
+  if (isSelectionMode(tool)) {
     // Multi-select support:
     // - Shift+click: Add to selection (addToSelection)
     // - Cmd/Ctrl+click: Toggle selection on/off (toggle)
@@ -49,11 +49,9 @@ function performSelection() {
 }
 
 // Use useTimeoutFn for cancellable delayed selection
-const { start: startSelectionTimeout, stop: cancelSelectionTimeout } = useTimeoutFn(
-  performSelection,
-  CLICK_DELAY,
-  { immediate: false }
-)
+const { start: startSelectionTimeout, stop: cancelSelectionTimeout } = useTimeoutFn(performSelection, CLICK_DELAY, {
+  immediate: false
+})
 
 // Handle double-click - delegate to tool's handler if registered
 function handleDoubleClick(e: MouseEvent) {
