@@ -7,7 +7,7 @@
 
 import type { Component } from "vue"
 import { ref, markRaw, triggerRef } from "vue"
-import type { ToolType } from "~/types/annotations"
+import type { ToolType, Annotation } from "~/types/annotations"
 
 export interface ToolDefinition {
   /** Unique tool type identifier */
@@ -38,6 +38,21 @@ export interface ToolDefinition {
 
   /** Optional: Method to clear preview state when mouse leaves */
   clearPreview?: () => void
+
+  /** Optional: Transformation handlers for this tool */
+  transform?: {
+    /** Get the rotation center for this annotation */
+    getCenter?: (annotation: Annotation) => { x: number; y: number }
+
+    /** Apply rotation to this annotation */
+    applyRotation?: (annotation: Annotation, rotationDelta: number) => Partial<Annotation>
+
+    /** Apply translation/move to this annotation */
+    applyMove?: (annotation: Annotation, deltaX: number, deltaY: number) => Partial<Annotation>
+
+    /** Apply scale/resize to this annotation */
+    applyResize?: (annotation: Annotation, bounds: { x: number; y: number; width: number; height: number }, originalBounds: { x: number; y: number; width: number; height: number }) => Partial<Annotation>
+  }
 }
 
 // Tool registry - use ref with markRaw to avoid deep reactivity on components

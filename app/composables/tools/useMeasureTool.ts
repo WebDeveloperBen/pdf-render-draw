@@ -31,7 +31,8 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
         points: [start, end],
         distance,
         midpoint,
-        labelRotation: -rendererStore.rotation // Counter-rotate to appear upright in viewport
+        labelRotation: -rendererStore.rotation, // Counter-rotate to appear upright in viewport
+        rotation: 0
       }
     },
 
@@ -56,8 +57,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     previewDistance // Add: tool-specific features
   }
 
-  // Register tool with full metadata and event handlers
-  // This happens once when the composable is first called
+  // Register tool with full metadata, event handlers, and transformation logic
   registerTool({
     type: "measure",
     name: "Measure",
@@ -65,7 +65,51 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,
-    onKeyDown: tool.handleKeyDown
+    onKeyDown: tool.handleKeyDown,
+    transform: {
+      // Get rotation center - midpoint of the line
+      getCenter: (annotation) => {
+        const measure = annotation as Measurement
+        return {
+          x: (measure.points[0].x + measure.points[1].x) / 2,
+          y: (measure.points[0].y + measure.points[1].y) / 2
+        }
+      },
+
+      // Apply rotation - just update rotation property
+      applyRotation: (annotation, rotationDelta) => {
+        const currentRotation = annotation.rotation || 0
+        return { rotation: currentRotation + rotationDelta }
+      },
+
+      // Apply move - translate all points and recalculate derived values
+      applyMove: (annotation, deltaX, deltaY) => {
+        const measure = annotation as Measurement
+        const movedPoints = measure.points.map((p) => ({
+          x: p.x + deltaX,
+          y: p.y + deltaY
+        })) as [Point, Point]
+        const updated = { ...measure, points: movedPoints }
+        const derived = recalculateDerivedValues(updated)
+        return { points: movedPoints, ...derived } as Partial<Measurement>
+      },
+
+      // Apply resize - scale points from original bounds and recalculate derived values
+      applyResize: (annotation, newBounds, originalBounds) => {
+        const measure = annotation as Measurement
+        const scaleX = newBounds.width / originalBounds.width
+        const scaleY = newBounds.height / originalBounds.height
+
+        const scaledPoints = measure.points.map((p) => ({
+          x: newBounds.x + (p.x - originalBounds.x) * scaleX,
+          y: newBounds.y + (p.y - originalBounds.y) * scaleY
+        })) as [Point, Point]
+
+        const updated = { ...measure, points: scaledPoints }
+        const derived = recalculateDerivedValues(updated)
+        return { points: scaledPoints, ...derived } as Partial<Measurement>
+      }
+    }
   })
 
   return tool

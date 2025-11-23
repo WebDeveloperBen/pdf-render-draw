@@ -172,13 +172,6 @@ export const useAnnotationStore = defineStore("annotations", () => {
       throw new Error(`Invalid annotation: missing or malformed data`)
     }
     annotations.value.push(annotation)
-    console.log(
-      "[AnnotationStore] Added annotation:",
-      annotation.type,
-      annotation.id,
-      "Total annotations:",
-      annotations.value.length
-    )
   }
 
   /**

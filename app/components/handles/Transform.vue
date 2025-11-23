@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { TRANSFORM, COLORS } from "~/constants/ui"
-import { isMeasurement, isArea, isPerimeter, type Annotation } from "~/types/annotations"
+import { isMeasurement, isArea, isPerimeter, isFill, isText, isCount, type Annotation } from "~/types/annotations"
 import type { Point } from "~/types"
+import { getAnnotationCenter } from "~/utils/annotation-geometry"
 
 defineProps<{
   annotation: Annotation
@@ -9,6 +10,7 @@ defineProps<{
 
 const annotationStore = useAnnotationStore()
 const historyStore = useHistoryStore()
+const toolRegistry = useToolRegistry()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
 
@@ -26,34 +28,14 @@ const transformBase = useTransformBase()
 const originalPoints = ref<Array<{ x: number; y: number }> | null>(null)
 const originalAnnotationState = ref<Annotation | null>(null)
 
-// Calculate rotation center based on annotation type
-// This matches the logic in annotationStore.getRotationTransform()
-function getRotationCenter(annotation: Annotation, fallbackBounds: Bounds): { x: number; y: number } {
-  if (isMeasurement(annotation)) {
-    return {
-      x: (annotation.points[0].x + annotation.points[1].x) / 2,
-      y: (annotation.points[0].y + annotation.points[1].y) / 2
-    }
-  } else if (isArea(annotation) || isPerimeter(annotation)) {
-    return {
-      x: annotation.center.x,
-      y: annotation.center.y
-    }
-  } else if ("points" in annotation && Array.isArray(annotation.points)) {
-    // Line or other point-based annotation - calculate centroid
-    const sumX = annotation.points.reduce((sum: number, p: Point) => sum + p.x, 0)
-    const sumY = annotation.points.reduce((sum: number, p: Point) => sum + p.y, 0)
-    return {
-      x: sumX / annotation.points.length,
-      y: sumY / annotation.points.length
-    }
-  } else {
-    // Fallback to bounds center
-    return {
-      x: fallbackBounds.x + fallbackBounds.width / 2,
-      y: fallbackBounds.y + fallbackBounds.height / 2
-    }
+// Calculate rotation center - delegate to tool's registered transform function
+function getRotationCenter(annotation: Annotation): { x: number; y: number } {
+  const tool = toolRegistry.getTool(annotation.type)
+  if (tool?.transform?.getCenter) {
+    return tool.transform.getCenter(annotation)
   }
+  // Fallback to utility function for tools that haven't registered yet
+  return getAnnotationCenter(annotation)
 }
 
 // Calculate bounding box for selected annotation
@@ -65,11 +47,7 @@ const bounds = computed(() => {
 // Use original bounds during rotation to keep transformer stable
 const displayBounds = computed(() => {
   // During rotation drag: use originalBounds to keep transformer stable
-  if (
-    transformBase.isDragging.value &&
-    transformBase.dragMode.value === "rotate" &&
-    transformBase.originalBounds.value
-  ) {
+  if (transformBase.isDragging.value && transformBase.dragMode.value === "rotate") {
     return transformBase.originalBounds.value
   }
   return bounds.value
@@ -103,8 +81,8 @@ const edges = computed(() => {
 
 // Transform for rotating the entire transformer box
 const transformerTransform = computed(() => {
-  // No rotation needed - BaseAnnotation parent already applies both stored rotation
-  // and drag delta via getRotationTransform(annotation)
+  // Transform handles inherit rotation from BaseAnnotation parent
+  // No additional transform needed - handles rotate with the shape
   return ""
 })
 
@@ -123,8 +101,8 @@ function onStartDrag(e: MouseEvent, handle: string, mode: "resize" | "rotate" | 
     }
 
     // For rotation, calculate the starting angle from center to mouse
-    if (mode === "rotate" && transformBase.originalBounds.value) {
-      const center = getRotationCenter(annotation, transformBase.originalBounds.value)
+    if (mode === "rotate") {
+      const center = getRotationCenter(annotation)
       transformBase.startRotationAngle.value = Math.atan2(svgPoint.y - center.y, svgPoint.x - center.x)
     }
   })
@@ -248,7 +226,8 @@ function handleResize(deltaX: number, deltaY: number) {
   }
 
   if (newBounds.width < minWidth) {
-    if (isLeft && rotation === 0) newBounds.x = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width - minWidth
+    if (isLeft && rotation === 0)
+      newBounds.x = transformBase.originalBounds.value.x + transformBase.originalBounds.value.width - minWidth
     newBounds.width = minWidth
   }
   if (newBounds.height < minHeight) {
@@ -282,7 +261,7 @@ function handleResize(deltaX: number, deltaY: number) {
     } else {
       // With rotation: Scale points around the center, not around top-left
       // This way the shape scales uniformly regardless of rotation
-      const center = getRotationCenter(annotation, transformBase.originalBounds.value)
+      const center = getRotationCenter(annotation)
 
       const scaledPoints = originalPoints.value.map((p) => {
         // Scale relative to center
@@ -301,10 +280,10 @@ function handleResize(deltaX: number, deltaY: number) {
 }
 
 function handleRotate(svgX: number, svgY: number) {
-  if (!selectedAnnotation.value || !transformBase.originalBounds.value) return
+  if (!selectedAnnotation.value) return
 
   // Calculate center based on annotation type
-  const center = getRotationCenter(selectedAnnotation.value, transformBase.originalBounds.value)
+  const center = getRotationCenter(selectedAnnotation.value)
 
   // Calculate current angle from center to mouse
   const currentAngle = Math.atan2(svgY - center.y, svgX - center.x)
@@ -321,7 +300,16 @@ function handleMove(deltaX: number, deltaY: number) {
   if (!selectedAnnotation.value) return
 
   const annotation = selectedAnnotation.value
+  const tool = toolRegistry.getTool(annotation.type)
 
+  // Use tool's registered move handler if available
+  if (tool?.transform?.applyMove) {
+    const updates = tool.transform.applyMove(annotation, deltaX, deltaY)
+    annotationStore.updateAnnotation(annotation.id, updates)
+    return
+  }
+
+  // Fallback for tools that haven't registered yet
   if ("points" in annotation && originalPoints.value) {
     // Point-based annotation - translate all points
     const movedPoints = originalPoints.value.map((p) => ({
@@ -366,12 +354,32 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
 
   // Commit rotation on release
   if (mode === "rotate" && transformBase.currentRotationDelta.value !== 0) {
-    const existingRotation = (selectedAnnotation.value as { rotation?: number }).rotation || 0
-    const newRotation = existingRotation + transformBase.currentRotationDelta.value
+    const tool = toolRegistry.getTool(selectedAnnotation.value.type)
 
-    annotationStore.updateAnnotation(annotationId, {
-      rotation: newRotation
+    console.log('[Transform] Committing rotation:', {
+      type: selectedAnnotation.value.type,
+      currentRotation: selectedAnnotation.value.rotation,
+      delta: transformBase.currentRotationDelta.value,
+      newRotation: selectedAnnotation.value.rotation + transformBase.currentRotationDelta.value
     })
+
+    // Use tool's registered rotation handler if available
+    if (tool?.transform?.applyRotation) {
+      const updates = tool.transform.applyRotation(selectedAnnotation.value, transformBase.currentRotationDelta.value)
+      console.log('[Transform] Applying rotation updates:', updates)
+      annotationStore.updateAnnotation(annotationId, updates)
+    } else {
+      // Fallback
+      const existingRotation = (selectedAnnotation.value as { rotation?: number }).rotation || 0
+      const newRotation = existingRotation + transformBase.currentRotationDelta.value
+
+      annotationStore.updateAnnotation(annotationId, {
+        rotation: newRotation
+      })
+    }
+
+    // Clear rotation drag delta
+    annotationStore.rotationDragDelta = 0
   }
 
   // Get final state AFTER all updates

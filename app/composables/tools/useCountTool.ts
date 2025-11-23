@@ -80,13 +80,48 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     updateCount
   }
 
-  // Register tool with full metadata and event handlers
+  // Register tool with full metadata, event handlers, and transformation logic
   registerTool({
     type: "count",
     name: "Count",
     icon: "🔢",
     onClick: tool.handleClick,
-    onKeyDown: tool.handleKeyDown
+    onKeyDown: tool.handleKeyDown,
+    transform: {
+      // Get rotation center - x,y is already the center point of the count marker
+      getCenter: (annotation) => {
+        const count = annotation as Count
+        return { x: count.x, y: count.y }
+      },
+
+      // Apply rotation - just update rotation property
+      applyRotation: (annotation, rotationDelta) => {
+        const currentRotation = annotation.rotation || 0
+        return { rotation: currentRotation + rotationDelta }
+      },
+
+      // Apply move - translate x,y
+      applyMove: (annotation, deltaX, deltaY) => {
+        const count = annotation as Count
+        return {
+          x: count.x + deltaX,
+          y: count.y + deltaY
+        }
+      },
+
+      // Apply resize - count markers don't resize, just move the center
+      applyResize: (annotation, newBounds, originalBounds) => {
+        const count = annotation as Count
+        // Calculate the center offset from original bounds and apply to new bounds
+        const offsetX = count.x - (originalBounds.x + originalBounds.width / 2)
+        const offsetY = count.y - (originalBounds.y + originalBounds.height / 2)
+
+        return {
+          x: newBounds.x + newBounds.width / 2 + offsetX,
+          y: newBounds.y + newBounds.height / 2 + offsetY
+        }
+      }
+    }
   })
 
   return tool

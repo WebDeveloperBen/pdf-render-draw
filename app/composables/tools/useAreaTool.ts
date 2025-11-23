@@ -23,7 +23,8 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
         points,
         area,
         center,
-        labelRotation: -rendererStore.rotation // Counter-rotate to appear upright in viewport
+        labelRotation: -rendererStore.rotation, // Counter-rotate to appear upright in viewport
+        rotation: 0
       }
     },
 
@@ -67,7 +68,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
     previewPolygon
   }
 
-  // Register tool with full metadata and event handlers
+  // Register tool with full metadata, event handlers, and transformation logic
   registerTool({
     type: "area",
     name: "Area",
@@ -75,7 +76,48 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,
-    onKeyDown: tool.handleKeyDown
+    onKeyDown: tool.handleKeyDown,
+    transform: {
+      // Get rotation center - stored center point
+      getCenter: (annotation) => {
+        const area = annotation as Area
+        return { x: area.center.x, y: area.center.y }
+      },
+
+      // Apply rotation - just update rotation property
+      applyRotation: (annotation, rotationDelta) => {
+        const currentRotation = annotation.rotation || 0
+        return { rotation: currentRotation + rotationDelta }
+      },
+
+      // Apply move - translate all points and recalculate derived values
+      applyMove: (annotation, deltaX, deltaY) => {
+        const area = annotation as Area
+        const movedPoints = area.points.map((p) => ({
+          x: p.x + deltaX,
+          y: p.y + deltaY
+        }))
+        const updated = { ...area, points: movedPoints }
+        const derived = recalculateDerivedValues(updated)
+        return { points: movedPoints, ...derived } as Partial<Area>
+      },
+
+      // Apply resize - scale points and recalculate derived values
+      applyResize: (annotation, newBounds, originalBounds) => {
+        const area = annotation as Area
+        const scaleX = newBounds.width / originalBounds.width
+        const scaleY = newBounds.height / originalBounds.height
+
+        const scaledPoints = area.points.map((p) => ({
+          x: newBounds.x + (p.x - originalBounds.x) * scaleX,
+          y: newBounds.y + (p.y - originalBounds.y) * scaleY
+        }))
+
+        const updated = { ...area, points: scaledPoints }
+        const derived = recalculateDerivedValues(updated)
+        return { points: scaledPoints, ...derived } as Partial<Area>
+      }
+    }
   })
 
   return tool

@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
-
 const [useFillTool, useFillToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
@@ -112,14 +111,49 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     deleteFill
   }
 
-  // Register tool with full metadata and event handlers
+  // Register tool with full metadata, event handlers, and transformation logic
   registerTool({
     type: "fill",
     name: "Fill",
     icon: "🎨",
     onMouseDown: tool.handleMouseDown,
     onMouseMove: tool.handleMouseMove,
-    onMouseUp: tool.handleMouseUp
+    onMouseUp: tool.handleMouseUp,
+    transform: {
+      // Get rotation center - center of the rectangle
+      getCenter: (annotation) => {
+        const fill = annotation as Fill
+        return {
+          x: fill.x + fill.width / 2,
+          y: fill.y + fill.height / 2
+        }
+      },
+
+      // Apply rotation - just update rotation property
+      applyRotation: (annotation, rotationDelta) => {
+        const currentRotation = annotation.rotation || 0
+        return { rotation: currentRotation + rotationDelta }
+      },
+
+      // Apply move - translate x,y
+      applyMove: (annotation, deltaX, deltaY) => {
+        const fill = annotation as Fill
+        return {
+          x: fill.x + deltaX,
+          y: fill.y + deltaY
+        }
+      },
+
+      // Apply resize - update bounds
+      applyResize: (_annotation, newBounds, _originalBounds) => {
+        return {
+          x: newBounds.x,
+          y: newBounds.y,
+          width: newBounds.width,
+          height: newBounds.height
+        }
+      }
+    }
   })
 
   return tool
