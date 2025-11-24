@@ -6,7 +6,6 @@ import { useCreateBaseTool } from "./useCreateBaseTool"
 const [useAreaTool, useAreaToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const settingsStore = base.settings
   const rendererStore = useRendererStore()
 
   // Add drawing behavior via composition
@@ -16,7 +15,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
     canClose: true,
 
     calculate: (points: Point[]) => {
-      const area = calculatePolygonArea(points, settingsStore.getPdfScale)
+      const area = calculatePolygonArea(points)
       const center = calculateCentroid(points)
 
       return {
@@ -44,7 +43,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
       previewPoints.push(drawing.tempEndPoint.value)
     }
 
-    return calculatePolygonArea(previewPoints, settingsStore.getPdfScale)
+    return calculatePolygonArea(previewPoints)
   })
 
   const previewPolygon = computed(() => {
@@ -68,7 +67,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
     previewPolygon
   }
 
-  // Register tool with full metadata, event handlers, and transformation logic
+  // Register tool with full metadata and event handlers
   registerTool({
     type: "area",
     name: "Area",
@@ -76,55 +75,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,
-    onKeyDown: tool.handleKeyDown,
-    transform: {
-      // Transform metadata
-      structure: "point-based",
-      groupRotation: "update-points",
-      supportsGroupResize: true,
-      supportsGroupMove: true,
-      rotationCenter: "centroid",
-
-      // Get rotation center - stored center point
-      getCenter: (annotation) => {
-        const area = annotation as Area
-        return { x: area.center.x, y: area.center.y }
-      },
-
-      // Apply rotation - just update rotation property
-      applyRotation: (annotation, rotationDelta) => {
-        const currentRotation = annotation.rotation || 0
-        return { rotation: currentRotation + rotationDelta }
-      },
-
-      // Apply move - translate all points and recalculate derived values
-      applyMove: (annotation, deltaX, deltaY) => {
-        const area = annotation as Area
-        const movedPoints = area.points.map((p) => ({
-          x: p.x + deltaX,
-          y: p.y + deltaY
-        }))
-        const updated = { ...area, points: movedPoints }
-        const derived = recalculateDerivedValues(updated)
-        return { points: movedPoints, ...derived } as Partial<Area>
-      },
-
-      // Apply resize - scale points and recalculate derived values
-      applyResize: (annotation, newBounds, originalBounds) => {
-        const area = annotation as Area
-        const scaleX = newBounds.width / originalBounds.width
-        const scaleY = newBounds.height / originalBounds.height
-
-        const scaledPoints = area.points.map((p) => ({
-          x: newBounds.x + (p.x - originalBounds.x) * scaleX,
-          y: newBounds.y + (p.y - originalBounds.y) * scaleY
-        }))
-
-        const updated = { ...area, points: scaledPoints }
-        const derived = recalculateDerivedValues(updated)
-        return { points: scaledPoints, ...derived } as Partial<Area>
-      }
-    }
+    onKeyDown: tool.handleKeyDown
   })
 
   return tool

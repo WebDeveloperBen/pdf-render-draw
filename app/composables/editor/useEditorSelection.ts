@@ -137,6 +137,29 @@ export const useEditorSelection = createSharedComposable(() => {
     return annotationStore.isAnnotationSelected(shapeId)
   }
 
+  // Watch for selection changes and bake rotation for previously selected annotations
+  // This handles cases where selection changes without going through selectShape/clearSelection
+  const previousSelection = ref<string[]>([])
+  watch(
+    () => selectedIds.value,
+    (newIds) => {
+      // Find annotations that were selected but are no longer selected
+      const deselectedIds = previousSelection.value.filter((id) => !newIds.includes(id))
+
+      // Bake rotation for deselected annotations
+      for (const id of deselectedIds) {
+        const annotation = annotationStore.getAnnotationById(id)
+        if (annotation) {
+          bakeRotationIntoPoints(annotation)
+        }
+      }
+
+      // Update previous selection
+      previousSelection.value = [...newIds]
+    },
+    { deep: true }
+  )
+
   return {
     // State
     selectedIds: readonly(selectedIds),

@@ -106,31 +106,25 @@ export const useEditorRotation = createSharedComposable(() => {
       const originalRotation = rotationOriginalAngles.value.get(annotation.id) || 0
       const updates: Partial<Annotation> = {}
 
-      // Annotations with points array
+      // Annotations with points array - always physically rotate points around transformer center
+      // This ensures shape rotates around the visible transformer center, not its centroid
       if (hasPointsArray(annotation)) {
-        // Multi-select: physically rotate points around selection center (no CSS rotation)
-        if (selection.isMultiSelection.value) {
-          const originalPoints = rotationOriginalPoints.value.get(annotation.id)
-          if (!originalPoints) continue
+        const originalPoints = rotationOriginalPoints.value.get(annotation.id)
+        if (!originalPoints) continue
 
-          // Rotate each point around the selection center
-          const rotatedPoints = originalPoints.map((p) =>
-            rotatePointAroundCenter(p, rotationCenter.value!, rotationDelta)
-          )
+        // Rotate each point around the transformer center (selection center / AABB center)
+        const rotatedPoints = originalPoints.map((p) =>
+          rotatePointAroundCenter(p, rotationCenter.value!, rotationDelta)
+        )
 
-          // Recalculate derived values
-          // Type assertion needed because rotatedPoints is Point[] but specific types expect tuples
-          const derived = recalculateDerivedValues({
-            ...annotation,
-            points: rotatedPoints
-          } as typeof annotation)
+        // Recalculate derived values
+        // Type assertion needed because rotatedPoints is Point[] but specific types expect tuples
+        const derived = recalculateDerivedValues({
+          ...annotation,
+          points: rotatedPoints
+        } as typeof annotation)
 
-          Object.assign(updates, { points: rotatedPoints, ...derived })
-        }
-        // Single select: use CSS rotation property
-        else {
-          updates.rotation = originalRotation + rotationDelta
-        }
+        Object.assign(updates, { points: rotatedPoints, ...derived })
       }
       // Positioned rectangle annotations - update rotation property
       else if (hasPositionedRect(annotation)) {

@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { useAreaToolState } from "@/composables/tools/useAreaTool"
 
-// Get viewport-relative label rotation from renderer store (defined at top level)
-const rendererStore = useRendererStore()
-
 // Inject the tool state (which extends BaseTool)
 const tool = useAreaToolState()
 if (!tool) {
@@ -25,6 +22,9 @@ const {
   previewArea,
   previewPolygon
 } = tool
+
+// Get viewport-relative label rotation from renderer store
+const rendererStore = useRendererStore()
 </script>
 <template>
   <g class="area-tool">

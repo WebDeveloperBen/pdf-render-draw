@@ -58,9 +58,21 @@ export const useEditorBounds = createSharedComposable(() => {
       return result
     }
 
-    // Single selection - use rotated bounds
+    // Single selection - use rotated bounds and sync selectionRotation with shape's rotation
     if (selection.selectedShape.value) {
-      const result = calculateShapeBounds(selection.selectedShape.value)
+      const shape = selection.selectedShape.value
+      const result = calculateShapeBounds(shape)
+
+      // Sync selectionRotation with the shape's rotation so transform handles rotate correctly
+      // This ensures handles "hug" the rotated shape instead of showing axis-aligned box
+      if (shape.rotation !== selectionRotation.value) {
+        console.log('🔲 [selectionBounds] Syncing selectionRotation with shape rotation', {
+          from: selectionRotation.value,
+          to: shape.rotation
+        })
+        selectionRotation.value = shape.rotation
+      }
+
       console.log('🔲 [selectionBounds] Single select, calculating bounds', { result })
       return result
     }
