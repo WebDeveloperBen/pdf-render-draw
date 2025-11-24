@@ -1,11 +1,13 @@
 /**
- * useEditorCoordinates - SVG coordinate conversion
+ * useEditorCoordinates - Coordinate conversion for PDF annotations
  * Extracted from DebugEditor.vue
  *
- * Handles conversion between screen (mouse) coordinates and SVG coordinates
+ * Handles conversion between screen (mouse) coordinates and PDF coordinates
+ * Works with the renderer store's transform system
  */
 
 import type { Point } from "~/types/editor"
+import { screenToSvgPoint, screenToPdfPoint, svgToPdfPoint, pdfToSvgPoint } from "~/utils/editor/coordinates"
 
 export const useEditorCoordinates = createSharedComposable(() => {
   // Cache SVG element during interactions to avoid repeated DOM lookups
@@ -13,17 +15,24 @@ export const useEditorCoordinates = createSharedComposable(() => {
 
   /**
    * Convert mouse event coordinates to SVG coordinates
+   * This accounts for all CSS transforms on the SVG element
    */
   function convertToSvgPoint(event: MouseEvent, svg?: SVGSVGElement): Point | null {
     const element = svg || cachedSvg.value
     if (!element) return null
 
-    const pt = element.createSVGPoint()
-    pt.x = event.clientX
-    pt.y = event.clientY
-    const svgP = pt.matrixTransform(element.getScreenCTM()!.inverse())
+    return screenToSvgPoint(event, element)
+  }
 
-    return { x: svgP.x, y: svgP.y }
+  /**
+   * Convert mouse event coordinates to PDF coordinates
+   * Since our SVG viewBox matches PDF dimensions, this is the same as convertToSvgPoint
+   */
+  function convertToPdfPoint(event: MouseEvent, svg?: SVGSVGElement): Point | null {
+    const element = svg || cachedSvg.value
+    if (!element) return null
+
+    return screenToPdfPoint(event, element)
   }
 
   /**
@@ -41,8 +50,15 @@ export const useEditorCoordinates = createSharedComposable(() => {
   }
 
   return {
+    // Coordinate conversion
     convertToSvgPoint,
+    convertToPdfPoint,
+
+    // SVG element caching
     cacheSvg,
-    clearSvgCache
+    clearSvgCache,
+
+    // Expose cached SVG for direct access if needed
+    cachedSvg: readonly(cachedSvg)
   }
 })
