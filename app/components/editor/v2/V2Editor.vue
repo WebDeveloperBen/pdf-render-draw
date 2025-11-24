@@ -3,9 +3,10 @@
 
   Built by extracting DebugEditor.vue into composables
   Implements PLAN.md architecture with frozen bounds pattern
+  Now supports both point-based and positioned annotations
 -->
 <script setup lang="ts">
-import type { Shape } from "~/types/editor"
+import type { Annotation, Measurement, Fill } from "~/types/annotations"
 import { useEditorSelection } from "~/composables/editor/useEditorSelection"
 import { useEditorBounds } from "~/composables/editor/useEditorBounds"
 import { useEditorEventHandlers } from "~/composables/editor/useEditorEventHandlers"
@@ -19,50 +20,82 @@ const bounds = useEditorBounds()
 const eventHandlers = useEditorEventHandlers()
 const marquee = useEditorMarquee()
 
-// Hardcoded shapes for testing (will be replaced with actual annotation data)
-const shapes = ref<Shape[]>([
+// Test annotations - mix of point-based and positioned types
+const annotations = ref<Annotation[]>([
+  // Point-based: Measurement
   {
-    id: "rect-1",
-    type: "rect",
-    x: 100,
-    y: 100,
-    width: 150,
-    height: 100,
+    id: "measure-1",
+    type: "measure",
+    pageNum: 1,
     rotation: 0,
-    fill: "#3b82f6"
-  },
+    points: [
+      { x: 100, y: 100 },
+      { x: 250, y: 100 }
+    ],
+    distance: 150,
+    midpoint: { x: 175, y: 100 },
+    labelRotation: 0
+  } as Measurement,
+
+  // Point-based: Measurement (angled)
   {
-    id: "rect-2",
-    type: "rect",
-    x: 350,
-    y: 200,
-    width: 120,
-    height: 80,
+    id: "measure-2",
+    type: "measure",
+    pageNum: 1,
     rotation: 0,
-    fill: "#10b981"
-  },
+    points: [
+      { x: 350, y: 200 },
+      { x: 470, y: 280 }
+    ],
+    distance: 141.42,
+    midpoint: { x: 410, y: 240 },
+    labelRotation: 0
+  } as Measurement,
+
+  // Positioned: Fill rectangle
   {
-    id: "rect-3",
-    type: "rect",
+    id: "fill-1",
+    type: "fill",
+    pageNum: 1,
+    rotation: 0,
     x: 200,
     y: 350,
     width: 100,
     height: 100,
+    color: "#f59e0b",
+    opacity: 0.5
+  } as Fill,
+
+  // Positioned: Fill rectangle #2
+  {
+    id: "fill-2",
+    type: "fill",
+    pageNum: 1,
     rotation: 0,
-    fill: "#f59e0b"
-  }
+    x: 500,
+    y: 150,
+    width: 120,
+    height: 80,
+    color: "#10b981",
+    opacity: 0.6
+  } as Fill
 ])
 
-// Provide shapes to selection composable
-selection.shapes.value = shapes.value
+// Provide annotations to selection composable
+selection.annotations.value = annotations.value
 
-// SVG transform for shape rotation
-function getShapeTransform(shape: Shape): string {
-  if (shape.rotation === 0) return ""
+// SVG transform for annotation rotation (positioned annotations only)
+function getAnnotationTransform(annotation: Annotation): string {
+  // Point-based annotations don't use SVG transform (points are already rotated)
+  if ('points' in annotation) return ""
 
-  const centerX = shape.x + shape.width / 2
-  const centerY = shape.y + shape.height / 2
-  const angleDeg = (shape.rotation * 180) / Math.PI
+  // Positioned annotations
+  if (annotation.rotation === 0) return ""
+  if (!('x' in annotation && 'width' in annotation)) return ""
+
+  const centerX = annotation.x + annotation.width / 2
+  const centerY = annotation.y + annotation.height / 2
+  const angleDeg = (annotation.rotation * 180) / Math.PI
 
   return `rotate(${angleDeg} ${centerX} ${centerY})`
 }
@@ -97,18 +130,53 @@ onUnmounted(() => {
       </defs>
       <rect width="800" height="600" fill="url(#grid)" />
 
-      <!-- Shapes -->
-      <g v-for="shape in shapes" :key="shape.id">
+      <!-- Annotations -->
+      <g v-for="annotation in annotations" :key="annotation.id">
+        <!-- Point-based: Measurement (render as line) -->
+        <g v-if="annotation.type === 'measure'" class="measurement">
+          <line
+            :x1="annotation.points[0].x"
+            :y1="annotation.points[0].y"
+            :x2="annotation.points[1].x"
+            :y2="annotation.points[1].y"
+            stroke="#3b82f6"
+            stroke-width="3"
+            :class="{ selected: selection.isSelected(annotation.id) }"
+            class="shape"
+            @click="eventHandlers.handleShapeClick(annotation.id, $event)"
+          />
+          <!-- Measurement endpoints -->
+          <circle
+            :cx="annotation.points[0].x"
+            :cy="annotation.points[0].y"
+            r="5"
+            fill="#3b82f6"
+            class="shape"
+            @click="eventHandlers.handleShapeClick(annotation.id, $event)"
+          />
+          <circle
+            :cx="annotation.points[1].x"
+            :cy="annotation.points[1].y"
+            r="5"
+            fill="#3b82f6"
+            class="shape"
+            @click="eventHandlers.handleShapeClick(annotation.id, $event)"
+          />
+        </g>
+
+        <!-- Positioned: Fill rectangle -->
         <rect
-          :x="shape.x"
-          :y="shape.y"
-          :width="shape.width"
-          :height="shape.height"
-          :fill="shape.fill"
-          :transform="getShapeTransform(shape)"
-          :class="{ selected: selection.isSelected(shape.id) }"
+          v-else-if="annotation.type === 'fill'"
+          :x="annotation.x"
+          :y="annotation.y"
+          :width="annotation.width"
+          :height="annotation.height"
+          :fill="annotation.color"
+          :opacity="annotation.opacity"
+          :transform="getAnnotationTransform(annotation)"
+          :class="{ selected: selection.isSelected(annotation.id) }"
           class="shape"
-          @click="eventHandlers.handleShapeClick(shape.id, $event)"
+          @click="eventHandlers.handleShapeClick(annotation.id, $event)"
         />
       </g>
 
@@ -121,18 +189,34 @@ onUnmounted(() => {
 
     <!-- Debug info -->
     <div class="debug-info">
-      <h3>V2 Editor Status</h3>
+      <h3>V2 Editor Status - Annotation Support</h3>
       <p><strong>Selected Count:</strong> {{ selection.selectedIds.value.length }}</p>
       <p><strong>Selected IDs:</strong> {{ selection.selectedIds.value.length > 0 ? selection.selectedIds.value.join(", ") : "None" }}</p>
-      <p v-if="selection.selectedShape.value">
-        <strong>Position:</strong> ({{ Math.round(selection.selectedShape.value.x) }}, {{ Math.round(selection.selectedShape.value.y) }})
-      </p>
-      <p v-if="selection.selectedShape.value">
-        <strong>Size:</strong> {{ selection.selectedShape.value.width }} × {{ selection.selectedShape.value.height }}
-      </p>
-      <p v-if="selection.selectedShape.value">
-        <strong>Rotation:</strong> {{ ((selection.selectedShape.value.rotation * 180) / Math.PI).toFixed(1) }}°
-      </p>
+
+      <template v-if="selection.selectedAnnotation.value">
+        <p><strong>Type:</strong> {{ selection.selectedAnnotation.value.type }}</p>
+
+        <!-- Point-based annotation info -->
+        <template v-if="'points' in selection.selectedAnnotation.value">
+          <p><strong>Points:</strong> {{ selection.selectedAnnotation.value.points.length }}</p>
+          <p v-if="selection.selectedAnnotation.value.type === 'measure'">
+            <strong>Distance:</strong> {{ selection.selectedAnnotation.value.distance?.toFixed(1) }}
+          </p>
+        </template>
+
+        <!-- Positioned annotation info -->
+        <template v-if="'x' in selection.selectedAnnotation.value && 'width' in selection.selectedAnnotation.value">
+          <p>
+            <strong>Position:</strong> ({{ Math.round(selection.selectedAnnotation.value.x) }}, {{ Math.round(selection.selectedAnnotation.value.y) }})
+          </p>
+          <p>
+            <strong>Size:</strong> {{ selection.selectedAnnotation.value.width }} × {{ selection.selectedAnnotation.value.height }}
+          </p>
+        </template>
+
+        <p><strong>Rotation:</strong> {{ ((selection.selectedAnnotation.value.rotation * 180) / Math.PI).toFixed(1) }}°</p>
+      </template>
+
       <p v-if="bounds.selectionBounds.value">
         <strong>Selection Bounds:</strong> ({{ Math.round(bounds.selectionBounds.value.x) }}, {{ Math.round(bounds.selectionBounds.value.y) }})
         {{ Math.round(bounds.selectionBounds.value.width) }} × {{ Math.round(bounds.selectionBounds.value.height) }}
@@ -141,8 +225,8 @@ onUnmounted(() => {
         <strong>Frozen Bounds:</strong> Active ✓
       </p>
       <p class="hint">
-        <strong>Tip:</strong> Click to select, Shift+Click to multi-select, Drag on canvas for marquee select,
-        Drag selection box to move, Drag rotation handle to rotate, Drag scale handles to resize
+        <strong>Tip:</strong> Testing point-based (measurements) and positioned (fill) annotations.
+        Click to select, Shift+Click to multi-select, Drag for marquee select.
       </p>
     </div>
   </div>

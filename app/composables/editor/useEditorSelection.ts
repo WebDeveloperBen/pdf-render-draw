@@ -2,32 +2,38 @@
  * useEditorSelection - Selection state management
  * Extracted from DebugEditor.vue
  *
- * Manages which shapes are currently selected
+ * Manages which annotations are currently selected
  * Supports single selection, multi-selection (Shift+Click), and marquee selection
+ * Works with all annotation types (point-based and positioned)
  */
 
-import type { Shape } from "~/types/editor"
+import type { Annotation } from "~/types/annotations"
 
 export const useEditorSelection = createSharedComposable(() => {
-  // Selected shape IDs
+  // Selected annotation IDs
   const selectedIds = ref<string[]>([])
 
-  // All shapes (will be provided by parent or store)
-  const shapes = ref<Shape[]>([])
+  // All annotations (will be provided by parent or store)
+  const annotations = ref<Annotation[]>([])
 
-  // Computed: selected shapes
-  const selectedShapes = computed(() => {
+  // Computed: selected annotations
+  const selectedAnnotations = computed(() => {
     if (selectedIds.value.length === 0) return []
-    return shapes.value.filter((s) => selectedIds.value.includes(s.id))
+    return annotations.value.filter((a) => selectedIds.value.includes(a.id))
   })
 
-  // Computed: single selected shape (for backwards compatibility)
-  const selectedShape = computed(() => {
+  // Computed: single selected annotation
+  const selectedAnnotation = computed(() => {
     if (selectedIds.value.length === 1) {
-      return shapes.value.find((s) => s.id === selectedIds.value[0]) || null
+      return annotations.value.find((a) => a.id === selectedIds.value[0]) || null
     }
     return null
   })
+
+  // Alias for backwards compatibility with Shape naming
+  const selectedShapes = selectedAnnotations
+  const selectedShape = selectedAnnotation
+  const shapes = annotations
 
   // Computed: is multi-selection active
   const isMultiSelection = computed(() => selectedIds.value.length > 1)
@@ -93,11 +99,14 @@ export const useEditorSelection = createSharedComposable(() => {
   return {
     // State
     selectedIds: readonly(selectedIds),
-    shapes,
+    annotations,
+    shapes, // Alias for backwards compatibility
 
     // Computed
-    selectedShapes,
-    selectedShape,
+    selectedAnnotations,
+    selectedAnnotation,
+    selectedShapes, // Alias for backwards compatibility
+    selectedShape, // Alias for backwards compatibility
     isMultiSelection,
     hasSelection,
 

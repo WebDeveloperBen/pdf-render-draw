@@ -1,9 +1,12 @@
 /**
  * Bounds calculation utilities for V2 editor
  * Extracted from DebugEditor.vue
+ * Extended to support all annotation types
  */
 
 import type { Bounds, Point } from "~/types/editor"
+import type { Annotation } from "~/types/annotations"
+import { isPointBased } from "./derived-values"
 
 /**
  * Calculate bounding box for a positioned shape (with rotation support)
@@ -104,4 +107,54 @@ export function boundsIntersect(a: Bounds, b: Bounds): boolean {
     a.y + a.height < b.y ||
     a.y > b.y + b.height
   )
+}
+
+/**
+ * Calculate bounding box for point-based annotations
+ * Returns AABB of the points
+ */
+export function calculatePointsBounds(points: Point[]): Bounds {
+  if (points.length === 0) {
+    return { x: 0, y: 0, width: 0, height: 0 }
+  }
+
+  const xs = points.map((p) => p.x)
+  const ys = points.map((p) => p.y)
+
+  const minX = Math.min(...xs)
+  const maxX = Math.max(...xs)
+  const minY = Math.min(...ys)
+  const maxY = Math.max(...ys)
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY
+  }
+}
+
+/**
+ * Calculate bounding box for any annotation type
+ * Handles both point-based and positioned annotations
+ */
+export function calculateAnnotationBounds(annotation: Annotation): Bounds {
+  // Point-based annotations (measure, area, perimeter, line)
+  if (isPointBased(annotation)) {
+    return calculatePointsBounds(annotation.points)
+  }
+
+  // Positioned annotations (fill, text, count)
+  if ("x" in annotation && "width" in annotation) {
+    return calculateRotatedRectBounds(
+      annotation.x,
+      annotation.y,
+      annotation.width,
+      annotation.height,
+      annotation.rotation
+    )
+  }
+
+  // Fallback
+  return { x: 0, y: 0, width: 0, height: 0 }
 }

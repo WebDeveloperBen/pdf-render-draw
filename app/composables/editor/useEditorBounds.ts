@@ -2,12 +2,14 @@
  * useEditorBounds - Bounds calculation with frozen pattern
  * Extracted from DebugEditor.vue
  *
- * Calculates bounding boxes for selected shapes
+ * Calculates bounding boxes for selected annotations
  * Implements frozen bounds pattern to prevent transformer jumping during rotation
+ * Supports both point-based and positioned annotations
  */
 
-import type { Bounds, Shape } from "~/types/editor"
-import { calculateRotatedRectBounds, calculateUnionBounds, getBoundsCenter } from "~/utils/editor/bounds"
+import type { Bounds } from "~/types/editor"
+import type { Annotation } from "~/types/annotations"
+import { calculateAnnotationBounds, calculateUnionBounds, getBoundsCenter } from "~/utils/editor/bounds"
 import { useEditorSelection } from "./useEditorSelection"
 
 export const useEditorBounds = createSharedComposable(() => {
@@ -20,16 +22,11 @@ export const useEditorBounds = createSharedComposable(() => {
   const frozenBounds = ref<Bounds | null>(null)
 
   /**
-   * Calculate bounds for a single shape
+   * Calculate bounds for a single annotation
+   * Handles both point-based and positioned annotations
    */
-  function calculateShapeBounds(shape: Shape): Bounds {
-    return calculateRotatedRectBounds(
-      shape.x,
-      shape.y,
-      shape.width,
-      shape.height,
-      shape.rotation
-    )
+  function calculateShapeBounds(annotation: Annotation): Bounds {
+    return calculateAnnotationBounds(annotation)
   }
 
   /**

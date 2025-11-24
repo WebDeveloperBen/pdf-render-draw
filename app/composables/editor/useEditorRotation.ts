@@ -2,12 +2,15 @@
  * useEditorRotation - Rotation logic
  * Extracted from DebugEditor.vue
  *
- * Handles rotation of selected shapes around selection center
+ * Handles rotation of selected annotations around selection center
  * Implements frozen bounds pattern to prevent transformer jumping
+ * Supports both point-based and positioned annotations
  */
 
 import type { Point } from "~/types/editor"
-import { rotatePointAroundCenter } from "~/utils/editor/transform"
+import type { Annotation } from "~/types/annotations"
+import { rotatePointsAroundCenter, rotatePointAroundCenter } from "~/utils/editor/transform"
+import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
 import { useEditorSelection } from "./useEditorSelection"
 import { useEditorBounds } from "./useEditorBounds"
 import { useEditorCoordinates } from "./useEditorCoordinates"
@@ -27,6 +30,7 @@ export const useEditorRotation = createSharedComposable(() => {
   // Original state (before rotation started)
   const rotationOriginalAngles = ref<Map<string, number>>(new Map())
   const rotationOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
+  const rotationOriginalPoints = ref<Map<string, Point[]>>(new Map())
 
   /**
    * Start rotating
@@ -59,13 +63,25 @@ export const useEditorRotation = createSharedComposable(() => {
     // Store the current selection rotation (for accumulating multiple rotations)
     rotationStartSelectionAngle.value = bounds.selectionRotation.value
 
-    // Store original rotations and positions
+    // Store original rotations and positions/centers/points
     rotationOriginalAngles.value.clear()
     rotationOriginalPositions.value.clear()
+    rotationOriginalPoints.value.clear()
 
-    for (const shape of selection.selectedShapes.value) {
-      rotationOriginalAngles.value.set(shape.id, shape.rotation)
-      rotationOriginalPositions.value.set(shape.id, { x: shape.x, y: shape.y })
+    for (const annotation of selection.selectedAnnotations.value) {
+      rotationOriginalAngles.value.set(annotation.id, annotation.rotation)
+
+      // For point-based annotations, store points array and center
+      if (isPointBased(annotation)) {
+        // Store original points (deep copy)
+        rotationOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
+        const center = getAnnotationCenter(annotation)
+        rotationOriginalPositions.value.set(annotation.id, center)
+      }
+      // For positioned annotations, store x,y
+      else if ('x' in annotation && 'y' in annotation) {
+        rotationOriginalPositions.value.set(annotation.id, { x: annotation.x, y: annotation.y })
+      }
     }
 
     isRotating.value = true
@@ -94,30 +110,69 @@ export const useEditorRotation = createSharedComposable(() => {
     // Update selection group rotation (accumulate with previous rotation)
     bounds.setSelectionRotation(rotationStartSelectionAngle.value + rotationDelta)
 
-    // Apply rotation to all selected shapes
-    for (const shape of selection.selectedShapes.value) {
-      const originalRotation = rotationOriginalAngles.value.get(shape.id) || 0
-      const originalPos = rotationOriginalPositions.value.get(shape.id)
+    // Apply rotation to all selected annotations
+    for (const annotation of selection.selectedAnnotations.value) {
+      const originalRotation = rotationOriginalAngles.value.get(annotation.id) || 0
+      const originalPos = rotationOriginalPositions.value.get(annotation.id)
 
       if (!originalPos) continue
 
-      // Update shape rotation
-      shape.rotation = originalRotation + rotationDelta
+      // Point-based annotations (measure, area, perimeter, line)
+      if (isPointBased(annotation)) {
+        const originalPoints = rotationOriginalPoints.value.get(annotation.id)
+        if (!originalPoints) continue
 
-      // Rotate the shape's position around the selection center
-      const shapeCenterX = originalPos.x + shape.width / 2
-      const shapeCenterY = originalPos.y + shape.height / 2
+        // Calculate center from original points
+        const center = getAnnotationCenter({ ...annotation, points: originalPoints })
 
-      // Rotate center point
-      const rotatedCenter = rotatePointAroundCenter(
-        { x: shapeCenterX, y: shapeCenterY },
-        rotationCenter.value,
-        rotationDelta
-      )
+        // Rotate original points around their own center
+        const rotatedPoints = rotatePointsAroundCenter(
+          originalPoints,
+          center,
+          rotationDelta
+        )
 
-      // Update shape position (top-left corner)
-      shape.x = rotatedCenter.x - shape.width / 2
-      shape.y = rotatedCenter.y - shape.height / 2
+        // If multi-select, orbit the entire shape around selection center
+        if (selection.isMultiSelection.value) {
+          const rotatedCenter = rotatePointAroundCenter(center, rotationCenter.value, rotationDelta)
+          const offset = {
+            x: rotatedCenter.x - center.x,
+            y: rotatedCenter.y - center.y
+          }
+
+          // Translate all rotated points by the orbit offset
+          annotation.points = rotatedPoints.map(p => ({
+            x: p.x + offset.x,
+            y: p.y + offset.y
+          }))
+        } else {
+          annotation.points = rotatedPoints
+        }
+
+        // Recalculate derived values (distance, area, etc.)
+        const derived = recalculateDerivedValues(annotation)
+        Object.assign(annotation, derived)
+      }
+      // Positioned annotations (fill, text, count)
+      else if ('x' in annotation && 'width' in annotation) {
+        // Update annotation rotation
+        annotation.rotation = originalRotation + rotationDelta
+
+        // Orbit for multi-select
+        if (selection.isMultiSelection.value) {
+          const shapeCenterX = originalPos.x + annotation.width / 2
+          const shapeCenterY = originalPos.y + annotation.height / 2
+
+          const rotatedCenter = rotatePointAroundCenter(
+            { x: shapeCenterX, y: shapeCenterY },
+            rotationCenter.value,
+            rotationDelta
+          )
+
+          annotation.x = rotatedCenter.x - annotation.width / 2
+          annotation.y = rotatedCenter.y - annotation.height / 2
+        }
+      }
     }
   }
 
@@ -131,6 +186,7 @@ export const useEditorRotation = createSharedComposable(() => {
     rotationStartAngle.value = 0
     rotationOriginalAngles.value.clear()
     rotationOriginalPositions.value.clear()
+    rotationOriginalPoints.value.clear()
     rotationCenter.value = null
     cursor.reset()
     coordinates.clearSvgCache()

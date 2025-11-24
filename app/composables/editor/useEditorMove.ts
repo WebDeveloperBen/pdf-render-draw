@@ -7,6 +7,8 @@
  */
 
 import type { Point, Bounds } from "~/types/editor"
+import type { Annotation } from "~/types/annotations"
+import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
 import { useEditorSelection } from "./useEditorSelection"
 import { useEditorBounds } from "./useEditorBounds"
 import { useEditorCoordinates } from "./useEditorCoordinates"
@@ -21,6 +23,7 @@ export const useEditorMove = createSharedComposable(() => {
   const isDragging = ref(false)
   const dragStartPoint = ref<Point | null>(null)
   const dragOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
+  const dragOriginalPoints = ref<Map<string, Point[]>>(new Map())
   const dragOriginalLockedBounds = ref<Bounds | null>(null)
 
   /**
@@ -40,10 +43,19 @@ export const useEditorMove = createSharedComposable(() => {
     dragStartPoint.value = svgPoint
     cursor.set("grabbing")
 
-    // Store original positions of all selected shapes
+    // Store original positions/points of all selected annotations
     dragOriginalPositions.value.clear()
-    for (const shape of selection.selectedShapes.value) {
-      dragOriginalPositions.value.set(shape.id, { x: shape.x, y: shape.y })
+    dragOriginalPoints.value.clear()
+
+    for (const annotation of selection.selectedAnnotations.value) {
+      // Point-based annotations - store points array
+      if (isPointBased(annotation)) {
+        dragOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
+      }
+      // Positioned annotations - store x, y
+      else if ('x' in annotation && 'y' in annotation) {
+        dragOriginalPositions.value.set(annotation.id, { x: annotation.x, y: annotation.y })
+      }
     }
 
     // Store original frozen bounds if they exist (from previous rotation)
@@ -66,12 +78,29 @@ export const useEditorMove = createSharedComposable(() => {
     const deltaX = svgPoint.x - dragStartPoint.value.x
     const deltaY = svgPoint.y - dragStartPoint.value.y
 
-    // Move all selected shapes
-    for (const shape of selection.selectedShapes.value) {
-      const originalPos = dragOriginalPositions.value.get(shape.id)
-      if (originalPos) {
-        shape.x = originalPos.x + deltaX
-        shape.y = originalPos.y + deltaY
+    // Move all selected annotations
+    for (const annotation of selection.selectedAnnotations.value) {
+      // Point-based annotations - translate all points
+      if (isPointBased(annotation)) {
+        const originalPoints = dragOriginalPoints.value.get(annotation.id)
+        if (originalPoints) {
+          annotation.points = originalPoints.map((p) => ({
+            x: p.x + deltaX,
+            y: p.y + deltaY
+          }))
+
+          // Recalculate derived values (distance, area, etc.)
+          const derived = recalculateDerivedValues(annotation)
+          Object.assign(annotation, derived)
+        }
+      }
+      // Positioned annotations - update x, y
+      else if ('x' in annotation && 'y' in annotation) {
+        const originalPos = dragOriginalPositions.value.get(annotation.id)
+        if (originalPos) {
+          annotation.x = originalPos.x + deltaX
+          annotation.y = originalPos.y + deltaY
+        }
       }
     }
 
@@ -95,6 +124,7 @@ export const useEditorMove = createSharedComposable(() => {
     isDragging.value = false
     dragStartPoint.value = null
     dragOriginalPositions.value.clear()
+    dragOriginalPoints.value.clear()
     dragOriginalLockedBounds.value = null
     cursor.reset()
     coordinates.clearSvgCache()
