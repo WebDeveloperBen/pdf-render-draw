@@ -179,7 +179,7 @@ export const useEditorScale = createSharedComposable(() => {
         if (!originalPoints) continue
 
         // For single selection without rotation: scale using newBounds
-        // For multi-selection or with rotation: scale from center
+        // For multi-selection or with rotation: scale from selection center
         if (!selection.isMultiSelection.value && bounds.selectionRotation.value === 0) {
           // Scale from newBounds (accounts for handle direction)
           const scaledPoints = originalPoints.map((p) => ({
@@ -189,15 +189,13 @@ export const useEditorScale = createSharedComposable(() => {
 
           annotation.points = scaledPoints
         } else {
-          // With rotation: scale points around center (matching Transform.vue)
-          const shapeCenter = getAnnotationCenter({ ...annotation, points: originalPoints })
-
+          // Multi-select or with rotation: scale each point relative to selection center
           const scaledPoints = originalPoints.map((p) => {
-            const relX = p.x - shapeCenter.x
-            const relY = p.y - shapeCenter.y
+            const offsetX = p.x - centerX
+            const offsetY = p.y - centerY
             return {
-              x: shapeCenter.x + relX * scaleX,
-              y: shapeCenter.y + relY * scaleY
+              x: centerX + offsetX * scaleX,
+              y: centerY + offsetY * scaleY
             }
           })
 
