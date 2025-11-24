@@ -10,6 +10,7 @@ import { TRANSFORM, COLORS } from "~/constants/ui"
 import { useTransformBase } from "~/composables/useTransformBase"
 import type { Annotation } from "~/types/annotations"
 import type { Point } from "~/types"
+import { getUnionBounds } from "~/utils/transform-math"
 
 const annotationStore = useAnnotationStore()
 const historyStore = useHistoryStore()
@@ -82,32 +83,19 @@ function calculateTransformedBounds(
 }
 
 // Calculate combined bounding box for all selected annotations
+// This uses the new getUnionBounds utility which properly handles rotated elements
 const combinedBounds = computed(() => {
   if (selectedAnnotations.value.length < 2) return null
 
-  let minX = Infinity,
-    minY = Infinity,
-    maxX = -Infinity,
-    maxY = -Infinity
+  // Get bounds for each annotation (already accounts for rotation)
+  const allBounds = selectedAnnotations.value
+    .map(annotation => calculateBounds(annotation))
+    .filter((bounds): bounds is Bounds => bounds !== null)
 
-  for (const annotation of selectedAnnotations.value) {
-    const bounds = calculateBounds(annotation)
-    if (!bounds) continue
+  if (allBounds.length === 0) return null
 
-    minX = Math.min(minX, bounds.x)
-    minY = Math.min(minY, bounds.y)
-    maxX = Math.max(maxX, bounds.x + bounds.width)
-    maxY = Math.max(maxY, bounds.y + bounds.height)
-  }
-
-  if (minX === Infinity) return null
-
-  return {
-    x: minX,
-    y: minY,
-    width: maxX - minX,
-    height: maxY - minY
-  }
+  // Calculate union of all bounds
+  return getUnionBounds(allBounds)
 })
 
 // Use original bounds during rotation to keep transformer stable
