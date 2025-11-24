@@ -114,6 +114,13 @@ const rotationLockedBounds = ref<Bounds | null>(null)
 // Prevent background clicks immediately after drag/rotate ends
 const justFinishedInteraction = ref(false)
 
+// Phase 5: Scaling state
+const isScaling = ref(false)
+const scaleHandle = ref<string | null>(null) // which handle: 'nw', 'ne', 'se', 'sw', 'n', 'e', 's', 'w'
+const scaleStartPoint = ref<{ x: number; y: number } | null>(null)
+const scaleOriginalBounds = ref<Bounds | null>(null)
+const scaleOriginalShapes = ref<Map<string, { x: number; y: number; width: number; height: number }>>(new Map())
+
 // Calculate bounding box using CTM-based approach
 // For Phase 1: Simple axis-aligned bounding box
 function calculateBounds(shape: Shape): Bounds {
@@ -250,9 +257,9 @@ function handleShapeClick(shapeId: string, event: MouseEvent) {
 
 // Handle background click (deselect all)
 function handleBackgroundClick() {
-  // Don't deselect if we just finished dragging or rotating
+  // Don't deselect if we just finished dragging, rotating, or scaling
   // (mouseup might trigger a click event)
-  if (isDragging.value || isRotating.value || justFinishedInteraction.value) return
+  if (isDragging.value || isRotating.value || isScaling.value || justFinishedInteraction.value) return
 
   selectedIds.value = []
   selectionRotation.value = 0
@@ -483,22 +490,152 @@ function handleRotateEnd() {
   }, 100)
 }
 
-// Set up global mouse event listeners for drag and rotation
+// Phase 5: Start scaling
+function handleScaleStart(event: MouseEvent, handle: string) {
+  if (selectedIds.value.length === 0 || !selectionBounds.value) return
+
+  const svg = (event.currentTarget as Element).ownerSVGElement
+  if (!svg) return
+
+  const svgPoint = getSvgPoint(event, svg)
+
+  isScaling.value = true
+  scaleHandle.value = handle
+  scaleStartPoint.value = svgPoint
+  scaleOriginalBounds.value = { ...selectionBounds.value }
+
+  // Store original shape dimensions
+  scaleOriginalShapes.value.clear()
+  for (const shape of selectedShapes.value) {
+    scaleOriginalShapes.value.set(shape.id, {
+      x: shape.x,
+      y: shape.y,
+      width: shape.width,
+      height: shape.height
+    })
+  }
+
+  event.stopPropagation()
+}
+
+// Phase 5: Handle scale move
+function handleScaleMove(event: MouseEvent) {
+  if (!isScaling.value || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
+
+  const svg = (event.target as Element).ownerSVGElement
+  if (!svg) return
+
+  const svgPoint = getSvgPoint(event, svg)
+  const deltaX = svgPoint.x - scaleStartPoint.value.x
+  const deltaY = svgPoint.y - scaleStartPoint.value.y
+
+  // Calculate new bounds based on which handle is being dragged
+  let newBounds = { ...scaleOriginalBounds.value }
+
+  switch (scaleHandle.value) {
+    case 'se': // Southeast corner - resize from top-left anchor
+      newBounds.width = scaleOriginalBounds.value.width + deltaX
+      newBounds.height = scaleOriginalBounds.value.height + deltaY
+      break
+    case 'sw': // Southwest corner - resize from top-right anchor
+      newBounds.x = scaleOriginalBounds.value.x + deltaX
+      newBounds.width = scaleOriginalBounds.value.width - deltaX
+      newBounds.height = scaleOriginalBounds.value.height + deltaY
+      break
+    case 'ne': // Northeast corner - resize from bottom-left anchor
+      newBounds.width = scaleOriginalBounds.value.width + deltaX
+      newBounds.y = scaleOriginalBounds.value.y + deltaY
+      newBounds.height = scaleOriginalBounds.value.height - deltaY
+      break
+    case 'nw': // Northwest corner - resize from bottom-right anchor
+      newBounds.x = scaleOriginalBounds.value.x + deltaX
+      newBounds.width = scaleOriginalBounds.value.width - deltaX
+      newBounds.y = scaleOriginalBounds.value.y + deltaY
+      newBounds.height = scaleOriginalBounds.value.height - deltaY
+      break
+    case 'e': // East edge
+      newBounds.width = scaleOriginalBounds.value.width + deltaX
+      break
+    case 'w': // West edge
+      newBounds.x = scaleOriginalBounds.value.x + deltaX
+      newBounds.width = scaleOriginalBounds.value.width - deltaX
+      break
+    case 's': // South edge
+      newBounds.height = scaleOriginalBounds.value.height + deltaY
+      break
+    case 'n': // North edge
+      newBounds.y = scaleOriginalBounds.value.y + deltaY
+      newBounds.height = scaleOriginalBounds.value.height - deltaY
+      break
+  }
+
+  // Prevent negative dimensions
+  if (newBounds.width < 10) newBounds.width = 10
+  if (newBounds.height < 10) newBounds.height = 10
+
+  // Calculate scale factors
+  const scaleX = newBounds.width / scaleOriginalBounds.value.width
+  const scaleY = newBounds.height / scaleOriginalBounds.value.height
+
+  // Apply scaling to all selected shapes
+  for (const shape of selectedShapes.value) {
+    const original = scaleOriginalShapes.value.get(shape.id)
+    if (!original) continue
+
+    // Calculate shape's relative position within original bounds
+    const relX = (original.x - scaleOriginalBounds.value.x) / scaleOriginalBounds.value.width
+    const relY = (original.y - scaleOriginalBounds.value.y) / scaleOriginalBounds.value.height
+    const relW = original.width / scaleOriginalBounds.value.width
+    const relH = original.height / scaleOriginalBounds.value.height
+
+    // Apply new bounds with scaling
+    shape.x = newBounds.x + relX * newBounds.width
+    shape.y = newBounds.y + relY * newBounds.height
+    shape.width = relW * newBounds.width
+    shape.height = relH * newBounds.height
+  }
+
+  // Update locked bounds if they exist (after rotation)
+  if (rotationLockedBounds.value) {
+    rotationLockedBounds.value = { ...newBounds }
+  }
+}
+
+// Phase 5: End scaling
+function handleScaleEnd() {
+  if (!isScaling.value) return
+
+  isScaling.value = false
+  scaleHandle.value = null
+  scaleStartPoint.value = null
+  scaleOriginalBounds.value = null
+  scaleOriginalShapes.value.clear()
+
+  // Prevent background click for a brief moment
+  justFinishedInteraction.value = true
+  setTimeout(() => {
+    justFinishedInteraction.value = false
+  }, 100)
+}
+
+// Set up global mouse event listeners for drag, rotation, and scaling
 if (typeof window !== "undefined") {
   window.addEventListener("mousemove", (e: MouseEvent) => {
     handleDragMove(e)
     handleRotateMove(e)
+    handleScaleMove(e)
   })
   window.addEventListener("mouseup", () => {
     handleDragEnd()
     handleRotateEnd()
+    handleScaleEnd()
   })
 }
 </script>
 
 <template>
   <div class="debug-editor">
-    <h2>Debug SVG Editor - Phase 4: Rotation</h2>
+    <h2>Debug SVG Editor - Phase 5: Scaling</h2>
 
     <svg width="800" height="600" viewBox="0 0 800 600" class="editor-canvas" @click="handleBackgroundClick">
       <!-- Grid background for reference -->
@@ -571,12 +708,113 @@ if (typeof window !== "undefined") {
             @mousedown="handleRotateStart"
           />
         </g>
+
+        <!-- Phase 5: Scale handles -->
+        <!-- Corner handles -->
+        <rect
+          :x="selectionBounds.x - 4"
+          :y="selectionBounds.y - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle nwse-resize"
+          data-handle="nw"
+          @mousedown="handleScaleStart($event, 'nw')"
+        />
+        <rect
+          :x="selectionBounds.x + selectionBounds.width - 4"
+          :y="selectionBounds.y - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle nesw-resize"
+          data-handle="ne"
+          @mousedown="handleScaleStart($event, 'ne')"
+        />
+        <rect
+          :x="selectionBounds.x + selectionBounds.width - 4"
+          :y="selectionBounds.y + selectionBounds.height - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle nwse-resize"
+          data-handle="se"
+          @mousedown="handleScaleStart($event, 'se')"
+        />
+        <rect
+          :x="selectionBounds.x - 4"
+          :y="selectionBounds.y + selectionBounds.height - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle nesw-resize"
+          data-handle="sw"
+          @mousedown="handleScaleStart($event, 'sw')"
+        />
+
+        <!-- Edge handles -->
+        <rect
+          :x="selectionBounds.x + selectionBounds.width / 2 - 4"
+          :y="selectionBounds.y - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle ns-resize"
+          data-handle="n"
+          @mousedown="handleScaleStart($event, 'n')"
+        />
+        <rect
+          :x="selectionBounds.x + selectionBounds.width - 4"
+          :y="selectionBounds.y + selectionBounds.height / 2 - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle ew-resize"
+          data-handle="e"
+          @mousedown="handleScaleStart($event, 'e')"
+        />
+        <rect
+          :x="selectionBounds.x + selectionBounds.width / 2 - 4"
+          :y="selectionBounds.y + selectionBounds.height - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle ns-resize"
+          data-handle="s"
+          @mousedown="handleScaleStart($event, 's')"
+        />
+        <rect
+          :x="selectionBounds.x - 4"
+          :y="selectionBounds.y + selectionBounds.height / 2 - 4"
+          width="8"
+          height="8"
+          fill="white"
+          stroke="#3b82f6"
+          stroke-width="2"
+          class="scale-handle ew-resize"
+          data-handle="w"
+          @mousedown="handleScaleStart($event, 'w')"
+        />
       </g>
     </svg>
 
     <!-- Debug info -->
     <div class="debug-info">
-      <h3>Phase 4 Status</h3>
+      <h3>Phase 5 Status</h3>
       <p><strong>Selected Count:</strong> {{ selectedIds.length }}</p>
       <p><strong>Selected IDs:</strong> {{ selectedIds.length > 0 ? selectedIds.join(", ") : "None" }}</p>
       <p><strong>Dragging:</strong> {{ isDragging ? "Yes" : "No" }}</p>
@@ -596,7 +834,7 @@ if (typeof window !== "undefined") {
       </p>
       <p class="hint">
         <strong>Tip:</strong> Click to select, Shift+Click to multi-select, Drag selection box to move, Drag rotation
-        handle to rotate
+        handle to rotate, Drag scale handles to resize
       </p>
     </div>
   </div>
@@ -654,6 +892,30 @@ h2 {
 .rotation-handle:active,
 .rotation-handle.rotating {
   cursor: grabbing;
+  stroke-width: 3;
+}
+
+.scale-handle {
+  cursor: pointer;
+}
+
+.scale-handle.nwse-resize {
+  cursor: nwse-resize;
+}
+
+.scale-handle.nesw-resize {
+  cursor: nesw-resize;
+}
+
+.scale-handle.ns-resize {
+  cursor: ns-resize;
+}
+
+.scale-handle.ew-resize {
+  cursor: ew-resize;
+}
+
+.scale-handle:hover {
   stroke-width: 3;
 }
 
