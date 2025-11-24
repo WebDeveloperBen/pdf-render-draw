@@ -126,6 +126,12 @@ const scaleStartPoint = ref<{ x: number; y: number } | null>(null)
 const scaleOriginalBounds = ref<Bounds | null>(null)
 const scaleOriginalShapes = ref<Map<string, { x: number; y: number; width: number; height: number }>>(new Map())
 
+// Phase 6: Marquee selection state
+const isMarqueeSelecting = ref(false)
+const marqueeStartPoint = ref<{ x: number; y: number } | null>(null)
+const marqueeEndPoint = ref<{ x: number; y: number } | null>(null)
+const marqueeShiftKey = ref(false)
+
 // Calculate bounding box using CTM-based approach
 // For Phase 1: Simple axis-aligned bounding box
 function calculateBounds(shape: Shape): Bounds {
@@ -652,26 +658,136 @@ function handleScaleEnd() {
   }, 100)
 }
 
-// Set up global mouse event listeners for drag, rotation, and scaling
+// Phase 6: Marquee selection bounds (computed)
+const marqueeBounds = computed(() => {
+  if (!marqueeStartPoint.value || !marqueeEndPoint.value) return null
+
+  const x1 = marqueeStartPoint.value.x
+  const y1 = marqueeStartPoint.value.y
+  const x2 = marqueeEndPoint.value.x
+  const y2 = marqueeEndPoint.value.y
+
+  return {
+    x: Math.min(x1, x2),
+    y: Math.min(y1, y2),
+    width: Math.abs(x2 - x1),
+    height: Math.abs(y2 - y1)
+  }
+})
+
+// Phase 6: Start marquee selection
+function handleMarqueeStart(event: MouseEvent) {
+  // Don't start marquee if clicking on a shape, handle, or selection box
+  const target = event.target as Element
+  if (target.closest('.shape') || target.closest('.selection-box') || target.closest('.rotation-handle') || target.closest('.scale-handle')) {
+    return
+  }
+
+  const svg = getRootSVG(event.currentTarget)
+  if (!svg) return
+
+  cachedSvg.value = svg
+  const svgPoint = getSvgPoint(event, svg)
+
+  isMarqueeSelecting.value = true
+  marqueeStartPoint.value = svgPoint
+  marqueeEndPoint.value = svgPoint
+  marqueeShiftKey.value = event.shiftKey
+  cursor.set('crosshair')
+
+  // If not holding shift, clear selection
+  if (!event.shiftKey) {
+    selectedIds.value = []
+    selectionRotation.value = 0
+    rotationLockedBounds.value = null
+  }
+
+  event.stopPropagation()
+}
+
+// Phase 6: Update marquee selection
+function handleMarqueeMove(event: MouseEvent) {
+  if (!isMarqueeSelecting.value || !cachedSvg.value) return
+
+  const svgPoint = getSvgPoint(event, cachedSvg.value)
+  marqueeEndPoint.value = svgPoint
+}
+
+// Phase 6: End marquee selection
+function handleMarqueeEnd() {
+  if (!isMarqueeSelecting.value || !marqueeBounds.value) return
+
+  // Find shapes that intersect with marquee
+  const marquee = marqueeBounds.value
+  const intersectingIds: string[] = []
+
+  for (const shape of shapes.value) {
+    // Simple AABB intersection test
+    const shapeBounds = calculateBounds(shape)
+
+    const intersects = !(
+      shapeBounds.x + shapeBounds.width < marquee.x ||
+      shapeBounds.x > marquee.x + marquee.width ||
+      shapeBounds.y + shapeBounds.height < marquee.y ||
+      shapeBounds.y > marquee.y + marquee.height
+    )
+
+    if (intersects) {
+      intersectingIds.push(shape.id)
+    }
+  }
+
+  // Update selection
+  if (marqueeShiftKey.value) {
+    // Add to existing selection
+    selectedIds.value = [...new Set([...selectedIds.value, ...intersectingIds])]
+  } else {
+    // Replace selection
+    selectedIds.value = intersectingIds
+  }
+
+  // Reset marquee state
+  isMarqueeSelecting.value = false
+  marqueeStartPoint.value = null
+  marqueeEndPoint.value = null
+  marqueeShiftKey.value = false
+  cursor.reset()
+
+  // Reset selection rotation and locked bounds when selection changes
+  if (intersectingIds.length > 0) {
+    selectionRotation.value = 0
+    rotationLockedBounds.value = null
+  }
+
+  // Prevent background click for a brief moment
+  justFinishedInteraction.value = true
+  setTimeout(() => {
+    justFinishedInteraction.value = false
+  }, 100)
+}
+
+// Set up global mouse event listeners for drag, rotation, scaling, and marquee
 if (typeof window !== "undefined") {
   window.addEventListener("mousemove", (e: MouseEvent) => {
     handleDragMove(e)
     handleRotateMove(e)
     handleScaleMove(e)
+    handleMarqueeMove(e)
   })
   window.addEventListener("mouseup", () => {
     handleDragEnd()
     handleRotateEnd()
     handleScaleEnd()
+    handleMarqueeEnd()
   })
 }
 </script>
 
 <template>
   <div class="debug-editor">
-    <h2>Debug SVG Editor - Phase 5: Scaling</h2>
+    <h2>Debug SVG Editor - Phase 6: Drag-Select</h2>
 
-    <svg width="800" height="600" viewBox="0 0 800 600" class="editor-canvas" @click="handleBackgroundClick">
+    <svg width="800" height="600" viewBox="0 0 800 600" class="editor-canvas" @click="handleBackgroundClick" @mousedown="handleMarqueeStart">
       <!-- Grid background for reference -->
       <defs>
         <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
@@ -848,16 +964,32 @@ if (typeof window !== "undefined") {
           @mousedown="handleScaleStart($event, 'w')"
         />
       </g>
+
+      <!-- Phase 6: Marquee selection box -->
+      <rect
+        v-if="marqueeBounds"
+        :x="marqueeBounds.x"
+        :y="marqueeBounds.y"
+        :width="marqueeBounds.width"
+        :height="marqueeBounds.height"
+        fill="rgba(59, 130, 246, 0.1)"
+        stroke="#3b82f6"
+        stroke-width="1"
+        stroke-dasharray="4 4"
+        class="marquee-box"
+        pointer-events="none"
+      />
     </svg>
 
     <!-- Debug info -->
     <div class="debug-info">
-      <h3>Phase 5 Status</h3>
+      <h3>Phase 6 Status</h3>
       <p><strong>Selected Count:</strong> {{ selectedIds.length }}</p>
       <p><strong>Selected IDs:</strong> {{ selectedIds.length > 0 ? selectedIds.join(", ") : "None" }}</p>
       <p><strong>Dragging:</strong> {{ isDragging ? "Yes" : "No" }}</p>
       <p><strong>Rotating:</strong> {{ isRotating ? "Yes" : "No" }}</p>
       <p><strong>Scaling:</strong> {{ isScaling ? "Yes" : "No" }}</p>
+      <p><strong>Marquee:</strong> {{ isMarqueeSelecting ? "Yes" : "No" }}</p>
       <p v-if="selectedIds.length === 1 && selectedShape">
         <strong>Position:</strong> ({{ Math.round(selectedShape.x) }}, {{ Math.round(selectedShape.y) }})
       </p>
@@ -872,7 +1004,7 @@ if (typeof window !== "undefined") {
         {{ Math.round(selectionBounds.width) }} × {{ Math.round(selectionBounds.height) }}
       </p>
       <p class="hint">
-        <strong>Tip:</strong> Click to select, Shift+Click to multi-select, Drag selection box to move, Drag rotation
+        <strong>Tip:</strong> Click to select, Shift+Click to multi-select, Drag on canvas to marquee select, Drag selection box to move, Drag rotation
         handle to rotate, Drag scale handles to resize
       </p>
     </div>
