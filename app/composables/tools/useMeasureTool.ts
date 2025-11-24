@@ -12,7 +12,6 @@ import { useCreateBaseTool } from "./useCreateBaseTool"
 const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const settingsStore = base.settings
   const rendererStore = useRendererStore()
 
   // Add drawing behavior via composition
@@ -24,7 +23,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     calculate: (points: Point[]) => {
       const start = points[0]!
       const end = points[1]!
-      const distance = calculateDistance(start, end, settingsStore.getPdfScale)
+      const distance = calculateDistance(start, end)
       const midpoint = calculateMidpoint(start, end)
 
       return {
@@ -47,7 +46,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
       return null
     }
 
-    return calculateDistance(drawing.points.value[0]!, drawing.tempEndPoint.value, settingsStore.getPdfScale)
+    return calculateDistance(drawing.points.value[0]!, drawing.tempEndPoint.value)
   })
 
   // Return composed tool (like extending multiple classes)
@@ -57,7 +56,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     previewDistance // Add: tool-specific features
   }
 
-  // Register tool with full metadata, event handlers, and transformation logic
+  // Register tool with full metadata and event handlers
   registerTool({
     type: "measure",
     name: "Measure",
@@ -65,58 +64,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,
-    onKeyDown: tool.handleKeyDown,
-    transform: {
-      // Transform metadata
-      structure: "point-based",
-      groupRotation: "update-points",
-      supportsGroupResize: true,
-      supportsGroupMove: true,
-      rotationCenter: "midpoint",
-
-      // Get rotation center - midpoint of the line
-      getCenter: (annotation) => {
-        const measure = annotation as Measurement
-        return {
-          x: (measure.points[0].x + measure.points[1].x) / 2,
-          y: (measure.points[0].y + measure.points[1].y) / 2
-        }
-      },
-
-      // Apply rotation - just update rotation property
-      applyRotation: (annotation, rotationDelta) => {
-        const currentRotation = annotation.rotation || 0
-        return { rotation: currentRotation + rotationDelta }
-      },
-
-      // Apply move - translate all points and recalculate derived values
-      applyMove: (annotation, deltaX, deltaY) => {
-        const measure = annotation as Measurement
-        const movedPoints = measure.points.map((p) => ({
-          x: p.x + deltaX,
-          y: p.y + deltaY
-        })) as [Point, Point]
-        const updated = { ...measure, points: movedPoints }
-        const derived = recalculateDerivedValues(updated)
-        return { points: movedPoints, ...derived } as Partial<Measurement>
-      },
-
-      // Apply resize - scale points from original bounds and recalculate derived values
-      applyResize: (annotation, newBounds, originalBounds) => {
-        const measure = annotation as Measurement
-        const scaleX = newBounds.width / originalBounds.width
-        const scaleY = newBounds.height / originalBounds.height
-
-        const scaledPoints = measure.points.map((p) => ({
-          x: newBounds.x + (p.x - originalBounds.x) * scaleX,
-          y: newBounds.y + (p.y - originalBounds.y) * scaleY
-        })) as [Point, Point]
-
-        const updated = { ...measure, points: scaledPoints }
-        const derived = recalculateDerivedValues(updated)
-        return { points: scaledPoints, ...derived } as Partial<Measurement>
-      }
-    }
+    onKeyDown: tool.handleKeyDown
   })
 
   return tool

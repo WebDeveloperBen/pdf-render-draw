@@ -1,9 +1,4 @@
 <script setup lang="ts">
-import { useMeasureToolState } from "@/composables/tools/useMeasureTool"
-
-// Get viewport-relative label rotation from renderer store (defined at top level)
-const rendererStore = useRendererStore()
-
 // Inject the tool state (which extends BaseTool)
 const tool = useMeasureToolState()
 if (!tool) {
@@ -22,6 +17,9 @@ const {
   // From MeasureTool (specific):
   previewDistance
 } = tool
+
+// Get viewport-relative label rotation from renderer store
+const rendererStore = useRendererStore()
 </script>
 
 <template>
