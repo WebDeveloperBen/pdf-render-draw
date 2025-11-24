@@ -84,20 +84,30 @@ const annotations = ref<Annotation[]>([
 // Provide annotations to selection composable
 selection.annotations.value = annotations.value
 
-// SVG transform for annotation rotation (positioned annotations only)
+// SVG transform for annotation rotation
 function getAnnotationTransform(annotation: Annotation): string {
-  // Point-based annotations don't use SVG transform (points are already rotated)
-  if ('points' in annotation) return ""
-
-  // Positioned annotations
   if (annotation.rotation === 0) return ""
-  if (!('x' in annotation && 'width' in annotation)) return ""
 
-  const centerX = annotation.x + annotation.width / 2
-  const centerY = annotation.y + annotation.height / 2
-  const angleDeg = (annotation.rotation * 180) / Math.PI
+  // Point-based annotations - rotate around center of points
+  if ('points' in annotation && Array.isArray(annotation.points)) {
+    // Calculate center of points
+    const xs = annotation.points.map(p => p.x)
+    const ys = annotation.points.map(p => p.y)
+    const centerX = (Math.min(...xs) + Math.max(...xs)) / 2
+    const centerY = (Math.min(...ys) + Math.max(...ys)) / 2
+    const angleDeg = (annotation.rotation * 180) / Math.PI
+    return `rotate(${angleDeg} ${centerX} ${centerY})`
+  }
 
-  return `rotate(${angleDeg} ${centerX} ${centerY})`
+  // Positioned annotations - rotate around shape center
+  if ('x' in annotation && 'width' in annotation) {
+    const centerX = annotation.x + annotation.width / 2
+    const centerY = annotation.y + annotation.height / 2
+    const angleDeg = (annotation.rotation * 180) / Math.PI
+    return `rotate(${angleDeg} ${centerX} ${centerY})`
+  }
+
+  return ""
 }
 
 // Set up global event listeners
@@ -133,7 +143,11 @@ onUnmounted(() => {
       <!-- Annotations -->
       <g v-for="annotation in annotations" :key="annotation.id">
         <!-- Point-based: Measurement (render as line) -->
-        <g v-if="annotation.type === 'measure'" class="measurement">
+        <g
+          v-if="annotation.type === 'measure'"
+          class="measurement"
+          :transform="getAnnotationTransform(annotation)"
+        >
           <line
             :x1="annotation.points[0].x"
             :y1="annotation.points[0].y"

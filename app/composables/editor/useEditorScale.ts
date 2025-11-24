@@ -99,82 +99,73 @@ export const useEditorScale = createSharedComposable(() => {
     // Project mouse delta into rotated coordinate system
     const { localDeltaX, localDeltaY } = projectDeltaToLocalSpace(deltaX, deltaY, rotation)
 
-    // Calculate scale factors based on handle
-    // For single selection without rotation: scale from corner (1x delta)
-    // For multi-selection or rotation: scale from center (2x delta because both sides move)
-    const isCenterScaling = selection.isMultiSelection.value || rotation !== 0
-    const deltaMultiplier = isCenterScaling ? 2 : 1
-
-    let scaleX = 1
-    let scaleY = 1
-
-    switch (scaleHandle.value) {
-      case "se":
-        scaleX = 1 + (deltaMultiplier * localDeltaX) / scaleOriginalBounds.value.width
-        scaleY = 1 + (deltaMultiplier * localDeltaY) / scaleOriginalBounds.value.height
-        break
-      case "sw":
-        scaleX = 1 - (deltaMultiplier * localDeltaX) / scaleOriginalBounds.value.width
-        scaleY = 1 + (deltaMultiplier * localDeltaY) / scaleOriginalBounds.value.height
-        break
-      case "ne":
-        scaleX = 1 + (deltaMultiplier * localDeltaX) / scaleOriginalBounds.value.width
-        scaleY = 1 - (deltaMultiplier * localDeltaY) / scaleOriginalBounds.value.height
-        break
-      case "nw":
-        scaleX = 1 - (deltaMultiplier * localDeltaX) / scaleOriginalBounds.value.width
-        scaleY = 1 - (deltaMultiplier * localDeltaY) / scaleOriginalBounds.value.height
-        break
-      case "e":
-        scaleX = 1 + (deltaMultiplier * localDeltaX) / scaleOriginalBounds.value.width
-        scaleY = 1
-        break
-      case "w":
-        scaleX = 1 - (deltaMultiplier * localDeltaX) / scaleOriginalBounds.value.width
-        scaleY = 1
-        break
-      case "s":
-        scaleX = 1
-        scaleY = 1 + (deltaMultiplier * localDeltaY) / scaleOriginalBounds.value.height
-        break
-      case "n":
-        scaleX = 1
-        scaleY = 1 - (deltaMultiplier * localDeltaY) / scaleOriginalBounds.value.height
-        break
-    }
-
-    // Prevent scaling below minimum size
-    const minSize = 10
-    if (Math.abs(scaleX * scaleOriginalBounds.value.width) < minSize) {
-      scaleX = (minSize / scaleOriginalBounds.value.width) * Math.sign(scaleX)
-    }
-    if (Math.abs(scaleY * scaleOriginalBounds.value.height) < minSize) {
-      scaleY = (minSize / scaleOriginalBounds.value.height) * Math.sign(scaleY)
-    }
-
-    // Calculate new bounds based on handle and scale factors
-    // This accounts for which corner/edge is being dragged
-    const newBounds = { ...scaleOriginalBounds.value }
-
     // Determine which sides are being scaled
     const isLeft = scaleHandle.value === "nw" || scaleHandle.value === "sw" || scaleHandle.value === "w"
     const isTop = scaleHandle.value === "nw" || scaleHandle.value === "ne" || scaleHandle.value === "n"
     const isRight = scaleHandle.value === "ne" || scaleHandle.value === "se" || scaleHandle.value === "e"
     const isBottom = scaleHandle.value === "sw" || scaleHandle.value === "se" || scaleHandle.value === "s"
+    const isEdgeHandle = scaleHandle.value.length === 1 // n, s, e, w
 
-    // Calculate new width and height
-    newBounds.width = scaleOriginalBounds.value.width * Math.abs(scaleX)
-    newBounds.height = scaleOriginalBounds.value.height * Math.abs(scaleY)
+    // Calculate new bounds by applying deltas (matching Transform.vue logic)
+    const newBounds = { ...scaleOriginalBounds.value }
 
-    // Adjust x and y based on which handle is being dragged
-    if (isLeft) {
-      // Left edge moved - adjust x position
-      newBounds.x = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width * (1 - Math.abs(scaleX))
+    if (rotation !== 0) {
+      // With rotation: apply deltas to dimensions only (not position)
+      if (isEdgeHandle) {
+        if (scaleHandle.value === "n") newBounds.height -= localDeltaY
+        else if (scaleHandle.value === "e") newBounds.width += localDeltaX
+        else if (scaleHandle.value === "s") newBounds.height += localDeltaY
+        else if (scaleHandle.value === "w") newBounds.width -= localDeltaX
+      } else {
+        // Corner handles
+        if (isLeft) newBounds.width -= localDeltaX
+        if (isRight) newBounds.width += localDeltaX
+        if (isTop) newBounds.height -= localDeltaY
+        if (isBottom) newBounds.height += localDeltaY
+      }
+    } else {
+      // No rotation: apply deltas to both dimensions and position
+      if (isEdgeHandle) {
+        if (scaleHandle.value === "n") {
+          newBounds.y += deltaY
+          newBounds.height -= deltaY
+        } else if (scaleHandle.value === "e") {
+          newBounds.width += deltaX
+        } else if (scaleHandle.value === "s") {
+          newBounds.height += deltaY
+        } else if (scaleHandle.value === "w") {
+          newBounds.x += deltaX
+          newBounds.width -= deltaX
+        }
+      } else {
+        // Corner handles
+        if (isLeft) {
+          newBounds.x += deltaX
+          newBounds.width -= deltaX
+        }
+        if (isRight) newBounds.width += deltaX
+        if (isTop) {
+          newBounds.y += deltaY
+          newBounds.height -= deltaY
+        }
+        if (isBottom) newBounds.height += deltaY
+      }
     }
-    if (isTop) {
-      // Top edge moved - adjust y position
-      newBounds.y = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height * (1 - Math.abs(scaleY))
+
+    // Prevent scaling below minimum size
+    const minSize = 10
+    if (newBounds.width < minSize) {
+      if (isLeft && rotation === 0) newBounds.x = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width - minSize
+      newBounds.width = minSize
     }
+    if (newBounds.height < minSize) {
+      if (isTop && rotation === 0) newBounds.y = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height - minSize
+      newBounds.height = minSize
+    }
+
+    // Calculate scale factors from bounds ratio
+    const scaleX = newBounds.width / scaleOriginalBounds.value.width
+    const scaleY = newBounds.height / scaleOriginalBounds.value.height
 
     // Get center of original bounds
     const centerX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width / 2
@@ -198,11 +189,17 @@ export const useEditorScale = createSharedComposable(() => {
 
           annotation.points = scaledPoints
         } else {
-          // Scale from center (for rotation or multi-select)
-          const scaledPoints = originalPoints.map((p) => ({
-            x: centerX + (p.x - centerX) * scaleX,
-            y: centerY + (p.y - centerY) * scaleY
-          }))
+          // With rotation: scale points around center (matching Transform.vue)
+          const shapeCenter = getAnnotationCenter({ ...annotation, points: originalPoints })
+
+          const scaledPoints = originalPoints.map((p) => {
+            const relX = p.x - shapeCenter.x
+            const relY = p.y - shapeCenter.y
+            return {
+              x: shapeCenter.x + relX * scaleX,
+              y: shapeCenter.y + relY * scaleY
+            }
+          })
 
           annotation.points = scaledPoints
         }
@@ -236,7 +233,7 @@ export const useEditorScale = createSharedComposable(() => {
       }
     }
 
-    // Update frozen bounds
+    // Update frozen bounds - scale the frozen bounds from center
     bounds.updateFrozenBounds({
       x: centerX - (scaleOriginalBounds.value.width / 2) * Math.abs(scaleX),
       y: centerY - (scaleOriginalBounds.value.height / 2) * Math.abs(scaleY),
