@@ -1,9 +1,4 @@
 <script setup lang="ts">
-import { usePerimeterToolState } from "@/composables/tools/usePerimeterTool"
-
-// Get viewport-relative label rotation from renderer store (defined at top level)
-const rendererStore = useRendererStore()
-
 // Inject the tool state (which extends BaseTool)
 const tool = usePerimeterToolState()
 if (!tool) {
@@ -24,6 +19,9 @@ const {
   // From PerimeterTool (specific):
   previewSegments
 } = tool
+
+// Get viewport-relative label rotation from renderer store
+const rendererStore = useRendererStore()
 </script>
 <template>
   <g class="perimeter-tool">

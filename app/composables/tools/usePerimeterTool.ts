@@ -6,7 +6,6 @@ import { useCreateBaseTool } from "./useCreateBaseTool"
 const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const settingsStore = base.settings
   const rendererStore = useRendererStore()
 
   // Add drawing behavior via composition
@@ -25,7 +24,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
         segments.push({
           start,
           end,
-          length: calculateDistance(start, end, settingsStore.getPdfScale),
+          length: calculateDistance(start, end),
           midpoint: calculateMidpoint(start, end)
         })
       }
@@ -64,7 +63,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
       segments.push({
         start,
         end,
-        length: calculateDistance(start, end, settingsStore.getPdfScale),
+        length: calculateDistance(start, end),
         midpoint: calculateMidpoint(start, end)
       })
     }
@@ -75,7 +74,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
       segments.push({
         start: lastPoint,
         end: drawing.tempEndPoint.value,
-        length: calculateDistance(lastPoint, drawing.tempEndPoint.value, settingsStore.getPdfScale),
+        length: calculateDistance(lastPoint, drawing.tempEndPoint.value),
         midpoint: calculateMidpoint(lastPoint, drawing.tempEndPoint.value)
       })
     }
@@ -90,7 +89,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
     previewSegments // Add: tool-specific features
   }
 
-  // Register tool with full metadata, event handlers, and transformation logic
+  // Register tool with full metadata and event handlers
   registerTool({
     type: "perimeter",
     name: "Perimeter",
@@ -98,55 +97,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,
-    onKeyDown: tool.handleKeyDown,
-    transform: {
-      // Transform metadata
-      structure: "point-based",
-      groupRotation: "update-points",
-      supportsGroupResize: true,
-      supportsGroupMove: true,
-      rotationCenter: "centroid",
-
-      // Get rotation center - stored center point
-      getCenter: (annotation) => {
-        const perimeter = annotation as Perimeter
-        return { x: perimeter.center.x, y: perimeter.center.y }
-      },
-
-      // Apply rotation - just update rotation property
-      applyRotation: (annotation, rotationDelta) => {
-        const currentRotation = annotation.rotation || 0
-        return { rotation: currentRotation + rotationDelta }
-      },
-
-      // Apply move - translate all points and recalculate derived values
-      applyMove: (annotation, deltaX, deltaY) => {
-        const perimeter = annotation as Perimeter
-        const movedPoints = perimeter.points.map((p) => ({
-          x: p.x + deltaX,
-          y: p.y + deltaY
-        }))
-        const updated = { ...perimeter, points: movedPoints }
-        const derived = recalculateDerivedValues(updated)
-        return { points: movedPoints, ...derived } as Partial<Perimeter>
-      },
-
-      // Apply resize - scale points and recalculate derived values
-      applyResize: (annotation, newBounds, originalBounds) => {
-        const perimeter = annotation as Perimeter
-        const scaleX = newBounds.width / originalBounds.width
-        const scaleY = newBounds.height / originalBounds.height
-
-        const scaledPoints = perimeter.points.map((p) => ({
-          x: newBounds.x + (p.x - originalBounds.x) * scaleX,
-          y: newBounds.y + (p.y - originalBounds.y) * scaleY
-        }))
-
-        const updated = { ...perimeter, points: scaledPoints }
-        const derived = recalculateDerivedValues(updated)
-        return { points: scaledPoints, ...derived } as Partial<Perimeter>
-      }
-    }
+    onKeyDown: tool.handleKeyDown
   })
 
   return tool
