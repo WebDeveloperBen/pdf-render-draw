@@ -636,10 +636,21 @@ function handleScaleMove(event: MouseEvent) {
     shape.height = original.height * scaleFactorY
   }
 
-  // Update locked bounds during scaling to follow the mouse
-  // Use newBounds directly - don't recalculate from shapes to avoid jumps
+  // Update locked bounds during scaling
+  // Scale the transformer using the same factors and anchor as the shapes
+  // This keeps them moving together as one unit
   if (rotationLockedBounds.value) {
-    rotationLockedBounds.value = { ...newBounds }
+    // Calculate the transformer's position relative to anchor
+    const boundsRelX = scaleOriginalBounds.value.x - anchorX
+    const boundsRelY = scaleOriginalBounds.value.y - anchorY
+
+    // Scale the transformer from the same anchor point
+    rotationLockedBounds.value = {
+      x: anchorX + boundsRelX * scaleFactorX,
+      y: anchorY + boundsRelY * scaleFactorY,
+      width: scaleOriginalBounds.value.width * scaleFactorX,
+      height: scaleOriginalBounds.value.height * scaleFactorY
+    }
   }
 }
 
