@@ -8,6 +8,9 @@
  */
 
 import type { Point } from "~/types/editor"
+import type { Annotation } from "~/types/annotations"
+import { rotatePointsAroundCenter, rotatePointAroundCenter } from "~/utils/editor/transform"
+import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
 import { useEditorSelection } from "./useEditorSelection"
 import { useEditorBounds } from "./useEditorBounds"
 import { useEditorCoordinates } from "./useEditorCoordinates"
@@ -26,6 +29,7 @@ export const useEditorRotation = createSharedComposable(() => {
 
   // Original state (before rotation started)
   const rotationOriginalAngles = ref<Map<string, number>>(new Map())
+  const rotationOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
 
   /**
    * Start rotating
@@ -58,11 +62,17 @@ export const useEditorRotation = createSharedComposable(() => {
     // Store the current selection rotation (for accumulating multiple rotations)
     rotationStartSelectionAngle.value = bounds.selectionRotation.value
 
-    // Store original rotations
+    // Store original rotations and positions
     rotationOriginalAngles.value.clear()
+    rotationOriginalPositions.value.clear()
 
     for (const annotation of selection.selectedAnnotations.value) {
       rotationOriginalAngles.value.set(annotation.id, annotation.rotation)
+
+      // For positioned annotations, store x,y for orbit
+      if ('x' in annotation && 'y' in annotation) {
+        rotationOriginalPositions.value.set(annotation.id, { x: annotation.x, y: annotation.y })
+      }
     }
 
     isRotating.value = true
@@ -91,10 +101,36 @@ export const useEditorRotation = createSharedComposable(() => {
     // Update selection group rotation (accumulate with previous rotation)
     bounds.setSelectionRotation(rotationStartSelectionAngle.value + rotationDelta)
 
-    // Apply rotation to all selected annotations (just update rotation property)
+    // Apply rotation to all selected annotations
     for (const annotation of selection.selectedAnnotations.value) {
       const originalRotation = rotationOriginalAngles.value.get(annotation.id) || 0
-      annotation.rotation = originalRotation + rotationDelta
+
+      // Point-based annotations - update rotation property (CSS for now)
+      if (isPointBased(annotation)) {
+        annotation.rotation = originalRotation + rotationDelta
+      }
+      // Positioned annotations - update rotation property
+      else if ('x' in annotation && 'width' in annotation) {
+        annotation.rotation = originalRotation + rotationDelta
+
+        // Orbit for multi-select
+        if (selection.isMultiSelection.value) {
+          const originalPos = rotationOriginalPositions.value.get(annotation.id)
+          if (!originalPos) continue
+
+          const shapeCenterX = originalPos.x + annotation.width / 2
+          const shapeCenterY = originalPos.y + annotation.height / 2
+
+          const rotatedCenter = rotatePointAroundCenter(
+            { x: shapeCenterX, y: shapeCenterY },
+            rotationCenter.value,
+            rotationDelta
+          )
+
+          annotation.x = rotatedCenter.x - annotation.width / 2
+          annotation.y = rotatedCenter.y - annotation.height / 2
+        }
+      }
     }
   }
 
@@ -107,6 +143,7 @@ export const useEditorRotation = createSharedComposable(() => {
     isRotating.value = false
     rotationStartAngle.value = 0
     rotationOriginalAngles.value.clear()
+    rotationOriginalPositions.value.clear()
     rotationCenter.value = null
     cursor.reset()
     coordinates.clearSvgCache()

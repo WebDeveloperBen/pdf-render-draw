@@ -8,6 +8,8 @@
  */
 
 import type { Annotation } from "~/types/annotations"
+import { rotatePointsAroundCenter } from "~/utils/editor/transform"
+import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
 
 export const useEditorSelection = createSharedComposable(() => {
   // Selected annotation IDs
@@ -45,6 +47,21 @@ export const useEditorSelection = createSharedComposable(() => {
    * Select a single shape (replaces current selection)
    */
   function selectShape(shapeId: string) {
+    console.log('🎯 selectShape called:', shapeId, 'current selection:', selectedIds.value)
+
+    // If clicking the same shape that's already the only selection, do nothing
+    // This prevents baking rotation when clicking on an already-selected shape
+    if (selectedIds.value.length === 1 && selectedIds.value[0] === shapeId) {
+      console.log('   ↳ Same shape already selected, skipping')
+      return
+    }
+
+    console.log('   ↳ Changing selection, will bake rotation')
+    // We're changing selection - bake rotation into previously selected annotations
+    for (const annotation of selectedAnnotations.value) {
+      bakeRotationIntoPoints(annotation)
+    }
+
     selectedIds.value = [shapeId]
   }
 
@@ -83,9 +100,39 @@ export const useEditorSelection = createSharedComposable(() => {
   }
 
   /**
-   * Clear all selection
+   * Bake rotation into points for point-based annotations
+   * This applies the CSS rotation transform to the actual point coordinates
+   */
+  function bakeRotationIntoPoints(annotation: Annotation) {
+    if (!isPointBased(annotation) || annotation.rotation === 0) return
+
+    console.log('🔄 Baking rotation into points for annotation:', annotation.id, 'rotation:', annotation.rotation)
+
+    // Get center and rotate points
+    const center = getAnnotationCenter(annotation)
+    const rotatedPoints = rotatePointsAroundCenter(
+      annotation.points,
+      center,
+      annotation.rotation
+    )
+
+    // Update annotation with rotated points and reset rotation
+    annotation.points = rotatedPoints
+    annotation.rotation = 0
+
+    // Recalculate derived values
+    const derived = recalculateDerivedValues(annotation)
+    Object.assign(annotation, derived)
+  }
+
+  /**
+   * Clear all selection (and bake rotation into points)
    */
   function clearSelection() {
+    // Bake rotation into points before clearing selection
+    for (const annotation of selectedAnnotations.value) {
+      bakeRotationIntoPoints(annotation)
+    }
     selectedIds.value = []
   }
 
