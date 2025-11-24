@@ -95,10 +95,6 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     currentRect.value = null
   }
 
-  function deleteFill(id: string) {
-    base.annotationStore.deleteAnnotation(id)
-  }
-
   const tool = {
     ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     completed,
@@ -107,8 +103,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     currentRect,
     handleMouseDown,
     handleMouseMove,
-    handleMouseUp,
-    deleteFill
+    handleMouseUp
   }
 
   // Register tool with full metadata, event handlers, and transformation logic
@@ -118,49 +113,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     icon: "🎨",
     onMouseDown: tool.handleMouseDown,
     onMouseMove: tool.handleMouseMove,
-    onMouseUp: tool.handleMouseUp,
-    transform: {
-      // Transform metadata
-      structure: "positioned",
-      groupRotation: "update-position-and-rotation",
-      supportsGroupResize: true,
-      supportsGroupMove: true,
-      rotationCenter: "geometric-center",
-
-      // Get rotation center - center of the rectangle
-      getCenter: (annotation) => {
-        const fill = annotation as Fill
-        return {
-          x: fill.x + fill.width / 2,
-          y: fill.y + fill.height / 2
-        }
-      },
-
-      // Apply rotation - just update rotation property
-      applyRotation: (annotation, rotationDelta) => {
-        const currentRotation = annotation.rotation || 0
-        return { rotation: currentRotation + rotationDelta }
-      },
-
-      // Apply move - translate x,y
-      applyMove: (annotation, deltaX, deltaY) => {
-        const fill = annotation as Fill
-        return {
-          x: fill.x + deltaX,
-          y: fill.y + deltaY
-        }
-      },
-
-      // Apply resize - update bounds
-      applyResize: (_annotation, newBounds, _originalBounds) => {
-        return {
-          x: newBounds.x,
-          y: newBounds.y,
-          width: newBounds.width,
-          height: newBounds.height
-        }
-      }
-    }
+    onMouseUp: tool.handleMouseUp
   })
 
   return tool
