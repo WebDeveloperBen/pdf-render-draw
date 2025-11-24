@@ -30,6 +30,7 @@ export const useEditorRotation = createSharedComposable(() => {
   // Original state (before rotation started)
   const rotationOriginalAngles = ref<Map<string, number>>(new Map())
   const rotationOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
+  const rotationOriginalPoints = ref<Map<string, Point[]>>(new Map())
 
   /**
    * Start rotating
@@ -65,12 +66,17 @@ export const useEditorRotation = createSharedComposable(() => {
     // Store original rotations and positions
     rotationOriginalAngles.value.clear()
     rotationOriginalPositions.value.clear()
+    rotationOriginalPoints.value.clear()
 
     for (const annotation of selection.selectedAnnotations.value) {
       rotationOriginalAngles.value.set(annotation.id, annotation.rotation)
 
+      // For point-based annotations, store points for orbit
+      if (isPointBased(annotation)) {
+        rotationOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
+      }
       // For positioned annotations, store x,y for orbit
-      if ('x' in annotation && 'y' in annotation) {
+      else if ('x' in annotation && 'y' in annotation) {
         rotationOriginalPositions.value.set(annotation.id, { x: annotation.x, y: annotation.y })
       }
     }
@@ -105,9 +111,26 @@ export const useEditorRotation = createSharedComposable(() => {
     for (const annotation of selection.selectedAnnotations.value) {
       const originalRotation = rotationOriginalAngles.value.get(annotation.id) || 0
 
-      // Point-based annotations - update rotation property (CSS for now)
+      // Point-based annotations
       if (isPointBased(annotation)) {
-        annotation.rotation = originalRotation + rotationDelta
+        // Multi-select: physically rotate points around selection center (no CSS rotation)
+        if (selection.isMultiSelection.value) {
+          const originalPoints = rotationOriginalPoints.value.get(annotation.id)
+          if (!originalPoints) continue
+
+          // Rotate each point around the selection center
+          annotation.points = originalPoints.map(p =>
+            rotatePointAroundCenter(p, rotationCenter.value, rotationDelta)
+          )
+
+          // Recalculate derived values (distance, midpoint, etc.)
+          const derived = recalculateDerivedValues(annotation)
+          Object.assign(annotation, derived)
+        }
+        // Single select: use CSS rotation property
+        else {
+          annotation.rotation = originalRotation + rotationDelta
+        }
       }
       // Positioned annotations - update rotation property
       else if ('x' in annotation && 'width' in annotation) {
@@ -144,6 +167,7 @@ export const useEditorRotation = createSharedComposable(() => {
     rotationStartAngle.value = 0
     rotationOriginalAngles.value.clear()
     rotationOriginalPositions.value.clear()
+    rotationOriginalPoints.value.clear()
     rotationCenter.value = null
     cursor.reset()
     coordinates.clearSvgCache()
