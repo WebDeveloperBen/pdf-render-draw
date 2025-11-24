@@ -1,3 +1,15 @@
+<script setup lang="ts">
+defineProps<{
+  selectionBounds: Bounds
+}>()
+
+const scale = useEditorScale()
+const { startScale } = scale
+
+function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
+  startScale(event, handle)
+}
+</script>
 <template>
   <g class="scale-handles">
     <!-- Corner handles -->
@@ -93,22 +105,6 @@
     />
   </g>
 </template>
-
-<script setup lang="ts">
-import type { Bounds, ScaleHandle } from "~/types/editor"
-import { useEditorScale } from "~/composables/editor/useEditorScale"
-
-const props = defineProps<{
-  selectionBounds: Bounds
-}>()
-
-const scale = useEditorScale()
-const { startScale } = scale
-
-function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
-  startScale(event, handle)
-}
-</script>
 
 <style scoped>
 .scale-handle {

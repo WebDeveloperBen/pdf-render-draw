@@ -1,3 +1,26 @@
+<script setup lang="ts">
+const props = defineProps<{
+  selectionBounds: Bounds
+}>()
+
+const rotation = useEditorRotation()
+const { isRotating, startRotation } = rotation
+
+const rotationHandleDistance = 30
+
+const rotationHandlePos = computed<Point | null>(() => {
+  if (!props.selectionBounds) return null
+
+  return {
+    x: props.selectionBounds.x + props.selectionBounds.width / 2,
+    y: props.selectionBounds.y - rotationHandleDistance
+  }
+})
+
+function handleRotateStart(event: MouseEvent) {
+  startRotation(event)
+}
+</script>
 <template>
   <g v-if="rotationHandlePos" class="rotation-handle-group">
     <!-- Line to handle -->
@@ -25,33 +48,6 @@
     />
   </g>
 </template>
-
-<script setup lang="ts">
-import type { Bounds, Point } from "~/types/editor"
-import { useEditorRotation } from "~/composables/editor/useEditorRotation"
-
-const props = defineProps<{
-  selectionBounds: Bounds
-}>()
-
-const rotation = useEditorRotation()
-const { isRotating, startRotation } = rotation
-
-const rotationHandleDistance = 30
-
-const rotationHandlePos = computed<Point | null>(() => {
-  if (!props.selectionBounds) return null
-
-  return {
-    x: props.selectionBounds.x + props.selectionBounds.width / 2,
-    y: props.selectionBounds.y - rotationHandleDistance
-  }
-})
-
-function handleRotateStart(event: MouseEvent) {
-  startRotation(event)
-}
-</script>
 
 <style scoped>
 .rotation-handle {

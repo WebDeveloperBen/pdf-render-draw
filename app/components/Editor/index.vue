@@ -1,19 +1,4 @@
-<!--
-  V2 Editor - Modular SVG Editor
-
-  Built by extracting DebugEditor.vue into composables
-  Implements PLAN.md architecture with frozen bounds pattern
-  Now supports both point-based and positioned annotations
--->
 <script setup lang="ts">
-import type { Annotation, Measurement, Fill } from "~/types/annotations"
-import { useEditorSelection } from "~/composables/editor/useEditorSelection"
-import { useEditorBounds } from "~/composables/editor/useEditorBounds"
-import { useEditorEventHandlers } from "~/composables/editor/useEditorEventHandlers"
-import { useEditorMarquee } from "~/composables/editor/useEditorMarquee"
-import TransformHandles from "./TransformHandles.vue"
-import SelectionMarquee from "./SelectionMarquee.vue"
-
 // Initialize composables
 const selection = useEditorSelection()
 const bounds = useEditorBounds()
@@ -89,10 +74,10 @@ function getAnnotationTransform(annotation: Annotation): string {
   if (annotation.rotation === 0) return ""
 
   // Point-based annotations - rotate around center of points
-  if ('points' in annotation && Array.isArray(annotation.points)) {
+  if ("points" in annotation && Array.isArray(annotation.points)) {
     // Calculate center of points
-    const xs = annotation.points.map(p => p.x)
-    const ys = annotation.points.map(p => p.y)
+    const xs = annotation.points.map((p) => p.x)
+    const ys = annotation.points.map((p) => p.y)
     const centerX = (Math.min(...xs) + Math.max(...xs)) / 2
     const centerY = (Math.min(...ys) + Math.max(...ys)) / 2
     const angleDeg = (annotation.rotation * 180) / Math.PI
@@ -100,7 +85,7 @@ function getAnnotationTransform(annotation: Annotation): string {
   }
 
   // Positioned annotations - rotate around shape center
-  if ('x' in annotation && 'width' in annotation) {
+  if ("x" in annotation && "width" in annotation) {
     const centerX = annotation.x + annotation.width / 2
     const centerY = annotation.y + annotation.height / 2
     const angleDeg = (annotation.rotation * 180) / Math.PI
@@ -143,11 +128,7 @@ onUnmounted(() => {
       <!-- Annotations -->
       <g v-for="annotation in annotations" :key="annotation.id">
         <!-- Point-based: Measurement (render as line) -->
-        <g
-          v-if="annotation.type === 'measure'"
-          class="measurement"
-          :transform="getAnnotationTransform(annotation)"
-        >
+        <g v-if="annotation.type === 'measure'" class="measurement" :transform="getAnnotationTransform(annotation)">
           <line
             :x1="annotation.points[0].x"
             :y1="annotation.points[0].y"
@@ -195,17 +176,20 @@ onUnmounted(() => {
       </g>
 
       <!-- Transform UI (handles, rotation, scaling) -->
-      <TransformHandles />
+      <EditorTransformHandles />
 
       <!-- Marquee selection box -->
-      <SelectionMarquee />
+      <EditorSelectionMarquee />
     </svg>
 
     <!-- Debug info -->
     <div class="debug-info">
       <h3>V2 Editor Status - Annotation Support</h3>
       <p><strong>Selected Count:</strong> {{ selection.selectedIds.value.length }}</p>
-      <p><strong>Selected IDs:</strong> {{ selection.selectedIds.value.length > 0 ? selection.selectedIds.value.join(", ") : "None" }}</p>
+      <p>
+        <strong>Selected IDs:</strong>
+        {{ selection.selectedIds.value.length > 0 ? selection.selectedIds.value.join(", ") : "None" }}
+      </p>
 
       <template v-if="selection.selectedAnnotation.value">
         <p><strong>Type:</strong> {{ selection.selectedAnnotation.value.type }}</p>
@@ -221,26 +205,29 @@ onUnmounted(() => {
         <!-- Positioned annotation info -->
         <template v-if="'x' in selection.selectedAnnotation.value && 'width' in selection.selectedAnnotation.value">
           <p>
-            <strong>Position:</strong> ({{ Math.round(selection.selectedAnnotation.value.x) }}, {{ Math.round(selection.selectedAnnotation.value.y) }})
+            <strong>Position:</strong> ({{ Math.round(selection.selectedAnnotation.value.x) }},
+            {{ Math.round(selection.selectedAnnotation.value.y) }})
           </p>
           <p>
-            <strong>Size:</strong> {{ selection.selectedAnnotation.value.width }} × {{ selection.selectedAnnotation.value.height }}
+            <strong>Size:</strong> {{ selection.selectedAnnotation.value.width }} ×
+            {{ selection.selectedAnnotation.value.height }}
           </p>
         </template>
 
-        <p><strong>Rotation:</strong> {{ ((selection.selectedAnnotation.value.rotation * 180) / Math.PI).toFixed(1) }}°</p>
+        <p>
+          <strong>Rotation:</strong> {{ ((selection.selectedAnnotation.value.rotation * 180) / Math.PI).toFixed(1) }}°
+        </p>
       </template>
 
       <p v-if="bounds.selectionBounds.value">
-        <strong>Selection Bounds:</strong> ({{ Math.round(bounds.selectionBounds.value.x) }}, {{ Math.round(bounds.selectionBounds.value.y) }})
-        {{ Math.round(bounds.selectionBounds.value.width) }} × {{ Math.round(bounds.selectionBounds.value.height) }}
+        <strong>Selection Bounds:</strong> ({{ Math.round(bounds.selectionBounds.value.x) }},
+        {{ Math.round(bounds.selectionBounds.value.y) }}) {{ Math.round(bounds.selectionBounds.value.width) }} ×
+        {{ Math.round(bounds.selectionBounds.value.height) }}
       </p>
-      <p v-if="bounds.frozenBounds.value">
-        <strong>Frozen Bounds:</strong> Active ✓
-      </p>
+      <p v-if="bounds.frozenBounds.value"><strong>Frozen Bounds:</strong> Active ✓</p>
       <p class="hint">
-        <strong>Tip:</strong> Testing point-based (measurements) and positioned (fill) annotations.
-        Click to select, Shift+Click to multi-select, Drag for marquee select.
+        <strong>Tip:</strong> Testing point-based (measurements) and positioned (fill) annotations. Click to select,
+        Shift+Click to multi-select, Drag for marquee select.
       </p>
     </div>
   </div>

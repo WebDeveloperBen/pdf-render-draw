@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const marquee = useEditorMarquee()
+const { marqueeBounds } = marquee
+</script>
 <template>
   <rect
     v-if="marqueeBounds"
@@ -13,10 +17,3 @@
     pointer-events="none"
   />
 </template>
-
-<script setup lang="ts">
-import { useEditorMarquee } from "~/composables/editor/useEditorMarquee"
-
-const marquee = useEditorMarquee()
-const { marqueeBounds } = marquee
-</script>
