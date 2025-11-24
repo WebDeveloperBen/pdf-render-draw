@@ -502,6 +502,9 @@ function handleScaleStart(event: MouseEvent, handle: string) {
   isScaling.value = true
   scaleHandle.value = handle
   scaleStartPoint.value = svgPoint
+
+  // ALWAYS use the visual bounds (AABB) that the user sees
+  // This ensures handles are where the user clicked
   scaleOriginalBounds.value = { ...selectionBounds.value }
 
   // Store original shape dimensions
@@ -573,29 +576,68 @@ function handleScaleMove(event: MouseEvent) {
   if (newBounds.width < 10) newBounds.width = 10
   if (newBounds.height < 10) newBounds.height = 10
 
-  // Calculate scale factors
-  const scaleX = newBounds.width / scaleOriginalBounds.value.width
-  const scaleY = newBounds.height / scaleOriginalBounds.value.height
+  // Calculate scale factors from the AABB change
+  const scaleFactorX = newBounds.width / scaleOriginalBounds.value.width
+  const scaleFactorY = newBounds.height / scaleOriginalBounds.value.height
 
-  // Apply scaling to all selected shapes
+  // Determine the anchor point based on which handle is being dragged
+  // The anchor is the point that should stay fixed during scaling
+  let anchorX = scaleOriginalBounds.value.x
+  let anchorY = scaleOriginalBounds.value.y
+
+  switch (scaleHandle.value) {
+    case 'se': // Southeast - anchor at NW (top-left)
+      anchorX = scaleOriginalBounds.value.x
+      anchorY = scaleOriginalBounds.value.y
+      break
+    case 'sw': // Southwest - anchor at NE (top-right)
+      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width
+      anchorY = scaleOriginalBounds.value.y
+      break
+    case 'ne': // Northeast - anchor at SW (bottom-left)
+      anchorX = scaleOriginalBounds.value.x
+      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height
+      break
+    case 'nw': // Northwest - anchor at SE (bottom-right)
+      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width
+      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height
+      break
+    case 'n': // North - anchor at bottom center
+      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width / 2
+      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height
+      break
+    case 's': // South - anchor at top center
+      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width / 2
+      anchorY = scaleOriginalBounds.value.y
+      break
+    case 'e': // East - anchor at left center
+      anchorX = scaleOriginalBounds.value.x
+      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height / 2
+      break
+    case 'w': // West - anchor at right center
+      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width
+      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height / 2
+      break
+  }
+
+  // Apply scaling to all selected shapes from the anchor point
   for (const shape of selectedShapes.value) {
     const original = scaleOriginalShapes.value.get(shape.id)
     if (!original) continue
 
-    // Calculate shape's relative position within original bounds
-    const relX = (original.x - scaleOriginalBounds.value.x) / scaleOriginalBounds.value.width
-    const relY = (original.y - scaleOriginalBounds.value.y) / scaleOriginalBounds.value.height
-    const relW = original.width / scaleOriginalBounds.value.width
-    const relH = original.height / scaleOriginalBounds.value.height
+    // Calculate position relative to anchor point
+    const relX = original.x - anchorX
+    const relY = original.y - anchorY
 
-    // Apply new bounds with scaling
-    shape.x = newBounds.x + relX * newBounds.width
-    shape.y = newBounds.y + relY * newBounds.height
-    shape.width = relW * newBounds.width
-    shape.height = relH * newBounds.height
+    // Scale from anchor point
+    shape.x = anchorX + relX * scaleFactorX
+    shape.y = anchorY + relY * scaleFactorY
+    shape.width = original.width * scaleFactorX
+    shape.height = original.height * scaleFactorY
   }
 
-  // Update locked bounds if they exist (after rotation)
+  // Update locked bounds during scaling to follow the mouse
+  // Use newBounds directly - don't recalculate from shapes to avoid jumps
   if (rotationLockedBounds.value) {
     rotationLockedBounds.value = { ...newBounds }
   }
@@ -610,6 +652,9 @@ function handleScaleEnd() {
   scaleStartPoint.value = null
   scaleOriginalBounds.value = null
   scaleOriginalShapes.value.clear()
+
+  // Don't recalculate bounds here - keep transformer stable
+  // Bounds will be recalculated on next operation (rotation/scale start)
 
   // Prevent background click for a brief moment
   justFinishedInteraction.value = true
@@ -819,6 +864,7 @@ if (typeof window !== "undefined") {
       <p><strong>Selected IDs:</strong> {{ selectedIds.length > 0 ? selectedIds.join(", ") : "None" }}</p>
       <p><strong>Dragging:</strong> {{ isDragging ? "Yes" : "No" }}</p>
       <p><strong>Rotating:</strong> {{ isRotating ? "Yes" : "No" }}</p>
+      <p><strong>Scaling:</strong> {{ isScaling ? "Yes" : "No" }}</p>
       <p v-if="selectedIds.length === 1 && selectedShape">
         <strong>Position:</strong> ({{ Math.round(selectedShape.x) }}, {{ Math.round(selectedShape.y) }})
       </p>

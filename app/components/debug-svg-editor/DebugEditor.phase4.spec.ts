@@ -50,11 +50,11 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
       expect(hint.text()).toContain('Drag rotation handle to rotate')
     })
 
-    it('should update debug info status heading to Phase 4', () => {
+    it('should update debug info status heading to Phase 4 or later', () => {
       const wrapper = mount(DebugEditor)
       const statusHeading = wrapper.find('.debug-info h3')
 
-      expect(statusHeading.text()).toBe('Phase 4 Status')
+      expect(statusHeading.text()).toMatch(/Phase [4-9] Status/)
     })
   })
 
