@@ -7,10 +7,6 @@
  * Works with all annotation types (point-based and positioned)
  */
 
-import type { Annotation } from "~/types/annotations"
-import { rotatePointsAroundCenter } from "~/utils/editor/transform"
-import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
-
 export const useEditorSelection = createSharedComposable(() => {
   // Bridge to annotation store - use it as the single source of truth
   const annotationStore = useAnnotationStore()
@@ -46,16 +42,16 @@ export const useEditorSelection = createSharedComposable(() => {
    * Select a single shape (replaces current selection)
    */
   function selectShape(shapeId: string) {
-    console.log('🎯 selectShape called:', shapeId, 'current selection:', selectedIds.value)
+    console.log("🎯 selectShape called:", shapeId, "current selection:", selectedIds.value)
 
     // If clicking the same shape that's already the only selection, do nothing
     // This prevents baking rotation when clicking on an already-selected shape
     if (selectedIds.value.length === 1 && selectedIds.value[0] === shapeId) {
-      console.log('   ↳ Same shape already selected, skipping')
+      console.log("   ↳ Same shape already selected, skipping")
       return
     }
 
-    console.log('   ↳ Changing selection, will bake rotation')
+    console.log("   ↳ Changing selection, will bake rotation")
     // We're changing selection - bake rotation into previously selected annotations
     for (const annotation of selectedAnnotations.value) {
       bakeRotationIntoPoints(annotation)
@@ -101,31 +97,24 @@ export const useEditorSelection = createSharedComposable(() => {
    * This applies the CSS rotation transform to the actual point coordinates
    */
   function bakeRotationIntoPoints(annotation: Annotation) {
-    if (!isPointBased(annotation) || annotation.rotation === 0) return
+    if (!hasPointsArray(annotation) || annotation.rotation === 0) return
 
-    console.log('🔄 Baking rotation into points for annotation:', annotation.id, 'rotation:', annotation.rotation)
+    console.log("🔄 Baking rotation into points for annotation:", annotation.id, "rotation:", annotation.rotation)
 
     // Get center and rotate points
     const center = getAnnotationCenter(annotation)
-    const rotatedPoints = rotatePointsAroundCenter(
-      annotation.points,
-      center,
-      annotation.rotation
-    )
+    const rotatedPoints = rotatePointsAroundCenter(annotation.points, center, annotation.rotation)
 
     // Recalculate derived values
+    // Type assertion needed because rotatedPoints is Point[] but specific types expect tuples
     const derived = recalculateDerivedValues({
       ...annotation,
       points: rotatedPoints,
       rotation: 0
-    })
+    } as typeof annotation)
 
     // Update annotation in store with rotated points and reset rotation
-    annotationStore.updateAnnotation(annotation.id, {
-      points: rotatedPoints,
-      rotation: 0,
-      ...derived
-    })
+    annotationStore.updateAnnotation(annotation.id, Object.assign({ points: rotatedPoints, rotation: 0 }, derived))
   }
 
   /**

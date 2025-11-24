@@ -6,7 +6,7 @@
 
 import type { Bounds, Point } from "~/types/editor"
 import type { Annotation } from "~/types/annotations"
-import { isPointBased, getAnnotationCenter } from "./derived-values"
+import { getAnnotationCenter } from "./derived-values"
 
 /**
  * Calculate bounding box for a positioned shape (with rotation support)
@@ -101,12 +101,7 @@ export function getBoundsCenter(bounds: Bounds): Point {
  * Check if two bounds intersect (for marquee selection)
  */
 export function boundsIntersect(a: Bounds, b: Bounds): boolean {
-  return !(
-    a.x + a.width < b.x ||
-    a.x > b.x + b.width ||
-    a.y + a.height < b.y ||
-    a.y > b.y + b.height
-  )
+  return !(a.x + a.width < b.x || a.x > b.x + b.width || a.y + a.height < b.y || a.y > b.y + b.height)
 }
 
 /**
@@ -140,7 +135,7 @@ export function calculatePointsBounds(points: Point[]): Bounds {
  */
 export function calculateAnnotationBounds(annotation: Annotation): Bounds {
   // Point-based annotations (measure, area, perimeter, line)
-  if (isPointBased(annotation)) {
+  if (hasPointsArray(annotation)) {
     // If annotation has CSS rotation, rotate points around centroid (center of mass) first then calculate AABB
     if (annotation.rotation !== 0) {
       // Get center of points (centroid for polygons, midpoint for lines)

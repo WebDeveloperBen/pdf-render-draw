@@ -7,14 +7,6 @@
  * Supports both point-based and positioned annotations
  */
 
-import type { Point } from "~/types/editor"
-import type { Annotation } from "~/types/annotations"
-import { rotatePointsAroundCenter, rotatePointAroundCenter } from "~/utils/editor/transform"
-import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
-import { useEditorSelection } from "./useEditorSelection"
-import { useEditorBounds } from "./useEditorBounds"
-import { useEditorCoordinates } from "./useEditorCoordinates"
-
 export const useEditorRotation = createSharedComposable(() => {
   const selection = useEditorSelection()
   const bounds = useEditorBounds()
@@ -74,11 +66,11 @@ export const useEditorRotation = createSharedComposable(() => {
       rotationOriginalAngles.value.set(annotation.id, annotation.rotation)
 
       // For point-based annotations, store points for orbit
-      if (isPointBased(annotation)) {
+      if (hasPointsArray(annotation)) {
         rotationOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
       }
       // For positioned annotations, store x,y for orbit
-      else if ('x' in annotation && 'y' in annotation) {
+      else if ("x" in annotation && "y" in annotation) {
         rotationOriginalPositions.value.set(annotation.id, { x: annotation.x, y: annotation.y })
       }
     }
@@ -114,34 +106,34 @@ export const useEditorRotation = createSharedComposable(() => {
       const originalRotation = rotationOriginalAngles.value.get(annotation.id) || 0
       const updates: Partial<Annotation> = {}
 
-      // Point-based annotations
-      if (isPointBased(annotation)) {
+      // Annotations with points array
+      if (hasPointsArray(annotation)) {
         // Multi-select: physically rotate points around selection center (no CSS rotation)
         if (selection.isMultiSelection.value) {
           const originalPoints = rotationOriginalPoints.value.get(annotation.id)
           if (!originalPoints) continue
 
           // Rotate each point around the selection center
-          const rotatedPoints = originalPoints.map(p =>
-            rotatePointAroundCenter(p, rotationCenter.value, rotationDelta)
+          const rotatedPoints = originalPoints.map((p) =>
+            rotatePointAroundCenter(p, rotationCenter.value!, rotationDelta)
           )
 
-          updates.points = rotatedPoints
-
-          // Recalculate derived values (distance, midpoint, etc.)
+          // Recalculate derived values
+          // Type assertion needed because rotatedPoints is Point[] but specific types expect tuples
           const derived = recalculateDerivedValues({
             ...annotation,
             points: rotatedPoints
-          })
-          Object.assign(updates, derived)
+          } as typeof annotation)
+
+          Object.assign(updates, { points: rotatedPoints, ...derived })
         }
         // Single select: use CSS rotation property
         else {
           updates.rotation = originalRotation + rotationDelta
         }
       }
-      // Positioned annotations - update rotation property
-      else if ('x' in annotation && 'width' in annotation) {
+      // Positioned rectangle annotations - update rotation property
+      else if (hasPositionedRect(annotation)) {
         updates.rotation = originalRotation + rotationDelta
 
         // Orbit for multi-select
@@ -154,12 +146,14 @@ export const useEditorRotation = createSharedComposable(() => {
 
           const rotatedCenter = rotatePointAroundCenter(
             { x: shapeCenterX, y: shapeCenterY },
-            rotationCenter.value,
+            rotationCenter.value!,
             rotationDelta
           )
 
-          updates.x = rotatedCenter.x - annotation.width / 2
-          updates.y = rotatedCenter.y - annotation.height / 2
+          Object.assign(updates, {
+            x: rotatedCenter.x - annotation.width / 2,
+            y: rotatedCenter.y - annotation.height / 2
+          })
         }
       }
 
@@ -176,7 +170,7 @@ export const useEditorRotation = createSharedComposable(() => {
   function endRotation() {
     if (!isRotating.value) return
 
-    console.log('🚫 [endRotation] Rotation operation ended - KEEPING frozen bounds and rotation', {
+    console.log("🚫 [endRotation] Rotation operation ended - KEEPING frozen bounds and rotation", {
       hasFrozenBounds: !!bounds.frozenBounds.value,
       selectionRotation: bounds.selectionRotation.value,
       selectionRotationDeg: (bounds.selectionRotation.value * 180) / Math.PI

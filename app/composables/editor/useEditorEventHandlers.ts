@@ -5,13 +5,6 @@
  * Coordinates all mouse event handlers and prevents accidental interactions
  */
 
-import { useEditorSelection } from "./useEditorSelection"
-import { useEditorBounds } from "./useEditorBounds"
-import { useEditorRotation } from "./useEditorRotation"
-import { useEditorScale } from "./useEditorScale"
-import { useEditorMove } from "./useEditorMove"
-import { useEditorMarquee } from "./useEditorMarquee"
-
 export const useEditorEventHandlers = createSharedComposable(() => {
   const selection = useEditorSelection()
   const bounds = useEditorBounds()
@@ -46,7 +39,7 @@ export const useEditorEventHandlers = createSharedComposable(() => {
    * Handle background click (deselect all)
    */
   function handleBackgroundClick() {
-    console.log('🎯 [handleBackgroundClick] Background clicked', {
+    console.log("🎯 [handleBackgroundClick] Background clicked", {
       isDragging: move.isDragging.value,
       isRotating: rotation.isRotating.value,
       isScaling: scale.isScaling.value,
@@ -54,17 +47,12 @@ export const useEditorEventHandlers = createSharedComposable(() => {
     })
 
     // Don't deselect if we just finished an interaction
-    if (
-      move.isDragging.value ||
-      rotation.isRotating.value ||
-      scale.isScaling.value ||
-      justFinishedInteraction.value
-    ) {
-      console.log('🎯 [handleBackgroundClick] Ignoring click - operation in progress or just finished')
+    if (move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || justFinishedInteraction.value) {
+      console.log("🎯 [handleBackgroundClick] Ignoring click - operation in progress or just finished")
       return
     }
 
-    console.log('🎯 [handleBackgroundClick] Clearing selection')
+    console.log("🎯 [handleBackgroundClick] Clearing selection")
     selection.clearSelection()
   }
 
@@ -83,12 +71,9 @@ export const useEditorEventHandlers = createSharedComposable(() => {
    */
   function handleGlobalMouseUp() {
     const wasInteracting =
-      move.isDragging.value ||
-      rotation.isRotating.value ||
-      scale.isScaling.value ||
-      marquee.isMarqueeSelecting.value
+      move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || marquee.isMarqueeSelecting.value
 
-    console.log('⬆️ [handleGlobalMouseUp] Mouse up detected', {
+    console.log("⬆️ [handleGlobalMouseUp] Mouse up detected", {
       wasInteracting,
       isDragging: move.isDragging.value,
       isRotating: rotation.isRotating.value,
@@ -102,10 +87,10 @@ export const useEditorEventHandlers = createSharedComposable(() => {
 
     // Prevent accidental background clicks
     if (wasInteracting) {
-      console.log('⬆️ [handleGlobalMouseUp] Setting justFinishedInteraction flag for 100ms')
+      console.log("⬆️ [handleGlobalMouseUp] Setting justFinishedInteraction flag for 100ms")
       justFinishedInteraction.value = true
       setTimeout(() => {
-        console.log('⏰ [handleGlobalMouseUp] Clearing justFinishedInteraction flag')
+        console.log("⏰ [handleGlobalMouseUp] Clearing justFinishedInteraction flag")
         justFinishedInteraction.value = false
       }, 100)
     }

@@ -6,14 +6,6 @@
  * Supports rotated shapes by projecting mouse deltas into local space
  */
 
-import type { Point, Bounds, ScaleHandle } from "~/types/editor"
-import type { Annotation } from "~/types/annotations"
-import { projectDeltaToLocalSpace } from "~/utils/editor/transform"
-import { recalculateDerivedValues, isPointBased } from "~/utils/editor/derived-values"
-import { useEditorSelection } from "./useEditorSelection"
-import { useEditorBounds } from "./useEditorBounds"
-import { useEditorCoordinates } from "./useEditorCoordinates"
-
 export const useEditorScale = createSharedComposable(() => {
   const selection = useEditorSelection()
   const bounds = useEditorBounds()
@@ -27,9 +19,7 @@ export const useEditorScale = createSharedComposable(() => {
   const scaleHandle = ref<ScaleHandle | null>(null)
   const scaleStartPoint = ref<Point | null>(null)
   const scaleOriginalBounds = ref<Bounds | null>(null)
-  const scaleOriginalShapes = ref<
-    Map<string, { x: number; y: number; width: number; height: number }>
-  >(new Map())
+  const scaleOriginalShapes = ref<Map<string, { x: number; y: number; width: number; height: number }>>(new Map())
   const scaleOriginalPoints = ref<Map<string, Point[]>>(new Map())
 
   /**
@@ -59,12 +49,12 @@ export const useEditorScale = createSharedComposable(() => {
     scaleOriginalPoints.value.clear()
 
     for (const annotation of selection.selectedAnnotations.value) {
-      // Point-based annotations - store points array
-      if (isPointBased(annotation)) {
+      // Annotations with points array - store points
+      if (hasPointsArray(annotation)) {
         scaleOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
       }
-      // Positioned annotations - store x, y, width, height
-      else if ('x' in annotation && 'width' in annotation) {
+      // Positioned rectangle annotations - store x, y, width, height
+      else if (hasPositionedRect(annotation)) {
         scaleOriginalShapes.value.set(annotation.id, {
           x: annotation.x,
           y: annotation.y,
@@ -81,13 +71,7 @@ export const useEditorScale = createSharedComposable(() => {
    * Update scale as mouse moves
    */
   function updateScale(event: MouseEvent) {
-    if (
-      !isScaling.value ||
-      !scaleStartPoint.value ||
-      !scaleOriginalBounds.value ||
-      !scaleHandle.value
-    )
-      return
+    if (!isScaling.value || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
     if (!svgPoint) return
@@ -157,28 +141,28 @@ export const useEditorScale = createSharedComposable(() => {
     // Prevent scaling below minimum size
     const minSize = 10
     if (newBounds.width < minSize) {
-      if (isLeft && rotation === 0) newBounds.x = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width - minSize
+      if (isLeft && rotation === 0)
+        newBounds.x = scaleOriginalBounds.value!.x + scaleOriginalBounds.value!.width - minSize
       newBounds.width = minSize
     }
     if (newBounds.height < minSize) {
-      if (isTop && rotation === 0) newBounds.y = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height - minSize
+      if (isTop && rotation === 0)
+        newBounds.y = scaleOriginalBounds.value!.y + scaleOriginalBounds.value!.height - minSize
       newBounds.height = minSize
     }
 
     // Calculate scale factors from bounds ratio
-    const scaleX = newBounds.width / scaleOriginalBounds.value.width
-    const scaleY = newBounds.height / scaleOriginalBounds.value.height
+    const scaleX = newBounds.width / scaleOriginalBounds.value!.width
+    const scaleY = newBounds.height / scaleOriginalBounds.value!.height
 
     // Get center of original bounds
-    const centerX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width / 2
-    const centerY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height / 2
+    const centerX = scaleOriginalBounds.value!.x + scaleOriginalBounds.value!.width / 2
+    const centerY = scaleOriginalBounds.value!.y + scaleOriginalBounds.value!.height / 2
 
     // Apply scaling to all selected annotations
     for (const annotation of selection.selectedAnnotations.value) {
-      const updates: Partial<Annotation> = {}
-
-      // Point-based annotations - scale points from original
-      if (isPointBased(annotation)) {
+      // Annotations with points array - scale points from original
+      if (hasPointsArray(annotation)) {
         const originalPoints = scaleOriginalPoints.value.get(annotation.id)
         if (!originalPoints) continue
 
@@ -189,8 +173,8 @@ export const useEditorScale = createSharedComposable(() => {
         if (!selection.isMultiSelection.value && bounds.selectionRotation.value === 0) {
           // Scale from newBounds (accounts for handle direction)
           scaledPoints = originalPoints.map((p) => ({
-            x: newBounds.x + (p.x - scaleOriginalBounds.value.x) * Math.abs(scaleX),
-            y: newBounds.y + (p.y - scaleOriginalBounds.value.y) * Math.abs(scaleY)
+            x: newBounds.x + (p.x - scaleOriginalBounds.value!.x) * Math.abs(scaleX),
+            y: newBounds.y + (p.y - scaleOriginalBounds.value!.y) * Math.abs(scaleY)
           }))
         } else {
           // Multi-select or with rotation: scale each point relative to selection center
@@ -204,17 +188,19 @@ export const useEditorScale = createSharedComposable(() => {
           })
         }
 
-        updates.points = scaledPoints
-
         // Recalculate derived values (distance, area, etc.)
+        // Type assertion needed because scaledPoints is Point[] but specific types expect tuples
         const derived = recalculateDerivedValues({
           ...annotation,
           points: scaledPoints
-        })
-        Object.assign(updates, derived)
+        } as typeof annotation)
+
+        // Update with scaled points and recalculated derived values
+        // Use Object.assign to merge objects properly for TypeScript
+        annotationStore.updateAnnotation(annotation.id, Object.assign({ points: scaledPoints }, derived))
       }
-      // Positioned annotations - scale dimensions and position
-      else if ('x' in annotation && 'width' in annotation) {
+      // Positioned rectangle annotations - scale dimensions and position
+      else if (hasPositionedRect(annotation)) {
         const original = scaleOriginalShapes.value.get(annotation.id)
         if (!original) continue
 
@@ -233,15 +219,13 @@ export const useEditorScale = createSharedComposable(() => {
         const newCenterX = centerX + offsetX * scaleX
         const newCenterY = centerY + offsetY * scaleY
 
-        updates.width = scaledWidth
-        updates.height = scaledHeight
-        updates.x = newCenterX - scaledWidth / 2
-        updates.y = newCenterY - scaledHeight / 2
-      }
-
-      // Update annotation in store
-      if (Object.keys(updates).length > 0) {
-        annotationStore.updateAnnotation(annotation.id, updates)
+        // Update positioned annotation
+        annotationStore.updateAnnotation(annotation.id, Object.assign({
+          width: scaledWidth,
+          height: scaledHeight,
+          x: newCenterX - scaledWidth / 2,
+          y: newCenterY - scaledHeight / 2
+        }))
       }
     }
 
@@ -249,10 +233,10 @@ export const useEditorScale = createSharedComposable(() => {
     // This keeps the transformer stable if we're scaling after rotating
     if (bounds.frozenBounds.value) {
       bounds.updateFrozenBounds({
-        x: centerX - (scaleOriginalBounds.value.width / 2) * Math.abs(scaleX),
-        y: centerY - (scaleOriginalBounds.value.height / 2) * Math.abs(scaleY),
-        width: scaleOriginalBounds.value.width * Math.abs(scaleX),
-        height: scaleOriginalBounds.value.height * Math.abs(scaleY)
+        x: centerX - (scaleOriginalBounds.value!.width / 2) * Math.abs(scaleX),
+        y: centerY - (scaleOriginalBounds.value!.height / 2) * Math.abs(scaleY),
+        width: scaleOriginalBounds.value!.width * Math.abs(scaleX),
+        height: scaleOriginalBounds.value!.height * Math.abs(scaleY)
       })
     }
   }
@@ -263,7 +247,7 @@ export const useEditorScale = createSharedComposable(() => {
   function endScale() {
     if (!isScaling.value) return
 
-    console.log('🚫 [endScale] Scale operation ended', {
+    console.log("🚫 [endScale] Scale operation ended", {
       hasFrozenBounds: !!bounds.frozenBounds.value,
       selectionRotation: bounds.selectionRotation.value
     })

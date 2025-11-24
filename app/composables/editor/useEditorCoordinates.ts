@@ -6,9 +6,6 @@
  * Works with the renderer store's transform system
  */
 
-import type { Point } from "~/types/editor"
-import { screenToSvgPoint, screenToPdfPoint, svgToPdfPoint, pdfToSvgPoint } from "~/utils/editor/coordinates"
-
 export const useEditorCoordinates = createSharedComposable(() => {
   // Cache SVG element during interactions to avoid repeated DOM lookups
   const cachedSvg = ref<SVGSVGElement | null>(null)

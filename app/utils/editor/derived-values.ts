@@ -11,22 +11,23 @@
 
 import type { Annotation, Measurement, Area, Perimeter, PerimeterSegment } from "~/types/annotations"
 import type { Point } from "~/types/editor"
-import { calculateDistance, calculateMidpoint, calculateCentroid, calculatePolygonArea, calculatePerimeter } from "./transform"
+import { calculateDistance, calculateMidpoint, calculateCentroid, calculatePolygonArea } from "./transform"
 
 /**
  * Recalculate derived values for an annotation after transform
  * Returns only the properties that need updating
+ * Generic to preserve type narrowing
  */
-export function recalculateDerivedValues(annotation: Annotation): Partial<Annotation> {
-  const updates: Partial<Annotation> = {}
+export function recalculateDerivedValues<T extends Annotation>(annotation: T): Partial<T> {
+  const updates: Partial<T> = {}
 
   switch (annotation.type) {
     case "measure": {
       const measure = annotation as Measurement
       if (measure.points.length === 2) {
         const [p1, p2] = measure.points
-        updates.distance = calculateDistance(p1!, p2!)
-        updates.midpoint = calculateMidpoint(p1!, p2!)
+        ;(updates as Partial<Measurement>).distance = calculateDistance(p1!, p2!)
+        ;(updates as Partial<Measurement>).midpoint = calculateMidpoint(p1!, p2!)
       }
       break
     }
@@ -34,8 +35,8 @@ export function recalculateDerivedValues(annotation: Annotation): Partial<Annota
     case "area": {
       const area = annotation as Area
       if (area.points.length >= 3) {
-        updates.area = calculatePolygonArea(area.points)
-        updates.center = calculateCentroid(area.points)
+        ;(updates as Partial<Area>).area = calculatePolygonArea(area.points)
+        ;(updates as Partial<Area>).center = calculateCentroid(area.points)
       }
       break
     }
@@ -56,9 +57,9 @@ export function recalculateDerivedValues(annotation: Annotation): Partial<Annota
           totalLength += length
         }
 
-        updates.segments = segments
-        updates.totalLength = totalLength
-        updates.center = calculateCentroid(perimeter.points)
+        ;(updates as Partial<Perimeter>).segments = segments
+        ;(updates as Partial<Perimeter>).totalLength = totalLength
+        ;(updates as Partial<Perimeter>).center = calculateCentroid(perimeter.points)
       }
       break
     }
@@ -100,15 +101,19 @@ export function getAnnotationCenter(annotation: Annotation): Point {
 }
 
 /**
- * Check if annotation is point-based (has points array)
+ * Type guard for annotations with a points array structure
+ * Uses Extract to automatically include any annotation type with points property
  */
-export function isPointBased(annotation: Annotation): annotation is Measurement | Area | Perimeter | Line {
+export function hasPointsArray(annotation: Annotation): annotation is Extract<Annotation, { points: Point[] }> {
   return "points" in annotation && Array.isArray(annotation.points)
 }
 
 /**
- * Check if annotation is positioned (has x, y, width, height)
+ * Type guard for annotations with positioned rectangle structure (x, y, width, height)
+ * Uses Extract to automatically include any annotation type with these properties
  */
-export function isPositioned(annotation: Annotation): boolean {
+export function hasPositionedRect(
+  annotation: Annotation
+): annotation is Extract<Annotation, { x: number; y: number; width: number; height: number }> {
   return "x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation
 }

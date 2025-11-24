@@ -6,12 +6,6 @@
  * Supports adding to selection with Shift key
  */
 
-import type { Point, Bounds } from "~/types/editor"
-import { boundsIntersect } from "~/utils/editor/bounds"
-import { useEditorSelection } from "./useEditorSelection"
-import { useEditorBounds } from "./useEditorBounds"
-import { useEditorCoordinates } from "./useEditorCoordinates"
-
 export const useEditorMarquee = createSharedComposable(() => {
   const selection = useEditorSelection()
   const bounds = useEditorBounds()

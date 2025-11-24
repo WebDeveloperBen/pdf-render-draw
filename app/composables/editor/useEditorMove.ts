@@ -6,13 +6,6 @@
  * Maintains frozen bounds during drag
  */
 
-import type { Point, Bounds } from "~/types/editor"
-import type { Annotation } from "~/types/annotations"
-import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
-import { useEditorSelection } from "./useEditorSelection"
-import { useEditorBounds } from "./useEditorBounds"
-import { useEditorCoordinates } from "./useEditorCoordinates"
-
 export const useEditorMove = createSharedComposable(() => {
   const selection = useEditorSelection()
   const bounds = useEditorBounds()
@@ -51,11 +44,11 @@ export const useEditorMove = createSharedComposable(() => {
 
     for (const annotation of selection.selectedAnnotations.value) {
       // Point-based annotations - store points array
-      if (isPointBased(annotation)) {
+      if (hasPointsArray(annotation)) {
         dragOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
       }
-      // Positioned annotations - store x, y
-      else if ('x' in annotation && 'y' in annotation) {
+      // Positioned rectangle annotations - store x, y
+      else if (hasPositionedRect(annotation)) {
         dragOriginalPositions.value.set(annotation.id, { x: annotation.x, y: annotation.y })
       }
     }
@@ -82,39 +75,35 @@ export const useEditorMove = createSharedComposable(() => {
 
     // Move all selected annotations
     for (const annotation of selection.selectedAnnotations.value) {
-      const updates: Partial<Annotation> = {}
-
-      // Point-based annotations - translate all points
-      if (isPointBased(annotation)) {
+      // Annotations with points array - translate all points
+      if (hasPointsArray(annotation)) {
         const originalPoints = dragOriginalPoints.value.get(annotation.id)
-        if (originalPoints) {
-          const movedPoints = originalPoints.map((p) => ({
-            x: p.x + deltaX,
-            y: p.y + deltaY
-          }))
+        if (!originalPoints) continue
 
-          updates.points = movedPoints
+        const movedPoints = originalPoints.map((p) => ({
+          x: p.x + deltaX,
+          y: p.y + deltaY
+        }))
 
-          // Recalculate derived values (distance, area, etc.)
-          const derived = recalculateDerivedValues({
-            ...annotation,
-            points: movedPoints
-          })
-          Object.assign(updates, derived)
-        }
+        // Recalculate derived values (distance, area, etc.)
+        // Type assertion needed because movedPoints is Point[] but specific types expect tuples
+        const derived = recalculateDerivedValues({
+          ...annotation,
+          points: movedPoints
+        } as typeof annotation)
+
+        // Update with moved points and recalculated derived values
+        annotationStore.updateAnnotation(annotation.id, Object.assign({ points: movedPoints }, derived))
       }
       // Positioned annotations - update x, y
-      else if ('x' in annotation && 'y' in annotation) {
+      else if ("x" in annotation && "y" in annotation) {
         const originalPos = dragOriginalPositions.value.get(annotation.id)
         if (originalPos) {
-          updates.x = originalPos.x + deltaX
-          updates.y = originalPos.y + deltaY
+          annotationStore.updateAnnotation(annotation.id, Object.assign({
+            x: originalPos.x + deltaX,
+            y: originalPos.y + deltaY
+          }))
         }
-      }
-
-      // Update annotation in store
-      if (Object.keys(updates).length > 0) {
-        annotationStore.updateAnnotation(annotation.id, updates)
       }
     }
 
@@ -136,7 +125,7 @@ export const useEditorMove = createSharedComposable(() => {
   function endDrag() {
     if (!isDragging.value) return
 
-    console.log('🚫 [endDrag] Drag operation ended', {
+    console.log("🚫 [endDrag] Drag operation ended", {
       hasFrozenBounds: !!bounds.frozenBounds.value,
       selectionRotation: bounds.selectionRotation.value
     })
