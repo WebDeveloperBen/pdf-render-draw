@@ -29,6 +29,8 @@
 -->
 <script setup lang="ts">
 import { ref, computed } from "vue"
+import { applyToPoint, compose, translate, rotate, scale } from 'transformation-matrix'
+import { getRootSVG } from '~/utils/svg'
 import type { Bounds } from "~/utils/bounds"
 
 // Simple shape interface for our MVP
@@ -170,16 +172,6 @@ function calculateBounds(shape: Shape): Bounds {
   }
 }
 
-// Get non-rotated bounding box for a shape (ignoring its rotation)
-function getNonRotatedBounds(shape: Shape): Bounds {
-  return {
-    x: shape.x,
-    y: shape.y,
-    width: shape.width,
-    height: shape.height
-  }
-}
-
 // Bounding box for selected shape(s)
 // Phase 4: Returns bounds for the selection group
 // During rotation, uses locked bounds; otherwise recalculates accounting for rotation
@@ -302,7 +294,7 @@ function getSvgPoint(event: MouseEvent, svg: SVGSVGElement): { x: number; y: num
 function handleDragStart(event: MouseEvent) {
   if (selectedIds.value.length === 0) return
 
-  const svg = (event.currentTarget as Element).ownerSVGElement
+  const svg = getRootSVG(event.currentTarget)
   if (!svg) return
 
   const svgPoint = getSvgPoint(event, svg)
@@ -331,7 +323,7 @@ const dragOriginalLockedBounds = ref<Bounds | null>(null)
 function handleDragMove(event: MouseEvent) {
   if (!isDragging.value || !dragStartPoint.value) return
 
-  const svg = (event.target as Element).ownerSVGElement
+  const svg = getRootSVG(event.target)
   if (!svg) return
 
   const svgPoint = getSvgPoint(event, svg)
@@ -378,7 +370,7 @@ function handleDragEnd() {
 function handleRotateStart(event: MouseEvent) {
   if (selectedIds.value.length === 0 || !selectionBounds.value) return
 
-  const svg = (event.currentTarget as Element).ownerSVGElement
+  const svg = getRootSVG(event.currentTarget)
   if (!svg) return
 
   const svgPoint = getSvgPoint(event, svg)
@@ -421,7 +413,7 @@ const rotationStartSelectionAngle = ref(0)
 function handleRotateMove(event: MouseEvent) {
   if (!isRotating.value || !rotationCenter.value) return
 
-  const svg = (event.target as Element).ownerSVGElement
+  const svg = getRootSVG(event.target)
   if (!svg) return
 
   const svgPoint = getSvgPoint(event, svg)
@@ -494,7 +486,7 @@ function handleRotateEnd() {
 function handleScaleStart(event: MouseEvent, handle: string) {
   if (selectedIds.value.length === 0 || !selectionBounds.value) return
 
-  const svg = (event.currentTarget as Element).ownerSVGElement
+  const svg = getRootSVG(event.currentTarget)
   if (!svg) return
 
   const svgPoint = getSvgPoint(event, svg)
@@ -525,131 +517,104 @@ function handleScaleStart(event: MouseEvent, handle: string) {
 function handleScaleMove(event: MouseEvent) {
   if (!isScaling.value || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
 
-  const svg = (event.target as Element).ownerSVGElement
+  const svg = getRootSVG(event.target)
   if (!svg) return
 
   const svgPoint = getSvgPoint(event, svg)
   const deltaX = svgPoint.x - scaleStartPoint.value.x
   const deltaY = svgPoint.y - scaleStartPoint.value.y
 
-  // Calculate new bounds based on which handle is being dragged
-  let newBounds = { ...scaleOriginalBounds.value }
+  // Get rotation angle
+  const rotation = selectionRotation.value
+
+  // Get center of original bounds
+  const centerX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width / 2
+  const centerY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height / 2
+
+  // Project mouse delta into rotated coordinate system
+  const cos = Math.cos(-rotation)
+  const sin = Math.sin(-rotation)
+  const localDeltaX = deltaX * cos - deltaY * sin
+  const localDeltaY = deltaX * sin + deltaY * cos
+
+  // Calculate scale factors based on handle
+  let scaleX = 1, scaleY = 1
 
   switch (scaleHandle.value) {
-    case 'se': // Southeast corner - resize from top-left anchor
-      newBounds.width = scaleOriginalBounds.value.width + deltaX
-      newBounds.height = scaleOriginalBounds.value.height + deltaY
+    case 'se':
+      scaleX = 1 + localDeltaX / scaleOriginalBounds.value.width
+      scaleY = 1 + localDeltaY / scaleOriginalBounds.value.height
       break
-    case 'sw': // Southwest corner - resize from top-right anchor
-      newBounds.x = scaleOriginalBounds.value.x + deltaX
-      newBounds.width = scaleOriginalBounds.value.width - deltaX
-      newBounds.height = scaleOriginalBounds.value.height + deltaY
+    case 'sw':
+      scaleX = 1 - localDeltaX / scaleOriginalBounds.value.width
+      scaleY = 1 + localDeltaY / scaleOriginalBounds.value.height
       break
-    case 'ne': // Northeast corner - resize from bottom-left anchor
-      newBounds.width = scaleOriginalBounds.value.width + deltaX
-      newBounds.y = scaleOriginalBounds.value.y + deltaY
-      newBounds.height = scaleOriginalBounds.value.height - deltaY
+    case 'ne':
+      scaleX = 1 + localDeltaX / scaleOriginalBounds.value.width
+      scaleY = 1 - localDeltaY / scaleOriginalBounds.value.height
       break
-    case 'nw': // Northwest corner - resize from bottom-right anchor
-      newBounds.x = scaleOriginalBounds.value.x + deltaX
-      newBounds.width = scaleOriginalBounds.value.width - deltaX
-      newBounds.y = scaleOriginalBounds.value.y + deltaY
-      newBounds.height = scaleOriginalBounds.value.height - deltaY
+    case 'nw':
+      scaleX = 1 - localDeltaX / scaleOriginalBounds.value.width
+      scaleY = 1 - localDeltaY / scaleOriginalBounds.value.height
       break
-    case 'e': // East edge
-      newBounds.width = scaleOriginalBounds.value.width + deltaX
+    case 'e':
+      scaleX = 1 + localDeltaX / scaleOriginalBounds.value.width
+      scaleY = 1
       break
-    case 'w': // West edge
-      newBounds.x = scaleOriginalBounds.value.x + deltaX
-      newBounds.width = scaleOriginalBounds.value.width - deltaX
+    case 'w':
+      scaleX = 1 - localDeltaX / scaleOriginalBounds.value.width
+      scaleY = 1
       break
-    case 's': // South edge
-      newBounds.height = scaleOriginalBounds.value.height + deltaY
+    case 's':
+      scaleX = 1
+      scaleY = 1 + localDeltaY / scaleOriginalBounds.value.height
       break
-    case 'n': // North edge
-      newBounds.y = scaleOriginalBounds.value.y + deltaY
-      newBounds.height = scaleOriginalBounds.value.height - deltaY
+    case 'n':
+      scaleX = 1
+      scaleY = 1 - localDeltaY / scaleOriginalBounds.value.height
       break
   }
 
-  // Prevent negative dimensions
-  if (newBounds.width < 10) newBounds.width = 10
-  if (newBounds.height < 10) newBounds.height = 10
-
-  // Calculate scale factors from the AABB change
-  const scaleFactorX = newBounds.width / scaleOriginalBounds.value.width
-  const scaleFactorY = newBounds.height / scaleOriginalBounds.value.height
-
-  // Determine the anchor point based on which handle is being dragged
-  // The anchor is the point that should stay fixed during scaling
-  let anchorX = scaleOriginalBounds.value.x
-  let anchorY = scaleOriginalBounds.value.y
-
-  switch (scaleHandle.value) {
-    case 'se': // Southeast - anchor at NW (top-left)
-      anchorX = scaleOriginalBounds.value.x
-      anchorY = scaleOriginalBounds.value.y
-      break
-    case 'sw': // Southwest - anchor at NE (top-right)
-      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width
-      anchorY = scaleOriginalBounds.value.y
-      break
-    case 'ne': // Northeast - anchor at SW (bottom-left)
-      anchorX = scaleOriginalBounds.value.x
-      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height
-      break
-    case 'nw': // Northwest - anchor at SE (bottom-right)
-      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width
-      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height
-      break
-    case 'n': // North - anchor at bottom center
-      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width / 2
-      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height
-      break
-    case 's': // South - anchor at top center
-      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width / 2
-      anchorY = scaleOriginalBounds.value.y
-      break
-    case 'e': // East - anchor at left center
-      anchorX = scaleOriginalBounds.value.x
-      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height / 2
-      break
-    case 'w': // West - anchor at right center
-      anchorX = scaleOriginalBounds.value.x + scaleOriginalBounds.value.width
-      anchorY = scaleOriginalBounds.value.y + scaleOriginalBounds.value.height / 2
-      break
+  // Prevent scaling below minimum size
+  const minSize = 10
+  if (Math.abs(scaleX * scaleOriginalBounds.value.width) < minSize) {
+    scaleX = minSize / scaleOriginalBounds.value.width * Math.sign(scaleX)
+  }
+  if (Math.abs(scaleY * scaleOriginalBounds.value.height) < minSize) {
+    scaleY = minSize / scaleOriginalBounds.value.height * Math.sign(scaleY)
   }
 
-  // Apply scaling to all selected shapes from the anchor point
+  // Apply scaling to all selected shapes from center
   for (const shape of selectedShapes.value) {
     const original = scaleOriginalShapes.value.get(shape.id)
     if (!original) continue
 
-    // Calculate position relative to anchor point
-    const relX = original.x - anchorX
-    const relY = original.y - anchorY
+    // Calculate shape's center in original state
+    const shapeCenterX = original.x + original.width / 2
+    const shapeCenterY = original.y + original.height / 2
 
-    // Scale from anchor point
-    shape.x = anchorX + relX * scaleFactorX
-    shape.y = anchorY + relY * scaleFactorY
-    shape.width = original.width * scaleFactorX
-    shape.height = original.height * scaleFactorY
+    // Scale dimensions
+    shape.width = original.width * Math.abs(scaleX)
+    shape.height = original.height * Math.abs(scaleY)
+
+    // Scale position relative to selection center
+    const offsetX = shapeCenterX - centerX
+    const offsetY = shapeCenterY - centerY
+
+    const newCenterX = centerX + offsetX * scaleX
+    const newCenterY = centerY + offsetY * scaleY
+
+    shape.x = newCenterX - shape.width / 2
+    shape.y = newCenterY - shape.height / 2
   }
 
-  // Update locked bounds during scaling
-  // Scale the transformer using the same factors and anchor as the shapes
-  // This keeps them moving together as one unit
+  // Update transformer bounds
   if (rotationLockedBounds.value) {
-    // Calculate the transformer's position relative to anchor
-    const boundsRelX = scaleOriginalBounds.value.x - anchorX
-    const boundsRelY = scaleOriginalBounds.value.y - anchorY
-
-    // Scale the transformer from the same anchor point
     rotationLockedBounds.value = {
-      x: anchorX + boundsRelX * scaleFactorX,
-      y: anchorY + boundsRelY * scaleFactorY,
-      width: scaleOriginalBounds.value.width * scaleFactorX,
-      height: scaleOriginalBounds.value.height * scaleFactorY
+      x: centerX - (scaleOriginalBounds.value.width / 2) * Math.abs(scaleX),
+      y: centerY - (scaleOriginalBounds.value.height / 2) * Math.abs(scaleY),
+      width: scaleOriginalBounds.value.width * Math.abs(scaleX),
+      height: scaleOriginalBounds.value.height * Math.abs(scaleY)
     }
   }
 }

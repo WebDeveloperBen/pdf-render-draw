@@ -40,3 +40,21 @@ export function getBoundingBox(points: Point[]): {
     height: maxY - minY
   }
 }
+
+export function getRootSVG(target: EventTarget | null): SVGSVGElement | null {
+  if (!(target instanceof Element)) return null
+
+  // Case 1: target is itself an <svg>
+  if (target instanceof SVGSVGElement) {
+    return target
+  }
+
+  // Case 2: target is an SVG graphics element (<path>, <rect>, <g>, etc.)
+  if (target instanceof SVGGraphicsElement) {
+    return target.ownerSVGElement ?? null
+  }
+
+  // Case 3: fallback — walk up DOM if needed
+  const svg = target.closest("svg")
+  return svg instanceof SVGSVGElement ? svg : null
+}
