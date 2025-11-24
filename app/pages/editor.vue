@@ -45,6 +45,74 @@ function rotateCounterClockwise() {
 function resetRotation() {
   rendererStore.resetRotation()
 }
+
+// Canvas panning state
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0 })
+const spacePressed = ref(false)
+
+// Zoom handling composable
+const { handleWheel: handleWheelZoom } = useZoom()
+
+// Handle wheel events (zoom + scroll)
+function handleWheel(e: WheelEvent) {
+  const pdfContainer = document.querySelector(".pdf-container") as HTMLElement
+  if (!pdfContainer) return
+
+  handleWheelZoom(e, pdfContainer)
+}
+
+// Handle canvas panning (like Figma)
+function handleMouseDown(e: MouseEvent) {
+  // Pan with space+click, middle mouse, or right mouse
+  if (spacePressed.value || e.button === 1 || e.button === 2) {
+    e.preventDefault()
+    isPanning.value = true
+    panStart.value = { x: e.clientX, y: e.clientY }
+  }
+}
+
+function handleMouseMove(e: MouseEvent) {
+  if (isPanning.value) {
+    const deltaX = e.clientX - panStart.value.x
+    const deltaY = e.clientY - panStart.value.y
+
+    rendererStore.setCanvasPos({
+      scrollLeft: rendererStore.getCanvasPos.scrollLeft + deltaX,
+      scrollTop: rendererStore.getCanvasPos.scrollTop + deltaY
+    })
+
+    panStart.value = { x: e.clientX, y: e.clientY }
+  }
+}
+
+function handleMouseUp() {
+  if (isPanning.value) {
+    isPanning.value = false
+  }
+}
+
+// Keyboard shortcuts for space bar panning
+function handleKeyDown(e: KeyboardEvent) {
+  // Space bar panning
+  if (e.code === "Space" && !spacePressed.value) {
+    e.preventDefault()
+    spacePressed.value = true
+  }
+}
+
+function handleKeyUp(e: KeyboardEvent) {
+  // Space bar panning
+  if (e.code === "Space") {
+    spacePressed.value = false
+  }
+}
+
+// Keyboard event listeners
+if (typeof window !== 'undefined') {
+  useEventListener(window, "keydown", handleKeyDown)
+  useEventListener(window, "keyup", handleKeyUp)
+}
 </script>
 
 <template>
@@ -130,20 +198,20 @@ function resetRotation() {
             <span class="tool-icon">🔍</span>
             <span class="tool-name">Select</span>
           </button>
-
-          <button
-            :class="['tool-btn', { active: annotationStore.activeTool === 'rotate' }]"
-            title="Rotate Tool"
-            @click="annotationStore.setActiveTool('rotate')"
-          >
-            <span class="tool-icon">🔄</span>
-            <span class="tool-name">Rotate</span>
-          </button>
         </div>
       </div>
 
       <!-- PDF Editor Canvas -->
-      <div class="editor-container">
+      <div
+        class="editor-container"
+        :class="{ panning: isPanning, 'space-pressed': spacePressed }"
+        @wheel="handleWheel"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseUp"
+        @contextmenu.prevent
+      >
         <PdfEditor :pdf="pdf" />
       </div>
     </div>
@@ -381,5 +449,14 @@ function resetRotation() {
   position: relative;
   overflow: hidden;
   background: #1e1e1e;
+  cursor: default;
+}
+
+.editor-container.space-pressed {
+  cursor: grab;
+}
+
+.editor-container.panning {
+  cursor: grabbing;
 }
 </style>
