@@ -19,6 +19,7 @@ export const useEditorMove = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
+  const dragState = useDragState()
 
   // Drag state
   const isDragging = ref(false)
@@ -135,6 +136,11 @@ export const useEditorMove = createSharedComposable(() => {
   function endDrag() {
     if (!isDragging.value) return
 
+    console.log('🚫 [endDrag] Drag operation ended', {
+      hasFrozenBounds: !!bounds.frozenBounds.value,
+      selectionRotation: bounds.selectionRotation.value
+    })
+
     isDragging.value = false
     dragStartPoint.value = null
     dragOriginalPositions.value.clear()
@@ -142,6 +148,9 @@ export const useEditorMove = createSharedComposable(() => {
     dragOriginalLockedBounds.value = null
     cursor.reset()
     coordinates.clearSvgCache()
+
+    // Mark drag end to prevent click from clearing selection
+    dragState.markDragEnd()
   }
 
   return {

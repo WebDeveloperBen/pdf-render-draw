@@ -46,15 +46,25 @@ export const useEditorEventHandlers = createSharedComposable(() => {
    * Handle background click (deselect all)
    */
   function handleBackgroundClick() {
+    console.log('🎯 [handleBackgroundClick] Background clicked', {
+      isDragging: move.isDragging.value,
+      isRotating: rotation.isRotating.value,
+      isScaling: scale.isScaling.value,
+      justFinishedInteraction: justFinishedInteraction.value
+    })
+
     // Don't deselect if we just finished an interaction
     if (
       move.isDragging.value ||
       rotation.isRotating.value ||
       scale.isScaling.value ||
       justFinishedInteraction.value
-    )
+    ) {
+      console.log('🎯 [handleBackgroundClick] Ignoring click - operation in progress or just finished')
       return
+    }
 
+    console.log('🎯 [handleBackgroundClick] Clearing selection')
     selection.clearSelection()
   }
 
@@ -78,6 +88,13 @@ export const useEditorEventHandlers = createSharedComposable(() => {
       scale.isScaling.value ||
       marquee.isMarqueeSelecting.value
 
+    console.log('⬆️ [handleGlobalMouseUp] Mouse up detected', {
+      wasInteracting,
+      isDragging: move.isDragging.value,
+      isRotating: rotation.isRotating.value,
+      isScaling: scale.isScaling.value
+    })
+
     move.endDrag()
     rotation.endRotation()
     scale.endScale()
@@ -85,8 +102,10 @@ export const useEditorEventHandlers = createSharedComposable(() => {
 
     // Prevent accidental background clicks
     if (wasInteracting) {
+      console.log('⬆️ [handleGlobalMouseUp] Setting justFinishedInteraction flag for 100ms')
       justFinishedInteraction.value = true
       setTimeout(() => {
+        console.log('⏰ [handleGlobalMouseUp] Clearing justFinishedInteraction flag')
         justFinishedInteraction.value = false
       }, 100)
     }

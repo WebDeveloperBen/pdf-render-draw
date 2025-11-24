@@ -20,6 +20,7 @@ export const useEditorScale = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
+  const dragState = useDragState()
 
   // Scaling state
   const isScaling = ref(false)
@@ -262,6 +263,11 @@ export const useEditorScale = createSharedComposable(() => {
   function endScale() {
     if (!isScaling.value) return
 
+    console.log('🚫 [endScale] Scale operation ended', {
+      hasFrozenBounds: !!bounds.frozenBounds.value,
+      selectionRotation: bounds.selectionRotation.value
+    })
+
     isScaling.value = false
     scaleHandle.value = null
     scaleStartPoint.value = null
@@ -270,6 +276,9 @@ export const useEditorScale = createSharedComposable(() => {
     scaleOriginalPoints.value.clear()
     cursor.reset()
     coordinates.clearSvgCache()
+
+    // Mark drag end to prevent click from clearing selection
+    dragState.markDragEnd()
   }
 
   return {

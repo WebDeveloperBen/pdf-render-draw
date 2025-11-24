@@ -21,6 +21,7 @@ export const useEditorRotation = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
+  const dragState = useDragState()
 
   // Rotation state
   const isRotating = ref(false)
@@ -175,6 +176,12 @@ export const useEditorRotation = createSharedComposable(() => {
   function endRotation() {
     if (!isRotating.value) return
 
+    console.log('🚫 [endRotation] Rotation operation ended - KEEPING frozen bounds and rotation', {
+      hasFrozenBounds: !!bounds.frozenBounds.value,
+      selectionRotation: bounds.selectionRotation.value,
+      selectionRotationDeg: (bounds.selectionRotation.value * 180) / Math.PI
+    })
+
     isRotating.value = false
     rotationStartAngle.value = 0
     rotationOriginalAngles.value.clear()
@@ -183,6 +190,9 @@ export const useEditorRotation = createSharedComposable(() => {
     rotationCenter.value = null
     cursor.reset()
     coordinates.clearSvgCache()
+
+    // Mark drag end to prevent click from clearing selection
+    dragState.markDragEnd()
 
     // Keep frozen bounds and selection rotation until selection changes
   }
