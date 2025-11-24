@@ -76,12 +76,27 @@ export function projectDeltaToLocalSpace(
 }
 
 /**
- * Calculate distance between two points
+ * Calculate real-world distance between two points
+ * Automatically uses PDF scale from settings store
  */
-export function calculateDistance(p1: Point, p2: Point): number {
+export function calculateDistance(p1: Point, p2: Point, dpi: number = 72): number {
+  // Get scale from global settings
+  const settingsStore = useSettingStore()
+  const scaleString = settingsStore.getPdfScale
+
+  // Calculate distance in PDF units (points)
   const dx = p2.x - p1.x
   const dy = p2.y - p1.y
-  return Math.sqrt(dx * dx + dy * dy)
+  const distanceInPoints = Math.sqrt(dx * dx + dy * dy)
+
+  // Convert points to millimeters (1 point = 1/72 inch)
+  const distanceInMm = (distanceInPoints / dpi) * 25.4
+
+  // Apply scale (e.g., 1:100 = 100)
+  const scale = parsePdfPageScale(scaleString)
+  const realWorldDistance = distanceInMm * scale
+
+  return Math.round(realWorldDistance)
 }
 
 /**
@@ -112,19 +127,36 @@ export function calculateCentroid(points: Point[]): Point {
 }
 
 /**
- * Calculate polygon area using shoelace formula
+ * Calculate real-world polygon area using shoelace formula
+ * Automatically uses PDF scale from settings store
  */
-export function calculatePolygonArea(points: Point[]): number {
+export function calculatePolygonArea(points: Point[], dpi: number = 72): number {
   if (points.length < 3) return 0
 
-  let sum = 0
+  // Get scale from global settings
+  const settingsStore = useSettingStore()
+  const scaleString = settingsStore.getPdfScale
+  const scale = parsePdfPageScale(scaleString)
+  const pixelsToMm = 25.4 / dpi
+
+  let area = 0
   for (let i = 0; i < points.length; i++) {
+    const j = (i + 1) % points.length
     const p1 = points[i]!
-    const p2 = points[(i + 1) % points.length]!
-    sum += p1.x * p2.y - p2.x * p1.y
+    const p2 = points[j]!
+
+    // Convert to real-world coordinates (mm)
+    const x1 = p1.x * pixelsToMm * scale
+    const y1 = p1.y * pixelsToMm * scale
+    const x2 = p2.x * pixelsToMm * scale
+    const y2 = p2.y * pixelsToMm * scale
+
+    area += x1 * y2 - x2 * y1
   }
 
-  return Math.abs(sum / 2)
+  // Convert mm² to m²
+  const areaInM2 = Math.abs(area) / 2 / 1000000
+  return Math.round(areaInM2 * 100) / 100 // 2 decimal places
 }
 
 /**
@@ -149,4 +181,26 @@ export function calculatePerimeter(points: Point[]): number {
   }
 
   return sum
+}
+
+/**
+ * Parse PDF drawing scale from string format
+ *
+ * Extracts the numeric scale factor from a ratio string.
+ * For architectural/engineering drawings, scale represents how many
+ * real-world units equal one drawing unit (e.g., "1:100" means 1mm on
+ * paper = 100mm in reality).
+ *
+ * @param scaleString - Scale ratio string in format "1:N" where N is the scale factor
+ * @returns Numeric scale factor, or 1 if parsing fails
+ *
+ * @example
+ * parsePdfPageScale("1:100") // Returns 100
+ * parsePdfPageScale("1:50")  // Returns 50
+ * parsePdfPageScale("invalid") // Returns 1 (fallback)
+ */
+export function parsePdfPageScale(scaleString: string): number {
+  const match = scaleString.match(/1:(\d+)/)
+  if (!match || !match[1]) return 1
+  return parseInt(match[1])
 }
