@@ -30,27 +30,27 @@ export const useEditorBounds = createSharedComposable(() => {
   }
 
   /**
-   * Selection bounds - uses frozen bounds if available, otherwise calculates
-   * This prevents transformer jumping during rotation
+   * Selection bounds - uses frozen bounds if available (during/after rotation), otherwise calculates
+   * Matches DebugEditor.vue behavior: only freeze during rotation
    */
   const selectionBounds = computed(() => {
     if (selection.selectedIds.value.length === 0) return null
 
-    // If we have frozen bounds and selection rotation (during or after rotation)
-    // use the frozen bounds to keep transformer stable
+    // If we have frozen bounds AND selection rotation (during or after rotation)
+    // use the locked bounds to keep transformer stable
     if (frozenBounds.value && selectionRotation.value !== 0) {
       return frozenBounds.value
+    }
+
+    // Multi-selection - calculate union of rotated bounds (check this FIRST!)
+    if (selection.isMultiSelection.value) {
+      const allBounds = selection.selectedShapes.value.map((s) => calculateShapeBounds(s))
+      return calculateUnionBounds(allBounds)
     }
 
     // Single selection - use rotated bounds
     if (selection.selectedShape.value) {
       return calculateShapeBounds(selection.selectedShape.value)
-    }
-
-    // Multi-selection - calculate union of rotated bounds
-    if (selection.selectedShapes.value.length > 1) {
-      const allBounds = selection.selectedShapes.value.map((s) => calculateShapeBounds(s))
-      return calculateUnionBounds(allBounds)
     }
 
     return null

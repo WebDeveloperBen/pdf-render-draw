@@ -12,24 +12,23 @@ import { rotatePointsAroundCenter } from "~/utils/editor/transform"
 import { recalculateDerivedValues, isPointBased, getAnnotationCenter } from "~/utils/editor/derived-values"
 
 export const useEditorSelection = createSharedComposable(() => {
-  // Selected annotation IDs
-  const selectedIds = ref<string[]>([])
+  // Bridge to annotation store - use it as the single source of truth
+  const annotationStore = useAnnotationStore()
 
-  // All annotations (will be provided by parent or store)
-  const annotations = ref<Annotation[]>([])
+  // Selected annotation IDs - read from store
+  const selectedIds = computed(() => annotationStore.selectedAnnotationIds)
+
+  // All annotations - read from store
+  const annotations = computed(() => annotationStore.annotations)
 
   // Computed: selected annotations
   const selectedAnnotations = computed(() => {
-    if (selectedIds.value.length === 0) return []
-    return annotations.value.filter((a) => selectedIds.value.includes(a.id))
+    return annotationStore.selectedAnnotations
   })
 
   // Computed: single selected annotation
   const selectedAnnotation = computed(() => {
-    if (selectedIds.value.length === 1) {
-      return annotations.value.find((a) => a.id === selectedIds.value[0]) || null
-    }
-    return null
+    return annotationStore.selectedAnnotation
   })
 
   // Alias for backwards compatibility with Shape naming
@@ -62,41 +61,39 @@ export const useEditorSelection = createSharedComposable(() => {
       bakeRotationIntoPoints(annotation)
     }
 
-    selectedIds.value = [shapeId]
+    // Use store's selectAnnotation method
+    annotationStore.selectAnnotation(shapeId)
   }
 
   /**
    * Toggle shape selection (Shift+Click behavior)
    */
   function toggleShape(shapeId: string) {
-    if (selectedIds.value.includes(shapeId)) {
-      selectedIds.value = selectedIds.value.filter((id) => id !== shapeId)
-    } else {
-      selectedIds.value = [...selectedIds.value, shapeId]
-    }
+    // Use store's toggle mode
+    annotationStore.selectAnnotation(shapeId, { toggle: true })
   }
 
   /**
    * Add shape to selection
    */
   function addToSelection(shapeId: string) {
-    if (!selectedIds.value.includes(shapeId)) {
-      selectedIds.value = [...selectedIds.value, shapeId]
-    }
+    // Use store's addToSelection mode
+    annotationStore.selectAnnotation(shapeId, { addToSelection: true })
   }
 
   /**
    * Add multiple shapes to selection
    */
   function addMultipleToSelection(shapeIds: string[]) {
-    selectedIds.value = [...new Set([...selectedIds.value, ...shapeIds])]
+    // Use store's multi-select
+    annotationStore.selectAnnotations(shapeIds)
   }
 
   /**
    * Set selection to specific shape IDs
    */
   function setSelection(shapeIds: string[]) {
-    selectedIds.value = shapeIds
+    annotationStore.selectAnnotations(shapeIds)
   }
 
   /**
@@ -116,13 +113,19 @@ export const useEditorSelection = createSharedComposable(() => {
       annotation.rotation
     )
 
-    // Update annotation with rotated points and reset rotation
-    annotation.points = rotatedPoints
-    annotation.rotation = 0
-
     // Recalculate derived values
-    const derived = recalculateDerivedValues(annotation)
-    Object.assign(annotation, derived)
+    const derived = recalculateDerivedValues({
+      ...annotation,
+      points: rotatedPoints,
+      rotation: 0
+    })
+
+    // Update annotation in store with rotated points and reset rotation
+    annotationStore.updateAnnotation(annotation.id, {
+      points: rotatedPoints,
+      rotation: 0,
+      ...derived
+    })
   }
 
   /**
@@ -133,14 +136,16 @@ export const useEditorSelection = createSharedComposable(() => {
     for (const annotation of selectedAnnotations.value) {
       bakeRotationIntoPoints(annotation)
     }
-    selectedIds.value = []
+
+    // Use store's deselectAll method
+    annotationStore.deselectAll()
   }
 
   /**
    * Check if a shape is selected
    */
   function isSelected(shapeId: string): boolean {
-    return selectedIds.value.includes(shapeId)
+    return annotationStore.isAnnotationSelected(shapeId)
   }
 
   return {

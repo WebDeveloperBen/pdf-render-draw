@@ -20,6 +20,7 @@ export const useEditorRotation = createSharedComposable(() => {
   const bounds = useEditorBounds()
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
+  const annotationStore = useAnnotationStore()
 
   // Rotation state
   const isRotating = ref(false)
@@ -110,6 +111,7 @@ export const useEditorRotation = createSharedComposable(() => {
     // Apply rotation to all selected annotations
     for (const annotation of selection.selectedAnnotations.value) {
       const originalRotation = rotationOriginalAngles.value.get(annotation.id) || 0
+      const updates: Partial<Annotation> = {}
 
       // Point-based annotations
       if (isPointBased(annotation)) {
@@ -119,22 +121,27 @@ export const useEditorRotation = createSharedComposable(() => {
           if (!originalPoints) continue
 
           // Rotate each point around the selection center
-          annotation.points = originalPoints.map(p =>
+          const rotatedPoints = originalPoints.map(p =>
             rotatePointAroundCenter(p, rotationCenter.value, rotationDelta)
           )
 
+          updates.points = rotatedPoints
+
           // Recalculate derived values (distance, midpoint, etc.)
-          const derived = recalculateDerivedValues(annotation)
-          Object.assign(annotation, derived)
+          const derived = recalculateDerivedValues({
+            ...annotation,
+            points: rotatedPoints
+          })
+          Object.assign(updates, derived)
         }
         // Single select: use CSS rotation property
         else {
-          annotation.rotation = originalRotation + rotationDelta
+          updates.rotation = originalRotation + rotationDelta
         }
       }
       // Positioned annotations - update rotation property
       else if ('x' in annotation && 'width' in annotation) {
-        annotation.rotation = originalRotation + rotationDelta
+        updates.rotation = originalRotation + rotationDelta
 
         // Orbit for multi-select
         if (selection.isMultiSelection.value) {
@@ -150,9 +157,14 @@ export const useEditorRotation = createSharedComposable(() => {
             rotationDelta
           )
 
-          annotation.x = rotatedCenter.x - annotation.width / 2
-          annotation.y = rotatedCenter.y - annotation.height / 2
+          updates.x = rotatedCenter.x - annotation.width / 2
+          updates.y = rotatedCenter.y - annotation.height / 2
         }
+      }
+
+      // Update annotation in store
+      if (Object.keys(updates).length > 0) {
+        annotationStore.updateAnnotation(annotation.id, updates)
       }
     }
   }

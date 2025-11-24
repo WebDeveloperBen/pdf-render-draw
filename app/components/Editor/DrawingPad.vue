@@ -18,6 +18,18 @@ defineProps<{
 
 const rendererStore = useRendererStore()
 
+// V2 Editor event handlers for transform handles (drag/rotate/scale)
+const editorEventHandlers = useEditorEventHandlers()
+
+// Set up global event listeners for transform handles
+onMounted(() => {
+  editorEventHandlers.setupGlobalListeners()
+})
+
+onUnmounted(() => {
+  editorEventHandlers.cleanupGlobalListeners()
+})
+
 // Container for both PDF and annotation layers
 const containerRef = ref<HTMLDivElement | null>(null)
 
@@ -57,9 +69,6 @@ const containerStyle = computed(() => {
         </div>
       </div>
     </div>
-
-    <!-- Transform Handles (for rotation/scaling) -->
-    <HandlesRotation />
   </LayersPdfEditorProvider>
 </template>
 

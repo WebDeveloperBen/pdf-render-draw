@@ -105,24 +105,8 @@ function handleClick(e: MouseEvent) {
       <text x="0" y="0" fill="red">No content slot provided for {{ annotation.type }}</text>
     </slot>
 
-    <!-- Transform handles (conditionally shown when selected) -->
-    <!-- This makes each annotation own its transform handles -->
-    <slot name="transform" :annotation="annotation" :is-selected="isSelected">
-      <!-- Default transform handles for single selection -->
-      <HandlesTransform
-        v-if="isSelected && annotationStore.selectedAnnotationIds.length === 1"
-        :annotation="annotation"
-      />
-      <!-- Group transform handles for multi-selection -->
-      <!-- Only render on the FIRST selected annotation to avoid duplicates -->
-      <HandlesGroupTransform
-        v-else-if="
-          isSelected &&
-          annotationStore.selectedAnnotationIds.length > 1 &&
-          annotationStore.selectedAnnotationIds[0] === annotation.id
-        "
-      />
-    </slot>
+    <!-- Transform handles slot for backwards compatibility (now handled by V2 EditorTransformHandles) -->
+    <slot name="transform" :annotation="annotation" :is-selected="isSelected" />
   </g>
 </template>
 

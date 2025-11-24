@@ -109,7 +109,7 @@ function handleKeyUp(e: KeyboardEvent) {
 }
 
 // Keyboard event listeners
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   useEventListener(window, "keydown", handleKeyDown)
   useEventListener(window, "keyup", handleKeyUp)
 }
@@ -126,7 +126,12 @@ if (typeof window !== 'undefined') {
       <div class="toolbar">
         <!-- Left side - Navigation -->
         <div class="toolbar-section">
-          <button class="toolbar-btn" :class="{ active: isSidebarOpen }" @click="toggleSidebar" title="Toggle pages sidebar">
+          <button
+            class="toolbar-btn"
+            :class="{ active: isSidebarOpen }"
+            title="Toggle pages sidebar"
+            @click="toggleSidebar"
+          >
             <span class="icon">☰</span>
             Pages
           </button>
@@ -134,13 +139,19 @@ if (typeof window !== 'undefined') {
           <div class="divider" />
 
           <div class="page-nav">
-            <button class="toolbar-btn-icon" @click="rendererStore.setCurrentPage(Math.max(1, rendererStore.getCurrentPage - 1))" :disabled="rendererStore.getCurrentPage <= 1">
+            <button
+              class="toolbar-btn-icon"
+              :disabled="rendererStore.getCurrentPage <= 1"
+              @click="rendererStore.setCurrentPage(Math.max(1, rendererStore.getCurrentPage - 1))"
+            >
               ‹
             </button>
-            <span class="page-indicator">
-              {{ rendererStore.getCurrentPage }} / {{ totalPages }}
-            </span>
-            <button class="toolbar-btn-icon" @click="rendererStore.setCurrentPage(Math.min(totalPages, rendererStore.getCurrentPage + 1))" :disabled="rendererStore.getCurrentPage >= totalPages">
+            <span class="page-indicator"> {{ rendererStore.getCurrentPage }} / {{ totalPages }} </span>
+            <button
+              class="toolbar-btn-icon"
+              :disabled="rendererStore.getCurrentPage >= totalPages"
+              @click="rendererStore.setCurrentPage(Math.min(totalPages, rendererStore.getCurrentPage + 1))"
+            >
               ›
             </button>
           </div>
@@ -150,22 +161,22 @@ if (typeof window !== 'undefined') {
         <div class="toolbar-section">
           <div class="control-group">
             <span class="control-label">Zoom</span>
-            <button class="toolbar-btn-icon" @click="zoomOut" title="Zoom out">−</button>
-            <button class="toolbar-btn-sm" @click="resetZoom" title="Reset zoom">
+            <button class="toolbar-btn-icon" title="Zoom out" @click="zoomOut">−</button>
+            <button class="toolbar-btn-sm" title="Reset zoom" @click="resetZoom">
               {{ Math.round(rendererStore.getScale * 100) }}%
             </button>
-            <button class="toolbar-btn-icon" @click="zoomIn" title="Zoom in">+</button>
+            <button class="toolbar-btn-icon" title="Zoom in" @click="zoomIn">+</button>
           </div>
 
           <div class="divider" />
 
           <div class="control-group">
             <span class="control-label">Rotate</span>
-            <button class="toolbar-btn-icon" @click="rotateCounterClockwise" title="Rotate counter-clockwise">↺</button>
-            <button class="toolbar-btn-sm" @click="resetRotation" title="Reset rotation">
+            <button class="toolbar-btn-icon" title="Rotate counter-clockwise" @click="rotateCounterClockwise">↺</button>
+            <button class="toolbar-btn-sm" title="Reset rotation" @click="resetRotation">
               {{ rendererStore.rotation }}°
             </button>
-            <button class="toolbar-btn-icon" @click="rotateClockwise" title="Rotate clockwise">↻</button>
+            <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">↻</button>
           </div>
         </div>
 
@@ -212,7 +223,7 @@ if (typeof window !== 'undefined') {
         @mouseleave="handleMouseUp"
         @contextmenu.prevent
       >
-        <PdfEditor :pdf="pdf" />
+        <EditorDrawingPad v-if="pdf" :pdf="pdf" />
       </div>
     </div>
   </div>

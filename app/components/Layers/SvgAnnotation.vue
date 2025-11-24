@@ -274,6 +274,9 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
       class="selection-marquee"
       pointer-events="none"
     />
+
+    <!-- Transform handles (for rotation/scaling/moving annotations) -->
+    <EditorTransformHandles />
   </svg>
 </template>
 

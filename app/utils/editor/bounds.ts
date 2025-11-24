@@ -6,7 +6,7 @@
 
 import type { Bounds, Point } from "~/types/editor"
 import type { Annotation } from "~/types/annotations"
-import { isPointBased } from "./derived-values"
+import { isPointBased, getAnnotationCenter } from "./derived-values"
 
 /**
  * Calculate bounding box for a positioned shape (with rotation support)
@@ -141,6 +141,29 @@ export function calculatePointsBounds(points: Point[]): Bounds {
 export function calculateAnnotationBounds(annotation: Annotation): Bounds {
   // Point-based annotations (measure, area, perimeter, line)
   if (isPointBased(annotation)) {
+    // If annotation has CSS rotation, rotate points around centroid (center of mass) first then calculate AABB
+    if (annotation.rotation !== 0) {
+      // Get center of points (centroid for polygons, midpoint for lines)
+      const center = getAnnotationCenter(annotation)
+
+      // Rotate each point around center
+      const cos = Math.cos(annotation.rotation)
+      const sin = Math.sin(annotation.rotation)
+
+      const rotatedPoints = annotation.points.map((p) => {
+        const dx = p.x - center.x
+        const dy = p.y - center.y
+        return {
+          x: center.x + dx * cos - dy * sin,
+          y: center.y + dx * sin + dy * cos
+        }
+      })
+
+      // Calculate AABB of rotated points
+      return calculatePointsBounds(rotatedPoints)
+    }
+
+    // No rotation - use points directly
     return calculatePointsBounds(annotation.points)
   }
 

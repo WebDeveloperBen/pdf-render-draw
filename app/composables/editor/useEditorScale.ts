@@ -19,6 +19,7 @@ export const useEditorScale = createSharedComposable(() => {
   const bounds = useEditorBounds()
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
+  const annotationStore = useAnnotationStore()
 
   // Scaling state
   const isScaling = ref(false)
@@ -173,24 +174,26 @@ export const useEditorScale = createSharedComposable(() => {
 
     // Apply scaling to all selected annotations
     for (const annotation of selection.selectedAnnotations.value) {
+      const updates: Partial<Annotation> = {}
+
       // Point-based annotations - scale points from original
       if (isPointBased(annotation)) {
         const originalPoints = scaleOriginalPoints.value.get(annotation.id)
         if (!originalPoints) continue
 
+        let scaledPoints: Point[]
+
         // For single selection without rotation: scale using newBounds
         // For multi-selection or with rotation: scale from selection center
         if (!selection.isMultiSelection.value && bounds.selectionRotation.value === 0) {
           // Scale from newBounds (accounts for handle direction)
-          const scaledPoints = originalPoints.map((p) => ({
+          scaledPoints = originalPoints.map((p) => ({
             x: newBounds.x + (p.x - scaleOriginalBounds.value.x) * Math.abs(scaleX),
             y: newBounds.y + (p.y - scaleOriginalBounds.value.y) * Math.abs(scaleY)
           }))
-
-          annotation.points = scaledPoints
         } else {
           // Multi-select or with rotation: scale each point relative to selection center
-          const scaledPoints = originalPoints.map((p) => {
+          scaledPoints = originalPoints.map((p) => {
             const offsetX = p.x - centerX
             const offsetY = p.y - centerY
             return {
@@ -198,13 +201,16 @@ export const useEditorScale = createSharedComposable(() => {
               y: centerY + offsetY * scaleY
             }
           })
-
-          annotation.points = scaledPoints
         }
 
+        updates.points = scaledPoints
+
         // Recalculate derived values (distance, area, etc.)
-        const derived = recalculateDerivedValues(annotation)
-        Object.assign(annotation, derived)
+        const derived = recalculateDerivedValues({
+          ...annotation,
+          points: scaledPoints
+        })
+        Object.assign(updates, derived)
       }
       // Positioned annotations - scale dimensions and position
       else if ('x' in annotation && 'width' in annotation) {
@@ -216,8 +222,8 @@ export const useEditorScale = createSharedComposable(() => {
         const shapeCenterY = original.y + original.height / 2
 
         // Scale dimensions
-        annotation.width = original.width * Math.abs(scaleX)
-        annotation.height = original.height * Math.abs(scaleY)
+        const scaledWidth = original.width * Math.abs(scaleX)
+        const scaledHeight = original.height * Math.abs(scaleY)
 
         // Scale position relative to selection center
         const offsetX = shapeCenterX - centerX
@@ -226,18 +232,28 @@ export const useEditorScale = createSharedComposable(() => {
         const newCenterX = centerX + offsetX * scaleX
         const newCenterY = centerY + offsetY * scaleY
 
-        annotation.x = newCenterX - annotation.width / 2
-        annotation.y = newCenterY - annotation.height / 2
+        updates.width = scaledWidth
+        updates.height = scaledHeight
+        updates.x = newCenterX - scaledWidth / 2
+        updates.y = newCenterY - scaledHeight / 2
+      }
+
+      // Update annotation in store
+      if (Object.keys(updates).length > 0) {
+        annotationStore.updateAnnotation(annotation.id, updates)
       }
     }
 
-    // Update frozen bounds - scale the frozen bounds from center
-    bounds.updateFrozenBounds({
-      x: centerX - (scaleOriginalBounds.value.width / 2) * Math.abs(scaleX),
-      y: centerY - (scaleOriginalBounds.value.height / 2) * Math.abs(scaleY),
-      width: scaleOriginalBounds.value.width * Math.abs(scaleX),
-      height: scaleOriginalBounds.value.height * Math.abs(scaleY)
-    })
+    // Update frozen bounds if they exist (from rotation) - scale the frozen bounds from center
+    // This keeps the transformer stable if we're scaling after rotating
+    if (bounds.frozenBounds.value) {
+      bounds.updateFrozenBounds({
+        x: centerX - (scaleOriginalBounds.value.width / 2) * Math.abs(scaleX),
+        y: centerY - (scaleOriginalBounds.value.height / 2) * Math.abs(scaleY),
+        width: scaleOriginalBounds.value.width * Math.abs(scaleX),
+        height: scaleOriginalBounds.value.height * Math.abs(scaleY)
+      })
+    }
   }
 
   /**

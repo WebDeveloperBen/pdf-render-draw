@@ -18,6 +18,7 @@ export const useEditorMove = createSharedComposable(() => {
   const bounds = useEditorBounds()
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
+  const annotationStore = useAnnotationStore()
 
   // Drag state
   const isDragging = ref(false)
@@ -58,7 +59,7 @@ export const useEditorMove = createSharedComposable(() => {
       }
     }
 
-    // Store original frozen bounds if they exist (from previous rotation)
+    // Store original frozen bounds (just frozen above or from previous rotation)
     if (bounds.frozenBounds.value) {
       dragOriginalLockedBounds.value = { ...bounds.frozenBounds.value }
     }
@@ -80,32 +81,45 @@ export const useEditorMove = createSharedComposable(() => {
 
     // Move all selected annotations
     for (const annotation of selection.selectedAnnotations.value) {
+      const updates: Partial<Annotation> = {}
+
       // Point-based annotations - translate all points
       if (isPointBased(annotation)) {
         const originalPoints = dragOriginalPoints.value.get(annotation.id)
         if (originalPoints) {
-          annotation.points = originalPoints.map((p) => ({
+          const movedPoints = originalPoints.map((p) => ({
             x: p.x + deltaX,
             y: p.y + deltaY
           }))
 
+          updates.points = movedPoints
+
           // Recalculate derived values (distance, area, etc.)
-          const derived = recalculateDerivedValues(annotation)
-          Object.assign(annotation, derived)
+          const derived = recalculateDerivedValues({
+            ...annotation,
+            points: movedPoints
+          })
+          Object.assign(updates, derived)
         }
       }
       // Positioned annotations - update x, y
       else if ('x' in annotation && 'y' in annotation) {
         const originalPos = dragOriginalPositions.value.get(annotation.id)
         if (originalPos) {
-          annotation.x = originalPos.x + deltaX
-          annotation.y = originalPos.y + deltaY
+          updates.x = originalPos.x + deltaX
+          updates.y = originalPos.y + deltaY
         }
+      }
+
+      // Update annotation in store
+      if (Object.keys(updates).length > 0) {
+        annotationStore.updateAnnotation(annotation.id, updates)
       }
     }
 
     // If we have frozen bounds (from a previous rotation), update their position too
-    if (dragOriginalLockedBounds.value) {
+    // This keeps the transformer stable if we're moving after rotating
+    if (dragOriginalLockedBounds.value && bounds.frozenBounds.value) {
       bounds.updateFrozenBounds({
         x: dragOriginalLockedBounds.value.x + deltaX,
         y: dragOriginalLockedBounds.value.y + deltaY,
