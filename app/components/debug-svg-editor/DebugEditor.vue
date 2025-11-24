@@ -28,10 +28,10 @@
   Following PLAN.md spec-driven approach
 -->
 <script setup lang="ts">
-import { ref, computed } from "vue"
-import { applyToPoint, compose, translate, rotate, scale } from 'transformation-matrix'
-import { getRootSVG } from '~/utils/svg'
-import type { Bounds } from "~/utils/bounds"
+import { getRootSVG } from "~/utils/svg"
+
+// Cursor management
+const cursor = useCursor()
 
 // Simple shape interface for our MVP
 interface Shape {
@@ -100,6 +100,9 @@ const selectedShape = computed(() => {
 const isDragging = ref(false)
 const dragStartPoint = ref<{ x: number; y: number } | null>(null)
 const dragOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
+
+// Cache SVG element for coordinate transformations during drag/rotate/scale
+const cachedSvg = ref<SVGSVGElement | null>(null)
 
 // Phase 4: Rotation state
 const isRotating = ref(false)
@@ -297,10 +300,12 @@ function handleDragStart(event: MouseEvent) {
   const svg = getRootSVG(event.currentTarget)
   if (!svg) return
 
+  cachedSvg.value = svg
   const svgPoint = getSvgPoint(event, svg)
 
   isDragging.value = true
   dragStartPoint.value = svgPoint
+  cursor.set("grabbing")
 
   // Store original positions of all selected shapes
   dragOriginalPositions.value.clear()
@@ -321,12 +326,9 @@ const dragOriginalLockedBounds = ref<Bounds | null>(null)
 
 // Phase 3: Handle drag move
 function handleDragMove(event: MouseEvent) {
-  if (!isDragging.value || !dragStartPoint.value) return
+  if (!isDragging.value || !dragStartPoint.value || !cachedSvg.value) return
 
-  const svg = getRootSVG(event.target)
-  if (!svg) return
-
-  const svgPoint = getSvgPoint(event, svg)
+  const svgPoint = getSvgPoint(event, cachedSvg.value)
   const deltaX = svgPoint.x - dragStartPoint.value.x
   const deltaY = svgPoint.y - dragStartPoint.value.y
 
@@ -358,6 +360,7 @@ function handleDragEnd() {
   dragStartPoint.value = null
   dragOriginalPositions.value.clear()
   dragOriginalLockedBounds.value = null
+  cursor.reset()
 
   // Prevent background click for a brief moment
   justFinishedInteraction.value = true
@@ -373,6 +376,7 @@ function handleRotateStart(event: MouseEvent) {
   const svg = getRootSVG(event.currentTarget)
   if (!svg) return
 
+  cachedSvg.value = svg
   const svgPoint = getSvgPoint(event, svg)
 
   // Lock the current visible bounding box (already calculated AABB)
@@ -402,6 +406,7 @@ function handleRotateStart(event: MouseEvent) {
 
   // Set rotating LAST so locked bounds are used immediately
   isRotating.value = true
+  cursor.set("grabbing")
 
   event.stopPropagation()
 }
@@ -411,12 +416,9 @@ const rotationStartSelectionAngle = ref(0)
 
 // Phase 4: Handle rotation move
 function handleRotateMove(event: MouseEvent) {
-  if (!isRotating.value || !rotationCenter.value) return
+  if (!isRotating.value || !rotationCenter.value || !cachedSvg.value) return
 
-  const svg = getRootSVG(event.target)
-  if (!svg) return
-
-  const svgPoint = getSvgPoint(event, svg)
+  const svgPoint = getSvgPoint(event, cachedSvg.value)
 
   // Calculate current angle from center to mouse
   const dx = svgPoint.x - rotationCenter.value.x
@@ -472,6 +474,7 @@ function handleRotateEnd() {
   rotationStartAngle.value = 0
   rotationOriginalAngles.value.clear()
   rotationCenter.value = null
+  cursor.reset()
   // DON'T reset selectionRotation or rotationLockedBounds here
   // Keep transformer at rotated angle until selection changes
 
@@ -489,11 +492,13 @@ function handleScaleStart(event: MouseEvent, handle: string) {
   const svg = getRootSVG(event.currentTarget)
   if (!svg) return
 
+  cachedSvg.value = svg
   const svgPoint = getSvgPoint(event, svg)
 
   isScaling.value = true
   scaleHandle.value = handle
   scaleStartPoint.value = svgPoint
+  cursor.set("grabbing")
 
   // ALWAYS use the visual bounds (AABB) that the user sees
   // This ensures handles are where the user clicked
@@ -515,12 +520,16 @@ function handleScaleStart(event: MouseEvent, handle: string) {
 
 // Phase 5: Handle scale move
 function handleScaleMove(event: MouseEvent) {
-  if (!isScaling.value || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
+  if (
+    !isScaling.value ||
+    !scaleStartPoint.value ||
+    !scaleOriginalBounds.value ||
+    !scaleHandle.value ||
+    !cachedSvg.value
+  )
+    return
 
-  const svg = getRootSVG(event.target)
-  if (!svg) return
-
-  const svgPoint = getSvgPoint(event, svg)
+  const svgPoint = getSvgPoint(event, cachedSvg.value)
   const deltaX = svgPoint.x - scaleStartPoint.value.x
   const deltaY = svgPoint.y - scaleStartPoint.value.y
 
@@ -538,50 +547,53 @@ function handleScaleMove(event: MouseEvent) {
   const localDeltaY = deltaX * sin + deltaY * cos
 
   // Calculate scale factors based on handle
-  let scaleX = 1, scaleY = 1
+  // When scaling from center, the handle moves at 2x the rate (both sides scale)
+  // So we need to multiply the delta by 2 to make the handle follow the cursor
+  let scaleX = 1,
+    scaleY = 1
 
   switch (scaleHandle.value) {
-    case 'se':
-      scaleX = 1 + localDeltaX / scaleOriginalBounds.value.width
-      scaleY = 1 + localDeltaY / scaleOriginalBounds.value.height
+    case "se":
+      scaleX = 1 + (2 * localDeltaX) / scaleOriginalBounds.value.width
+      scaleY = 1 + (2 * localDeltaY) / scaleOriginalBounds.value.height
       break
-    case 'sw':
-      scaleX = 1 - localDeltaX / scaleOriginalBounds.value.width
-      scaleY = 1 + localDeltaY / scaleOriginalBounds.value.height
+    case "sw":
+      scaleX = 1 - (2 * localDeltaX) / scaleOriginalBounds.value.width
+      scaleY = 1 + (2 * localDeltaY) / scaleOriginalBounds.value.height
       break
-    case 'ne':
-      scaleX = 1 + localDeltaX / scaleOriginalBounds.value.width
-      scaleY = 1 - localDeltaY / scaleOriginalBounds.value.height
+    case "ne":
+      scaleX = 1 + (2 * localDeltaX) / scaleOriginalBounds.value.width
+      scaleY = 1 - (2 * localDeltaY) / scaleOriginalBounds.value.height
       break
-    case 'nw':
-      scaleX = 1 - localDeltaX / scaleOriginalBounds.value.width
-      scaleY = 1 - localDeltaY / scaleOriginalBounds.value.height
+    case "nw":
+      scaleX = 1 - (2 * localDeltaX) / scaleOriginalBounds.value.width
+      scaleY = 1 - (2 * localDeltaY) / scaleOriginalBounds.value.height
       break
-    case 'e':
-      scaleX = 1 + localDeltaX / scaleOriginalBounds.value.width
+    case "e":
+      scaleX = 1 + (2 * localDeltaX) / scaleOriginalBounds.value.width
       scaleY = 1
       break
-    case 'w':
-      scaleX = 1 - localDeltaX / scaleOriginalBounds.value.width
+    case "w":
+      scaleX = 1 - (2 * localDeltaX) / scaleOriginalBounds.value.width
       scaleY = 1
       break
-    case 's':
+    case "s":
       scaleX = 1
-      scaleY = 1 + localDeltaY / scaleOriginalBounds.value.height
+      scaleY = 1 + (2 * localDeltaY) / scaleOriginalBounds.value.height
       break
-    case 'n':
+    case "n":
       scaleX = 1
-      scaleY = 1 - localDeltaY / scaleOriginalBounds.value.height
+      scaleY = 1 - (2 * localDeltaY) / scaleOriginalBounds.value.height
       break
   }
 
   // Prevent scaling below minimum size
   const minSize = 10
   if (Math.abs(scaleX * scaleOriginalBounds.value.width) < minSize) {
-    scaleX = minSize / scaleOriginalBounds.value.width * Math.sign(scaleX)
+    scaleX = (minSize / scaleOriginalBounds.value.width) * Math.sign(scaleX)
   }
   if (Math.abs(scaleY * scaleOriginalBounds.value.height) < minSize) {
-    scaleY = minSize / scaleOriginalBounds.value.height * Math.sign(scaleY)
+    scaleY = (minSize / scaleOriginalBounds.value.height) * Math.sign(scaleY)
   }
 
   // Apply scaling to all selected shapes from center
@@ -628,6 +640,7 @@ function handleScaleEnd() {
   scaleStartPoint.value = null
   scaleOriginalBounds.value = null
   scaleOriginalShapes.value.clear()
+  cursor.reset()
 
   // Don't recalculate bounds here - keep transformer stable
   // Bounds will be recalculated on next operation (rotation/scale start)
@@ -686,7 +699,11 @@ if (typeof window !== "undefined") {
       <g
         v-if="selectionBounds"
         class="selection-ui"
-        :transform="selectionRotation !== 0 ? `rotate(${(selectionRotation * 180) / Math.PI} ${selectionBounds.x + selectionBounds.width / 2} ${selectionBounds.y + selectionBounds.height / 2})` : ''"
+        :transform="
+          selectionRotation !== 0
+            ? `rotate(${(selectionRotation * 180) / Math.PI} ${selectionBounds.x + selectionBounds.width / 2} ${selectionBounds.y + selectionBounds.height / 2})`
+            : ''
+        "
       >
         <!-- Bounding box outline - draggable to move selection -->
         <rect
@@ -902,13 +919,22 @@ h2 {
   cursor: move;
 }
 
+.selection-box:hover {
+  stroke-width: 3;
+}
+
 .selection-box.dragging {
   cursor: grabbing;
   stroke-width: 3;
 }
 
 .rotation-handle {
-  cursor: grab;
+  cursor: move;
+}
+
+.rotation-handle:hover {
+  r: 10;
+  stroke-width: 3;
 }
 
 .rotation-handle:active,
@@ -918,27 +944,15 @@ h2 {
 }
 
 .scale-handle {
-  cursor: pointer;
-}
-
-.scale-handle.nwse-resize {
-  cursor: nwse-resize;
-}
-
-.scale-handle.nesw-resize {
-  cursor: nesw-resize;
-}
-
-.scale-handle.ns-resize {
-  cursor: ns-resize;
-}
-
-.scale-handle.ew-resize {
-  cursor: ew-resize;
+  cursor: move;
 }
 
 .scale-handle:hover {
   stroke-width: 3;
+}
+
+.scale-handle:active {
+  cursor: grabbing;
 }
 
 .debug-info {
