@@ -4,8 +4,6 @@
  * Extended to support all annotation types
  */
 
-import type { Bounds, Point } from "~/types/editor"
-import type { Annotation } from "~/types/annotations"
 import { getAnnotationCenter } from "./derived-values"
 
 /**
@@ -132,18 +130,22 @@ export function calculatePointsBounds(points: Point[]): Bounds {
 /**
  * Calculate bounding box for any annotation type
  * Handles both point-based and positioned annotations
+ * @param annotation The annotation to calculate bounds for
+ * @param ignoreRotation If true, return bounds without rotation applied
  */
-export function calculateAnnotationBounds(annotation: Annotation): Bounds {
+export function calculateAnnotationBounds(annotation: Annotation, ignoreRotation = false): Bounds {
+  const rotation = ignoreRotation ? 0 : annotation.rotation
+
   // Point-based annotations (measure, area, perimeter, line)
   if (hasPointsArray(annotation)) {
     // If annotation has CSS rotation, rotate points around centroid (center of mass) first then calculate AABB
-    if (annotation.rotation !== 0) {
+    if (rotation !== 0) {
       // Get center of points (centroid for polygons, midpoint for lines)
       const center = getAnnotationCenter(annotation)
 
       // Rotate each point around center
-      const cos = Math.cos(annotation.rotation)
-      const sin = Math.sin(annotation.rotation)
+      const cos = Math.cos(rotation)
+      const sin = Math.sin(rotation)
 
       const rotatedPoints = annotation.points.map((p) => {
         const dx = p.x - center.x
@@ -164,15 +166,14 @@ export function calculateAnnotationBounds(annotation: Annotation): Bounds {
 
   // Positioned annotations (fill, text, count)
   if ("x" in annotation && "width" in annotation) {
-    return calculateRotatedRectBounds(
-      annotation.x,
-      annotation.y,
-      annotation.width,
-      annotation.height,
-      annotation.rotation
-    )
+    return calculateRotatedRectBounds(annotation.x, annotation.y, annotation.width, annotation.height, rotation)
   }
 
   // Fallback
   return { x: 0, y: 0, width: 0, height: 0 }
 }
+
+// Aliases for backwards compatibility
+export const calculateBounds = calculateAnnotationBounds
+export const getUnionBounds = calculateUnionBounds
+export const getRotatedRectBounds = calculateRotatedRectBounds

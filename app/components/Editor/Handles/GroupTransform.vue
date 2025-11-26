@@ -7,11 +7,6 @@
  */
 
 import { TRANSFORM, COLORS } from "@/constants/ui"
-import { useTransformBase } from "@/composables/useTransformBase"
-import type { Annotation } from "@/types/annotations"
-import type { Point } from "@/types"
-import { getUnionBounds } from "@/utils/transform-math"
-import { hasPointsArray, hasPositionedRect } from "@/utils/editor/derived-values"
 
 const annotationStore = useAnnotationStore()
 const historyStore = useHistoryStore()

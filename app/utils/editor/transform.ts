@@ -3,16 +3,10 @@
  * Extracted from SimpleDebugEditor.vue
  */
 
-import type { Point } from "~/types/editor"
-
 /**
  * Rotate a point around a center point
  */
-export function rotatePointAroundCenter(
-  point: Point,
-  center: Point,
-  angle: number
-): Point {
+export function rotatePointAroundCenter(point: Point, center: Point, angle: number): Point {
   const cos = Math.cos(angle)
   const sin = Math.sin(angle)
 
@@ -28,11 +22,7 @@ export function rotatePointAroundCenter(
 /**
  * Rotate multiple points around a center point
  */
-export function rotatePointsAroundCenter(
-  points: Point[],
-  center: Point,
-  angle: number
-): Point[] {
+export function rotatePointsAroundCenter(points: Point[], center: Point, angle: number): Point[] {
   const cos = Math.cos(angle)
   const sin = Math.sin(angle)
 
@@ -171,9 +161,7 @@ export function calculatePerimeter(points: Point[]): number {
   }
 
   // If polygon is closed (first point === last point), don't add closing edge
-  const isClosed =
-    points[0]!.x === points[points.length - 1]!.x &&
-    points[0]!.y === points[points.length - 1]!.y
+  const isClosed = points[0]!.x === points[points.length - 1]!.x && points[0]!.y === points[points.length - 1]!.y
 
   if (!isClosed && points.length > 2) {
     // Add closing edge for open polygons

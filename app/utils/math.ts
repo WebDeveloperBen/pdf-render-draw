@@ -49,3 +49,13 @@ export function isWithinThreshold(value: number, threshold: number): boolean {
 export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
+
+/**
+ * Calculate euclidean distance between two points
+ * Simple pixel distance - no scale conversion
+ */
+export function distance(p1: Point, p2: Point): number {
+  const dx = p2.x - p1.x
+  const dy = p2.y - p1.y
+  return Math.sqrt(dx * dx + dy * dy)
+}

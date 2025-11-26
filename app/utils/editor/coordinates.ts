@@ -13,8 +13,6 @@
  * 4. Renderer store applies transforms (scale, rotate, translate) via CSS
  */
 
-import type { Point } from "~/types/editor"
-
 /**
  * Convert mouse event to SVG coordinates using the SVG element's CTM
  * This automatically accounts for all CSS transforms applied to the SVG
@@ -148,7 +146,7 @@ export function rotatePoint(point: Point, center: Point, angleRadians: number): 
  * Rotate multiple points around a center point
  */
 export function rotatePoints(points: Point[], center: Point, angleRadians: number): Point[] {
-  return points.map(p => rotatePoint(p, center, angleRadians))
+  return points.map((p) => rotatePoint(p, center, angleRadians))
 }
 
 /**
@@ -157,22 +155,12 @@ export function rotatePoints(points: Point[], center: Point, angleRadians: numbe
 export function calculateCenter(points: Point[]): Point {
   if (points.length === 0) return { x: 0, y: 0 }
 
-  const sum = points.reduce(
-    (acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }),
-    { x: 0, y: 0 }
-  )
+  const sum = points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 })
 
   return {
     x: sum.x / points.length,
     y: sum.y / points.length
   }
-}
-
-/**
- * Clamp a number between min and max
- */
-export function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
 }
 
 /**

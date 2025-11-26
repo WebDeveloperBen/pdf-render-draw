@@ -364,7 +364,7 @@ describe("Tool Error Handling", () => {
       const p1: Point = { x: NaN, y: NaN }
       const p2: Point = { x: 100, y: 100 }
 
-      const distance = calculateDistance(p1, p2, "1:100")
+      const distance = calculateDistance(p1, p2)
 
       expect(isNaN(distance)).toBe(true)
       // Note: No NaN validation in calculations
@@ -374,7 +374,7 @@ describe("Tool Error Handling", () => {
       const p1: Point = { x: 0, y: 0 }
       const p2: Point = { x: Infinity, y: Infinity }
 
-      const distance = calculateDistance(p1, p2, "1:100")
+      const distance = calculateDistance(p1, p2)
 
       expect(distance).toBe(Infinity)
       // Math.sqrt(Infinity) = Infinity
@@ -386,7 +386,7 @@ describe("Tool Error Handling", () => {
         { x: 100, y: 0 }
       ]
 
-      const area = calculatePolygonArea(points, "1:100")
+      const area = calculatePolygonArea(points)
 
       // Should return 0 (tested in calculations.spec.ts)
       expect(area).toBe(0)
@@ -399,7 +399,7 @@ describe("Tool Error Handling", () => {
         { x: 0, y: 0 }
       ]
 
-      const area = calculatePolygonArea(points, "1:100")
+      const area = calculatePolygonArea(points)
 
       // Should return 0 (no area)
       expect(area).toBe(0)
@@ -412,7 +412,7 @@ describe("Tool Error Handling", () => {
         { x: 100, y: 100 }
       ]
 
-      const area = calculatePolygonArea(points, "1:100")
+      const area = calculatePolygonArea(points)
 
       expect(isNaN(area)).toBe(true)
       // Note: No NaN validation

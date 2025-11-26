@@ -455,15 +455,14 @@ Based on current architecture (custom canvas + annotation layer), **Option B or 
 #### Files to Modify
 
 If implementing Option A/C:
-- `composables/usePDF.ts` - Add EventBus creation
-- `components/Layers/PdfViewer.vue` - Wire EventBus to rendering
-- `stores/renderer.ts` - Integrate with EventBus events
+- `stores/renderer.ts` - Add EventBus creation
+- `components/Editor/PdfViewer.vue` - Wire EventBus to rendering
 - `nuxt.config.ts` - May need CSS import handling
 
 If implementing Option B:
 - Create `composables/usePdfEventBus.ts`
 - Update `stores/renderer.ts` to emit events
-- Update `components/Layers/PdfViewer.vue` to emit render events
+- Update `components/Editor/PdfViewer.vue` to emit render events
 
 #### References
 
@@ -886,6 +885,121 @@ All components read from store, no prop drilling needed
    - Simplified watch logic (store handles document setup)
 
 6. **`composables/usePDF.ts`**
-   - Marked as `@deprecated` with migration instructions
-   - Kept for backward compatibility
+   - ~~Marked as `@deprecated` with migration instructions~~
+   - **DELETED** - No longer needed, all PDF loading via `rendererStore.loadPdf()`
+
+---
+
+## Recently Completed Work
+
+### 6. Component Reorganization
+
+**Priority:** Low
+**Status:** ✅ Complete
+
+Consolidated `components/Layers/` into `components/Editor/` for better organization.
+
+**Files Moved:**
+- `Layers/BaseAnnotation.vue` → `Editor/BaseAnnotation.vue`
+- `Layers/PdfEditorProvider.vue` → `Editor/PdfEditorProvider.vue`
+- `Layers/PdfViewer.vue` → `Editor/PdfViewer.vue`
+- `Layers/SvgAnnotation.vue` → `Editor/SvgAnnotation.vue`
+
+**Component References Updated:**
+- `LayersBaseAnnotation` → `EditorBaseAnnotation` (all tool components)
+- `LayersPdfEditorProvider` → `EditorPdfEditorProvider`
+- `LayersPdfViewer` → `EditorPdfViewer`
+- `LayersSvgAnnotation` → `EditorSvgAnnotation`
+
+**Current `Editor/` Structure:**
+```
+components/Editor/
+├── BaseAnnotation.vue      # Wrapper for all annotation types
+├── DrawingPad.vue          # Main editor container
+├── index.vue               # Debug/test editor
+├── PdfEditorProvider.vue   # Modifier key tracking provider
+├── PdfViewer.vue           # PDF canvas renderer
+├── RotationHandle.vue      # Transform rotation handle
+├── ScaleHandles.vue        # Transform scale handles
+├── SelectionMarquee.vue    # Visual marquee rectangle
+├── SvgAnnotation.vue       # SVG annotation layer
+└── TransformHandles.vue    # Combined transform handles
+```
+
+---
+
+### 7. Marquee Selection Consolidation
+
+**Priority:** Medium
+**Status:** ✅ Complete
+
+Consolidated duplicate marquee selection systems into single implementation.
+
+**Before:**
+- `composables/useSelectionMarquee.ts` - Used by `SvgAnnotation.vue`
+- `composables/editor/useEditorMarquee.ts` - Used by debug editor
+
+**After:**
+- **DELETED:** `composables/useSelectionMarquee.ts`
+- `SvgAnnotation.vue` now uses `useEditorMarquee()` (shared composable)
+- Global event listeners set up by `DrawingPad.vue` via `useEditorEventHandlers`
+
+**Bug Fixed:** Added `isMarqueeJustFinished()` flag to prevent click events from clearing selection immediately after marquee ends (click fires after mouseup).
+
+---
+
+### 8. Deprecated Composables Removed
+
+**Status:** ✅ Complete
+
+The following deprecated composables have been deleted:
+
+| Composable | Replacement |
+|------------|-------------|
+| `usePDF.ts` | `rendererStore.loadPdf()` |
+| `useSelectionMarquee.ts` | `useEditorMarquee()` |
+
+---
+
+## Current Architecture
+
+### Component Hierarchy (Production Editor)
+
+```
+pages/editor.vue
+└── EditorDrawingPad
+    └── EditorPdfEditorProvider     # Sets up modifier key tracking
+        └── EditorPdfViewer         # PDF canvas renderer
+        └── EditorSvgAnnotation     # SVG annotation layer
+            └── EditorTransformHandles
+            └── tools/* components
+```
+
+### Shared Composables (createSharedComposable)
+
+All editor composables use `createSharedComposable` for singleton instances:
+
+```
+composables/editor/
+├── useEditorBounds.ts       # Selection bounds calculation
+├── useEditorCoordinates.ts  # Screen ↔ SVG coordinate conversion
+├── useEditorEventHandlers.ts # Global mouse event coordination
+├── useEditorMarquee.ts      # Drag-to-select marquee
+├── useEditorMove.ts         # Annotation dragging
+├── useEditorRotation.ts     # Rotation handle logic
+├── useEditorScale.ts        # Scale handle logic
+└── useEditorSelection.ts    # Selection state management
+```
+
+### Data Flow
+
+```
+User Action → SvgAnnotation.vue → useEditor*.ts composables
+                    ↓
+              annotationStore (Pinia)
+                    ↓
+              Tool components (tools/*.vue)
+                    ↓
+              EditorBaseAnnotation wrapper
+```
 

@@ -9,8 +9,7 @@
  * - Fill/Text/Count: none (positioned annotations)
  */
 
-import type { Annotation, Measurement, Area, Perimeter, PerimeterSegment } from "~/types/annotations"
-import type { Point } from "~/types/editor"
+import { toRaw } from "vue"
 import { calculateDistance, calculateMidpoint, calculateCentroid, calculatePolygonArea } from "./transform"
 
 /**
@@ -130,4 +129,56 @@ export function hasPositionedRect(
   annotation: Annotation
 ): annotation is Extract<Annotation, { x: number; y: number; width: number; height: number }> {
   return "x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation
+}
+
+/**
+ * Offset an annotation by delta X and delta Y
+ * Creates a new annotation object with updated coordinates
+ */
+export function offsetAnnotation(annotation: Annotation, deltaX: number, deltaY: number): Annotation {
+  const cloned = structuredClone(toRaw(annotation))
+
+  // Offset points if they exist
+  if (hasPointsArray(cloned)) {
+    cloned.points = cloned.points.map((p) => ({
+      x: p.x + deltaX,
+      y: p.y + deltaY
+    }))
+
+    // Also offset segments for perimeter tool
+    if (cloned.type === "perimeter" && "segments" in cloned && Array.isArray(cloned.segments)) {
+      cloned.segments = cloned.segments.map((seg: PerimeterSegment) => ({
+        ...seg,
+        start: { x: seg.start.x + deltaX, y: seg.start.y + deltaY },
+        end: { x: seg.end.x + deltaX, y: seg.end.y + deltaY },
+        midpoint: { x: seg.midpoint.x + deltaX, y: seg.midpoint.y + deltaY }
+      }))
+    }
+  }
+
+  // Offset x/y for positioned annotations (fill, text, count)
+  if ("x" in cloned && typeof cloned.x === "number") {
+    cloned.x += deltaX
+  }
+  if ("y" in cloned && typeof cloned.y === "number") {
+    cloned.y += deltaY
+  }
+
+  // Offset center if it exists
+  if ("center" in cloned && cloned.center) {
+    cloned.center = {
+      x: cloned.center.x + deltaX,
+      y: cloned.center.y + deltaY
+    }
+  }
+
+  // Offset midpoint if it exists
+  if ("midpoint" in cloned && cloned.midpoint) {
+    cloned.midpoint = {
+      x: cloned.midpoint.x + deltaX,
+      y: cloned.midpoint.y + deltaY
+    }
+  }
+
+  return cloned
 }
