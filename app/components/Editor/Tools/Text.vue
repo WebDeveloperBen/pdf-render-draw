@@ -66,7 +66,7 @@ if (!tool) {
   throw new Error("TextTool must be used within AnnotationLayer")
 }
 
-const { completed, editingId, editingContent, finishEditing, deleteText } = tool
+const { completed, editingId, editingContent, finishEditing, deleteText, handleDoubleClick } = tool
 
 // Store ref to currently editing textarea
 const currentTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -131,29 +131,37 @@ function measureTextWidth(text: string, fontSize: number): number {
     document.body.removeChild(div)
   }
 
-  return Math.ceil(maxLineWidth)
+  // Add buffer for sub-pixel rendering differences
+  return Math.ceil(maxLineWidth) + 4
 }
 
-// Finish editing and save dimensions to fit content
+// Finish editing and save dimensions to hug content
 function handleFinishEditing() {
   if (currentTextarea.value && editingId.value) {
     const textarea = currentTextarea.value
     const annotation = completed.value.find((a) => a.id === editingId.value)
     const fontSize = annotation?.fontSize ?? config.fontSize
-    const currentWidth = annotation?.width ?? config.defaultWidth
 
-    // Reset to auto to get true content height
-    textarea.style.height = "auto"
-    // scrollHeight includes padding, subtract it to get pure content height
-    const textareaPadding = config.editor.padding * 2
-    const contentHeight = textarea.scrollHeight - textareaPadding
+    // Calculate the border+padding offset (what reduces content area)
+    const offset = config.editor.borderWidth + config.editor.padding
+    const totalOffset = offset * 2
 
-    // Measure unwrapped content width
+    // Current content width (what text actually wraps within)
+    const currentContentWidth = (annotation?.width ?? config.defaultWidth) - totalOffset
+
+    // Get content height from scrollHeight minus padding
+    const style = window.getComputedStyle(textarea)
+    const paddingTop = parseFloat(style.paddingTop)
+    const paddingBottom = parseFloat(style.paddingBottom)
+    const contentHeight = textarea.scrollHeight - paddingTop - paddingBottom
+
+    // Measure unwrapped text width
     const unwrappedWidth = measureTextWidth(editingContent.value, fontSize)
 
-    // If text fits without wrapping, shrink to fit
-    // If text wrapped (unwrapped > current), keep current width to preserve wrap
-    const newWidth = Math.max(Math.min(unwrappedWidth, currentWidth), 20)
+    // Shrink to fit if text is shorter than content area, otherwise keep current
+    // Add back the offset to get the outer width for annotation
+    const newContentWidth = Math.min(unwrappedWidth, currentContentWidth)
+    const newWidth = Math.max(newContentWidth + totalOffset, config.minHeight + totalOffset)
     const newHeight = Math.max(contentHeight, config.minHeight)
 
     finishEditing({ width: newWidth, height: newHeight })
@@ -186,11 +194,12 @@ function handleFinishEditing() {
           />
 
           <!-- Text content - use foreignObject for consistent wrapping with edit mode -->
+          <!-- Offset by editor border+padding to match textarea content area -->
           <foreignObject
-            :x="annotation.x"
-            :y="annotation.y"
-            :width="annotation.width"
-            :height="annotation.height"
+            :x="annotation.x + config.editor.borderWidth + config.editor.padding"
+            :y="annotation.y + config.editor.borderWidth + config.editor.padding"
+            :width="annotation.width - 2 * (config.editor.borderWidth + config.editor.padding)"
+            :height="annotation.height - 2 * (config.editor.borderWidth + config.editor.padding)"
             class="text-foreign-object"
           >
             <div
@@ -312,6 +321,7 @@ g:hover > .text-background.selected {
 .text-display {
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   user-select: none;
   pointer-events: none;
   word-wrap: break-word;

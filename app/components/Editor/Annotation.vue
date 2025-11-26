@@ -23,8 +23,11 @@ const bounds = useEditorBounds() // For clearing frozen bounds on selection chan
 // Check if this annotation is selected
 const isSelected = computed(() => annotationStore.isAnnotationSelected(props.annotation.id))
 
-// Delay single-click to allow double-click to take precedence
-const CLICK_DELAY = 150 // ms to wait for potential double-click
+// Double-click detection with manual timing (more reliable than browser dblclick)
+const DOUBLE_CLICK_THRESHOLD = 300 // ms between clicks to count as double-click
+const CLICK_DELAY = 200 // ms to wait before executing single-click
+let lastClickTime = 0
+let clickTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Handle selection logic
 function performSelection() {
@@ -51,23 +54,13 @@ function performSelection() {
   }
 }
 
-// Use useTimeoutFn for cancellable delayed selection
-const { start: startSelectionTimeout, stop: cancelSelectionTimeout } = useTimeoutFn(performSelection, CLICK_DELAY, {
-  immediate: false
-})
-
 // Handle double-click - delegate to tool's handler if registered
-function handleDoubleClick(e: MouseEvent) {
-  // Cancel pending single-click
-  cancelSelectionTimeout()
-
-  // Prevent browser text selection on double-click
-  e.preventDefault()
-  e.stopPropagation()
-
+function triggerDoubleClick() {
   const tool = toolRegistry.getTool(props.annotation.type)
 
   if (tool?.onDoubleClick) {
+    // Clear selection to hide transform handles during editing
+    annotationStore.deselectAll()
     tool.onDoubleClick(props.annotation.id)
   }
 }
@@ -83,16 +76,39 @@ function handleContextMenu(e: MouseEvent) {
   }
 }
 
-// Handle click with delay to detect double-click
+// Handle click with manual double-click detection
 function handleClick(e: MouseEvent) {
   // Prevent selection changes if a drag just finished (click fires after drag ends)
   if (dragState.isDragJustFinished()) {
     return
   }
 
-  // Delay single-click to see if double-click is coming
-  startSelectionTimeout()
+  e.preventDefault()
   e.stopPropagation()
+
+  const now = Date.now()
+  const timeSinceLastClick = now - lastClickTime
+
+  // Check if this is a double-click
+  if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD) {
+    // Cancel pending single-click
+    if (clickTimeout) {
+      clearTimeout(clickTimeout)
+      clickTimeout = null
+    }
+    lastClickTime = 0
+    triggerDoubleClick()
+  } else {
+    // Schedule single-click action (selection)
+    lastClickTime = now
+    if (clickTimeout) {
+      clearTimeout(clickTimeout)
+    }
+    clickTimeout = setTimeout(() => {
+      performSelection()
+      clickTimeout = null
+    }, CLICK_DELAY)
+  }
 }
 </script>
 
@@ -102,7 +118,6 @@ function handleClick(e: MouseEvent) {
     :class="['annotation', { selected: isSelected }]"
     :transform="annotationStore.getRotationTransform(annotation)"
     @click="handleClick"
-    @dblclick="handleDoubleClick"
     @contextmenu="handleContextMenu"
   >
     <!-- Tool-specific content (required) -->

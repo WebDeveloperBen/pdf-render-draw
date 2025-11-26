@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const bounds = useEditorBounds()
 const move = useEditorMove()
+const annotationStore = useAnnotationStore()
+const toolRegistry = useToolRegistry()
 
 const { selectionBounds, selectionRotation } = bounds
 const { isDragging, startDrag } = move
@@ -22,11 +24,30 @@ const selectionTransform = computed(() => {
 function handleDragStart(event: MouseEvent) {
   startDrag(event)
 }
+
+// Handle double-click to edit single selected annotation
+function handleDoubleClick(event: MouseEvent) {
+  event.preventDefault()
+  event.stopPropagation()
+
+  // Only trigger edit for single selection
+  if (annotationStore.selectedAnnotations.length === 1) {
+    const annotation = annotationStore.selectedAnnotation
+    if (annotation) {
+      const tool = toolRegistry.getTool(annotation.type)
+      if (tool?.onDoubleClick) {
+        // Clear selection to hide transform handles during editing
+        annotationStore.deselectAll()
+        tool.onDoubleClick(annotation.id)
+      }
+    }
+  }
+}
 </script>
 
 <template>
   <g v-if="selectionBounds" class="selection-ui" :transform="selectionTransform">
-    <!-- Bounding box outline - draggable to move selection -->
+    <!-- Bounding box outline - draggable to move selection, double-click to edit -->
     <rect
       :x="selectionBounds.x"
       :y="selectionBounds.y"
@@ -39,6 +60,7 @@ function handleDragStart(event: MouseEvent) {
       class="selection-box"
       :class="{ dragging: isDragging }"
       @mousedown="handleDragStart"
+      @dblclick="handleDoubleClick"
     />
 
     <!-- Rotation handle -->
