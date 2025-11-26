@@ -67,7 +67,7 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
 <template>
   <g class="count-tool">
     <!-- Completed count annotations -->
-    <EditorBaseAnnotation v-for="count in completed" :key="count.id" :annotation="count">
+    <EditorAnnotation v-for="count in completed" :key="count.id" :annotation="count">
       <template #content="{ annotation }">
         <!-- Invisible hitbox for easier clicking -->
         <circle
@@ -103,7 +103,7 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
           {{ annotation.number }}
         </text>
       </template>
-    </EditorBaseAnnotation>
+    </EditorAnnotation>
 
     <!-- Preview marker (shown when hovering with count tool active) -->
     <g v-if="showPreview && cursorPosition" class="preview">

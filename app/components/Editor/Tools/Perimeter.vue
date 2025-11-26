@@ -125,7 +125,7 @@ const viewportStore = useViewportStore()
 <template>
   <g class="perimeter-tool">
     <!-- Completed perimeters -->
-    <EditorBaseAnnotation v-for="perimeter in completed" :key="perimeter.id" :annotation="perimeter">
+    <EditorAnnotation v-for="perimeter in completed" :key="perimeter.id" :annotation="perimeter">
       <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
         <polygon
@@ -193,7 +193,7 @@ const viewportStore = useViewportStore()
           Total: {{ annotation.totalLength }}mm
         </text>
       </template>
-    </EditorBaseAnnotation>
+    </EditorAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

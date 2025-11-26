@@ -116,7 +116,7 @@ const viewportStore = useViewportStore()
 <template>
   <g class="area-tool">
     <!-- Completed areas -->
-    <EditorBaseAnnotation v-for="area in completed" :key="area.id" :annotation="area">
+    <EditorAnnotation v-for="area in completed" :key="area.id" :annotation="area">
       <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
         <polygon
@@ -156,7 +156,7 @@ const viewportStore = useViewportStore()
           {{ annotation.area }}m²
         </text>
       </template>
-    </EditorBaseAnnotation>
+    </EditorAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

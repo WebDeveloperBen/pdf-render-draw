@@ -1,14 +1,13 @@
 <script setup lang="ts" generic="T extends Annotation">
 /**
- * Base Annotation Component
+ * Annotation Component
  *
- * Provides common functionality for all annotation types:
- * - Selection handling
- * - Transform handles (when selected)
- * - Event delegation (double-click, context menu, etc.)
- * - Common props and emits
+ * Wrapper for rendering completed annotations with interactivity:
+ * - Selection handling (click, shift+click, cmd/ctrl+click)
+ * - Event delegation (double-click, context menu)
+ * - Rotation transforms
  *
- * Tools extend this via slots to customize rendering
+ * Used by tool components to wrap their completed annotation SVG content.
  */
 
 const props = defineProps<{
@@ -97,7 +96,7 @@ function handleClick(e: MouseEvent) {
 <template>
   <g
     :data-annotation-id="annotation.id"
-    :class="['base-annotation', { selected: isSelected }]"
+    :class="['annotation', { selected: isSelected }]"
     :transform="annotationStore.getRotationTransform(annotation)"
     @click="handleClick"
     @dblclick="handleDoubleClick"
@@ -115,7 +114,7 @@ function handleClick(e: MouseEvent) {
 </template>
 
 <style scoped>
-.base-annotation {
+.annotation {
   cursor: pointer;
 }
 </style>

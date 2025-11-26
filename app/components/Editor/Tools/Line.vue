@@ -91,7 +91,7 @@ watch(
 <template>
   <g class="line-tool">
     <!-- Completed lines -->
-    <EditorBaseAnnotation v-for="line in completed" :key="line.id" :annotation="line">
+    <EditorAnnotation v-for="line in completed" :key="line.id" :annotation="line">
       <template #content="{ annotation, isSelected }">
         <!-- Invisible wider hitbox for easier clicking -->
         <polyline
@@ -132,7 +132,7 @@ watch(
           class="end-marker"
         />
       </template>
-    </EditorBaseAnnotation>
+    </EditorAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

@@ -278,7 +278,7 @@ describe("Regression: Multi-Select Interactions", () => {
       annotationStore.selectAnnotations(["text-1", "text-2", "text-3"])
 
       // THEN: Check that only the first selected annotation should render GroupTransform
-      // (In BaseAnnotation.vue, the condition is: isSelected && length > 1 && selectedIds[0] === annotation.id)
+      // (In Annotation.vue, the condition is: isSelected && length > 1 && selectedIds[0] === annotation.id)
       expect(annotationStore.selectedAnnotationIds[0]).toBe("text-1")
       expect(annotationStore.isAnnotationSelected("text-1")).toBe(true)
       expect(annotationStore.isAnnotationSelected("text-2")).toBe(true)

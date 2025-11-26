@@ -91,7 +91,7 @@ watch(editingId, (newId, oldId) => {
 <template>
   <g class="text-tool">
     <!-- Each text annotation uses BaseAnnotation for common functionality -->
-    <EditorBaseAnnotation v-for="text in completed" :key="text.id" :annotation="text">
+    <EditorAnnotation v-for="text in completed" :key="text.id" :annotation="text">
       <!-- Custom content for text annotations -->
       <template #content="{ annotation, isSelected }">
         <!-- Non-editing mode: display text -->
@@ -184,7 +184,7 @@ watch(editingId, (newId, oldId) => {
 
       <!-- Transform handles are now handled by BaseAnnotation -->
       <!-- No need to manually include them here -->
-    </EditorBaseAnnotation>
+    </EditorAnnotation>
   </g>
 </template>
 

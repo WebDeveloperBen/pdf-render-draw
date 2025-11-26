@@ -100,7 +100,7 @@ const viewportStore = useViewportStore()
 <template>
   <g class="measure-tool">
     <!-- Completed measurements -->
-    <EditorBaseAnnotation v-for="measure in completed" :key="measure.id" :annotation="measure">
+    <EditorAnnotation v-for="measure in completed" :key="measure.id" :annotation="measure">
       <template #content="{ annotation, isSelected }">
         <!-- Invisible hit area (makes it easier to click thin lines) -->
         <line
@@ -152,7 +152,7 @@ const viewportStore = useViewportStore()
           {{ annotation.distance }}mm
         </text>
       </template>
-    </EditorBaseAnnotation>
+    </EditorAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

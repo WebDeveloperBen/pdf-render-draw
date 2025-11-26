@@ -52,7 +52,7 @@ const {
 <template>
   <g class="fill-tool">
     <!-- Completed fill rectangles -->
-    <EditorBaseAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
+    <EditorAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
       <template #content="{ annotation, isSelected }">
         <!-- Filled rectangle -->
         <rect
@@ -78,7 +78,7 @@ const {
           class="fill-border"
         />
       </template>
-    </EditorBaseAnnotation>
+    </EditorAnnotation>
 
     <!-- Preview while drawing -->
     <rect
