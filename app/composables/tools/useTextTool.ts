@@ -87,7 +87,8 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     deleteText
   }
 
-  // Register tool with full metadata, event handlers, and transformation logic
+  // Register tool with metadata and event handlers
+  // Transformation logic is handled generically by useTransformBase based on data structure
   registerTool({
     type: "text",
     name: "Text",
@@ -97,48 +98,6 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
       // Use global text editing state (singleton composable, no injection needed)
       const textEditing = useTextEditingState()
       textEditing.startEditing(id)
-    },
-    transform: {
-      // Transform metadata
-      structure: "positioned",
-      groupRotation: "update-position-and-rotation",
-      supportsGroupResize: true,
-      supportsGroupMove: true,
-      rotationCenter: "geometric-center",
-
-      // Get rotation center - center of text box
-      getCenter: (annotation) => {
-        const text = annotation as TextAnnotation
-        return {
-          x: text.x + text.width / 2,
-          y: text.y + text.height / 2
-        }
-      },
-
-      // Apply rotation - just update rotation property
-      applyRotation: (annotation, rotationDelta) => {
-        const currentRotation = annotation.rotation || 0
-        return { rotation: currentRotation + rotationDelta }
-      },
-
-      // Apply move - translate x,y
-      applyMove: (annotation, deltaX, deltaY) => {
-        const text = annotation as TextAnnotation
-        return {
-          x: text.x + deltaX,
-          y: text.y + deltaY
-        }
-      },
-
-      // Apply resize - update bounds
-      applyResize: (_annotation, newBounds, _originalBounds) => {
-        return {
-          x: newBounds.x,
-          y: newBounds.y,
-          width: newBounds.width,
-          height: newBounds.height
-        }
-      }
     }
   })
 

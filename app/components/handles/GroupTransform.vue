@@ -11,6 +11,7 @@ import { useTransformBase } from "~/composables/useTransformBase"
 import type { Annotation } from "~/types/annotations"
 import type { Point } from "~/types"
 import { getUnionBounds } from "~/utils/transform-math"
+import { hasPointsArray, hasPositionedRect } from "~/utils/editor/derived-values"
 
 const annotationStore = useAnnotationStore()
 const historyStore = useHistoryStore()
@@ -304,32 +305,28 @@ function handleResize(deltaX: number, deltaY: number) {
   const scaleY = newBounds.height / transformBase.originalBounds.value.height
 
   // Scale all annotations proportionally
-  // Use tool registry to determine resize behavior
+  // Use data-structure checks to determine resize behavior
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    if (isPointBasedTool(originalAnn.type)) {
-      // Point-based tools: scale all points relative to combined bounds
-      if (hasPoints(originalAnn)) {
-        const scaledPoints = originalAnn.points.map((p: Point) => ({
-          x: newBounds.x + (p.x - transformBase.originalBounds.value!.x) * scaleX,
-          y: newBounds.y + (p.y - transformBase.originalBounds.value!.y) * scaleY
-        }))
-        annotationStore.updateAnnotation(originalAnn.id, { points: scaledPoints })
-      }
-    } else if (isPositionedTool(originalAnn.type)) {
-      // Positioned tools: scale bounds (x, y, width, height)
-      if (hasX(originalAnn) && hasY(originalAnn) && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-        const scaledX = newBounds.x + (originalAnn.x - transformBase.originalBounds.value!.x) * scaleX
-        const scaledY = newBounds.y + (originalAnn.y - transformBase.originalBounds.value!.y) * scaleY
-        const scaledWidth = originalAnn.width * scaleX
-        const scaledHeight = originalAnn.height * scaleY
+    if (hasPointsArray(originalAnn)) {
+      // Point-based annotations: scale all points relative to combined bounds
+      const scaledPoints = originalAnn.points.map((p: Point) => ({
+        x: newBounds.x + (p.x - transformBase.originalBounds.value!.x) * scaleX,
+        y: newBounds.y + (p.y - transformBase.originalBounds.value!.y) * scaleY
+      }))
+      annotationStore.updateAnnotation(originalAnn.id, { points: scaledPoints })
+    } else if (hasPositionedRect(originalAnn)) {
+      // Positioned annotations: scale bounds (x, y, width, height)
+      const scaledX = newBounds.x + (originalAnn.x - transformBase.originalBounds.value!.x) * scaleX
+      const scaledY = newBounds.y + (originalAnn.y - transformBase.originalBounds.value!.y) * scaleY
+      const scaledWidth = originalAnn.width * scaleX
+      const scaledHeight = originalAnn.height * scaleY
 
-        annotationStore.updateAnnotation(originalAnn.id, {
-          x: scaledX,
-          y: scaledY,
-          width: scaledWidth,
-          height: scaledHeight
-        })
-      }
+      annotationStore.updateAnnotation(originalAnn.id, {
+        x: scaledX,
+        y: scaledY,
+        width: scaledWidth,
+        height: scaledHeight
+      })
     }
   })
 }
@@ -378,13 +375,10 @@ function handleRotate(svgX: number, svgY: number) {
   }
 
   // Apply rotation to annotations in real-time for visual feedback
+  // Use data-structure checks to determine rotation behavior
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    // Use tool registry to determine rotation behavior
-    if (shouldUpdatePoints(originalAnn.type)) {
-      // Point-based tools: update points directly during drag
-      // Type guard: verify annotation has points property
-      if (!hasPoints(originalAnn)) return
-
+    if (hasPointsArray(originalAnn)) {
+      // Point-based annotations: update points directly during drag
       const rotatedPoints = originalAnn.points.map((p: Point) => {
         const dx = p.x - centerX
         const dy = p.y - centerY
@@ -404,14 +398,13 @@ function handleRotate(svgX: number, svgY: number) {
       }
 
       annotationStore.updateAnnotation(originalAnn.id, updates)
-    } else if (shouldApplyRotationTransform(originalAnn.type)) {
-      // Positioned tools: store group center for SVG transform (visual rotation during drag)
+    } else if (hasPositionedRect(originalAnn)) {
+      // Positioned annotations: store group center for SVG transform (visual rotation during drag)
       // Don't update position yet - calculate final position on drag end
       annotationStore.updateAnnotation(originalAnn.id, {
         _groupCenter: { x: centerX, y: centerY }
       })
     }
-    // Tools with groupRotation: "none" don't get updated during rotation
   })
 }
 
@@ -419,25 +412,21 @@ function handleMove(deltaX: number, deltaY: number) {
   if (originalAnnotationStates.value.length === 0) return
 
   // Move all annotations by the same delta
-  // Use tool registry to determine move behavior
+  // Use data-structure checks to determine move behavior
   originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-    if (isPointBasedTool(originalAnn.type)) {
-      // Point-based tools: move all points
-      if (hasPoints(originalAnn)) {
-        const movedPoints = originalAnn.points.map((p: Point) => ({
-          x: p.x + deltaX,
-          y: p.y + deltaY
-        }))
-        annotationStore.updateAnnotation(originalAnn.id, { points: movedPoints })
-      }
-    } else if (isPositionedTool(originalAnn.type)) {
-      // Positioned tools: move x,y position
-      if (hasX(originalAnn) && hasY(originalAnn)) {
-        annotationStore.updateAnnotation(originalAnn.id, {
-          x: originalAnn.x + deltaX,
-          y: originalAnn.y + deltaY
-        })
-      }
+    if (hasPointsArray(originalAnn)) {
+      // Point-based annotations: move all points
+      const movedPoints = originalAnn.points.map((p: Point) => ({
+        x: p.x + deltaX,
+        y: p.y + deltaY
+      }))
+      annotationStore.updateAnnotation(originalAnn.id, { points: movedPoints })
+    } else if (hasPositionedRect(originalAnn)) {
+      // Positioned annotations: move x,y position
+      annotationStore.updateAnnotation(originalAnn.id, {
+        x: originalAnn.x + deltaX,
+        y: originalAnn.y + deltaY
+      })
     }
   })
 }
@@ -469,10 +458,10 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
     const centerY = transformBase.originalBounds.value.y + transformBase.originalBounds.value.height / 2
 
     // Commit rotation for all annotations
-    // Use tool registry to determine how to finalize rotation
+    // Use data-structure checks to determine how to finalize rotation
     originalAnnotationStates.value.forEach((originalAnn: Annotation) => {
-      if (shouldUpdatePoints(originalAnn.type)) {
-        // Point-based tools: rotation was already applied during drag, just get current state
+      if (hasPointsArray(originalAnn)) {
+        // Point-based annotations: rotation was already applied during drag
         // (points were updated in real-time during handleRotate)
         // For measurements, also update labelRotation to keep labels aligned
         if (originalAnn.type === "measure" && hasLabelRotation(originalAnn)) {
@@ -482,64 +471,62 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           })
         }
         // Points already updated during drag, nothing more to do
-      } else if (shouldApplyRotationTransform(originalAnn.type)) {
-        // Positioned tools: calculate final orbited position
-        if (hasX(originalAnn) && hasY(originalAnn) && hasWidth(originalAnn) && hasHeight(originalAnn)) {
-          // Get the current annotation to see what transform was applied
-          const currentAnn = annotationStore.getAnnotationById(originalAnn.id)
+      } else if (hasPositionedRect(originalAnn)) {
+        // Positioned annotations: calculate final orbited position
+        // Get the current annotation to see what transform was applied
+        const currentAnn = annotationStore.getAnnotationById(originalAnn.id)
 
-          // Calculate annotation's ORIGINAL center position (from stored state at drag start)
-          const annCenterX = originalAnn.x + originalAnn.width / 2
-          const annCenterY = originalAnn.y + originalAnn.height / 2
+        // Calculate annotation's ORIGINAL center position (from stored state at drag start)
+        const annCenterX = originalAnn.x + originalAnn.width / 2
+        const annCenterY = originalAnn.y + originalAnn.height / 2
 
-          // Rotate the center around the group center
-          const dx = annCenterX - centerX
-          const dy = annCenterY - centerY
-          const cos = Math.cos(transformBase.currentRotationDelta.value)
-          const sin = Math.sin(transformBase.currentRotationDelta.value)
-          const rotatedCenterX = centerX + dx * cos - dy * sin
-          const rotatedCenterY = centerY + dx * sin + dy * cos
+        // Rotate the center around the group center
+        const dx = annCenterX - centerX
+        const dy = annCenterY - centerY
+        const cos = Math.cos(transformBase.currentRotationDelta.value)
+        const sin = Math.sin(transformBase.currentRotationDelta.value)
+        const rotatedCenterX = centerX + dx * cos - dy * sin
+        const rotatedCenterY = centerY + dx * sin + dy * cos
 
-          // Calculate new x,y position from rotated center
-          const newX = rotatedCenterX - originalAnn.width / 2
-          const newY = rotatedCenterY - originalAnn.height / 2
+        // Calculate new x,y position from rotated center
+        const newX = rotatedCenterX - originalAnn.width / 2
+        const newY = rotatedCenterY - originalAnn.height / 2
 
-          console.log("[GroupTransform] handleEndDrag - final annotation position:", {
-            id: originalAnn.id,
-            type: originalAnn.type,
-            originalPos: { x: originalAnn.x, y: originalAnn.y },
-            originalCenter: { x: annCenterX, y: annCenterY },
-            currentPos: currentAnn && hasX(currentAnn) && hasY(currentAnn)
-              ? { x: currentAnn.x, y: currentAnn.y }
-              : "not found",
-            groupCenter: { x: centerX, y: centerY },
-            rotationDeg: transformBase.currentRotationDelta.value * (180 / Math.PI),
-            rotatedCenter: { x: rotatedCenterX, y: rotatedCenterY },
-            newPos: { x: newX, y: newY }
-          })
+        console.log("[GroupTransform] handleEndDrag - final annotation position:", {
+          id: originalAnn.id,
+          type: originalAnn.type,
+          originalPos: { x: originalAnn.x, y: originalAnn.y },
+          originalCenter: { x: annCenterX, y: annCenterY },
+          currentPos: currentAnn && hasPositionedRect(currentAnn)
+            ? { x: currentAnn.x, y: currentAnn.y }
+            : "not found",
+          groupCenter: { x: centerX, y: centerY },
+          rotationDeg: transformBase.currentRotationDelta.value * (180 / Math.PI),
+          rotatedCenter: { x: rotatedCenterX, y: rotatedCenterY },
+          newPos: { x: newX, y: newY }
+        })
 
-          // Update to final orbited position AND rotation
-          // The annotation orbits to a new position AND rotates to match the drag angle
-          const currentRotation = (originalAnn as { rotation?: number }).rotation || 0
-          const newRotation = currentRotation + transformBase.currentRotationDelta.value
+        // Update to final orbited position AND rotation
+        // The annotation orbits to a new position AND rotates to match the drag angle
+        const currentRotation = originalAnn.rotation || 0
+        const newRotation = currentRotation + transformBase.currentRotationDelta.value
 
-          console.log("[GroupTransform] handleEndDrag - setting final position:", {
-            id: originalAnn.id,
-            type: originalAnn.type,
-            newPos: { x: newX, y: newY },
-            currentRotation,
-            rotationDelta: transformBase.currentRotationDelta.value,
-            newRotation,
-            newRotationDeg: newRotation * (180 / Math.PI)
-          })
+        console.log("[GroupTransform] handleEndDrag - setting final position:", {
+          id: originalAnn.id,
+          type: originalAnn.type,
+          newPos: { x: newX, y: newY },
+          currentRotation,
+          rotationDelta: transformBase.currentRotationDelta.value,
+          newRotation,
+          newRotationDeg: newRotation * (180 / Math.PI)
+        })
 
-          annotationStore.updateAnnotation(originalAnn.id, {
-            x: newX,
-            y: newY,
-            rotation: newRotation,
-            _groupCenter: undefined
-          })
-        }
+        annotationStore.updateAnnotation(originalAnn.id, {
+          x: newX,
+          y: newY,
+          rotation: newRotation,
+          _groupCenter: undefined
+        })
       }
     })
 

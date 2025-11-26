@@ -7,7 +7,6 @@ defineProps<{
 
 const annotationStore = useAnnotationStore()
 const historyStore = useHistoryStore()
-const toolRegistry = useToolRegistry()
 
 const selectedAnnotation = computed(() => annotationStore.selectedAnnotation)
 
@@ -25,13 +24,8 @@ const transformBase = useTransformBase()
 const originalPoints = ref<Array<{ x: number; y: number }> | null>(null)
 const originalAnnotationState = ref<Annotation | null>(null)
 
-// Calculate rotation center - delegate to tool's registered transform function
+// Calculate rotation center - uses utility function that handles all annotation types
 function getRotationCenter(annotation: Annotation): { x: number; y: number } {
-  const tool = toolRegistry.getTool(annotation.type)
-  if (tool?.transform?.getCenter) {
-    return tool.transform.getCenter(annotation)
-  }
-  // Fallback to utility function for tools that haven't registered yet
   return getAnnotationCenter(annotation)
 }
 
@@ -298,18 +292,10 @@ function handleMove(deltaX: number, deltaY: number) {
   if (!selectedAnnotation.value || !originalAnnotationState.value) return
 
   const annotation = selectedAnnotation.value
-  const tool = toolRegistry.getTool(annotation.type)
 
-  // Use tool's registered move handler if available
+  // Use data-structure checks to determine move behavior
   // IMPORTANT: Pass the ORIGINAL annotation state, not the current reactive one
   // This prevents cumulative delta compounding on each mousemove
-  if (tool?.transform?.applyMove) {
-    const updates = tool.transform.applyMove(originalAnnotationState.value, deltaX, deltaY)
-    annotationStore.updateAnnotation(annotation.id, updates)
-    return
-  }
-
-  // Fallback for tools that haven't registered yet
   if ("points" in annotation && originalPoints.value) {
     // Point-based annotation - translate all points
     const movedPoints = originalPoints.value.map((p) => ({
@@ -319,7 +305,7 @@ function handleMove(deltaX: number, deltaY: number) {
 
     annotationStore.updateAnnotation(annotation.id, { points: movedPoints })
   } else if ("x" in annotation && "y" in annotation && originalAnnotationState.value) {
-    // Fill/text annotation - update x, y position from ORIGINAL state, not bounds
+    // Positioned annotation - update x, y position from ORIGINAL state, not bounds
     // Use originalAnnotationState instead of originalBounds to ensure we have the exact original x,y
     const originalX = (originalAnnotationState.value as { x: number }).x
     const originalY = (originalAnnotationState.value as { y: number }).y
@@ -358,8 +344,6 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
 
   // Commit rotation on release
   if (mode === "rotate" && transformBase.currentRotationDelta.value !== 0) {
-    const tool = toolRegistry.getTool(selectedAnnotation.value.type)
-
     console.log("[Transform] Committing rotation:", {
       type: selectedAnnotation.value.type,
       currentRotation: selectedAnnotation.value.rotation,
@@ -367,20 +351,13 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
       newRotation: selectedAnnotation.value.rotation + transformBase.currentRotationDelta.value
     })
 
-    // Use tool's registered rotation handler if available
-    if (tool?.transform?.applyRotation) {
-      const updates = tool.transform.applyRotation(selectedAnnotation.value, transformBase.currentRotationDelta.value)
-      console.log("[Transform] Applying rotation updates:", updates)
-      annotationStore.updateAnnotation(annotationId, updates)
-    } else {
-      // Fallback
-      const existingRotation = (selectedAnnotation.value as { rotation?: number }).rotation || 0
-      const newRotation = existingRotation + transformBase.currentRotationDelta.value
+    // All annotations have rotation in BaseAnnotation, so we can update it directly
+    const existingRotation = selectedAnnotation.value.rotation || 0
+    const newRotation = existingRotation + transformBase.currentRotationDelta.value
 
-      annotationStore.updateAnnotation(annotationId, {
-        rotation: newRotation
-      })
-    }
+    annotationStore.updateAnnotation(annotationId, {
+      rotation: newRotation
+    })
 
     // Clear rotation drag delta
     annotationStore.rotationDragDelta = 0
