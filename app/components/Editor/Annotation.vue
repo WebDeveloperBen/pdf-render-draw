@@ -23,6 +23,9 @@ const bounds = useEditorBounds() // For clearing frozen bounds on selection chan
 // Check if this annotation is selected
 const isSelected = computed(() => annotationStore.isAnnotationSelected(props.annotation.id))
 
+// Track hover state for visual feedback
+const isHovered = ref(false)
+
 // Double-click detection with manual timing (more reliable than browser dblclick)
 const DOUBLE_CLICK_THRESHOLD = 300 // ms between clicks to count as double-click
 const CLICK_DELAY = 200 // ms to wait before executing single-click
@@ -115,13 +118,15 @@ function handleClick(e: MouseEvent) {
 <template>
   <g
     :data-annotation-id="annotation.id"
-    :class="['annotation', { selected: isSelected }]"
+    :class="['annotation', { selected: isSelected, hovered: isHovered && !isSelected }]"
     :transform="annotationStore.getRotationTransform(annotation)"
     @click="handleClick"
     @contextmenu="handleContextMenu"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
   >
     <!-- Tool-specific content (required) -->
-    <slot name="content" :annotation="annotation" :is-selected="isSelected">
+    <slot name="content" :annotation="annotation" :is-selected="isSelected" :is-hovered="isHovered">
       <!-- Fallback if no content slot provided -->
       <text x="0" y="0" fill="red">No content slot provided for {{ annotation.type }}</text>
     </slot>
@@ -134,5 +139,14 @@ function handleClick(e: MouseEvent) {
 <style scoped>
 .annotation {
   cursor: pointer;
+  transition: filter 0.15s ease-out;
+}
+
+.annotation.hovered {
+  filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.3));
+}
+
+.annotation.selected {
+  filter: drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.4));
 }
 </style>

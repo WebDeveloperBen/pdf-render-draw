@@ -39,18 +39,6 @@ export const LINE_TOOL_DEFAULTS = {
       fill: "blue",
       opacity: 0.5
     }
-  },
-
-  // Selected/hover states
-  states: {
-    hover: {
-      strokeWidth: 3,
-      stroke: "orange"
-    },
-    selected: {
-      stroke: "blue",
-      strokeWidth: 3
-    }
   }
 } as const
 
@@ -92,7 +80,7 @@ watch(
   <g class="line-tool">
     <!-- Completed lines -->
     <EditorAnnotation v-for="line in completed" :key="line.id" :annotation="line">
-      <template #content="{ annotation, isSelected }">
+      <template #content="{ annotation }">
         <!-- Invisible wider hitbox for easier clicking -->
         <polyline
           :points="toSvgPoints(annotation.points)"
@@ -108,7 +96,6 @@ watch(
           :stroke="config.strokeColor"
           :stroke-width="config.strokeWidth"
           fill="none"
-          :class="{ 'selected-path': isSelected }"
           class="line-path"
         />
 
@@ -191,23 +178,9 @@ watch(
   cursor: pointer;
 }
 
-/* Visual line - no pointer events, styling controlled by parent hover */
+/* Visual line - no pointer events, hover handled by parent Annotation component */
 .line-path {
   pointer-events: none;
-  transition: stroke-width 0.2s;
-}
-
-/* Hover effect */
-.line-path:hover,
-.line-hitbox:hover ~ .line-path {
-  stroke-width: v-bind("config.states.hover.strokeWidth");
-  stroke: v-bind("config.states.hover.stroke");
-}
-
-/* Selected state */
-.line-path.selected-path {
-  stroke: v-bind("config.states.selected.stroke");
-  stroke-width: v-bind("config.states.selected.strokeWidth");
 }
 
 .start-marker,

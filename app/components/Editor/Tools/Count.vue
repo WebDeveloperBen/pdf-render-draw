@@ -35,14 +35,6 @@ export const COUNT_TOOL_DEFAULTS = {
   // Preview styling
   preview: {
     opacity: 0.7
-  },
-
-  // Hover state
-  states: {
-    hover: {
-      radius: 18,
-      strokeWidth: 3
-    }
   }
 } as const
 
@@ -140,15 +132,9 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
   cursor: pointer;
 }
 
-/* Count marker styling */
+/* Count marker styling - hover handled by parent Annotation component */
 .count-marker {
   pointer-events: none;
-}
-
-/* Hover effect */
-.count-hitbox:hover ~ .count-marker {
-  r: v-bind("config.states.hover.radius");
-  stroke-width: v-bind("config.states.hover.strokeWidth");
 }
 
 /* Text styling */
