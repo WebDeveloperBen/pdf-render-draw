@@ -1,3 +1,5 @@
+import { RENDERING } from "@/constants/rendering"
+
 export interface BaseToolOptions {
   type: string
   minPoints?: number
@@ -28,7 +30,6 @@ export interface BaseToolOptions {
  * })
  */
 export function useBaseTool(options: BaseToolOptions) {
-  const settings = useSettingStore()
   const annotationStore = useAnnotationStore()
 
   // State
@@ -46,7 +47,7 @@ export function useBaseTool(options: BaseToolOptions) {
 
     const firstPoint = points.value[0]!
     const dist = distance(tempEndPoint.value, firstPoint)
-    const snapDist = options.snapDistance ?? settings.toolSnapDistance
+    const snapDist = options.snapDistance ?? RENDERING.TOOL_SNAP_DISTANCE
     return dist < snapDist
   })
 

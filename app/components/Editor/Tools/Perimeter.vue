@@ -8,6 +8,14 @@
  */
 
 export const PERIMETER_TOOL_DEFAULTS = {
+  // Tool styling
+  fillColor: 'green',
+  strokeColor: 'green',
+  strokeWidth: 1,
+  opacity: 0.2,
+  labelColor: 'green',
+  labelSize: 10,
+
   // Segment label background styling
   segmentLabel: {
     background: {
@@ -100,8 +108,6 @@ if (!tool) {
 
 // Destructure everything we need (inherited + tool-specific)
 const {
-  // From BaseTool (inherited):
-  settings,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -124,10 +130,10 @@ const rendererStore = useRendererStore()
         <!-- Polygon -->
         <polygon
           :points="toSvgPoints(annotation.points)"
-          :fill="settings.perimeterToolSettings.fillColor"
-          :fill-opacity="settings.perimeterToolSettings.opacity"
-          :stroke="settings.perimeterToolSettings.strokeColor"
-          :stroke-width="settings.perimeterToolSettings.strokeWidth"
+          :fill="config.fillColor"
+          :fill-opacity="config.opacity"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
           :class="{ 'selected-polygon': isSelected }"
           class="perimeter-polygon"
         />
@@ -150,8 +156,8 @@ const rendererStore = useRendererStore()
           <text
             :x="segment.midpoint.x"
             :y="segment.midpoint.y"
-            :fill="settings.perimeterToolSettings.labelColor"
-            :font-size="settings.perimeterToolSettings.labelSize"
+            :fill="config.labelColor"
+            :font-size="config.labelSize"
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
@@ -176,8 +182,8 @@ const rendererStore = useRendererStore()
         <text
           :x="annotation.center.x"
           :y="annotation.center.y"
-          :fill="settings.perimeterToolSettings.labelColor"
-          :font-size="settings.perimeterToolSettings.labelSize + config.totalLabel.fontSizeBonus"
+          :fill="config.labelColor"
+          :font-size="config.labelSize + config.totalLabel.fontSizeBonus"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
@@ -198,7 +204,7 @@ const rendererStore = useRendererStore()
         :cy="tempEndPoint.y"
         :r="config.preview.cursorIndicator.radius"
         fill="none"
-        :stroke="settings.perimeterToolSettings.strokeColor"
+        :stroke="config.strokeColor"
         :stroke-width="config.preview.cursorIndicator.strokeWidth"
         :opacity="config.preview.cursorIndicator.opacity"
       />
@@ -212,7 +218,7 @@ const rendererStore = useRendererStore()
           :cx="point.x"
           :cy="point.y"
           :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
-          :fill="index === 0 ? config.preview.pointMarkers.firstFill : settings.perimeterToolSettings.strokeColor"
+          :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
           :stroke="config.preview.pointMarkers.stroke"
           :stroke-width="config.preview.pointMarkers.strokeWidth"
           class="point-marker"
@@ -222,10 +228,10 @@ const rendererStore = useRendererStore()
         <polygon
           v-if="points.length >= 2"
           :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
-          :fill="settings.perimeterToolSettings.fillColor"
-          :fill-opacity="settings.perimeterToolSettings.opacity * config.preview.polygon.opacityMultiplier"
-          :stroke="settings.perimeterToolSettings.strokeColor"
-          :stroke-width="settings.perimeterToolSettings.strokeWidth"
+          :fill="config.fillColor"
+          :fill-opacity="config.opacity * config.preview.polygon.opacityMultiplier"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
           :stroke-dasharray="config.preview.polygon.strokeDashArray"
         />
 
@@ -236,8 +242,8 @@ const rendererStore = useRendererStore()
             :y1="segment.start.y"
             :x2="segment.end.x"
             :y2="segment.end.y"
-            :stroke="settings.perimeterToolSettings.strokeColor"
-            :stroke-width="settings.perimeterToolSettings.strokeWidth"
+            :stroke="config.strokeColor"
+            :stroke-width="config.strokeWidth"
             :stroke-dasharray="idx === previewSegments.length - 1 ? config.preview.polygon.strokeDashArray : '0'"
           />
 

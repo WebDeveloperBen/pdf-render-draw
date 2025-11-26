@@ -39,8 +39,7 @@ The editor uses PDF coordinates as the single source of truth:
 ### Core Stores (Pinia)
 
 - **`annotations.ts`**: Flat array of annotations, selection state, CRUD operations with validation
-- **`renderer.ts`**: PDF viewport state (scale, rotation, scroll position), PDF.js document loading
-- **`settings.ts`**: Tool settings (colors, stroke widths, font sizes), grouped by tool type
+- **`renderer.ts`**: PDF viewport state (scale, rotation, scroll position, pdfScale), PDF.js document loading
 - **`history.ts`**: Undo/redo command stack
 
 ### Annotation Types
@@ -77,6 +76,19 @@ const tool = useDrawingTool<Measurement>({
   calculate: (points) => ({ distance, midpoint }),
   onCreate: (annotation) => { /* save */ }
 })
+```
+
+### Tool Styling
+
+Each tool component exports a `*_TOOL_DEFAULTS` constant with all styling (colors, stroke widths, etc.):
+```typescript
+// In Measure.vue
+export const MEASURE_TOOL_DEFAULTS = {
+  strokeColor: 'black',
+  strokeWidth: 1,
+  labelColor: 'black',
+  // ...
+}
 ```
 
 ### Transform Handles

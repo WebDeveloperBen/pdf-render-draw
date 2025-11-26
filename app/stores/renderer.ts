@@ -49,6 +49,7 @@ export const useRendererStore = defineStore("renderer", () => {
   const currentPage = shallowRef(1) //first page of the pdf
   const pdfInitialised = shallowRef(false)
   const lastCursorPosition = ref<{ x: number; y: number } | null>(null) // Last known cursor position in SVG coords for paste operations
+  const pdfScale = ref<string>("1:100") // Drawing scale (e.g., "1:100" means 1mm on paper = 100mm in reality)
 
   /**
    * Getters
@@ -56,6 +57,7 @@ export const useRendererStore = defineStore("renderer", () => {
 
   const getScale = computed(() => scale.value)
   const getRotation = computed(() => rotation.value)
+  const getPdfScale = computed(() => pdfScale.value)
 
   /**
    * Viewport-relative label rotation (counter-rotates PDF rotation)
@@ -222,6 +224,7 @@ export const useRendererStore = defineStore("renderer", () => {
   }
   const setPdfInitialised = (init: boolean) => (pdfInitialised.value = init)
   const setLastCursorPosition = (pos: { x: number; y: number } | null) => (lastCursorPosition.value = pos)
+  const setPdfScale = (scaleString: string) => (pdfScale.value = scaleString)
 
   /**
    * Load a PDF document with lazy worker initialization
@@ -334,6 +337,9 @@ export const useRendererStore = defineStore("renderer", () => {
     setPdfInitialised,
     lastCursorPosition,
     setLastCursorPosition,
+    pdfScale,
+    getPdfScale,
+    setPdfScale,
     resetState,
     // Transform getters
     getCanvasTransform,

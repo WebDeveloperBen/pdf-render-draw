@@ -2,7 +2,7 @@
  * Base tool factory - acts like a base class for all annotation tools
  *
  * This composable provides common functionality that all tools inherit:
- * - Store access (settings, annotations)
+ * - Store access (annotations)
  * - Rotation transform helpers
  * - Selection handlers
  *
@@ -22,7 +22,6 @@
  * }
  */
 export function useCreateBaseTool() {
-  const settings = useSettingStore()
   const annotationStore = useAnnotationStore()
 
   /**
@@ -44,7 +43,6 @@ export function useCreateBaseTool() {
   // Base "class" interface
   return {
     // Stores (protected-like access)
-    settings,
     annotationStore,
 
     // Shared methods (public interface)

@@ -8,6 +8,10 @@
  */
 
 export const LINE_TOOL_DEFAULTS = {
+  // Tool styling
+  strokeColor: 'blue',
+  strokeWidth: 3,
+
   // Hit area for easier clicking
   hitArea: {
     strokeWidth: 20
@@ -66,8 +70,6 @@ if (!tool) {
 
 // Destructure everything we need (inherited + tool-specific)
 const {
-  // From BaseTool (inherited):
-  settings,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -103,8 +105,8 @@ watch(
         <!-- Visible line -->
         <polyline
           :points="toSvgPoints(annotation.points)"
-          :stroke="settings.lineToolSettings.strokeColor"
-          :stroke-width="settings.lineToolSettings.strokeWidth"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
           fill="none"
           :class="{ 'selected-path': isSelected }"
           class="line-path"
@@ -116,7 +118,7 @@ watch(
           :cx="annotation.points[0].x"
           :cy="annotation.points[0].y"
           :r="config.markers.radius"
-          :fill="settings.lineToolSettings.strokeColor"
+          :fill="config.strokeColor"
           class="start-marker"
         />
 
@@ -126,7 +128,7 @@ watch(
           :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
           :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
           :r="config.markers.radius"
-          :fill="settings.lineToolSettings.strokeColor"
+          :fill="config.strokeColor"
           class="end-marker"
         />
       </template>
@@ -141,7 +143,7 @@ watch(
         :cy="tempEndPoint.y"
         :r="config.preview.cursorIndicator.radius"
         fill="none"
-        :stroke="settings.lineToolSettings.strokeColor"
+        :stroke="config.strokeColor"
         :stroke-width="config.preview.cursorIndicator.strokeWidth"
         :opacity="config.preview.cursorIndicator.opacity"
       />
@@ -152,8 +154,8 @@ watch(
         <polyline
           v-if="points.length >= 1"
           :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
-          :stroke="settings.lineToolSettings.strokeColor"
-          :stroke-width="settings.lineToolSettings.strokeWidth"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
           fill="none"
           :stroke-dasharray="config.preview.line.strokeDashArray"
           :opacity="config.preview.line.opacity"
@@ -166,7 +168,7 @@ watch(
           :cx="point.x"
           :cy="point.y"
           :r="config.preview.pointRadius"
-          :fill="settings.lineToolSettings.strokeColor"
+          :fill="config.strokeColor"
         />
 
         <!-- Temp end point indicator -->

@@ -10,18 +10,16 @@ vi.mock("~/utils/debug", () => ({
 describe("Selection & Manipulation Workflow", () => {
   let annotationStore: ReturnType<typeof useAnnotationStore>
   let rendererStore: ReturnType<typeof useRendererStore>
-  let settingsStore: ReturnType<typeof useSettingStore>
 
   beforeEach(() => {
     setActivePinia(createPinia())
     annotationStore = useAnnotationStore()
     rendererStore = useRendererStore()
-    settingsStore = useSettingStore()
 
     // Set up stores
     rendererStore.currentPage = 1
     rendererStore.rotation = 0
-    // Settings store should have default pdfScale of "1:100"
+    // Renderer store has default pdfScale of "1:100"
   })
 
   describe("Annotation Selection", () => {

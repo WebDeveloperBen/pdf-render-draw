@@ -8,6 +8,14 @@
  */
 
 export const AREA_TOOL_DEFAULTS = {
+  // Tool styling
+  fillColor: '#f05a24',
+  strokeColor: '#f05a24',
+  strokeWidth: 1,
+  opacity: 0.2,
+  labelColor: 'black',
+  labelSize: 10,
+
   // Label background styling
   label: {
     background: {
@@ -90,8 +98,6 @@ if (!tool) {
 
 // Destructure everything we need (inherited + tool-specific)
 const {
-  // From BaseTool (inherited):
-  settings,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -115,10 +121,10 @@ const rendererStore = useRendererStore()
         <!-- Polygon -->
         <polygon
           :points="toSvgPoints(annotation.points)"
-          :fill="settings.areaToolSettings.fillColor"
-          :fill-opacity="settings.areaToolSettings.opacity"
-          :stroke="settings.areaToolSettings.strokeColor"
-          :stroke-width="settings.areaToolSettings.strokeWidth"
+          :fill="config.fillColor"
+          :fill-opacity="config.opacity"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
           :class="{ 'selected-polygon': isSelected }"
           class="area-polygon"
         />
@@ -139,8 +145,8 @@ const rendererStore = useRendererStore()
         <text
           :x="annotation.center.x"
           :y="annotation.center.y"
-          :fill="settings.areaToolSettings.labelColor"
-          :font-size="settings.areaToolSettings.labelSize"
+          :fill="config.labelColor"
+          :font-size="config.labelSize"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
@@ -161,7 +167,7 @@ const rendererStore = useRendererStore()
         :cy="tempEndPoint.y"
         :r="config.preview.cursorIndicator.radius"
         fill="none"
-        :stroke="settings.areaToolSettings.strokeColor"
+        :stroke="config.strokeColor"
         :stroke-width="config.preview.cursorIndicator.strokeWidth"
         :opacity="config.preview.cursorIndicator.opacity"
       />
@@ -174,7 +180,7 @@ const rendererStore = useRendererStore()
           :cx="point.x"
           :cy="point.y"
           :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
-          :fill="index === 0 ? config.preview.pointMarkers.firstFill : settings.areaToolSettings.strokeColor"
+          :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
           :stroke="config.preview.pointMarkers.stroke"
           :stroke-width="config.preview.pointMarkers.strokeWidth"
           class="point-marker"
@@ -190,8 +196,8 @@ const rendererStore = useRendererStore()
               :y1="point.y"
               :x2="points[index + 1]?.x ?? 0"
               :y2="points[index + 1]?.y ?? 0"
-              :stroke="settings.areaToolSettings.strokeColor"
-              :stroke-width="settings.areaToolSettings.strokeWidth"
+              :stroke="config.strokeColor"
+              :stroke-width="config.strokeWidth"
               :stroke-dasharray="config.preview.lines.strokeDashArray"
               :opacity="config.preview.lines.opacity"
             />
@@ -205,8 +211,8 @@ const rendererStore = useRendererStore()
               :y1="points[points.length - 1]?.y ?? 0"
               :x2="tempEndPoint.x"
               :y2="tempEndPoint.y"
-              :stroke="settings.areaToolSettings.strokeColor"
-              :stroke-width="settings.areaToolSettings.strokeWidth"
+              :stroke="config.strokeColor"
+              :stroke-width="config.strokeWidth"
               :stroke-dasharray="config.preview.lines.strokeDashArray"
               :opacity="config.preview.lines.opacity"
             />
@@ -219,8 +225,8 @@ const rendererStore = useRendererStore()
             :y1="tempEndPoint.y"
             :x2="points[0].x"
             :y2="points[0].y"
-            :stroke="settings.areaToolSettings.strokeColor"
-            :stroke-width="settings.areaToolSettings.strokeWidth"
+            :stroke="config.strokeColor"
+            :stroke-width="config.strokeWidth"
             :stroke-dasharray="config.preview.lines.strokeDashArray"
             :opacity="config.preview.lines.closingLineOpacity"
           />
@@ -230,8 +236,8 @@ const rendererStore = useRendererStore()
         <polygon
           v-if="previewPolygon"
           :points="previewPolygon"
-          :fill="settings.areaToolSettings.fillColor"
-          :fill-opacity="settings.areaToolSettings.opacity * config.preview.polygonOpacityMultiplier"
+          :fill="config.fillColor"
+          :fill-opacity="config.opacity * config.preview.polygonOpacityMultiplier"
           fill-rule="evenodd"
           pointer-events="none"
         />

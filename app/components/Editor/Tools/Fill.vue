@@ -43,8 +43,6 @@ if (!tool) {
 
 // Destructure everything we need (inherited + tool-specific)
 const {
-  // From BaseTool (inherited):
-  settings,
   // From FillTool:
   isDrawing,
   currentRect,
@@ -74,7 +72,7 @@ const {
           :width="annotation.width"
           :height="annotation.height"
           fill="transparent"
-          :stroke="isSelected ? settings.fillToolSettings.fillColor : annotation.color"
+          :stroke="isSelected ? config.color : annotation.color"
           :stroke-width="isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth"
           :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
           class="fill-border"
@@ -89,9 +87,9 @@ const {
       :y="currentRect.y"
       :width="currentRect.width"
       :height="currentRect.height"
-      :fill="settings.fillToolSettings.fillColor"
+      :fill="config.color"
       :fill-opacity="config.preview.fillOpacity"
-      :stroke="settings.fillToolSettings.fillColor"
+      :stroke="config.color"
       :stroke-width="config.preview.strokeWidth"
       :stroke-dasharray="config.preview.strokeDashArray"
       class="preview-rect"

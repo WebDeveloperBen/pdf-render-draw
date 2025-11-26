@@ -67,12 +67,12 @@ export function projectDeltaToLocalSpace(
 
 /**
  * Calculate real-world distance between two points
- * Automatically uses PDF scale from settings store
+ * Automatically uses PDF scale from renderer store
  */
 export function calculateDistance(p1: Point, p2: Point, dpi: number = 72): number {
-  // Get scale from global settings
-  const settingsStore = useSettingStore()
-  const scaleString = settingsStore.getPdfScale
+  // Get scale from renderer store
+  const rendererStore = useRendererStore()
+  const scaleString = rendererStore.getPdfScale
 
   // Calculate distance in PDF units (points)
   const dx = p2.x - p1.x
@@ -118,14 +118,14 @@ export function calculateCentroid(points: Point[]): Point {
 
 /**
  * Calculate real-world polygon area using shoelace formula
- * Automatically uses PDF scale from settings store
+ * Automatically uses PDF scale from renderer store
  */
 export function calculatePolygonArea(points: Point[], dpi: number = 72): number {
   if (points.length < 3) return 0
 
-  // Get scale from global settings
-  const settingsStore = useSettingStore()
-  const scaleString = settingsStore.getPdfScale
+  // Get scale from renderer store
+  const rendererStore = useRendererStore()
+  const scaleString = rendererStore.getPdfScale
   const scale = parsePdfPageScale(scaleString)
   const pixelsToMm = 25.4 / dpi
 

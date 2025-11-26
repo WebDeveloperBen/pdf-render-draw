@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
+import { FILL_TOOL_DEFAULTS } from "~/components/Editor/Tools/Fill.vue"
+
 const [useFillTool, useFillToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
@@ -82,8 +84,8 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
       y: currentRect.value.y,
       width: currentRect.value.width,
       height: currentRect.value.height,
-      color: base.settings.fillToolSettings.fillColor,
-      opacity: base.settings.fillToolSettings.opacity,
+      color: FILL_TOOL_DEFAULTS.color,
+      opacity: FILL_TOOL_DEFAULTS.opacity,
       rotation: 0
     }
 

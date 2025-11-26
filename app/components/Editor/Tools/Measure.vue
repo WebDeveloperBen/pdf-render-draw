@@ -8,6 +8,13 @@
  */
 
 export const MEASURE_TOOL_DEFAULTS = {
+  // Tool styling
+  strokeColor: 'black',
+  strokeWidth: 1,
+  labelColor: 'black',
+  labelSize: 8,
+  labelStrokeStyle: 'bold' as const,
+
   // Hit area for easier clicking on thin lines
   hitArea: {
     strokeWidth: 15
@@ -77,8 +84,6 @@ if (!tool) {
 
 // Destructure everything we need (inherited + tool-specific)
 const {
-  // From BaseTool (inherited):
-  settings,
   // From DrawingTool (inherited):
   isDrawing,
   points,
@@ -114,8 +119,8 @@ const rendererStore = useRendererStore()
           :y1="annotation.points[0].y"
           :x2="annotation.points[1].x"
           :y2="annotation.points[1].y"
-          :stroke="settings.measureToolSettings.strokeColor"
-          :stroke-width="settings.measureToolSettings.strokeWidth"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
           :class="{ 'selected-line': isSelected }"
           class="measurement-line"
         />
@@ -136,9 +141,9 @@ const rendererStore = useRendererStore()
         <text
           :x="annotation.midpoint.x"
           :y="annotation.midpoint.y"
-          :fill="settings.measureToolSettings.labelColor"
-          :font-size="settings.measureToolSettings.labelSize"
-          :font-weight="settings.measureToolSettings.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
+          :fill="config.labelColor"
+          :font-size="config.labelSize"
+          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
           text-anchor="middle"
           dominant-baseline="middle"
           class="measurement-label"
@@ -158,7 +163,7 @@ const rendererStore = useRendererStore()
         :cy="tempEndPoint.y"
         :r="config.preview.cursorIndicator.radius"
         fill="none"
-        :stroke="settings.measureToolSettings.strokeColor"
+        :stroke="config.strokeColor"
         :stroke-width="config.preview.cursorIndicator.strokeWidth"
         :opacity="config.preview.cursorIndicator.opacity"
       />
@@ -182,8 +187,8 @@ const rendererStore = useRendererStore()
           :y1="points[0].y"
           :x2="tempEndPoint.x"
           :y2="tempEndPoint.y"
-          :stroke="settings.measureToolSettings.strokeColor"
-          :stroke-width="settings.measureToolSettings.strokeWidth"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
           :stroke-dasharray="config.preview.line.strokeDashArray"
           :opacity="config.preview.line.opacity"
         />

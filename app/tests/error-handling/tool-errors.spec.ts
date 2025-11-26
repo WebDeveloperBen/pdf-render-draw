@@ -708,15 +708,12 @@ describe("Tool Error Handling", () => {
     })
 
     it("should handle canSnapToClose with Infinity snapDistance", () => {
-      const settingsStore = useSettingStore()
-      // toolSnapDistance is a computed property (readonly), so update the underlying ref
-      settingsStore.updateGeneralSettings({ toolSnapDistance: Infinity })
-
       const base = withSetup(() =>
         useBaseTool({
           type: "polygon",
           minPoints: 3,
-          canClose: true
+          canClose: true,
+          snapDistance: Infinity // Pass snap distance directly via options
         })
       )
 

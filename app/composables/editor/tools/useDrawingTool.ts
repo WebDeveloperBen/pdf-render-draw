@@ -14,7 +14,6 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
   const annotationStore = useAnnotationStore()
   const rendererStore = useRendererStore()
   const historyStore = useHistoryStore()
-  const settingsStore = useSettingStore()
 
   // Get modifier keys for multi-select support (optional for tests)
   const modifierKeys = useModifierKeys()!
@@ -149,9 +148,6 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     // Tool state
     completed,
     selected,
-
-    // Store access
-    settings: settingsStore,
 
     // Methods
     handleClick,
