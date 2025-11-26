@@ -1,12 +1,17 @@
 import tailwindcss from "@tailwindcss/vite"
+
+const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUILD_TARGET === "tauri"
+
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
-  devtools: { enabled: true },
+  devtools: { enabled: !isTauri },
   telemetry: false,
+  ssr: !isTauri,
   css: ["./app/assets/css/main.css"],
   typescript: {
     typeCheck: true,
-    strict: true
+    strict: true,
+    sharedTsConfig: { compilerOptions: { removeComments: true, allowUnreachableCode: false, alwaysStrict: true } }
   },
 
   // Runtime configuration
@@ -62,6 +67,22 @@ export default defineNuxtConfig({
       esbuildOptions: {
         target: "ESNEXT"
       }
+    },
+    // Better support for Tauri CLI output
+    clearScreen: false,
+    // Enable environment variables
+    // Additional environment variables can be found at
+    // https://v2.tauri.app/reference/environment-variables/
+    envPrefix: ["VITE_", "TAURI_"],
+    server: {
+      // Tauri requires a consistent port
+      strictPort: true
     }
-  }
+  },
+  // Enables the development server to be discoverable by other devices when running on iOS physical devices
+  devServer: {
+    host: "0"
+  },
+  // Avoids error [unhandledRejection] EMFILE: too many open files, watch
+  ignore: ["**/src-tauri/**"]
 })

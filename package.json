@@ -5,6 +5,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "tauri:dev": "tauri dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -23,6 +24,7 @@
     "@tailwindcss/vite": "^4.1.17",
     "eslint": "^9.39.1",
     "nuxt": "^4.2.1",
+    "orval": "^7.17.0",
     "pdfjs-dist": "^5.4.394",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.1.17",
@@ -34,6 +36,7 @@
   "devDependencies": {
     "@nuxt/test-utils": "^3.20.1",
     "@playwright/test": "^1.57.0",
+    "@tauri-apps/cli": "^2.9.4",
     "@types/node": "^24.10.1",
     "@types/uuid": "^11.0.0",
     "@vitest/coverage-v8": "^4.0.12",
