@@ -10,8 +10,7 @@ export default defineNuxtConfig({
   css: ["./app/assets/css/main.css"],
   typescript: {
     typeCheck: true,
-    strict: true,
-    sharedTsConfig: { compilerOptions: { removeComments: true, allowUnreachableCode: false, alwaysStrict: true } }
+    strict: true
   },
 
   // Runtime configuration
@@ -81,7 +80,8 @@ export default defineNuxtConfig({
   },
   // Enables the development server to be discoverable by other devices when running on iOS physical devices
   devServer: {
-    host: "0"
+    host: "0",
+    port: isTauri ? 3001 : 3000 // avoid cached service workers
   },
   // Avoids error [unhandledRejection] EMFILE: too many open files, watch
   ignore: ["**/src-tauri/**"]
