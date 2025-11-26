@@ -1,8 +1,3 @@
-import { ref, computed, toValue } from "vue"
-import type { MaybeRef } from "vue"
-import { useEventListener, useActiveElement, useDebounceFn } from "@vueuse/core"
-import { usePlatform } from "~/utils/platform"
-
 type Handler = (e?: unknown) => void
 
 export interface ShortcutConfig {

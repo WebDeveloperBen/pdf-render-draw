@@ -4,8 +4,8 @@
  */
 
 export function recalculateDerivedValues(annotation: Annotation): Partial<Annotation> {
-  const settingsStore = useSettingStore()
-  const pdfScale = settingsStore.getPdfScale
+  // Note: calculateDistance and calculatePolygonArea get scale from settings store internally
+  // so we don't need to pass it here
 
   if (isMeasurement(annotation)) {
     // Recalculate distance and midpoint
@@ -13,7 +13,7 @@ export function recalculateDerivedValues(annotation: Annotation): Partial<Annota
     const updates: Partial<Measurement> = {}
 
     if (p1 && p2) {
-      updates.distance = calculateDistance(p1, p2, pdfScale)
+      updates.distance = calculateDistance(p1, p2)
       updates.midpoint = calculateMidpoint(p1, p2)
     }
 
@@ -23,7 +23,7 @@ export function recalculateDerivedValues(annotation: Annotation): Partial<Annota
     const updates: Partial<Area> = {}
 
     if (annotation.points.length >= 3) {
-      updates.area = calculatePolygonArea(annotation.points, pdfScale)
+      updates.area = calculatePolygonArea(annotation.points)
       updates.center = calculateCentroid(annotation.points)
     }
 
@@ -41,7 +41,7 @@ export function recalculateDerivedValues(annotation: Annotation): Partial<Annota
         const end = annotation.points[(i + 1) % annotation.points.length]
 
         if (start && end) {
-          const segmentLength = calculateDistance(start, end, pdfScale)
+          const segmentLength = calculateDistance(start, end)
           totalLength += segmentLength
 
           segments.push({

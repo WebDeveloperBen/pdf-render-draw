@@ -7,7 +7,7 @@
  * For rotated elements, this returns the axis-aligned bounding box.
  */
 
-import { getRotatedRectBounds } from './transform-math'
+import { getRotatedRectBounds } from "./transform-math"
 
 export interface Bounds {
   x: number
@@ -26,7 +26,7 @@ export interface Bounds {
  * @returns Bounds object or null if unable to calculate
  */
 export function calculateBounds(annotation: Annotation, ignoreRotation = false): Bounds | null {
-  const rotation = !ignoreRotation && ('rotation' in annotation) ? (annotation.rotation || 0) : 0
+  const rotation = !ignoreRotation && "rotation" in annotation ? annotation.rotation || 0 : 0
 
   // Text annotations need special handling
   // In SVG, text y-coordinate is the baseline, not the top
@@ -48,13 +48,7 @@ export function calculateBounds(annotation: Annotation, ignoreRotation = false):
 
     // If rotated, calculate rotated bounds
     if (rotation !== 0) {
-      return getRotatedRectBounds(
-        baseBounds.x,
-        baseBounds.y,
-        baseBounds.width,
-        baseBounds.height,
-        rotation
-      )
+      return getRotatedRectBounds(baseBounds.x, baseBounds.y, baseBounds.width, baseBounds.height, rotation)
     }
 
     return baseBounds
@@ -64,13 +58,7 @@ export function calculateBounds(annotation: Annotation, ignoreRotation = false):
   if ("x" in annotation && "y" in annotation && "width" in annotation && "height" in annotation) {
     // If rotated, calculate rotated bounds
     if (rotation !== 0) {
-      return getRotatedRectBounds(
-        annotation.x,
-        annotation.y,
-        annotation.width,
-        annotation.height,
-        rotation
-      )
+      return getRotatedRectBounds(annotation.x, annotation.y, annotation.width, annotation.height, rotation)
     }
 
     return {
@@ -78,20 +66,6 @@ export function calculateBounds(annotation: Annotation, ignoreRotation = false):
       y: annotation.y,
       width: annotation.width,
       height: annotation.height
-    }
-  }
-
-  // Count annotations are point-based with circular markers
-  if (annotation.type === "count" && "x" in annotation && "y" in annotation) {
-    // Use a reasonable bounding box around the count marker (15px radius + some padding)
-    const radius = 20 // Match the hitbox radius from Count.vue
-
-    // Note: circular markers don't change bounds when rotated
-    return {
-      x: annotation.x - radius,
-      y: annotation.y - radius,
-      width: radius * 2,
-      height: radius * 2
     }
   }
 
@@ -115,14 +89,4 @@ export function calculateBounds(annotation: Annotation, ignoreRotation = false):
   }
 
   return null
-}
-
-/**
- * Check if two bounding boxes intersect
- * @param a First bounds
- * @param b Second bounds
- * @returns True if the bounds intersect
- */
-export function boundsIntersect(a: Bounds, b: Bounds): boolean {
-  return !(a.x + a.width < b.x || a.x > b.x + b.width || a.y + a.height < b.y || a.y > b.y + b.height)
 }

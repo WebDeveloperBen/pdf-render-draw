@@ -15,9 +15,7 @@
  * - Ctrl/Cmd: Toggle, precision mode, additional options
  */
 
-import { createSharedComposable } from "@vueuse/core"
-
-const _useModifierKeys = () => {
+export const useModifierKeys = createSharedComposable(() => {
   // State - which keys are currently pressed
   const shift = ref(false)
   const ctrl = ref(false)
@@ -74,7 +72,4 @@ const _useModifierKeys = () => {
     handleKeyUp,
     resetAll
   }
-}
-
-// Export shared composable - all components calling this get the same instance
-export const useModifierKeys = createSharedComposable(_useModifierKeys)
+})

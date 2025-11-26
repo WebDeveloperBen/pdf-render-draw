@@ -8,15 +8,29 @@ const props = withDefaults(defineProps<Props>(), {
   initialTool: "measure"
 })
 
+// Stores
+const annotationStore = useAnnotationStore()
+const rendererStore = useRendererStore()
+
 // Use defineModel for two-way binding of pdfUrl
 const pdfUrl = defineModel<string>("pdfUrl", { default: "/house.pdf" })
-
-const pdfString = ref<string>(pdfUrl.value)
 
 // Define emits for parent communication
 const emit = defineEmits<{
   fileUploaded: [file: File]
 }>()
+
+// Load PDF via store on mount
+onMounted(() => {
+  rendererStore.loadPdf(pdfUrl.value)
+})
+
+// Watch for URL changes and reload PDF
+watch(pdfUrl, (newUrl) => {
+  if (newUrl) {
+    rendererStore.loadPdf(newUrl)
+  }
+})
 
 // Load PDF from file input - update v-model directly
 function handleFileUpload(event: Event) {
@@ -24,17 +38,10 @@ function handleFileUpload(event: Event) {
   if (input.files && input.files[0]) {
     const file = input.files[0]
     const url = URL.createObjectURL(file)
-    pdfUrl.value = url // Update v-model directly
+    pdfUrl.value = url // Update v-model directly (triggers watch above)
     emit("fileUploaded", file) // Still emit for parent awareness
   }
 }
-
-// Initialize PDF
-const { pdf } = usePDF(pdfString)
-
-// Stores
-const annotationStore = useAnnotationStore()
-const rendererStore = useRendererStore()
 
 // Sidebar state
 const sidebarOpen = ref(false)
@@ -266,15 +273,17 @@ const annotationCount = computed(() => annotationStore.annotations.length)
         @mouseleave="handleMouseUp"
         @contextmenu.prevent
       >
-        <div v-if="!pdf" class="placeholder">
-          <p>👆 Upload a PDF to get started</p>
+        <div v-if="!rendererStore.isPdfLoaded" class="placeholder">
+          <p v-if="rendererStore.pdfLoadingState === 'loading'">Loading PDF... {{ Math.round(rendererStore.loadingProgress * 100) }}%</p>
+          <p v-else-if="rendererStore.pdfLoadingState === 'error'">Error: {{ rendererStore.loadError?.message }}</p>
+          <p v-else>👆 Upload a PDF to get started</p>
         </div>
 
         <template v-else>
           <!-- Wrapper to keep PDF and SVG aligned -->
           <div class="pdf-container">
             <!-- PDF Canvas -->
-            <LayersPdfViewer :pdf="pdf" />
+            <LayersPdfViewer />
 
             <!-- SVG Annotation Layer -->
             <LayersSvgAnnotation />

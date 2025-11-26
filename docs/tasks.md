@@ -477,7 +477,7 @@ If implementing Option B:
 ### 5. usePDF Composable Audit & Optimization
 
 **Priority:** Medium
-**Status:** 🔍 Audit Complete - Implementation Pending
+**Status:** ✅ Complete
 
 #### Current Usage Analysis
 
@@ -857,4 +857,35 @@ usePDF() or rendererStore.loadPdf()
 
 All components read from store, no prop drilling needed
 ```
+
+#### Implementation Summary (Completed)
+
+**Option C was implemented** - Move PDF Loading to Store with lazy worker initialization.
+
+**Changes Made:**
+
+1. **`stores/renderer.ts`**
+   - Added `loadPdf()` action with lazy worker initialization via dynamic imports
+   - Added `pdfLoadingTask`, `loadingProgress`, `loadError` state
+   - Added `isPdfLoaded` computed getter
+   - Worker only loads when `loadPdf()` is first called (not on page load)
+
+2. **`pages/editor.vue`**
+   - Replaced `usePDF()` with `rendererStore.loadPdf()`
+   - Uses `rendererStore.getTotalPages` and `rendererStore.isPdfLoaded`
+
+3. **`components/DrawingEditor.vue`**
+   - Replaced `usePDF()` with `rendererStore.loadPdf()`
+   - Added loading/error state display
+
+4. **`components/Editor/DrawingPad.vue`**
+   - Removed `pdf` prop (no longer needed)
+
+5. **`components/Layers/PdfViewer.vue`**
+   - Gets PDF from `rendererStore.pdfLoadingTask` instead of prop
+   - Simplified watch logic (store handles document setup)
+
+6. **`composables/usePDF.ts`**
+   - Marked as `@deprecated` with migration instructions
+   - Kept for backward compatibility
 

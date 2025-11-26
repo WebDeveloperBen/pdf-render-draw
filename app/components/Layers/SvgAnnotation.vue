@@ -32,7 +32,7 @@ const svgRef = ref<SVGSVGElement>()
 
 // Helper function to check if we should update the selection marquee during dragging
 function shouldUpdateSelectionMarquee(tool: string) {
-  return selectionMarquee.isDrawing.value && isSelectionMode(tool) && !!svgRef.value
+  return selectionMarquee.isMarqueeSelecting.value && isSelectionMode(tool) && !!svgRef.value
 }
 
 // Helper function to check if we have an active drawing tool (not selection mode)
@@ -70,7 +70,7 @@ useLineTool()!
 useTextTool()!
 useFillTool()!
 
-const selectionMarquee = useSelectionMarquee()
+const selectionMarquee = useEditorMarquee()
 const dragState = useDragState()
 const toolRegistry = useToolRegistry()
 
@@ -90,8 +90,8 @@ function handleMouseDown(e: MouseEvent) {
   // 1. In selection mode or no tool active
   // 2. Clicking on empty space (not on annotation)
   // 3. Not clicking on transform handles
-  if (isSelectionMode(tool) && !annotationId && svgRef.value) {
-    selectionMarquee.startMarquee(e, svgRef.value)
+  if (isSelectionMode(tool) && !annotationId) {
+    selectionMarquee.startMarquee(e)
   }
 
   // Call registered tool's onMouseDown handler for the active tool
@@ -102,8 +102,9 @@ function handleMouseDown(e: MouseEvent) {
 }
 
 function handleMouseUp(e: MouseEvent) {
-  if (selectionMarquee.isDrawing.value) {
-    selectionMarquee.endMarquee()
+  // If marquee is active, don't process tool handlers
+  // (marquee end is handled by global listeners in useEditorEventHandlers)
+  if (selectionMarquee.isMarqueeSelecting.value) {
     return
   }
 
@@ -152,7 +153,8 @@ function handleClick(e: MouseEvent) {
   if (
     !annotationId &&
     !isTransformHandle &&
-    !selectionMarquee.isDrawing.value &&
+    !selectionMarquee.isMarqueeSelecting.value &&
+    !selectionMarquee.isMarqueeJustFinished() &&
     !annotationStore.isDrawing &&
     !dragState.isDragJustFinished()
   ) {
@@ -195,9 +197,9 @@ function handleMove(e: MouseEvent) {
   const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse())
   rendererStore.setLastCursorPosition({ x: svgP.x, y: svgP.y })
 
-  // Update selection marquee if dragging (only in selection mode)
+  // If marquee is active, don't process tool handlers
+  // (marquee update is handled by global listeners in useEditorEventHandlers)
   if (shouldUpdateSelectionMarquee(tool)) {
-    selectionMarquee.updateMarquee(e, svgRef.value)
     return // Don't process tool moves while selecting
   }
 
@@ -262,7 +264,7 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
 
     <!-- Selection marquee (drag-to-select rectangle) -->
     <rect
-      v-if="selectionMarquee.isDrawing && selectionMarquee.marqueeBounds.value"
+      v-if="selectionMarquee.isMarqueeSelecting.value && selectionMarquee.marqueeBounds.value"
       :x="selectionMarquee.marqueeBounds.value.x"
       :y="selectionMarquee.marqueeBounds.value.y"
       :width="selectionMarquee.marqueeBounds.value.width"

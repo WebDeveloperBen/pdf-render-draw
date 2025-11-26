@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Initialize composables
+const annotationStore = useAnnotationStore()
 const selection = useEditorSelection()
 const bounds = useEditorBounds()
 const eventHandlers = useEditorEventHandlers()
@@ -66,8 +67,8 @@ const annotations = ref<Annotation[]>([
   } as Fill
 ])
 
-// Provide annotations to selection composable
-selection.annotations.value = annotations.value
+// Provide annotations to annotation store (selection composable reads from store)
+annotationStore.setAnnotations(annotations.value)
 
 // SVG transform for annotation rotation
 function getAnnotationTransform(annotation: Annotation): string {

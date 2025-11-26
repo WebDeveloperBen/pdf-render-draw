@@ -1,17 +1,18 @@
 <script setup lang="ts">
 /**
  * Simple PDF Viewer - no Konva, no old stores
+ *
+ * PDF is now loaded via rendererStore.loadPdf() - this component
+ * reads from the store instead of receiving a prop.
  */
-import type { PDFDocumentLoadingTask } from "pdfjs-dist"
 import { RENDERING } from "~/constants/rendering"
 import { ERROR_COLORS, BUTTON_COLORS } from "~/constants/ui"
 import { debugLog, debugError } from "~/utils/debug"
 
-const props = defineProps<{
-  pdf?: PDFDocumentLoadingTask
-}>()
-
 const rendererStore = useRendererStore()
+
+// Get PDF from store instead of props
+const pdf = computed(() => rendererStore.pdfLoadingTask)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 // Track current render task to allow cancellation
@@ -44,12 +45,12 @@ async function renderPage(pageNum: number, renderScale?: number) {
   debugLog("SimplePdfViewer", "renderPage called:", {
     pageNum,
     renderScale,
-    hasPdf: !!props.pdf,
+    hasPdf: !!pdf.value,
     hasCanvas: !!canvasRef.value,
     isRendering: isRendering.value
   })
 
-  if (!props.pdf || !canvasRef.value) {
+  if (!pdf.value || !canvasRef.value) {
     debugLog("SimplePdfViewer", "renderPage early return - missing pdf or canvas")
     return
   }
@@ -80,7 +81,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
 
   try {
     debugLog("SimplePdfViewer", "Getting PDF document from promise...")
-    const pdfDoc = await props.pdf.promise
+    const pdfDoc = await pdf.value.promise
 
     // Check if aborted
     if (signal.aborted) {
@@ -216,24 +217,18 @@ async function renderPage(pageNum: number, renderScale?: number) {
 // Debounce timer for scale changes
 let scaleDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
+// Watch for PDF changes from store
+// Note: The store's loadPdf() already handles setting documentProxy and totalPages
+// This watch only triggers re-rendering when a new PDF is loaded
 watch(
-  () => props.pdf,
+  pdf,
   async (newPdf) => {
     debugLog("SimplePdfViewer", "PDF WATCH TRIGGERED - newPdf:", !!newPdf, "canvas:", !!canvasRef.value)
 
     if (!newPdf) return
 
-    // Store PDF document and total pages (don't need canvas for this)
-    debugLog("SimplePdfViewer", "Waiting for PDF promise...")
-    const pdfDoc = await newPdf.promise
-    debugLog("SimplePdfViewer", "PDF loaded, storing in renderer store:", pdfDoc)
-    // Use markRaw to prevent Vue from making the PDF document reactive
-    // PDF.js uses private fields that break when wrapped in a Proxy
-    rendererStore.setDocumentProxy(markRaw(pdfDoc))
-    rendererStore.setTotalPages(pdfDoc.numPages)
-    debugLog("SimplePdfViewer", "PDF document stored, total pages:", pdfDoc.numPages)
-
     // Render page if canvas is ready
+    // Note: Store already set documentProxy and totalPages in loadPdf()
     if (canvasRef.value) {
       await renderPage(rendererStore.getCurrentPage)
     }
@@ -246,7 +241,7 @@ watch(
   () => rendererStore.getCurrentPage,
   async (newPage) => {
     debugLog("SimplePdfViewer", "Page changed:", newPage)
-    if (props.pdf && canvasRef.value) {
+    if (pdf.value && canvasRef.value) {
       await renderPage(newPage)
     }
   }
@@ -264,7 +259,7 @@ watch(
     }
 
     scaleDebounceTimer = setTimeout(async () => {
-      if (props.pdf && canvasRef.value) {
+      if (pdf.value && canvasRef.value) {
         await renderPage(rendererStore.getCurrentPage, newScale)
       }
     }, RENDERING.SCALE_DEBOUNCE_MS)
@@ -273,12 +268,12 @@ watch(
 
 onMounted(async () => {
   debugLog("SimplePdfViewer", "SimplePdfViewer mounted:", {
-    hasPdf: !!props.pdf,
+    hasPdf: !!pdf.value,
     hasCanvas: !!canvasRef.value
   })
 
   // If PDF is already loaded but canvas wasn't ready during watch, render now
-  if (props.pdf && canvasRef.value) {
+  if (pdf.value && canvasRef.value) {
     await renderPage(rendererStore.getCurrentPage)
   }
 })

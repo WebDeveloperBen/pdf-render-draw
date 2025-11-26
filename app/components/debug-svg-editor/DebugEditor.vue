@@ -781,6 +781,33 @@ if (typeof window !== "undefined") {
     handleMarqueeEnd()
   })
 }
+
+// Expose internal state for testing
+defineExpose({
+  // Drag state
+  isDragging,
+  dragStartPoint,
+  dragOriginalPositions,
+  // Rotation state
+  isRotating,
+  rotationStartAngle,
+  rotationOriginalAngles,
+  rotationCenter,
+  // Scale state
+  isScaling,
+  scaleHandle,
+  scaleStartPoint,
+  scaleOriginalBounds,
+  scaleOriginalShapes,
+  // Marquee state
+  isMarqueeSelecting,
+  marqueeStartPoint,
+  marqueeEndPoint,
+  // Shapes and selection
+  shapes,
+  selectedIds,
+  selectedShapes
+})
 </script>
 
 <template>

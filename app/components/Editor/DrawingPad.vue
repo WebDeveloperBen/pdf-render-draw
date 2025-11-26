@@ -10,11 +10,7 @@
  * The layers are positioned absolutely and share the same coordinate system
  */
 
-import type { PDFDocumentLoadingTask } from "pdfjs-dist"
-
-defineProps<{
-  pdf?: PDFDocumentLoadingTask
-}>()
+// PDF is now loaded via rendererStore.loadPdf() - no props needed
 
 const rendererStore = useRendererStore()
 
@@ -54,7 +50,7 @@ const containerStyle = computed(() => {
       <!-- PDF Container - wraps both canvas and SVG -->
       <div class="pdf-container">
         <!-- PDF Viewer Layer (Canvas) -->
-        <LayersPdfViewer :pdf="pdf" />
+        <LayersPdfViewer />
 
         <!-- SVG Annotation Layer (Interactive Drawing) -->
         <LayersSvgAnnotation />

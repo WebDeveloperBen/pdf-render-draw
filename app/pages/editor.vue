@@ -1,9 +1,18 @@
 <script setup lang="ts">
-// Load PDF
-const pdfUrl = ref("/house.pdf")
-const { pdf, totalPages } = usePDF(pdfUrl)
-
 const rendererStore = useRendererStore()
+
+// Load PDF via store (lazy worker initialization)
+const pdfUrl = ref("/house.pdf")
+onMounted(() => {
+  rendererStore.loadPdf(pdfUrl.value)
+})
+
+// Watch for URL changes (e.g., if user loads a different PDF)
+watch(pdfUrl, (newUrl) => {
+  if (newUrl) {
+    rendererStore.loadPdf(newUrl)
+  }
+})
 const annotationStore = useAnnotationStore()
 
 // Sidebar state
@@ -146,11 +155,11 @@ if (typeof window !== "undefined") {
             >
               ‹
             </button>
-            <span class="page-indicator"> {{ rendererStore.getCurrentPage }} / {{ totalPages }} </span>
+            <span class="page-indicator"> {{ rendererStore.getCurrentPage }} / {{ rendererStore.getTotalPages }} </span>
             <button
               class="toolbar-btn-icon"
-              :disabled="rendererStore.getCurrentPage >= totalPages"
-              @click="rendererStore.setCurrentPage(Math.min(totalPages, rendererStore.getCurrentPage + 1))"
+              :disabled="rendererStore.getCurrentPage >= rendererStore.getTotalPages"
+              @click="rendererStore.setCurrentPage(Math.min(rendererStore.getTotalPages, rendererStore.getCurrentPage + 1))"
             >
               ›
             </button>
@@ -223,7 +232,7 @@ if (typeof window !== "undefined") {
         @mouseleave="handleMouseUp"
         @contextmenu.prevent
       >
-        <EditorDrawingPad v-if="pdf" :pdf="pdf" />
+        <EditorDrawingPad v-if="rendererStore.isPdfLoaded" />
       </div>
     </div>
   </div>

@@ -55,7 +55,7 @@ test.describe("Single Shape Drag Sensitivity Bug", () => {
       const style = svg?.style.transform || ""
       // Parse translate(x, y) from transform
       const match = style.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/)
-      if (match) {
+      if (match && match[1] && match[2]) {
         return {
           translateX: parseFloat(match[1]),
           translateY: parseFloat(match[2])

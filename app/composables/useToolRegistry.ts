@@ -9,10 +9,6 @@
  * tool-specific configuration. This keeps tools decoupled from transform logic.
  */
 
-import type { Component } from "vue"
-import { ref, markRaw, triggerRef } from "vue"
-import type { ToolType } from "~/types/annotations"
-
 export interface ToolDefinition {
   /** Unique tool type identifier */
   type: ToolType

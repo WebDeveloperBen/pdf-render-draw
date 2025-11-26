@@ -5,8 +5,6 @@
  * from firing immediately after drag ends.
  */
 
-import { createSharedComposable } from "@vueuse/core"
-
 const _useDragState = () => {
   const justFinishedDragging = ref(false)
   let preventClickTimer: ReturnType<typeof setTimeout> | null = null

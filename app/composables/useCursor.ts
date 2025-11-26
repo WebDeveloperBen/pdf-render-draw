@@ -1,19 +1,17 @@
-import { ref, watch } from 'vue'
-
 type CursorStyle =
-  | 'default'
-  | 'pointer'
-  | 'grab'
-  | 'grabbing'
-  | 'move'
-  | 'crosshair'
-  | 'text'
-  | 'wait'
-  | 'not-allowed'
-  | 'nwse-resize'
-  | 'nesw-resize'
-  | 'ns-resize'
-  | 'ew-resize'
+  | "default"
+  | "pointer"
+  | "grab"
+  | "grabbing"
+  | "move"
+  | "crosshair"
+  | "text"
+  | "wait"
+  | "not-allowed"
+  | "nwse-resize"
+  | "nesw-resize"
+  | "ns-resize"
+  | "ew-resize"
   | string
 
 /**
@@ -41,12 +39,12 @@ type CursorStyle =
  * ```
  */
 export function useCursor() {
-  const currentCursor = ref<CursorStyle>('default')
+  const currentCursor = ref<CursorStyle>("default")
 
   // Watch for changes and apply to document.body
   watch(currentCursor, (newCursor) => {
-    if (typeof document !== 'undefined') {
-      document.body.style.cursor = newCursor === 'default' ? '' : newCursor
+    if (typeof document !== "undefined") {
+      document.body.style.cursor = newCursor === "default" ? "" : newCursor
     }
   })
 
@@ -61,7 +59,7 @@ export function useCursor() {
    * Reset cursor to default
    */
   function reset() {
-    currentCursor.value = 'default'
+    currentCursor.value = "default"
   }
 
   /**

@@ -56,7 +56,7 @@ test.describe("Group Rotation E2E", () => {
       const style = svg?.style.transform || ""
       // Parse translate(x, y) from transform
       const match = style.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/)
-      if (match) {
+      if (match && match[1] && match[2]) {
         return {
           translateX: parseFloat(match[1]),
           translateY: parseFloat(match[2])
@@ -110,7 +110,7 @@ test.describe("Group Rotation E2E", () => {
           y: ann.y
         }))
       } catch (e) {
-        return `Error: ${e.message}`
+        return `Error: ${(e as Error).message}`
       }
     })
     console.log("📊 Store annotations:", storeAnnotations)
@@ -193,11 +193,14 @@ test.describe("Group Rotation E2E", () => {
     })
 
     // Group center in SVG coords (from actual fills)
-    const groupCenterSvgX = (initialPositions[0].x + initialPositions[0].width / 2 + initialPositions[1].x + initialPositions[1].width / 2) / 2
-    const groupCenterSvgY = (initialPositions[0].y + initialPositions[0].height / 2 + initialPositions[1].y + initialPositions[1].height / 2) / 2
+    const pos0 = initialPositions[0]
+    const pos1 = initialPositions[1]
+    if (!pos0 || !pos1) throw new Error("Need at least 2 initial positions")
+    const groupCenterSvgX = (pos0.x + pos0.width / 2 + pos1.x + pos1.width / 2) / 2
+    const groupCenterSvgY = (pos0.y + pos0.height / 2 + pos1.y + pos1.height / 2) / 2
 
     // Map center to screen via CTM to avoid double-translates
-    const { centerScreenX, centerScreenY } = await page.evaluate(([cx, cy]) => {
+    const { centerScreenX, centerScreenY } = await page.evaluate(([cx, cy]: [number, number]) => {
       const svg = document.querySelector("svg") as SVGSVGElement | null
       const ctm = svg?.getScreenCTM()
       if (svg && ctm) {
@@ -208,7 +211,7 @@ test.describe("Group Rotation E2E", () => {
         return { centerScreenX: screen.x, centerScreenY: screen.y }
       }
       return { centerScreenX: 0, centerScreenY: 0 }
-    }, [groupCenterSvgX, groupCenterSvgY] as const)
+    }, [groupCenterSvgX, groupCenterSvgY] as [number, number])
 
     // Rotation handle radius: half height (25) + ROTATION_DISTANCE (30) = 55
     const radius = 55
@@ -257,7 +260,7 @@ test.describe("Group Rotation E2E", () => {
         // Parse rotation from transform
         let rotation = 0
         const rotateMatch = transform.match(/rotate\(([-\d.]+)/)
-        if (rotateMatch) {
+        if (rotateMatch && rotateMatch[1]) {
           rotation = parseFloat(rotateMatch[1])
         }
 
@@ -279,6 +282,7 @@ test.describe("Group Rotation E2E", () => {
     // Use actual initial positions from DOM
     const fill1Initial = initialPositions[0]
     const fill2Initial = initialPositions[1]
+    if (!fill1Initial || !fill2Initial) throw new Error("Initial positions not found")
 
     // Calculate group center from initial positions
     const groupCenterX = (fill1Initial.x + fill1Initial.width / 2 + fill2Initial.x + fill2Initial.width / 2) / 2
@@ -317,8 +321,9 @@ test.describe("Group Rotation E2E", () => {
     console.log("  Fill 2:", { x: expectedX2, y: expectedY2, rotation: expectedRotationDeg })
 
     // Match fills by ID from initial positions
-    const fill1Final = finalPositions.find((p: any) => p.id === initialPositions[0].id)
-    const fill2Final = finalPositions.find((p: any) => p.id === initialPositions[1].id)
+    const fill1Final = finalPositions.find((p: { id: string | null }) => p.id === initialPositions[0]?.id)
+    const fill2Final = finalPositions.find((p: { id: string | null }) => p.id === initialPositions[1]?.id)
+    if (!fill1Final || !fill2Final) throw new Error("Final positions not found")
 
     console.log("\n🔍 Verification:")
     console.log("  Fill 1 X:", { expected: expectedX1, actual: fill1Final.x, diff: Math.abs(fill1Final.x - expectedX1) })

@@ -404,7 +404,7 @@ describe("Fill Rotation - Basic Group Rotation", () => {
       expect(rotated.points[1].x).not.toBe(200)
 
       // Distance should remain the same (rotation doesn't change length)
-      const newDistance = calculateDistance(rotated.points[0], rotated.points[1], '1:1')
+      const newDistance = calculateDistance(rotated.points[0], rotated.points[1])
       expect(newDistance).toBeCloseTo(35, 1) // Same as original ~35mm
     })
 

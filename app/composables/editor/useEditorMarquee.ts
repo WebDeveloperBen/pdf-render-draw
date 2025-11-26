@@ -18,6 +18,10 @@ export const useEditorMarquee = createSharedComposable(() => {
   const marqueeEndPoint = ref<Point | null>(null)
   const marqueeShiftKey = ref(false)
 
+  // Prevent click events from clearing selection immediately after marquee ends
+  const marqueeJustFinished = ref(false)
+  let marqueeFinishedTimeout: ReturnType<typeof setTimeout> | null = null
+
   /**
    * Marquee bounds (computed from start and end points)
    */
@@ -122,10 +126,28 @@ export const useEditorMarquee = createSharedComposable(() => {
     cursor.reset()
     coordinates.clearSvgCache()
 
+    // Set "just finished" flag to prevent click from clearing selection
+    // Clear any existing timeout
+    if (marqueeFinishedTimeout) {
+      clearTimeout(marqueeFinishedTimeout)
+    }
+    marqueeJustFinished.value = true
+    marqueeFinishedTimeout = setTimeout(() => {
+      marqueeJustFinished.value = false
+      marqueeFinishedTimeout = null
+    }, 100) // Same delay as dragState uses
+
     // Reset frozen bounds when selection changes
     if (intersectingIds.length > 0) {
       bounds.unfreezeBounds()
     }
+  }
+
+  /**
+   * Check if marquee selection just finished (prevents click from clearing selection)
+   */
+  function isMarqueeJustFinished(): boolean {
+    return marqueeJustFinished.value
   }
 
   return {
@@ -136,6 +158,7 @@ export const useEditorMarquee = createSharedComposable(() => {
     // Methods
     startMarquee,
     updateMarquee,
-    endMarquee
+    endMarquee,
+    isMarqueeJustFinished
   }
 })
