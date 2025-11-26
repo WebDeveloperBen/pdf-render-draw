@@ -13,6 +13,7 @@ export const useEditorScale = createSharedComposable(() => {
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
   const dragState = useEditorDragState()
+  const toolRegistry = useToolRegistry()
 
   // Scaling state
   const isScaling = ref(false)
@@ -138,17 +139,33 @@ export const useEditorScale = createSharedComposable(() => {
       }
     }
 
-    // Prevent scaling below minimum size
-    const minSize = 10
-    if (newBounds.width < minSize) {
-      if (isLeft && rotation === 0)
-        newBounds.x = scaleOriginalBounds.value!.x + scaleOriginalBounds.value!.width - minSize
-      newBounds.width = minSize
+    // Calculate minimum size - check if tool provides custom minimum dimensions
+    let minWidth = 10
+    let minHeight = 10
+
+    // For single selection, check if tool provides custom minimum dimensions
+    if (selection.selectedAnnotations.value.length === 1) {
+      const annotation = selection.selectedAnnotations.value[0]
+      if (annotation) {
+        const tool = toolRegistry.getTool(annotation.type)
+        if (tool?.getMinDimensions) {
+          const minDimensions = tool.getMinDimensions(annotation)
+          minWidth = minDimensions.width
+          minHeight = minDimensions.height
+        }
+      }
     }
-    if (newBounds.height < minSize) {
+
+    // Prevent scaling below minimum size
+    if (newBounds.width < minWidth) {
+      if (isLeft && rotation === 0)
+        newBounds.x = scaleOriginalBounds.value!.x + scaleOriginalBounds.value!.width - minWidth
+      newBounds.width = minWidth
+    }
+    if (newBounds.height < minHeight) {
       if (isTop && rotation === 0)
-        newBounds.y = scaleOriginalBounds.value!.y + scaleOriginalBounds.value!.height - minSize
-      newBounds.height = minSize
+        newBounds.y = scaleOriginalBounds.value!.y + scaleOriginalBounds.value!.height - minHeight
+      newBounds.height = minHeight
     }
 
     // Calculate scale factors from bounds ratio

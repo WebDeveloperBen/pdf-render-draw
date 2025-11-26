@@ -79,6 +79,52 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     base.annotationStore.deleteAnnotation(id)
   }
 
+  /**
+   * Get minimum dimensions for a text annotation based on content
+   * Used by scaling to prevent shrinking smaller than text content
+   */
+  function getMinDimensions(annotation: Annotation): { width: number; height: number } {
+    if (annotation.type !== "text" || !("content" in annotation) || !("fontSize" in annotation)) {
+      return { width: 10, height: 10 }
+    }
+
+    const textAnnotation = annotation as TextAnnotation
+    const { fontSize, content } = textAnnotation
+    const { lineHeight, fontFamily, editor, minHeight: configMinHeight } = TEXT_TOOL_DEFAULTS
+
+    // Measure text width using a hidden element
+    const div = document.createElement("div")
+    div.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      white-space: pre;
+      font-size: ${fontSize}px;
+      font-family: ${fontFamily};
+      line-height: ${lineHeight};
+    `
+
+    // Measure each line and find the widest
+    const lines = content.split("\n")
+    let maxLineWidth = 0
+
+    for (const line of lines) {
+      div.textContent = line || " "
+      document.body.appendChild(div)
+      maxLineWidth = Math.max(maxLineWidth, div.offsetWidth)
+      document.body.removeChild(div)
+    }
+
+    // Add buffer for sub-pixel rendering + editor border/padding
+    const offset = editor.borderWidth + editor.padding
+    const totalOffset = offset * 2
+    const minWidth = Math.ceil(maxLineWidth) + 4 + totalOffset
+
+    // Minimum height is single line height + border/padding
+    const minHeight = Math.max(Math.ceil(fontSize * lineHeight), configMinHeight) + totalOffset
+
+    return { width: minWidth, height: minHeight }
+  }
+
   const tool = {
     ...base, // Inherit: stores, getRotationTransform, selectAnnotation
     completed,
@@ -103,7 +149,8 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
       // Use global text editing state (singleton composable, no injection needed)
       const textEditing = useTextEditingState()
       textEditing.startEditing(id)
-    }
+    },
+    getMinDimensions
   })
 
   return tool

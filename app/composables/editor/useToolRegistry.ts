@@ -38,6 +38,9 @@ export interface ToolDefinition {
 
   /** Optional: Method to clear preview state when mouse leaves */
   clearPreview?: () => void
+
+  /** Optional: Get minimum dimensions for scaling constraints */
+  getMinDimensions?: (annotation: Annotation) => { width: number; height: number }
 }
 
 // Tool registry - use ref with markRaw to avoid deep reactivity on components
