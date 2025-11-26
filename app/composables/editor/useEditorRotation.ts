@@ -106,6 +106,22 @@ export const useEditorRotation = createSharedComposable(() => {
       const originalRotation = rotationOriginalAngles.value.get(annotation.id) || 0
       const updates: Partial<Annotation> = {}
 
+      // Debug logging for Count to see which branch it takes
+      if (annotation.type === "count") {
+        debugLog("useEditorRotation - Count type check", {
+          annotationId: annotation.id.slice(0, 8),
+          hasPoints: hasPointsArray(annotation),
+          hasPositionedRect: hasPositionedRect(annotation),
+          annotation: {
+            type: annotation.type,
+            x: annotation.x,
+            y: annotation.y,
+            width: annotation.width,
+            height: annotation.height
+          }
+        })
+      }
+
       // Annotations with points array - always physically rotate points around transformer center
       // This ensures shape rotates around the visible transformer center, not its centroid
       if (hasPointsArray(annotation)) {
@@ -130,24 +146,61 @@ export const useEditorRotation = createSharedComposable(() => {
       else if (hasPositionedRect(annotation)) {
         updates.rotation = originalRotation + rotationDelta
 
+        // Debug logging for Count
+        if (annotation.type === "count") {
+          debugLog("useEditorRotation - Count positioned", {
+            annotationId: annotation.id.slice(0, 8),
+            isMultiSelect: selection.isMultiSelection.value,
+            originalRotation,
+            rotationDelta,
+            newRotation: updates.rotation,
+            rotationCenter: rotationCenter.value,
+            x: annotation.x,
+            y: annotation.y,
+            width: annotation.width,
+            height: annotation.height
+          })
+        }
+
         // Orbit for multi-select
         if (selection.isMultiSelection.value) {
           const originalPos = rotationOriginalPositions.value.get(annotation.id)
-          if (!originalPos) continue
+          if (!originalPos) {
+            debugLog("useEditorRotation - Missing originalPos", {
+              annotationId: annotation.id.slice(0, 8),
+              type: annotation.type
+            })
+            continue
+          }
 
           const shapeCenterX = originalPos.x + annotation.width / 2
           const shapeCenterY = originalPos.y + annotation.height / 2
+          const shapeCenter = { x: shapeCenterX, y: shapeCenterY }
 
           const rotatedCenter = rotatePointAroundCenter(
-            { x: shapeCenterX, y: shapeCenterY },
+            shapeCenter,
             rotationCenter.value!,
             rotationDelta
           )
 
-          Object.assign(updates, {
+          const newPos = {
             x: rotatedCenter.x - annotation.width / 2,
             y: rotatedCenter.y - annotation.height / 2
-          })
+          }
+
+          // Debug logging for Count
+          if (annotation.type === "count") {
+            debugLog("useEditorRotation - Count orbit", {
+              annotationId: annotation.id.slice(0, 8),
+              originalPos,
+              shapeCenter,
+              rotationCenter: rotationCenter.value,
+              rotatedCenter,
+              newPos
+            })
+          }
+
+          Object.assign(updates, newPos)
         }
       }
 

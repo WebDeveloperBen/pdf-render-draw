@@ -87,6 +87,8 @@ export interface Count extends BaseAnnotation {
   type: 'count'
   x: number
   y: number
+  width: number // Bounding box width (for selection/transform)
+  height: number // Bounding box height (for selection/transform)
   number: number // The count number (1, 2, 3...)
   label?: string // Optional custom label
   // rotation inherited from BaseAnnotation
@@ -149,107 +151,66 @@ export function isValidPoint(point: unknown): point is Point {
   )
 }
 
+/**
+ * Generic shape-based validation for annotations
+ * Validates based on data structure rather than specific tool types
+ * This allows tools to be decoupled from the validation logic
+ */
 export function validateAnnotation(ann: unknown): ann is Annotation {
   if (typeof ann !== 'object' || ann === null) return false
 
-  const base = ann as BaseAnnotation
+  const obj = ann as Record<string, unknown>
 
-  // Validate base properties
-  if (!base.id || typeof base.id !== 'string') return false
-  if (!base.type || typeof base.type !== 'string') return false
-  if (typeof base.pageNum !== 'number' || base.pageNum < 1) return false
+  // Validate base properties (required for all annotations)
+  if (!obj.id || typeof obj.id !== 'string') return false
+  if (!obj.type || typeof obj.type !== 'string') return false
+  if (typeof obj.pageNum !== 'number' || obj.pageNum < 1) return false
 
-  // Type-specific validation
-  switch (base.type) {
-    case 'measure': {
-      const m = ann as Measurement
-      return (
-        Array.isArray(m.points) &&
-        m.points.length === 2 &&
-        m.points.every(isValidPoint) &&
-        typeof m.distance === 'number' &&
-        m.distance >= 0 &&
-        isValidPoint(m.midpoint) &&
-        typeof m.labelRotation === 'number'
-      )
-    }
+  // Shape-based validation: validate properties based on their presence
+  // This makes validation tool-agnostic
 
-    case 'area': {
-      const a = ann as Area
-      return (
-        Array.isArray(a.points) &&
-        a.points.length >= 3 &&
-        a.points.every(isValidPoint) &&
-        typeof a.area === 'number' &&
-        a.area >= 0 &&
-        isValidPoint(a.center) &&
-        typeof a.labelRotation === 'number'
-      )
-    }
-
-    case 'perimeter': {
-      const p = ann as Perimeter
-      return (
-        Array.isArray(p.points) &&
-        p.points.length >= 3 &&
-        p.points.every(isValidPoint) &&
-        Array.isArray(p.segments) &&
-        p.segments.length > 0 &&
-        typeof p.totalLength === 'number' &&
-        p.totalLength >= 0 &&
-        isValidPoint(p.center) &&
-        typeof p.labelRotation === 'number'
-      )
-    }
-
-    case 'line': {
-      const l = ann as Line
-      return (
-        Array.isArray(l.points) &&
-        l.points.length >= 2 &&
-        l.points.every(isValidPoint)
-      )
-    }
-
-    case 'fill': {
-      const f = ann as Fill
-      return (
-        typeof f.x === 'number' &&
-        typeof f.y === 'number' &&
-        typeof f.color === 'string' &&
-        typeof f.opacity === 'number' &&
-        f.opacity >= 0 &&
-        f.opacity <= 1
-      )
-    }
-
-    case 'text': {
-      const t = ann as TextAnnotation
-      return (
-        typeof t.x === 'number' &&
-        typeof t.y === 'number' &&
-        typeof t.width === 'number' &&
-        typeof t.height === 'number' &&
-        typeof t.content === 'string' &&
-        typeof t.fontSize === 'number' &&
-        t.fontSize > 0 &&
-        typeof t.color === 'string' &&
-        typeof t.rotation === 'number'
-      )
-    }
-
-    case 'count': {
-      const c = ann as Count
-      return (
-        typeof c.x === 'number' &&
-        typeof c.y === 'number' &&
-        typeof c.number === 'number' &&
-        c.number > 0 &&
-        (c.label === undefined || typeof c.label === 'string')
-      )
-    }
-
-    default:
-      return false
+  // Points array (for point-based annotations)
+  if ('points' in obj) {
+    if (!Array.isArray(obj.points)) return false
+    if (obj.points.length < 2) return false
+    if (!obj.points.every(isValidPoint)) return false
   }
+
+  // Segments array (for perimeter-like annotations)
+  if ('segments' in obj) {
+    if (!Array.isArray(obj.segments)) return false
+  }
+
+  // Numeric measurement values
+  if ('distance' in obj && (typeof obj.distance !== 'number' || obj.distance < 0 || isNaN(obj.distance))) return false
+  if ('area' in obj && (typeof obj.area !== 'number' || obj.area < 0 || isNaN(obj.area))) return false
+  if ('totalLength' in obj && (typeof obj.totalLength !== 'number' || obj.totalLength < 0 || isNaN(obj.totalLength))) return false
+
+  // Point properties (center, midpoint)
+  if ('center' in obj && !isValidPoint(obj.center)) return false
+  if ('midpoint' in obj && !isValidPoint(obj.midpoint)) return false
+
+  // Rotation values (should be numbers, can be any value including negative)
+  if ('rotation' in obj && (typeof obj.rotation !== 'number' || isNaN(obj.rotation))) return false
+  if ('labelRotation' in obj && (typeof obj.labelRotation !== 'number' || isNaN(obj.labelRotation))) return false
+
+  // Positioned rectangle properties
+  if ('x' in obj && (typeof obj.x !== 'number' || isNaN(obj.x))) return false
+  if ('y' in obj && (typeof obj.y !== 'number' || isNaN(obj.y))) return false
+  if ('width' in obj && (typeof obj.width !== 'number' || isNaN(obj.width))) return false
+  if ('height' in obj && (typeof obj.height !== 'number' || isNaN(obj.height))) return false
+
+  // Color and opacity
+  if ('color' in obj && typeof obj.color !== 'string') return false
+  if ('opacity' in obj && (typeof obj.opacity !== 'number' || obj.opacity < 0 || obj.opacity > 1)) return false
+
+  // Text-specific
+  if ('content' in obj && typeof obj.content !== 'string') return false
+  if ('fontSize' in obj && (typeof obj.fontSize !== 'number' || obj.fontSize <= 0)) return false
+
+  // Count-specific
+  if ('number' in obj && (typeof obj.number !== 'number' || obj.number <= 0)) return false
+  if ('label' in obj && obj.label !== undefined && typeof obj.label !== 'string') return false
+
+  return true
 }

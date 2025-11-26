@@ -141,7 +141,19 @@ export function isToolRegistered(type: ToolType): boolean {
  */
 export function shouldApplyRotationTransform(type: ToolType): boolean {
   const tool = getTool(type)
-  return tool?.transform?.groupRotation === "update-position-and-rotation"
+  const result = tool?.transform?.groupRotation === "update-position-and-rotation"
+
+  // Debug logging for Count
+  if (type === "count") {
+    debugLog("shouldApplyRotationTransform - Count", {
+      hasTool: !!tool,
+      hasTransform: !!tool?.transform,
+      groupRotation: tool?.transform?.groupRotation,
+      result
+    })
+  }
+
+  return result
 }
 
 /**

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useCountToolState } from "@/composables/tools/useCountTool"
-
 const tool = useCountToolState()
 if (!tool) {
   throw new Error("CountTool must be used within SvgAnnotationLayer")
@@ -20,8 +18,8 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
       <template #content="{ annotation }">
         <!-- Invisible hitbox for easier clicking -->
         <circle
-          :cx="annotation.x"
-          :cy="annotation.y"
+          :cx="annotation.x + annotation.width / 2"
+          :cy="annotation.y + annotation.height / 2"
           r="20"
           fill="transparent"
           class="count-hitbox"
@@ -29,8 +27,8 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
 
         <!-- Count marker circle -->
         <circle
-          :cx="annotation.x"
-          :cy="annotation.y"
+          :cx="annotation.x + annotation.width / 2"
+          :cy="annotation.y + annotation.height / 2"
           r="15"
           fill="#ff9800"
           stroke="#000000"
@@ -40,8 +38,8 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
 
         <!-- Count number text -->
         <text
-          :x="annotation.x"
-          :y="annotation.y"
+          :x="annotation.x + annotation.width / 2"
+          :y="annotation.y + annotation.height / 2"
           text-anchor="middle"
           dominant-baseline="middle"
           font-size="12"
@@ -114,4 +112,3 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
   pointer-events: none;
 }
 </style>
-

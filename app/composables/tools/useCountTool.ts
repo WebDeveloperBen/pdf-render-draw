@@ -41,12 +41,16 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 
+    // Count marker radius is 15, so bounding box is 30x30
+    const markerSize = 30
     const count: Count = {
       id: uuidv4(),
       type: "count",
       pageNum: rendererStore.currentPage,
-      x: point.x,
-      y: point.y,
+      x: point.x - markerSize / 2, // x,y is top-left corner of bounding box
+      y: point.y - markerSize / 2,
+      width: markerSize,
+      height: markerSize,
       number: nextCountNumber.value,
       rotation: 0 // Counts don't rotate with page
     }
@@ -80,55 +84,13 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     updateCount
   }
 
-  // Register tool with full metadata, event handlers, and transformation logic
+  // Register tool with event handlers
   registerTool({
     type: "count",
     name: "Count",
     icon: "🔢",
     onClick: tool.handleClick,
-    onKeyDown: tool.handleKeyDown,
-    transform: {
-      // Transform metadata
-      structure: "positioned",
-      groupRotation: "none", // Count markers don't rotate
-      supportsGroupResize: false,
-      supportsGroupMove: true,
-      rotationCenter: "geometric-center",
-
-      // Get rotation center - x,y is already the center point of the count marker
-      getCenter: (annotation) => {
-        const count = annotation as Count
-        return { x: count.x, y: count.y }
-      },
-
-      // Apply rotation - just update rotation property
-      applyRotation: (annotation, rotationDelta) => {
-        const currentRotation = annotation.rotation || 0
-        return { rotation: currentRotation + rotationDelta }
-      },
-
-      // Apply move - translate x,y
-      applyMove: (annotation, deltaX, deltaY) => {
-        const count = annotation as Count
-        return {
-          x: count.x + deltaX,
-          y: count.y + deltaY
-        }
-      },
-
-      // Apply resize - count markers don't resize, just move the center
-      applyResize: (annotation, newBounds, originalBounds) => {
-        const count = annotation as Count
-        // Calculate the center offset from original bounds and apply to new bounds
-        const offsetX = count.x - (originalBounds.x + originalBounds.width / 2)
-        const offsetY = count.y - (originalBounds.y + originalBounds.height / 2)
-
-        return {
-          x: newBounds.x + newBounds.width / 2 + offsetX,
-          y: newBounds.y + newBounds.height / 2 + offsetY
-        }
-      }
-    }
+    onKeyDown: tool.handleKeyDown
   })
 
   return tool

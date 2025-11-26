@@ -87,12 +87,23 @@ export const useAnnotationStore = defineStore("annotations", () => {
         if (rotation === 0) return ""
 
         // Use group center stored during drag
-        const groupCenter = "_groupCenter" in annotation && annotation._groupCenter
-          ? annotation._groupCenter
-          : { x: 0, y: 0 } // Fallback
+        const groupCenter =
+          "_groupCenter" in annotation && annotation._groupCenter ? annotation._groupCenter : { x: 0, y: 0 } // Fallback
 
         const angleDeg = radiansToDegrees(rotation)
-        return `rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`
+        const transform = `rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`
+
+        if (annotation.type === "count") {
+          debugLog(`getRotationTransform - Count multi-select`, {
+            annotationId: annotation.id.slice(0, 8),
+            rotation: rotation,
+            angleDeg,
+            groupCenter,
+            transform
+          })
+        }
+
+        return transform
       }
 
       // For point-based tools: no transform (points are updated directly)
@@ -107,7 +118,21 @@ export const useAnnotationStore = defineStore("annotations", () => {
 
     const center = getAnnotationCenter(annotation)
     const angleDeg = radiansToDegrees(rotation)
-    return `rotate(${angleDeg} ${center.x} ${center.y})`
+    const transform = `rotate(${angleDeg} ${center.x} ${center.y})`
+
+    if (annotation.type === "count") {
+      debugLog(`getRotationTransform - Count single-select`, {
+        annotationId: annotation.id.slice(0, 8),
+        storedRotation,
+        rotationDragDelta: rotationDragDelta.value,
+        totalRotation: rotation,
+        angleDeg,
+        center,
+        transform
+      })
+    }
+
+    return transform
   }
 
   // ============================================
@@ -117,11 +142,9 @@ export const useAnnotationStore = defineStore("annotations", () => {
   /**
    * Recalculate derived values for annotations when points change
    * This ensures labels (midpoint, center) update when dragging/transforming
+   * Note: calculateDistance/calculatePolygonArea read scale from settings store internally
    */
   function recalculateDerivedValues(annotation: Annotation): Record<string, unknown> {
-    const settingsStore = useSettingStore()
-    const pdfScale = settingsStore.getPdfScale
-
     const derivedUpdates: Record<string, unknown> = {}
 
     if (isMeasurement(annotation)) {
@@ -130,14 +153,14 @@ export const useAnnotationStore = defineStore("annotations", () => {
       const [p1, p2] = measurement.points
 
       if (p1 && p2) {
-        derivedUpdates.distance = calculateDistance(p1, p2, pdfScale)
+        derivedUpdates.distance = calculateDistance(p1, p2)
         derivedUpdates.midpoint = calculateMidpoint(p1, p2)
       }
     } else if (isArea(annotation)) {
       // Recalculate area and center
       const area = annotation as Area
       if (area.points.length >= 3) {
-        derivedUpdates.area = calculatePolygonArea(area.points, pdfScale)
+        derivedUpdates.area = calculatePolygonArea(area.points)
         derivedUpdates.center = calculateCentroid(area.points)
       }
     } else if (isPerimeter(annotation)) {
@@ -152,7 +175,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
           const end = perimeter.points[(i + 1) % perimeter.points.length]
 
           if (start && end) {
-            const segmentLength = calculateDistance(start, end, pdfScale)
+            const segmentLength = calculateDistance(start, end)
             totalLength += segmentLength
 
             segments.push({

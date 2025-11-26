@@ -91,12 +91,26 @@ export function getAnnotationCenter(annotation: Annotation): Point {
 
   // Positioned annotations
   if ("x" in annotation && "width" in annotation) {
-    return {
+    const center = {
       x: annotation.x + annotation.width / 2,
       y: annotation.y + annotation.height / 2
     }
+
+    // Debug logging for Count annotations
+    if (annotation.type === "count") {
+      debugLog(`getAnnotationCenter - Count #${annotation.id.slice(0, 8)}`, {
+        x: annotation.x,
+        y: annotation.y,
+        width: annotation.width,
+        height: annotation.height,
+        calculatedCenter: center
+      })
+    }
+
+    return center
   }
 
+  debugWarn("getAnnotationCenter", `No center calculation for annotation type: ${annotation.type}`, annotation)
   return { x: 0, y: 0 }
 }
 
