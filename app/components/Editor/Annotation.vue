@@ -61,11 +61,14 @@ function handleDoubleClick(e: MouseEvent) {
   // Cancel pending single-click
   cancelSelectionTimeout()
 
+  // Prevent browser text selection on double-click
+  e.preventDefault()
+  e.stopPropagation()
+
   const tool = toolRegistry.getTool(props.annotation.type)
 
   if (tool?.onDoubleClick) {
     tool.onDoubleClick(props.annotation.id)
-    e.stopPropagation()
   }
 }
 

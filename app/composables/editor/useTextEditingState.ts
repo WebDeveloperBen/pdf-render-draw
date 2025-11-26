@@ -21,9 +21,15 @@ export const useTextEditingState = () => {
     }
   }
 
-  function finishEditing() {
+  function finishEditing(dimensions?: { width?: number; height?: number }) {
     if (editingId.value && editingContent.value !== undefined) {
-      annotationStore.updateAnnotation(editingId.value, { content: editingContent.value })
+      const updates: Record<string, unknown> = { content: editingContent.value }
+
+      // Update dimensions if provided (to fit wrapped text)
+      if (dimensions?.width) updates.width = dimensions.width
+      if (dimensions?.height) updates.height = dimensions.height
+
+      annotationStore.updateAnnotation(editingId.value, updates)
     }
     editingId.value = null
     editingContent.value = ""

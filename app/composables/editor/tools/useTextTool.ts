@@ -36,7 +36,11 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     const point = getSvgPoint(e, svg)
 
     // Use tool defaults from constants (will be user-configurable in the future)
-    const { width, height, fontSize, color, placeholder } = TEXT_TOOL_DEFAULTS
+    const { defaultWidth, minHeight, fontSize, lineHeight, color, placeholder } = TEXT_TOOL_DEFAULTS
+
+    // Initial dimensions: fixed width, height fits single line
+    const width = defaultWidth
+    const height = Math.max(Math.ceil(fontSize * lineHeight), minHeight)
 
     // Store x, y as TOP-LEFT corner (consistent with Fill, Count, and other positioned annotations)
     // This ensures bounds calculation works correctly for selection and transforms
@@ -67,8 +71,8 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     textEditing.cancelEditing()
   }
 
-  function finishEditing() {
-    textEditing.finishEditing()
+  function finishEditing(dimensions?: { width?: number; height?: number }) {
+    textEditing.finishEditing(dimensions)
   }
 
   function deleteText(id: string) {

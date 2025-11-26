@@ -9,16 +9,17 @@
 
 export const TEXT_TOOL_DEFAULTS = {
   // Dimensions
-  width: 200,
-  height: 50,
+  defaultWidth: 100, // Default width for new text boxes (user can resize via handles)
+  minHeight: 20, // Single line minimum (fontSize * lineHeight)
 
   // Typography
   fontSize: 16,
+  lineHeight: 1.2,
   fontFamily: "Arial, sans-serif",
   color: "#000000",
 
   // Initial content
-  placeholder: "Double-click to edit",
+  placeholder: "Text",
 
   // Background styling
   background: {
@@ -69,6 +70,8 @@ const { completed, editingId, editingContent, finishEditing, deleteText } = tool
 
 // Store ref to currently editing textarea
 const currentTextarea = ref<HTMLTextAreaElement | null>(null)
+// Track dynamic height while editing (width stays fixed, only height auto-adjusts)
+const editingHeight = ref<number | null>(null)
 
 function setTextareaRef(el: Element | ComponentPublicInstance | null, textId: string) {
   // Only store ref for the textarea we're currently editing
@@ -79,13 +82,85 @@ function setTextareaRef(el: Element | ComponentPublicInstance | null, textId: st
 
 // Watch editingId to focus and select text only when editing starts
 watch(editingId, (newId, oldId) => {
-  if (newId && newId !== oldId && currentTextarea.value) {
+  if (newId && newId !== oldId) {
+    editingHeight.value = null
     nextTick(() => {
       currentTextarea.value?.focus()
       currentTextarea.value?.select()
+      // Initialize height from content
+      if (currentTextarea.value) {
+        handleInput()
+      }
     })
+  } else if (!newId) {
+    editingHeight.value = null
   }
 })
+
+// Auto-resize textarea height while typing (width stays fixed)
+function handleInput() {
+  if (currentTextarea.value) {
+    const textarea = currentTextarea.value
+    // Reset to auto to measure true content height
+    textarea.style.height = "auto"
+    const newHeight = Math.max(textarea.scrollHeight, config.minHeight)
+    textarea.style.height = `${newHeight}px`
+    editingHeight.value = newHeight
+  }
+}
+
+// Measure actual rendered text width using a hidden element
+function measureTextWidth(text: string, fontSize: number): number {
+  const div = document.createElement("div")
+  div.style.cssText = `
+    position: absolute;
+    visibility: hidden;
+    white-space: pre;
+    font-size: ${fontSize}px;
+    font-family: ${config.fontFamily};
+    line-height: ${config.lineHeight};
+  `
+  // Measure each line and find the widest
+  const lines = text.split("\n")
+  let maxLineWidth = 0
+
+  for (const line of lines) {
+    div.textContent = line || " " // Use space for empty lines to get some width
+    document.body.appendChild(div)
+    maxLineWidth = Math.max(maxLineWidth, div.offsetWidth)
+    document.body.removeChild(div)
+  }
+
+  return Math.ceil(maxLineWidth)
+}
+
+// Finish editing and save dimensions to fit content
+function handleFinishEditing() {
+  if (currentTextarea.value && editingId.value) {
+    const textarea = currentTextarea.value
+    const annotation = completed.value.find((a) => a.id === editingId.value)
+    const fontSize = annotation?.fontSize ?? config.fontSize
+    const currentWidth = annotation?.width ?? config.defaultWidth
+
+    // Reset to auto to get true content height
+    textarea.style.height = "auto"
+    // scrollHeight includes padding, subtract it to get pure content height
+    const textareaPadding = config.editor.padding * 2
+    const contentHeight = textarea.scrollHeight - textareaPadding
+
+    // Measure unwrapped content width
+    const unwrappedWidth = measureTextWidth(editingContent.value, fontSize)
+
+    // If text fits without wrapping, shrink to fit
+    // If text wrapped (unwrapped > current), keep current width to preserve wrap
+    const newWidth = Math.max(Math.min(unwrappedWidth, currentWidth), 20)
+    const newHeight = Math.max(contentHeight, config.minHeight)
+
+    finishEditing({ width: newWidth, height: newHeight })
+  } else {
+    finishEditing()
+  }
+}
 </script>
 
 <template>
@@ -110,16 +185,37 @@ watch(editingId, (newId, oldId) => {
             :class="{ selected: isSelected }"
           />
 
-          <!-- Text content - SVG text uses baseline, so add fontSize to y -->
-          <text
+          <!-- Text content - use foreignObject for consistent wrapping with edit mode -->
+          <foreignObject
             :x="annotation.x"
-            :y="annotation.y + annotation.fontSize"
-            :font-size="annotation.fontSize"
-            :fill="annotation.color"
-            class="text-annotation"
+            :y="annotation.y"
+            :width="annotation.width"
+            :height="annotation.height"
+            class="text-foreign-object"
           >
-            {{ annotation.content }}
-          </text>
+            <div
+              xmlns="http://www.w3.org/1999/xhtml"
+              class="text-display"
+              :style="{
+                fontSize: annotation.fontSize + 'px',
+                lineHeight: config.lineHeight,
+                color: annotation.color,
+                fontFamily: config.fontFamily
+              }"
+            >
+              {{ annotation.content }}
+            </div>
+          </foreignObject>
+
+          <!-- Transparent hit area on top for reliable click/double-click events -->
+          <rect
+            :x="annotation.x - config.background.padding.horizontal"
+            :y="annotation.y - config.background.padding.vertical"
+            :width="annotation.width + config.background.padding.horizontal * 2"
+            :height="annotation.height + config.background.padding.vertical * 2"
+            fill="transparent"
+            class="text-hit-area"
+          />
 
           <!-- Delete button (shown on hover) -->
           <g class="delete-button" @click.stop="deleteText(annotation.id)">
@@ -156,7 +252,7 @@ watch(editingId, (newId, oldId) => {
           :x="annotation.x - config.editor.extraSpace.horizontal"
           :y="annotation.y - config.editor.extraSpace.vertical"
           :width="annotation.width + config.editor.extraSpace.horizontal * 2"
-          :height="annotation.height + config.editor.extraSpace.vertical * 2"
+          :height="(editingHeight || annotation.height) + config.editor.extraSpace.vertical * 2"
           style="pointer-events: all; overflow: visible"
           @click.stop
           @mousedown.stop
@@ -170,11 +266,14 @@ watch(editingId, (newId, oldId) => {
                 fontSize: annotation.fontSize + 'px',
                 color: annotation.color,
                 width: annotation.width + 'px',
-                height: annotation.height + 'px'
+                minHeight: config.minHeight + 'px'
               }"
-              @blur="finishEditing"
-              @keydown.enter.exact.prevent="finishEditing"
-              @keydown.escape="finishEditing"
+              @input="handleInput"
+              @blur="handleFinishEditing"
+              @keydown.enter.exact.prevent="handleFinishEditing"
+              @keydown.escape="handleFinishEditing"
+              @keydown.stop
+              @keyup.stop
               @click.stop
               @mousedown.stop
             />
@@ -193,15 +292,35 @@ watch(editingId, (newId, oldId) => {
   transition: opacity 0.2s;
 }
 
-.text-background.selected:hover {
+/* Show subtle border when hovering selected text (via parent g hover) */
+g:hover > .text-background.selected {
   opacity: 0.95;
   stroke: #ccc;
   stroke-width: 1;
 }
 
-.text-annotation {
-  user-select: none;
+.text-foreign-object {
+  pointer-events: none;
+  overflow: visible;
+}
+
+.text-hit-area {
   pointer-events: all;
+  cursor: pointer;
+}
+
+.text-display {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  pointer-events: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  overflow: hidden;
+  line-height: v-bind("config.lineHeight");
+  margin: 0;
+  padding: 0;
 }
 
 .delete-button {
@@ -211,7 +330,7 @@ watch(editingId, (newId, oldId) => {
   pointer-events: all;
 }
 
-.text-background:hover ~ .delete-button,
+.text-hit-area:hover ~ .delete-button,
 .delete-button:hover {
   opacity: 1;
 }
@@ -239,6 +358,10 @@ watch(editingId, (newId, oldId) => {
   background: white;
   outline: none;
   box-sizing: border-box;
+  line-height: v-bind("config.lineHeight");
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .text-editor:focus {
