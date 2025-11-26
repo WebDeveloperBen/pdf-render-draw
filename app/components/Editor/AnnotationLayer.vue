@@ -275,7 +275,7 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
     />
 
     <!-- Transform handles (for rotation/scaling/moving annotations) -->
-    <EditorTransformHandles />
+    <EditorHandlesTransform />
   </svg>
 </template>
 

@@ -109,7 +109,7 @@ function handleClick(e: MouseEvent) {
       <text x="0" y="0" fill="red">No content slot provided for {{ annotation.type }}</text>
     </slot>
 
-    <!-- Transform handles slot for backwards compatibility (now handled by V2 EditorTransformHandles) -->
+    <!-- Transform handles slot for backwards compatibility (now handled by V2 EditorHandlesTransform) -->
     <slot name="transform" :annotation="annotation" :is-selected="isSelected" />
   </g>
 </template>

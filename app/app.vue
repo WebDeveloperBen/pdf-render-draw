@@ -2,7 +2,7 @@
   <div>
     <NuxtRouteAnnouncer />
     <NuxtPage />
-    <HandlesPdfRotateHandles />
+    <EditorHandlesPdfRotate />
   </div>
 </template>
 
