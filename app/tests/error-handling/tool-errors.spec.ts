@@ -421,12 +421,11 @@ describe("Tool Error Handling", () => {
     it("should handle calculateCentroid with empty points array", () => {
       const points: Point[] = []
 
-      // This will cause division by zero
+      // Returns {0, 0} for empty array (safe default)
       const centroid = calculateCentroid(points)
 
-      expect(isNaN(centroid.x)).toBe(true)
-      expect(isNaN(centroid.y)).toBe(true)
-      // Note: No empty array validation
+      expect(centroid.x).toBe(0)
+      expect(centroid.y).toBe(0)
     })
 
     it("should handle calculateCentroid with NaN points", () => {

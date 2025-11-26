@@ -47,21 +47,20 @@ describe("Annotation Store - Error Handling and Validation", () => {
   })
 
   describe("Invalid Annotation Types", () => {
-    it("should throw error when adding annotation with invalid type (not in union)", () => {
+    it("should accept annotation with unknown type (shape-based validation)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
-      const invalidTypeAnnotation = {
-        id: "invalid-1",
-        type: "invalid-type",
+      // Shape-based validation accepts any string type
+      // This allows tools to be decoupled from validation logic
+      const unknownTypeAnnotation = {
+        id: "unknown-1",
+        type: "unknown-type",
         pageNum: 1
       } as any
 
-      expect(() => store.addAnnotation(invalidTypeAnnotation)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      // Does NOT throw - shape-based validation is lenient
+      expect(() => store.addAnnotation(unknownTypeAnnotation)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
 
     it("should throw error when adding annotation with type as null", () => {
@@ -163,10 +162,10 @@ describe("Annotation Store - Error Handling and Validation", () => {
       consoleErrorSpy.mockRestore()
     })
 
-    it("should throw error when adding measurement without points array", () => {
+    it("should accept measurement without points array (shape-based validation)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
+      // Shape-based validation doesn't require points - only validates if present
       const noPointsMeasurement = {
         id: "measure-1",
         type: "measure",
@@ -176,17 +175,15 @@ describe("Annotation Store - Error Handling and Validation", () => {
         labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noPointsMeasurement)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      // Does NOT throw - points are not required, only validated if present
+      expect(() => store.addAnnotation(noPointsMeasurement)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
 
-    it("should throw error when adding area without center", () => {
+    it("should accept area without center (shape-based validation)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
+      // Shape-based validation doesn't require center - only validates if present
       const noCenterArea = {
         id: "area-1",
         type: "area",
@@ -200,17 +197,15 @@ describe("Annotation Store - Error Handling and Validation", () => {
         labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noCenterArea)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      // Does NOT throw - center is not required, only validated if present
+      expect(() => store.addAnnotation(noCenterArea)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
 
-    it("should throw error when adding perimeter without segments", () => {
+    it("should accept perimeter without segments (shape-based validation)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
+      // Shape-based validation doesn't require segments - only validates if present
       const noSegmentsPerimeter = {
         id: "perimeter-1",
         type: "perimeter",
@@ -225,17 +220,15 @@ describe("Annotation Store - Error Handling and Validation", () => {
         labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noSegmentsPerimeter)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      // Does NOT throw - segments are not required, only validated if present
+      expect(() => store.addAnnotation(noSegmentsPerimeter)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
 
-    it("should throw error when adding text annotation without fontSize", () => {
+    it("should accept text annotation without fontSize (shape-based validation)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
+      // Shape-based validation doesn't require fontSize - only validates if present
       const noFontSizeText = {
         id: "text-1",
         type: "text",
@@ -249,11 +242,9 @@ describe("Annotation Store - Error Handling and Validation", () => {
         rotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noFontSizeText)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      // Does NOT throw - fontSize is not required, only validated if present
+      expect(() => store.addAnnotation(noFontSizeText)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
   })
 
@@ -589,10 +580,11 @@ describe("Annotation Store - Error Handling and Validation", () => {
   })
 
   describe("Rotation Validation", () => {
-    it("should accept NaN rotation value (no validation for rotation)", () => {
+    it("should throw error for NaN rotation value", () => {
       const store = useAnnotationStore()
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
-      const measurement: Measurement = {
+      const measurement = {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
@@ -604,12 +596,14 @@ describe("Annotation Store - Error Handling and Validation", () => {
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
         rotation: NaN
-      }
+      } as any
 
-      // Note: validateAnnotation doesn't validate rotation field
-      // This test documents current behavior (NaN rotation is allowed)
-      expect(() => store.addAnnotation(measurement)).not.toThrow()
-      expect(store.annotations).toHaveLength(1)
+      // NaN rotation is rejected by validation
+      expect(() => store.addAnnotation(measurement)).toThrow("Invalid annotation")
+      expect(consoleErrorSpy).toHaveBeenCalled()
+      expect(store.annotations).toHaveLength(0)
+
+      consoleErrorSpy.mockRestore()
     })
 
     it("should accept Infinity rotation value (no validation for rotation)", () => {
@@ -1000,11 +994,12 @@ describe("Annotation Store - Error Handling and Validation", () => {
       consoleErrorSpy.mockRestore()
     })
 
-    it("should throw error when measurement has wrong number of points (3 instead of 2)", () => {
+    it("should accept measurement with more than 2 points (shape-based validation only requires >= 2)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
-      const wrongPointsMeasurement = {
+      // Shape-based validation only requires points.length >= 2
+      // Type-specific constraints (exactly 2 points for measurement) are not enforced
+      const threePointMeasurement = {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
@@ -1015,20 +1010,19 @@ describe("Annotation Store - Error Handling and Validation", () => {
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       } as any
 
-      expect(() => store.addAnnotation(wrongPointsMeasurement)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      expect(() => store.addAnnotation(threePointMeasurement)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
 
-    it("should throw error when area annotation has less than 3 points", () => {
+    it("should accept area annotation with 2 points (shape-based validation only requires >= 2)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
+      // Shape-based validation only requires points.length >= 2
+      // Type-specific constraints (3+ points for area) are not enforced
       const twoPointArea = {
         id: "area-1",
         type: "area",
@@ -1039,14 +1033,12 @@ describe("Annotation Store - Error Handling and Validation", () => {
         ],
         area: 0,
         center: { x: 50, y: 0 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       } as any
 
-      expect(() => store.addAnnotation(twoPointArea)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      expect(() => store.addAnnotation(twoPointArea)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
 
     it("should throw error when line annotation has less than 2 points", () => {
@@ -1089,10 +1081,11 @@ describe("Annotation Store - Error Handling and Validation", () => {
       consoleErrorSpy.mockRestore()
     })
 
-    it("should throw error when perimeter has empty segments array", () => {
+    it("should accept perimeter with empty segments array (shape-based validation only checks array type)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
+      // Shape-based validation only checks that segments is an array
+      // It doesn't enforce that segments must be non-empty
       const emptySegmentsPerimeter = {
         id: "perimeter-1",
         type: "perimeter",
@@ -1105,14 +1098,12 @@ describe("Annotation Store - Error Handling and Validation", () => {
         segments: [],
         totalLength: 300,
         center: { x: 50, y: 50 },
-        labelRotation: 0
+        labelRotation: 0,
+        rotation: 0
       } as any
 
-      expect(() => store.addAnnotation(emptySegmentsPerimeter)).toThrow("Invalid annotation")
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(store.annotations).toHaveLength(0)
-
-      consoleErrorSpy.mockRestore()
+      expect(() => store.addAnnotation(emptySegmentsPerimeter)).not.toThrow()
+      expect(store.annotations).toHaveLength(1)
     })
   })
 })

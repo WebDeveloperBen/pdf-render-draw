@@ -52,13 +52,12 @@ describe("Text Annotation Rotation", () => {
 
     const transform = annotationStore.getRotationTransform(text)
 
-    // Should rotate 90 degrees around center of text box
-    // Visual y = y - fontSize - 2 = 100 - 16 - 2 = 82
+    // Should rotate 90 degrees around geometric center
     // centerX = x + width/2 = 100 + 200/2 = 200
-    // centerY = visualY + height/2 = 82 + 50/2 = 107
+    // centerY = y + height/2 = 100 + 50/2 = 125
     expect(transform).toContain("rotate(90")
     expect(transform).toContain("200") // centerX
-    expect(transform).toContain("107") // centerY (accounts for baseline offset)
+    expect(transform).toContain("125") // centerY (geometric center)
   })
 
   it("should update text rotation via transform handles", () => {
@@ -110,11 +109,11 @@ describe("Text Annotation Rotation", () => {
 
     const transform = annotationStore.getRotationTransform(text)
 
-    // Visual y = y - fontSize - 2 = 0 - 16 - 2 = -18
+    // Geometric center calculation:
     // centerX = x + width/2 = 0 + 100/2 = 50
-    // centerY = visualY + height/2 = -18 + 50/2 = 7
+    // centerY = y + height/2 = 0 + 50/2 = 25
     expect(transform).toContain("50") // centerX
-    expect(transform).toContain("7") // centerY (accounts for baseline offset)
+    expect(transform).toContain("25") // centerY (geometric center)
     expect(transform).not.toContain("rotate(180 0 0)") // Should not rotate around origin
   })
 
