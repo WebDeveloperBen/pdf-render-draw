@@ -62,7 +62,7 @@ export type TextToolConfig = typeof TEXT_TOOL_DEFAULTS
 const tool = useTextToolState()
 const config = TEXT_TOOL_DEFAULTS
 if (!tool) {
-  throw new Error("TextTool must be used within SvgAnnotationLayer")
+  throw new Error("TextTool must be used within AnnotationRendererLayer")
 }
 
 const { completed, editingId, editingContent, finishEditing, deleteText } = tool
@@ -91,7 +91,7 @@ watch(editingId, (newId, oldId) => {
 <template>
   <g class="text-tool">
     <!-- Each text annotation uses BaseAnnotation for common functionality -->
-    <LayersBaseAnnotation v-for="text in completed" :key="text.id" :annotation="text">
+    <EditorBaseAnnotation v-for="text in completed" :key="text.id" :annotation="text">
       <!-- Custom content for text annotations -->
       <template #content="{ annotation, isSelected }">
         <!-- Non-editing mode: display text -->
@@ -184,7 +184,7 @@ watch(editingId, (newId, oldId) => {
 
       <!-- Transform handles are now handled by BaseAnnotation -->
       <!-- No need to manually include them here -->
-    </LayersBaseAnnotation>
+    </EditorBaseAnnotation>
   </g>
 </template>
 

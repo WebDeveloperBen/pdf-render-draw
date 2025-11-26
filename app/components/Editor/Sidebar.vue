@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PDFDocumentProxy } from "pdfjs-dist"
-import { DIMENSIONS } from "~/constants/dimensions"
+import { DIMENSIONS } from "@/constants/dimensions"
 
 const props = defineProps<{
   isOpen: boolean

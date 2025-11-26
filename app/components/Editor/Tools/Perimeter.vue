@@ -95,7 +95,7 @@ const tool = usePerimeterToolState()
 const config = PERIMETER_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("PerimeterTool must be used within SvgAnnotationLayer")
+  throw new Error("PerimeterTool must be used within AnnotationRendererLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)
@@ -119,7 +119,7 @@ const rendererStore = useRendererStore()
 <template>
   <g class="perimeter-tool">
     <!-- Completed perimeters -->
-    <LayersBaseAnnotation v-for="perimeter in completed" :key="perimeter.id" :annotation="perimeter">
+    <EditorBaseAnnotation v-for="perimeter in completed" :key="perimeter.id" :annotation="perimeter">
       <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
         <polygon
@@ -187,7 +187,7 @@ const rendererStore = useRendererStore()
           Total: {{ annotation.totalLength }}mm
         </text>
       </template>
-    </LayersBaseAnnotation>
+    </EditorBaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

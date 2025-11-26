@@ -1,6 +1,6 @@
 /**
  * useEditorScale - Scaling/resizing logic
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Handles scaling of selected shapes from corner/edge handles
  * Supports rotated shapes by projecting mouse deltas into local space

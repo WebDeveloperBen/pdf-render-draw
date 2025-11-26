@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import RotationWheel from "~/components/tools/RotationWheel.vue"
+import RotationWheel from "~/components/Editor/Tools/RotationWheel.vue"
 
 const rendererStore = useRendererStore()
 const annotationStore = useAnnotationStore()

@@ -65,7 +65,7 @@
 **Core Components**
 
 - ✅ `SimplePdfViewer.vue` - PDF.js canvas renderer
-- ✅ `SvgAnnotationLayer.vue` - SVG overlay container
+- ✅ `AnnotationRendererLayer.vue` - SVG overlay container
 - ✅ `Transform.vue` - Selection transformer with rotation
 - ✅ `RotationWheel.vue` - Rotation handle component
 

@@ -1,6 +1,6 @@
 /**
  * useEditorMove - Move/drag logic
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Handles dragging selected shapes to move them
  * Maintains frozen bounds during drag

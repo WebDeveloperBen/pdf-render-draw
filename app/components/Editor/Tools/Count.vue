@@ -16,8 +16,8 @@ export const COUNT_TOOL_DEFAULTS = {
   // Count marker appearance
   marker: {
     radius: 15,
-    fill: '#ff9800',
-    stroke: '#000000',
+    fill: "#ff9800",
+    stroke: "#000000",
     strokeWidth: 2,
     // Size of bounding box (2 * radius)
     get size() {
@@ -28,8 +28,8 @@ export const COUNT_TOOL_DEFAULTS = {
   // Text styling
   text: {
     fontSize: 12,
-    fontWeight: 'bold',
-    fill: 'white'
+    fontWeight: "bold",
+    fill: "white"
   },
 
   // Preview styling
@@ -54,7 +54,7 @@ const tool = useCountToolState()
 const config = COUNT_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("CountTool must be used within SvgAnnotationLayer")
+  throw new Error("CountTool must be used within AnnotationRendererLayer")
 }
 
 const annotationStore = useAnnotationStore()
@@ -67,7 +67,7 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
 <template>
   <g class="count-tool">
     <!-- Completed count annotations -->
-    <LayersBaseAnnotation v-for="count in completed" :key="count.id" :annotation="count">
+    <EditorBaseAnnotation v-for="count in completed" :key="count.id" :annotation="count">
       <template #content="{ annotation }">
         <!-- Invisible hitbox for easier clicking -->
         <circle
@@ -103,7 +103,7 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
           {{ annotation.number }}
         </text>
       </template>
-    </LayersBaseAnnotation>
+    </EditorBaseAnnotation>
 
     <!-- Preview marker (shown when hovering with count tool active) -->
     <g v-if="showPreview && cursorPosition" class="preview">
@@ -143,13 +143,12 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
 /* Count marker styling */
 .count-marker {
   pointer-events: none;
-  transition: all 0.2s;
 }
 
 /* Hover effect */
 .count-hitbox:hover ~ .count-marker {
-  r: v-bind('config.states.hover.radius');
-  stroke-width: v-bind('config.states.hover.strokeWidth');
+  r: v-bind("config.states.hover.radius");
+  stroke-width: v-bind("config.states.hover.strokeWidth");
 }
 
 /* Text styling */

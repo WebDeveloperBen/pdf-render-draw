@@ -1,6 +1,6 @@
 /**
  * useEditorSelection - Selection state management
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Manages which annotations are currently selected
  * Supports single selection, multi-selection (Shift+Click), and marquee selection

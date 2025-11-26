@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { COLORS } from "~/constants/ui"
+import { COLORS } from "@/constants/ui"
 
 const annotationStore = useAnnotationStore()
 const rendererStore = useRendererStore()

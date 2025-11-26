@@ -1,6 +1,6 @@
 /**
  * useEditorEventHandlers - Central event coordination
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Coordinates all mouse event handlers and prevents accidental interactions
  */

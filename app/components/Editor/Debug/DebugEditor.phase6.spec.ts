@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import DebugEditor from './DebugEditor.vue'
+import SimpleDebugEditor from './SimpleDebugEditor.vue'
 
 describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
   // Mock SVG methods
@@ -29,14 +29,14 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
 
   describe('Marquee Selection State', () => {
     it('should show marquee selection status in debug info', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const debugInfo = wrapper.find('.debug-info')
 
       expect(debugInfo.text()).toContain('Marquee: No')
     })
 
     it('should display phase 6 or later title', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const title = wrapper.find('h2')
 
       // Component may be at Phase 6 or beyond
@@ -44,14 +44,14 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should show marquee selection hint', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const hint = wrapper.find('.hint')
 
       expect(hint.text()).toContain('Drag on canvas to marquee select')
     })
 
     it('should update debug info status heading to Phase 6 or later', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const statusHeading = wrapper.find('.debug-info h3')
 
       expect(statusHeading.text()).toMatch(/Phase [6-9] Status/)
@@ -60,19 +60,19 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
 
   describe('Marquee State Management', () => {
     it('should have marquee selection state initialized to false', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.isMarqueeSelecting).toBe(false)
     })
 
     it('should have null marquee start point initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.marqueeStartPoint).toBeNull()
     })
 
     it('should have null marquee end point initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.marqueeEndPoint).toBeNull()
     })
@@ -80,7 +80,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
 
   describe('Marquee Interaction', () => {
     it('should start marquee selection on background mousedown', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const svg = wrapper.find('svg')
 
       await svg.trigger('mousedown')
@@ -89,7 +89,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should not start marquee when clicking on a shape', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -98,7 +98,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should not start marquee when clicking on selection box', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select a shape first
@@ -112,7 +112,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should not start marquee when clicking on handles', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select a shape first
@@ -128,7 +128,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
 
   describe('Marquee Box Rendering', () => {
     it('should show marquee box when dragging', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const svg = wrapper.find('svg')
 
       await svg.trigger('mousedown')
@@ -138,14 +138,14 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should not show marquee box when not selecting', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       const marqueeBox = wrapper.find('.marquee-box')
       expect(marqueeBox.exists()).toBe(false)
     })
 
     it('should have correct styling for marquee box', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const svg = wrapper.find('svg')
 
       await svg.trigger('mousedown')
@@ -158,7 +158,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
 
   describe('Marquee Selection Logic', () => {
     it('should select shapes that intersect marquee box', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Start marquee
@@ -179,7 +179,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should add to selection with shift+drag', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select first shape
@@ -194,7 +194,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should replace selection without shift key', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select first shape
@@ -212,7 +212,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
 
   describe('Phase Integration', () => {
     it('should preserve Phase 1 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Single selection still works
@@ -226,7 +226,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should preserve Phase 2 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select still works
@@ -241,7 +241,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should preserve Phase 3 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -254,7 +254,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should preserve Phase 4 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -268,7 +268,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should preserve Phase 5 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -282,7 +282,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should not drag, rotate, scale, and marquee simultaneously', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -299,7 +299,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
 
   describe('Marquee Box Geometry', () => {
     it('should calculate marquee bounds correctly', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const svg = wrapper.find('svg')
 
       await svg.trigger('mousedown')
@@ -323,7 +323,7 @@ describe('Debug SVG Editor - Phase 6: Drag-Select', () => {
     })
 
     it('should handle drag in any direction', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const svg = wrapper.find('svg')
 
       await svg.trigger('mousedown')

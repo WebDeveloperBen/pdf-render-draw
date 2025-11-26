@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { TEXT_TOOL_DEFAULTS } from "~/components/tools/Text.vue"
+import { TEXT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Text.vue"
 
 const [useTextTool, useTextToolState] = createInjectionState(() => {
   // Inherit base functionality

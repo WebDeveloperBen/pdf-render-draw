@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
-import { COUNT_TOOL_DEFAULTS } from "~/components/tools/Count.vue"
+import { COUNT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Count.vue"
 
 const [useCountTool, useCountToolState] = createInjectionState(() => {
   // Inherit base functionality

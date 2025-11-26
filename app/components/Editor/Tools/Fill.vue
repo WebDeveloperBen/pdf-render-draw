@@ -38,7 +38,7 @@ const tool = useFillToolState()
 const config = FILL_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("FillTool must be used within SvgAnnotationLayer")
+  throw new Error("FillTool must be used within AnnotationRendererLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)
@@ -54,7 +54,7 @@ const {
 <template>
   <g class="fill-tool">
     <!-- Completed fill rectangles -->
-    <LayersBaseAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
+    <EditorBaseAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
       <template #content="{ annotation, isSelected }">
         <!-- Filled rectangle -->
         <rect
@@ -80,7 +80,7 @@ const {
           class="fill-border"
         />
       </template>
-    </LayersBaseAnnotation>
+    </EditorBaseAnnotation>
 
     <!-- Preview while drawing -->
     <rect

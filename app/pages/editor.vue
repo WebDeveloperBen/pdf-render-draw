@@ -127,7 +127,7 @@ if (typeof window !== "undefined") {
 <template>
   <div class="editor-page">
     <!-- Page Sidebar -->
-    <PdfPageSidebar :is-open="isSidebarOpen" @close="closeSidebar" />
+    <EditorSidebar :is-open="isSidebarOpen" @close="closeSidebar" />
 
     <!-- Main Editor Area -->
     <div class="editor-main" :class="{ 'sidebar-open': isSidebarOpen }">
@@ -159,7 +159,9 @@ if (typeof window !== "undefined") {
             <button
               class="toolbar-btn-icon"
               :disabled="rendererStore.getCurrentPage >= rendererStore.getTotalPages"
-              @click="rendererStore.setCurrentPage(Math.min(rendererStore.getTotalPages, rendererStore.getCurrentPage + 1))"
+              @click="
+                rendererStore.setCurrentPage(Math.min(rendererStore.getTotalPages, rendererStore.getCurrentPage + 1))
+              "
             >
               ›
             </button>
@@ -232,7 +234,7 @@ if (typeof window !== "undefined") {
         @mouseleave="handleMouseUp"
         @contextmenu.prevent
       >
-        <EditorDrawingPad v-if="rendererStore.isPdfLoaded" />
+        <Editor v-if="rendererStore.isPdfLoaded" />
       </div>
     </div>
   </div>

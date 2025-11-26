@@ -28,7 +28,7 @@
   Following PLAN.md spec-driven approach
 -->
 <script setup lang="ts">
-import { getRootSVG } from "~/utils/svg"
+import { getRootSVG } from "@/utils/svg"
 
 // Cursor management
 const cursor = useCursor()

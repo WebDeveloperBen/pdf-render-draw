@@ -1,6 +1,6 @@
 /**
  * Transform math utilities for V2 editor
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  */
 
 import type { Point } from "~/types/editor"

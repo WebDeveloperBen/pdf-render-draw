@@ -1,6 +1,6 @@
 /**
  * useEditorCoordinates - Coordinate conversion for PDF annotations
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Handles conversion between screen (mouse) coordinates and PDF coordinates
  * Works with the renderer store's transform system

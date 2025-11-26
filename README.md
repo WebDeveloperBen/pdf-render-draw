@@ -10,7 +10,7 @@ This folder contains **only** the essential PDF rendering and SVG annotation too
 app-migration/
 ├── components/
 │   ├── SimplePdfViewer.vue       # PDF canvas renderer (pure PDF.js)
-│   ├── SvgAnnotationLayer.vue    # SVG overlay with event routing
+│   ├── AnnotationRendererLayer.vue    # SVG overlay with event routing
 │   └── tools/                     # 6 SVG tool components
 │       ├── MeasureTool.vue        # Distance measurements
 │       ├── AreaTool.vue           # Area calculations (m²)
@@ -91,7 +91,7 @@ onMounted(() => {
     <SimplePdfViewer :pdf="pdf" />
 
     <!-- SVG Annotation Layer -->
-    <SvgAnnotationLayer />
+    <AnnotationRendererLayer />
 
     <!-- Tool Buttons -->
     <div class="tools">

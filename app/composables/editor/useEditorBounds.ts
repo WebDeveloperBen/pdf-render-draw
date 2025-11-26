@@ -1,6 +1,6 @@
 /**
  * useEditorBounds - Bounds calculation with frozen pattern
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Calculates bounding boxes for selected annotations
  * Implements frozen bounds pattern to prevent transformer jumping during rotation
@@ -26,7 +26,7 @@ export const useEditorBounds = createSharedComposable(() => {
 
   /**
    * Selection bounds - uses frozen bounds if available (during/after rotation), otherwise calculates
-   * Matches DebugEditor.vue behavior: only freeze during rotation
+   * Matches SimpleDebugEditor.vue behavior: only freeze during rotation
    */
   const selectionBounds = computed(() => {
     if (selection.selectedIds.value.length === 0) {

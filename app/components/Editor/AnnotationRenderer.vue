@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { useEventListener } from "@vueuse/core"
-import { SELECTION } from "~/constants/ui"
-import { debugLog } from "~/utils/debug"
-import type { ToolType } from "~/types/annotations"
+import { SELECTION } from "@/constants/ui"
 
 // Import tool components directly
-import ToolsMeasure from "~/components/tools/Measure.vue"
-import ToolsCount from "~/components/tools/Count.vue"
-import ToolsArea from "~/components/tools/Area.vue"
-import ToolsPerimeter from "~/components/tools/Perimeter.vue"
-import ToolsLine from "~/components/tools/Line.vue"
-import ToolsFill from "~/components/tools/Fill.vue"
-import ToolsText from "~/components/tools/Text.vue"
+import ToolsMeasure from "~/components/Editor/Tools/Measure.vue"
+import ToolsCount from "~/components/Editor/Tools/Count.vue"
+import ToolsArea from "~/components/Editor/Tools/Area.vue"
+import ToolsPerimeter from "~/components/Editor/Tools/Perimeter.vue"
+import ToolsLine from "~/components/Editor/Tools/Line.vue"
+import ToolsFill from "~/components/Editor/Tools/Fill.vue"
+import ToolsText from "~/components/Editor/Tools/Text.vue"
 
 // Map of tool types to their components for direct rendering
 const toolComponents = {

@@ -1,6 +1,6 @@
 /**
  * useEditorRotation - Rotation logic
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Handles rotation of selected annotations around selection center
  * Implements frozen bounds pattern to prevent transformer jumping

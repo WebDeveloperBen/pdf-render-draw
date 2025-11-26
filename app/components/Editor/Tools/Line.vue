@@ -54,14 +54,14 @@ export type LineToolConfig = typeof LINE_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-import { useLineToolState } from "~/composables/editor/tools/useLineTool"
+import { useLineToolState } from "@/composables/editor/tools/useLineTool"
 
 // Inject the tool state (which extends BaseTool)
 const tool = useLineToolState()
 const config = LINE_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("LineTool must be used within SvgAnnotationLayer")
+  throw new Error("LineTool must be used within AnnotationRendererLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)
@@ -89,7 +89,7 @@ watch(
 <template>
   <g class="line-tool">
     <!-- Completed lines -->
-    <LayersBaseAnnotation v-for="line in completed" :key="line.id" :annotation="line">
+    <EditorBaseAnnotation v-for="line in completed" :key="line.id" :annotation="line">
       <template #content="{ annotation, isSelected }">
         <!-- Invisible wider hitbox for easier clicking -->
         <polyline
@@ -130,7 +130,7 @@ watch(
           class="end-marker"
         />
       </template>
-    </LayersBaseAnnotation>
+    </EditorBaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

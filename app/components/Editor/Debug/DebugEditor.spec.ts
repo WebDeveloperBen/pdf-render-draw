@@ -7,26 +7,26 @@
 
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import DebugEditor from './DebugEditor.vue'
+import SimpleDebugEditor from './SimpleDebugEditor.vue'
 
 describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
   describe('Initial State', () => {
     it('should render hardcoded rectangles', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       expect(shapes.length).toBeGreaterThanOrEqual(1)
     })
 
     it('should have no selection initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const selectionBox = wrapper.find('.selection-box')
 
       expect(selectionBox.exists()).toBe(false)
     })
 
     it('should display phase title', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const title = wrapper.find('h2')
 
       expect(title.text()).toContain('Debug SVG Editor')
@@ -36,7 +36,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
 
   describe('Single Selection', () => {
     it('should select shape when clicked', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
 
       await shape.trigger('click')
@@ -45,7 +45,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
     })
 
     it('should show selection box when shape is selected', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
 
       await shape.trigger('click')
@@ -55,7 +55,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
     })
 
     it('should show rotation handle when shape is selected', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
 
       await shape.trigger('click')
@@ -65,7 +65,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
     })
 
     it('should clear selection when background is clicked', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
       const svg = wrapper.find('svg')
 
@@ -79,7 +79,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
     })
 
     it('should update debug info when shape is selected', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
 
       await shape.trigger('click')
@@ -95,7 +95,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
 
   describe('Bounding Box Calculation', () => {
     it('should calculate correct bounds for non-rotated rectangle', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
 
       await shape.trigger('click')
@@ -114,7 +114,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
     })
 
     it('should position rotation handle above bounding box', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
 
       await shape.trigger('click')
@@ -133,7 +133,7 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
 
   describe('SVG Transform', () => {
     it('should have no transform for non-rotated shape', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shape = wrapper.find('.shape')
 
       const transform = shape.attributes('transform')
@@ -143,21 +143,21 @@ describe('Debug SVG Editor - Phase 1: Basic Selection', () => {
 
   describe('Component Structure', () => {
     it('should have SVG canvas with correct viewBox', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const svg = wrapper.find('svg')
 
       expect(svg.attributes('viewBox')).toBe('0 0 800 600')
     })
 
     it('should have grid pattern background', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const pattern = wrapper.find('#grid')
 
       expect(pattern.exists()).toBe(true)
     })
 
     it('should have debug info panel', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const debugInfo = wrapper.find('.debug-info')
 
       expect(debugInfo.exists()).toBe(true)

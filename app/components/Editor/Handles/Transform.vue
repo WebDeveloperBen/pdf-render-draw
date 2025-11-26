@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TRANSFORM, COLORS } from "~/constants/ui"
+import { TRANSFORM, COLORS } from "@/constants/ui"
 
 defineProps<{
   annotation: Annotation

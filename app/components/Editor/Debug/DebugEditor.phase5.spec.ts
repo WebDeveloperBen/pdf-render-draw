@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import DebugEditor from './DebugEditor.vue'
+import SimpleDebugEditor from './SimpleDebugEditor.vue'
 
 describe('Debug SVG Editor - Phase 5: Scaling', () => {
   // Mock SVG methods
@@ -29,14 +29,14 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
 
   describe('Scaling State', () => {
     it('should show scaling status in debug info', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const debugInfo = wrapper.find('.debug-info')
 
       expect(debugInfo.text()).toContain('Scaling: No')
     })
 
     it('should display phase 5 or later title', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const title = wrapper.find('h2')
 
       // Component may be at Phase 5 or beyond
@@ -44,14 +44,14 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should show scale hint', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const hint = wrapper.find('.hint')
 
       expect(hint.text()).toContain('Drag scale handles to resize')
     })
 
     it('should update debug info status heading to Phase 5', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const statusHeading = wrapper.find('.debug-info h3')
 
       expect(statusHeading.text()).toMatch(/Phase [5-9] Status/)
@@ -60,7 +60,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
 
   describe('Scale Handles', () => {
     it('should show 8 scale handles for single selection', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select a shape
@@ -71,7 +71,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should show 4 corner handles', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -88,7 +88,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should show 4 edge handles', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -105,7 +105,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should position corner handles at bounds corners', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -126,7 +126,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should position edge handles at bounds midpoints', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -148,31 +148,31 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
 
   describe('Scale State Management', () => {
     it('should have scaling state initialized to false', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.isScaling).toBe(false)
     })
 
     it('should have null scale handle initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.scaleHandle).toBeNull()
     })
 
     it('should have null scale start point initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.scaleStartPoint).toBeNull()
     })
 
     it('should have null scale original bounds initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.scaleOriginalBounds).toBeNull()
     })
 
     it('should have empty scale original shapes initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.scaleOriginalShapes.size).toBe(0)
     })
@@ -180,7 +180,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
 
   describe('Scale Interaction', () => {
     it('should start scaling on handle mousedown', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -192,7 +192,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should set correct scale handle on mousedown', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -204,7 +204,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should maintain selection during scaling', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -218,7 +218,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should not allow scaling without selection', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       // No selection, so no scale handles should exist
       const scaleHandles = wrapper.findAll('.scale-handle')
@@ -228,7 +228,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
 
   describe('Multi-Select Scaling', () => {
     it('should allow scaling multi-select', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select
@@ -244,7 +244,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should show union bounds scale handles for multi-select', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -258,7 +258,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should position scale handles on union bounds', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -280,7 +280,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
 
   describe('Phase Integration', () => {
     it('should preserve Phase 1 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Single selection still works
@@ -294,7 +294,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should preserve Phase 2 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select still works
@@ -309,7 +309,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should preserve Phase 3 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -322,7 +322,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should preserve Phase 4 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -336,7 +336,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should not drag, rotate, and scale simultaneously', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -364,7 +364,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
 
   describe('Scale Handle Cursors', () => {
     it('should have nwse-resize cursor on NW and SE handles', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -374,7 +374,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should have nesw-resize cursor on NE and SW handles', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -384,7 +384,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should have ns-resize cursor on N and S handles', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -394,7 +394,7 @@ describe('Debug SVG Editor - Phase 5: Scaling', () => {
     })
 
     it('should have ew-resize cursor on E and W handles', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')

@@ -78,14 +78,14 @@ export type AreaToolConfig = typeof AREA_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-import { useAreaToolState } from "~/composables/editor/tools/useAreaTool"
+import { useAreaToolState } from "@/composables/editor/tools/useAreaTool"
 
 // Inject the tool state (which extends BaseTool)
 const tool = useAreaToolState()
 const config = AREA_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("AreaTool must be used within SvgAnnotationLayer")
+  throw new Error("AreaTool must be used within AnnotationRendererLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)
@@ -110,7 +110,7 @@ const rendererStore = useRendererStore()
 <template>
   <g class="area-tool">
     <!-- Completed areas -->
-    <LayersBaseAnnotation v-for="area in completed" :key="area.id" :annotation="area">
+    <EditorBaseAnnotation v-for="area in completed" :key="area.id" :annotation="area">
       <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
         <polygon
@@ -150,7 +150,7 @@ const rendererStore = useRendererStore()
           {{ annotation.area }}m²
         </text>
       </template>
-    </LayersBaseAnnotation>
+    </EditorBaseAnnotation>
 
     <!-- Preview while drawing -->
     <g v-if="tempEndPoint" class="preview">

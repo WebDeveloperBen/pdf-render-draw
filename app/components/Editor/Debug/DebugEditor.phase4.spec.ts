@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import DebugEditor from './DebugEditor.vue'
+import SimpleDebugEditor from './SimpleDebugEditor.vue'
 
 describe('Debug SVG Editor - Phase 4: Rotation', () => {
   // Mock SVG methods
@@ -29,14 +29,14 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Rotation State', () => {
     it('should show rotating status in debug info', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const debugInfo = wrapper.find('.debug-info')
 
       expect(debugInfo.text()).toContain('Rotating: No')
     })
 
     it('should display phase 4 or later title', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const title = wrapper.find('h2')
 
       // Component may be at Phase 4 or beyond
@@ -44,14 +44,14 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should show rotation hint', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const hint = wrapper.find('.hint')
 
       expect(hint.text()).toContain('Drag rotation handle to rotate')
     })
 
     it('should update debug info status heading to Phase 4 or later', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const statusHeading = wrapper.find('.debug-info h3')
 
       expect(statusHeading.text()).toMatch(/Phase [4-9] Status/)
@@ -60,7 +60,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Rotation Handle', () => {
     it('should have grab cursor on rotation handle', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select a shape
@@ -72,7 +72,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should apply rotating class on mousedown', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -84,7 +84,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should position rotation handle above single selection', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -99,7 +99,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should position rotation handle above multi-selection', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -117,7 +117,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Rotation Behavior', () => {
     it('should display rotation angle in debug info', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -127,7 +127,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should initialize shapes with 0 degree rotation', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -137,7 +137,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should have empty transform for non-rotated shapes', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // All shapes start with rotation = 0
@@ -149,25 +149,25 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Rotation State Management', () => {
     it('should have rotation state initialized to false', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.isRotating).toBe(false)
     })
 
     it('should have zero rotation start angle initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.rotationStartAngle).toBe(0)
     })
 
     it('should have empty rotation original angles initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.rotationOriginalAngles.size).toBe(0)
     })
 
     it('should have null rotation center initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.rotationCenter).toBeNull()
     })
@@ -175,7 +175,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Multi-Select Rotation', () => {
     it('should allow rotating multi-select', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select
@@ -191,7 +191,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should show union bounds for multi-select rotation', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -203,7 +203,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should center rotation handle horizontally on multi-select bounds', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -222,7 +222,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Rotation Interaction', () => {
     it('should prevent click event propagation when rotation starts', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -235,7 +235,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should maintain selection during rotation', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -249,7 +249,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should not allow rotation without selection', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       // No selection, so no rotation handle should exist
       const rotationHandle = wrapper.find('.rotation-handle')
@@ -259,7 +259,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Phase Integration', () => {
     it('should preserve Phase 1 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Single selection still works
@@ -273,7 +273,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should preserve Phase 2 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select still works
@@ -288,7 +288,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should preserve Phase 3 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -301,7 +301,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should not drag and rotate simultaneously', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -327,7 +327,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
 
   describe('Rotation Line Indicator', () => {
     it('should show line from bbox center to rotation handle', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -339,7 +339,7 @@ describe('Debug SVG Editor - Phase 4: Rotation', () => {
     })
 
     it('should connect line from top center of bbox to handle', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')

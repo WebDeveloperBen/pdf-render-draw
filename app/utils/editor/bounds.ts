@@ -1,6 +1,6 @@
 /**
  * Bounds calculation utilities for V2 editor
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  * Extended to support all annotation types
  */
 

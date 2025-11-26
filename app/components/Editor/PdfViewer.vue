@@ -5,9 +5,9 @@
  * PDF is now loaded via rendererStore.loadPdf() - this component
  * reads from the store instead of receiving a prop.
  */
-import { RENDERING } from "~/constants/rendering"
-import { ERROR_COLORS, BUTTON_COLORS } from "~/constants/ui"
-import { debugLog, debugError } from "~/utils/debug"
+import { RENDERING } from "@/constants/rendering"
+import { ERROR_COLORS, BUTTON_COLORS } from "@/constants/ui"
+import { debugLog, debugError } from "@/utils/debug"
 
 const rendererStore = useRendererStore()
 

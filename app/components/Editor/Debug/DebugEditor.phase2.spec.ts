@@ -7,19 +7,19 @@
 
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import DebugEditor from './DebugEditor.vue'
+import SimpleDebugEditor from './SimpleDebugEditor.vue'
 
 describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
   describe('Multiple Shapes', () => {
     it('should render three hardcoded rectangles', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       expect(shapes).toHaveLength(3)
     })
 
     it('should display phase title', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const title = wrapper.find('h2')
 
       expect(title.text()).toContain('Debug SVG Editor')
@@ -27,7 +27,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should show multi-select hint', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const hint = wrapper.find('.hint')
 
       expect(hint.exists()).toBe(true)
@@ -37,7 +37,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
 
   describe('Shift+Click Multi-Select', () => {
     it('should select first shape on regular click', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -48,7 +48,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should add second shape to selection with Shift+click', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select first shape
@@ -63,7 +63,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should allow selecting all three shapes', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -76,7 +76,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should replace selection on regular click after multi-select', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select first two
@@ -92,7 +92,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should deselect shape with Shift+click if already selected', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select two shapes
@@ -107,7 +107,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should clear all selections on background click', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
       const svg = wrapper.find('svg')
 
@@ -127,7 +127,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
 
   describe('Multi-Select Debug Info', () => {
     it('should show selected count', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -138,7 +138,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should show selected IDs', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -150,7 +150,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should show "None" when nothing is selected', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const debugInfo = wrapper.find('.debug-info').text()
 
       expect(debugInfo).toContain('Selected IDs: None')
@@ -159,7 +159,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
 
   describe('Union Bounding Box', () => {
     it('should show selection box for single selection', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -169,7 +169,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should show union bounding box for two selections', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -180,7 +180,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should calculate correct union bounds for two shapes', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // rect-1: x=100, y=100, w=150, h=100
@@ -202,7 +202,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should calculate correct union bounds for all three shapes', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // rect-1: x=100, y=100, w=150, h=100
@@ -227,7 +227,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should show rotation handle for multi-select', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -238,7 +238,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should position rotation handle above union bounds', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -264,7 +264,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
 
   describe('Selection State Management', () => {
     it('should maintain selection state when clicking same shape again', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -274,7 +274,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should allow building selection incrementally', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
       const debugInfo = wrapper.find('.debug-info')
 
@@ -289,7 +289,7 @@ describe('Debug SVG Editor - Phase 2: Multi-Select', () => {
     })
 
     it('should allow removing shapes from selection', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
       const debugInfo = wrapper.find('.debug-info')
 

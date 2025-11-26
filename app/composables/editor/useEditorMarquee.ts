@@ -1,6 +1,6 @@
 /**
  * useEditorMarquee - Marquee selection logic
- * Extracted from DebugEditor.vue
+ * Extracted from SimpleDebugEditor.vue
  *
  * Handles drag-to-select (marquee selection)
  * Supports adding to selection with Shift key

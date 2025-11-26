@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import DebugEditor from './DebugEditor.vue'
+import SimpleDebugEditor from './SimpleDebugEditor.vue'
 
 describe('Debug SVG Editor - Phase 3: Translate', () => {
   // Mock SVG methods
@@ -29,14 +29,14 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
 
   describe('Drag State', () => {
     it('should show dragging status in debug info', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const debugInfo = wrapper.find('.debug-info')
 
       expect(debugInfo.text()).toContain('Dragging: No')
     })
 
     it('should display phase 3 or later title', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const title = wrapper.find('h2')
 
       // Component may be at Phase 3 or beyond
@@ -44,7 +44,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
     })
 
     it('should show drag hint', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const hint = wrapper.find('.hint')
 
       expect(hint.text()).toContain('Drag selection box to move')
@@ -53,7 +53,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
 
   describe('Selection Box Dragging', () => {
     it('should have move cursor on selection box', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Select a shape
@@ -65,7 +65,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
     })
 
     it('should apply dragging class on mousedown', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -81,7 +81,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
 
   describe('Position Updates', () => {
     it('should display rounded position in debug info', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -91,7 +91,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
     })
 
     it('should have pointer events enabled on selection box', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -104,7 +104,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
 
   describe('Multi-Select Drag', () => {
     it('should allow dragging multi-select', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select
@@ -120,7 +120,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
     })
 
     it('should show union bounds for multi-select drag', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -134,7 +134,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
 
   describe('Drag Interaction', () => {
     it('should prevent click event propagation when dragging starts', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
       const svg = wrapper.find('svg')
 
@@ -153,7 +153,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
     })
 
     it('should maintain selection during drag', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
@@ -169,19 +169,19 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
 
   describe('Component State', () => {
     it('should have drag state initialized to false', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.isDragging).toBe(false)
     })
 
     it('should have null drag start point initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.dragStartPoint).toBeNull()
     })
 
     it('should have empty drag original positions initially', () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
 
       expect(wrapper.vm.dragOriginalPositions.size).toBe(0)
     })
@@ -189,7 +189,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
 
   describe('Phase Integration', () => {
     it('should preserve Phase 1 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Single selection still works
@@ -203,7 +203,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
     })
 
     it('should preserve Phase 2 functionality', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       // Multi-select still works
@@ -218,7 +218,7 @@ describe('Debug SVG Editor - Phase 3: Translate', () => {
     })
 
     it('should show rotation handle even during drag preparation', async () => {
-      const wrapper = mount(DebugEditor)
+      const wrapper = mount(SimpleDebugEditor)
       const shapes = wrapper.findAll('.shape')
 
       await shapes[0]!.trigger('click')
