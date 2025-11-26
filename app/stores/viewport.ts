@@ -30,7 +30,7 @@ async function ensureWorkerConfigured() {
   return PDFJS
 }
 
-export const useRendererStore = defineStore("renderer", () => {
+export const useViewportStore = defineStore("viewport", () => {
   /**
    * State
    */
@@ -356,5 +356,5 @@ export const useRendererStore = defineStore("renderer", () => {
   }
 })
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useRendererStore, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useViewportStore, import.meta.hot))
 }

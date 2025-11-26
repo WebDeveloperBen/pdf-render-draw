@@ -167,10 +167,10 @@ describe("Text Annotation Rotation", () => {
 
   it("should create text upright in viewport regardless of PDF rotation", () => {
     const annotationStore = useAnnotationStore()
-    const rendererStore = useRendererStore()
+    const viewportStore = useViewportStore()
 
     // Simulate PDF rotated 90 degrees
-    rendererStore.rotation = 90
+    viewportStore.rotation = 90
 
     // Create text annotation (would normally use degreesToRadians(-90))
     const text: TextAnnotation = {

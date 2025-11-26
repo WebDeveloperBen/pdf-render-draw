@@ -5,13 +5,13 @@ import { TEXT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Text.vue"
 const [useTextTool, useTextToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
 
   // Use global text editing state (singleton composable)
   const textEditing = useTextEditingState()
 
   const completed = computed(
-    () => base.annotationStore.getAnnotationsByTypeAndPage("text", rendererStore.getCurrentPage) as TextAnnotation[]
+    () => base.annotationStore.getAnnotationsByTypeAndPage("text", viewportStore.getCurrentPage) as TextAnnotation[]
   )
 
   const selected = computed(() => {
@@ -43,7 +43,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     const text: TextAnnotation = {
       id: uuidv4(),
       type: "text",
-      pageNum: rendererStore.currentPage,
+      pageNum: viewportStore.currentPage,
       x: point.x - width / 2,
       y: point.y - height / 2,
       width,
@@ -51,7 +51,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
       content: placeholder,
       fontSize,
       color,
-      rotation: degreesToRadians(-rendererStore.rotation) // Counter-rotate to appear upright in viewport
+      rotation: degreesToRadians(-viewportStore.rotation) // Counter-rotate to appear upright in viewport
     }
 
     base.annotationStore.addAnnotation(text)

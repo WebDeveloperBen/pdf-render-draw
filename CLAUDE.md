@@ -34,12 +34,12 @@ pnpm lint                   # ESLint with auto-fix
 The editor uses PDF coordinates as the single source of truth:
 - All annotation data stored in PDF coordinate space (no normalization)
 - CSS transforms (`translate`, `scale`, `rotate`) sync the SVG layer with the PDF canvas
-- `rendererStore.getCanvasTransform` provides the unified transform string
+- `viewportStore.getCanvasTransform` provides the unified transform string
 
 ### Core Stores (Pinia)
 
 - **`annotations.ts`**: Flat array of annotations, selection state, CRUD operations with validation
-- **`renderer.ts`**: PDF viewport state (scale, rotation, scroll position, pdfScale), PDF.js document loading
+- **`viewport.ts`**: PDF viewport state (scale, rotation, scroll position, pdfScale), PDF.js document loading
 - **`history.ts`**: Undo/redo command stack
 
 ### Annotation Types

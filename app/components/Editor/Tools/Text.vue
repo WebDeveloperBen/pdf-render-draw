@@ -62,7 +62,7 @@ export type TextToolConfig = typeof TEXT_TOOL_DEFAULTS
 const tool = useTextToolState()
 const config = TEXT_TOOL_DEFAULTS
 if (!tool) {
-  throw new Error("TextTool must be used within AnnotationRendererLayer")
+  throw new Error("TextTool must be used within AnnotationLayer")
 }
 
 const { completed, editingId, editingContent, finishEditing, deleteText } = tool

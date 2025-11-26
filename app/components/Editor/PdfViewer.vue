@@ -2,17 +2,16 @@
 /**
  * Simple PDF Viewer - no Konva, no old stores
  *
- * PDF is now loaded via rendererStore.loadPdf() - this component
+ * PDF is now loaded via viewportStore.loadPdf() - this component
  * reads from the store instead of receiving a prop.
  */
 import { RENDERING } from "@/constants/rendering"
 import { ERROR_COLORS, BUTTON_COLORS } from "@/constants/ui"
-import { debugLog, debugError } from "@/utils/debug"
 
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 
 // Get PDF from store instead of props
-const pdf = computed(() => rendererStore.pdfLoadingTask)
+const pdf = computed(() => viewportStore.pdfLoadingTask)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 // Track current render task to allow cancellation
@@ -29,14 +28,14 @@ const canvasStyle = computed(() => {
     position: "absolute" as const,
     top: "0",
     left: "0",
-    transform: rendererStore.getCanvasTransform,
+    transform: viewportStore.getCanvasTransform,
     transformOrigin: "center center" as const,
     // Use will-change for smooth scaling and rotation
     willChange: "transform" as const
   }
   debugLog("SimplePdfViewer", "canvasStyle updated:", {
     transform: style.transform,
-    rotation: rendererStore.rotation
+    rotation: viewportStore.rotation
   })
   return style
 })
@@ -100,7 +99,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
 
     // Use device pixel ratio AND current zoom scale for crisp rendering
     const dpr = window.devicePixelRatio || RENDERING.DEFAULT_DEVICE_PIXEL_RATIO
-    const currentScale = renderScale ?? rendererStore.getScale
+    const currentScale = renderScale ?? viewportStore.getScale
 
     // Render at higher resolution based on zoom level
     // Note: We don't use viewport rotation here - rotation is applied via CSS transform
@@ -118,18 +117,18 @@ async function renderPage(pageNum: number, renderScale?: number) {
 
     // Store logical dimensions (without DPR/scale, no rotation applied to viewport)
     const logicalViewport = page.getViewport({ scale: 1 })
-    rendererStore.setCanvasSize({
+    viewportStore.setCanvasSize({
       width: logicalViewport.width,
       height: logicalViewport.height
     })
 
     // Center the PDF on first load
-    if (!rendererStore.getPdfInitialised) {
-      rendererStore.setCanvasPos({
+    if (!viewportStore.getPdfInitialised) {
+      viewportStore.setCanvasPos({
         scrollLeft: -logicalViewport.width / 2,
         scrollTop: -logicalViewport.height / 2
       })
-      rendererStore.setPdfInitialised(true)
+      viewportStore.setPdfInitialised(true)
     }
 
     // Render to canvas with DPR * scale
@@ -175,7 +174,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
   } catch (e: unknown) {
     // Ignore abort/cancellation errors
     const error = e as { name?: string }
-    if (error?.name === 'RenderingCancelledException' || error?.name === 'AbortError' || signal.aborted) {
+    if (error?.name === "RenderingCancelledException" || error?.name === "AbortError" || signal.aborted) {
       debugLog("SimplePdfViewer", "Render was cancelled (expected)")
       return
     }
@@ -188,7 +187,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
       debugLog("SimplePdfViewer", `Retrying render (${retryCount.value}/${RENDERING.MAX_RETRIES})...`)
 
       // Exponential backoff
-      await new Promise(resolve => setTimeout(resolve, RENDERING.RETRY_BASE_DELAY_MS * retryCount.value))
+      await new Promise((resolve) => setTimeout(resolve, RENDERING.RETRY_BASE_DELAY_MS * retryCount.value))
 
       // Don't retry if aborted during backoff
       if (signal.aborted) {
@@ -200,7 +199,7 @@ async function renderPage(pageNum: number, renderScale?: number) {
     }
 
     // Max retries exceeded - show error to user
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
     renderError.value = `Failed to render page ${pageNum}. ${errorMessage}`
   } finally {
     // Always clear rendering flag
@@ -230,7 +229,7 @@ watch(
     // Render page if canvas is ready
     // Note: Store already set documentProxy and totalPages in loadPdf()
     if (canvasRef.value) {
-      await renderPage(rendererStore.getCurrentPage)
+      await renderPage(viewportStore.getCurrentPage)
     }
   },
   { immediate: true }
@@ -238,7 +237,7 @@ watch(
 
 // Watch for page changes
 watch(
-  () => rendererStore.getCurrentPage,
+  () => viewportStore.getCurrentPage,
   async (newPage) => {
     debugLog("SimplePdfViewer", "Page changed:", newPage)
     if (pdf.value && canvasRef.value) {
@@ -249,7 +248,7 @@ watch(
 
 // Watch for scale changes and re-render at higher resolution
 watch(
-  () => rendererStore.getScale,
+  () => viewportStore.getScale,
   async (newScale) => {
     debugLog("SimplePdfViewer", "Scale changed:", newScale)
 
@@ -260,7 +259,7 @@ watch(
 
     scaleDebounceTimer = setTimeout(async () => {
       if (pdf.value && canvasRef.value) {
-        await renderPage(rendererStore.getCurrentPage, newScale)
+        await renderPage(viewportStore.getCurrentPage, newScale)
       }
     }, RENDERING.SCALE_DEBOUNCE_MS)
   }
@@ -274,14 +273,14 @@ onMounted(async () => {
 
   // If PDF is already loaded but canvas wasn't ready during watch, render now
   if (pdf.value && canvasRef.value) {
-    await renderPage(rendererStore.getCurrentPage)
+    await renderPage(viewportStore.getCurrentPage)
   }
 })
 
 function handleRetry() {
   retryCount.value = 0
   renderError.value = null
-  renderPage(rendererStore.getCurrentPage)
+  renderPage(viewportStore.getCurrentPage)
 }
 
 onUnmounted(() => {
@@ -297,9 +296,7 @@ onUnmounted(() => {
     <div v-if="renderError" class="error-overlay">
       <div class="error-content">
         <p class="error-message">{{ renderError }}</p>
-        <button class="retry-btn" @click="handleRetry">
-          Retry
-        </button>
+        <button class="retry-btn" @click="handleRetry">Retry</button>
       </div>
     </div>
 
@@ -330,7 +327,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: v-bind('ERROR_COLORS.BACKGROUND');
+  background: v-bind("ERROR_COLORS.BACKGROUND");
   z-index: 1000;
 }
 
@@ -345,14 +342,14 @@ onUnmounted(() => {
 
 .error-message {
   margin: 0 0 16px 0;
-  color: v-bind('ERROR_COLORS.TEXT');
+  color: v-bind("ERROR_COLORS.TEXT");
   font-size: 14px;
   line-height: 1.5;
 }
 
 .retry-btn {
   padding: 8px 24px;
-  background: v-bind('BUTTON_COLORS.PRIMARY');
+  background: v-bind("BUTTON_COLORS.PRIMARY");
   color: white;
   border: none;
   border-radius: 4px;
@@ -363,6 +360,6 @@ onUnmounted(() => {
 }
 
 .retry-btn:hover {
-  background: v-bind('BUTTON_COLORS.PRIMARY_HOVER');
+  background: v-bind("BUTTON_COLORS.PRIMARY_HOVER");
 }
 </style>

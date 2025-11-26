@@ -79,7 +79,7 @@ const tool = useMeasureToolState()
 const config = MEASURE_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("MeasureTool must be used within AnnotationRendererLayer")
+  throw new Error("MeasureTool must be used within AnnotationLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)
@@ -94,7 +94,7 @@ const {
 } = tool
 
 // Get viewport-relative label rotation from renderer store
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 </script>
 
 <template>
@@ -201,7 +201,7 @@ const rendererStore = useRendererStore()
           :fill="config.preview.distance.fill"
           :font-size="config.preview.distance.fontSize"
           text-anchor="middle"
-          :transform="`rotate(${rendererStore.getViewportLabelRotation} ${(points[0].x + tempEndPoint.x) / 2} ${(points[0].y + tempEndPoint.y) / 2})`"
+          :transform="`rotate(${viewportStore.getViewportLabelRotation} ${(points[0].x + tempEndPoint.x) / 2} ${(points[0].y + tempEndPoint.y) / 2})`"
         >
           {{ previewDistance }}mm
         </text>

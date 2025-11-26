@@ -12,7 +12,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("Scale Validation", () => {
     it("should reject NaN scale value", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalScale = store.getScale
 
       store.setScale(NaN)
@@ -22,7 +22,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject Infinity scale value", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalScale = store.getScale
 
       store.setScale(Infinity)
@@ -32,7 +32,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject negative Infinity scale value", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalScale = store.getScale
 
       store.setScale(-Infinity)
@@ -42,7 +42,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should clamp negative scale to minimum", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setScale(-2)
 
@@ -51,7 +51,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should clamp zero scale to minimum", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setScale(0)
 
@@ -60,7 +60,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should not zoom in beyond MAX_SCALE", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(RENDERING.MAX_SCALE)
 
       store.zoomIn()
@@ -69,7 +69,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should not zoom out below MIN_SCALE", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(RENDERING.MIN_SCALE)
 
       store.zoomOut()
@@ -78,7 +78,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle repeated zoom in at max scale", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(RENDERING.MAX_SCALE)
 
       store.zoomIn()
@@ -89,7 +89,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle repeated zoom out at min scale", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(RENDERING.MIN_SCALE)
 
       store.zoomOut()
@@ -102,7 +102,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("Rotation Validation", () => {
     it("should reject NaN rotation value", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalRotation = store.getRotation
 
       store.setRotation(NaN)
@@ -112,7 +112,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject Infinity rotation value", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalRotation = store.getRotation
 
       store.setRotation(Infinity)
@@ -122,7 +122,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject negative Infinity rotation value", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalRotation = store.getRotation
 
       store.setRotation(-Infinity)
@@ -132,7 +132,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should normalize very large positive rotation (> 10000)", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setRotation(10450)
 
@@ -142,7 +142,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should normalize very large negative rotation", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setRotation(-10450)
 
@@ -152,7 +152,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle rotation edge case: exactly 360", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setRotation(360)
 
@@ -160,7 +160,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle rotation edge case: exactly -360", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setRotation(-360)
 
@@ -168,7 +168,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle rotation edge case: 720", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setRotation(720)
 
@@ -176,7 +176,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should preserve rotation after multiple normalize operations", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setRotation(450) // Should be 90
       expect(store.getRotation).toBe(90)
@@ -191,7 +191,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("Page Number Validation", () => {
     it("should reject page number 0", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPage = store.getCurrentPage
 
       store.setCurrentPage(0)
@@ -201,7 +201,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject negative page number", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPage = store.getCurrentPage
 
       store.setCurrentPage(-5)
@@ -211,7 +211,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject non-integer page number", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPage = store.getCurrentPage
 
       store.setCurrentPage(1.5)
@@ -221,7 +221,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject NaN page number", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPage = store.getCurrentPage
 
       store.setCurrentPage(NaN)
@@ -231,7 +231,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject Infinity page number", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPage = store.getCurrentPage
 
       store.setCurrentPage(Infinity)
@@ -241,7 +241,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject page beyond total pages when totalPages is known", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setTotalPages(10)
 
       store.setCurrentPage(15)
@@ -251,7 +251,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should accept valid page within total pages range", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setTotalPages(10)
 
       store.setCurrentPage(7)
@@ -261,7 +261,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should accept page at upper boundary (equals totalPages)", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setTotalPages(10)
 
       store.setCurrentPage(10)
@@ -273,7 +273,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("Canvas Position Validation", () => {
     it("should reject position with NaN scrollLeft", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPos = { ...store.getCanvasPos }
 
       store.setCanvasPos({ scrollLeft: NaN, scrollTop: 100 })
@@ -283,7 +283,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject position with NaN scrollTop", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPos = { ...store.getCanvasPos }
 
       store.setCanvasPos({ scrollLeft: 100, scrollTop: NaN })
@@ -293,7 +293,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject position with Infinity scrollTop", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPos = { ...store.getCanvasPos }
 
       store.setCanvasPos({ scrollLeft: 100, scrollTop: Infinity })
@@ -303,7 +303,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject position with Infinity scrollLeft", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPos = { ...store.getCanvasPos }
 
       store.setCanvasPos({ scrollLeft: Infinity, scrollTop: 100 })
@@ -313,7 +313,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should accept negative canvas position values", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasPos({ scrollLeft: -50, scrollTop: -100 })
 
@@ -323,7 +323,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject position with both values as NaN", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalPos = { ...store.getCanvasPos }
 
       store.setCanvasPos({ scrollLeft: NaN, scrollTop: NaN })
@@ -335,7 +335,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("Canvas Size Validation", () => {
     it("should reject size with NaN width", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalSize = { ...store.getCanvasSize }
 
       store.setCanvasSize({ width: NaN, height: 100 })
@@ -345,7 +345,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject size with NaN height", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalSize = { ...store.getCanvasSize }
 
       store.setCanvasSize({ width: 100, height: NaN })
@@ -355,7 +355,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject size with negative width", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalSize = { ...store.getCanvasSize }
 
       store.setCanvasSize({ width: -100, height: 100 })
@@ -365,7 +365,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject size with negative height", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalSize = { ...store.getCanvasSize }
 
       store.setCanvasSize({ width: 100, height: -100 })
@@ -375,7 +375,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should reject size with Infinity dimensions", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       const originalSize = { ...store.getCanvasSize }
 
       store.setCanvasSize({ width: Infinity, height: Infinity })
@@ -385,7 +385,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should accept zero dimensions", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 0, height: 0 })
 
@@ -395,7 +395,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should accept valid positive dimensions", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 800, height: 600 })
 
@@ -407,7 +407,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("Transform String Edge Cases", () => {
     it("should handle canvas transform with NaN scale gracefully", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(NaN) // Should be rejected
       store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
       store.setRotation(45)
@@ -421,7 +421,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle canvas transform with NaN rotation gracefully", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(2)
       store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
       store.setRotation(NaN) // Should be rejected
@@ -435,7 +435,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle canvas transform with NaN position gracefully", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(2)
       store.setRotation(45)
       store.setCanvasPos({ scrollLeft: NaN, scrollTop: NaN }) // Should be rejected
@@ -449,7 +449,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle SVG transform with valid offset", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
       store.setRotation(90)
 
@@ -460,7 +460,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle SVG transform with NaN offset", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
       store.setRotation(90)
 
@@ -472,7 +472,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle SVG transform with Infinity offset", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
       store.setRotation(0)
 
@@ -486,7 +486,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("State Reset Validation", () => {
     it("should reset all state to defaults", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       // Set non-default values
       store.setScale(3.5)
@@ -511,7 +511,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle reset after invalid values attempted", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       // Attempt invalid values
       store.setScale(NaN)
@@ -535,7 +535,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("getPdfPosition Calculation with Invalid Values", () => {
     it("should handle PDF position calculation with zero scale", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(0) // Will clamp to MIN_SCALE
       store.setCanvasPos({ scrollLeft: 100, scrollTop: 50 })
 
@@ -547,7 +547,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle PDF position calculation at max scale", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(RENDERING.MAX_SCALE)
       store.setCanvasPos({ scrollLeft: 500, scrollTop: 250 })
 
@@ -558,7 +558,7 @@ describe("Renderer Store - Validation & Error Handling", () => {
     })
 
     it("should handle PDF position calculation with negative canvas position", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setScale(2)
       store.setCanvasPos({ scrollLeft: -100, scrollTop: -50 })
 
@@ -571,28 +571,28 @@ describe("Renderer Store - Validation & Error Handling", () => {
 
   describe("Viewport Label Rotation", () => {
     it("should calculate viewport label rotation correctly", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setRotation(90)
 
       expect(store.getViewportLabelRotation).toBe(-90)
     })
 
     it("should handle viewport label rotation at 0 degrees", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setRotation(0)
 
       expect(store.getViewportLabelRotation).toBe(0)
     })
 
     it("should handle viewport label rotation at 360 degrees (normalized to 0)", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setRotation(360)
 
       expect(store.getViewportLabelRotation).toBe(0)
     })
 
     it("should handle viewport label rotation with invalid rotation (NaN)", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
       store.setRotation(NaN) // Should be rejected
 
       // Should remain at default (0)

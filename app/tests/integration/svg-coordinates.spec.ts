@@ -351,23 +351,23 @@ describe("SVG Coordinate Conversion - Integration Tests", () => {
     })
 
     it("should normalize rotation values > 360°", () => {
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
 
-      rendererStore.setRotation(450) // Should normalize to 90°
-      expect(rendererStore.rotation).toBe(90)
+      viewportStore.setRotation(450) // Should normalize to 90°
+      expect(viewportStore.rotation).toBe(90)
 
-      rendererStore.setRotation(720) // Should normalize to 0°
-      expect(rendererStore.rotation).toBe(0)
+      viewportStore.setRotation(720) // Should normalize to 0°
+      expect(viewportStore.rotation).toBe(0)
     })
 
     it("should normalize negative rotation values", () => {
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
 
-      rendererStore.setRotation(-90) // Should normalize to 270°
-      expect(rendererStore.rotation).toBe(270)
+      viewportStore.setRotation(-90) // Should normalize to 270°
+      expect(viewportStore.rotation).toBe(270)
 
-      rendererStore.setRotation(-180) // Should normalize to 180°
-      expect(rendererStore.rotation).toBe(180)
+      viewportStore.setRotation(-180) // Should normalize to 180°
+      expect(viewportStore.rotation).toBe(180)
     })
   })
 
@@ -437,15 +437,15 @@ describe("SVG Coordinate Conversion - Integration Tests", () => {
 
   describe("Renderer Store Integration", () => {
     it("should update coordinates when scale changes in store", () => {
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
       const svgPoint = { x: 100, y: 100 }
 
       // Set scale to 2x
-      rendererStore.setScale(2)
+      viewportStore.setScale(2)
 
-      const svg = createMockSvg({ scale: rendererStore.scale })
-      const screenX = svgPoint.x * rendererStore.scale
-      const screenY = svgPoint.y * rendererStore.scale
+      const svg = createMockSvg({ scale: viewportStore.scale })
+      const screenX = svgPoint.x * viewportStore.scale
+      const screenY = svgPoint.y * viewportStore.scale
       const mouseEvent = createMockMouseEvent(screenX, screenY)
 
       const result = getSvgPoint(mouseEvent, svg)
@@ -455,20 +455,20 @@ describe("SVG Coordinate Conversion - Integration Tests", () => {
     })
 
     it("should update coordinates when scroll position changes in store", () => {
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
       const svgPoint = { x: 100, y: 100 }
 
       // Set scroll position
-      rendererStore.setCanvasPos({ scrollLeft: 50, scrollTop: 75 })
+      viewportStore.setCanvasPos({ scrollLeft: 50, scrollTop: 75 })
 
       const svg = createMockSvg({
         scale: 1,
-        scrollLeft: rendererStore.canvasPos.scrollLeft,
-        scrollTop: rendererStore.canvasPos.scrollTop
+        scrollLeft: viewportStore.canvasPos.scrollLeft,
+        scrollTop: viewportStore.canvasPos.scrollTop
       })
 
-      const screenX = svgPoint.x + rendererStore.canvasPos.scrollLeft
-      const screenY = svgPoint.y + rendererStore.canvasPos.scrollTop
+      const screenX = svgPoint.x + viewportStore.canvasPos.scrollLeft
+      const screenY = svgPoint.y + viewportStore.canvasPos.scrollTop
       const mouseEvent = createMockMouseEvent(screenX, screenY)
 
       const result = getSvgPoint(mouseEvent, svg)
@@ -478,20 +478,20 @@ describe("SVG Coordinate Conversion - Integration Tests", () => {
     })
 
     it("should combine store scale and position correctly", () => {
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
       const svgPoint = { x: 100, y: 150 }
 
-      rendererStore.setScale(2)
-      rendererStore.setCanvasPos({ scrollLeft: 100, scrollTop: 200 })
+      viewportStore.setScale(2)
+      viewportStore.setCanvasPos({ scrollLeft: 100, scrollTop: 200 })
 
       const svg = createMockSvg({
-        scale: rendererStore.scale,
-        scrollLeft: rendererStore.canvasPos.scrollLeft,
-        scrollTop: rendererStore.canvasPos.scrollTop
+        scale: viewportStore.scale,
+        scrollLeft: viewportStore.canvasPos.scrollLeft,
+        scrollTop: viewportStore.canvasPos.scrollTop
       })
 
-      const screenX = svgPoint.x * rendererStore.scale + rendererStore.canvasPos.scrollLeft
-      const screenY = svgPoint.y * rendererStore.scale + rendererStore.canvasPos.scrollTop
+      const screenX = svgPoint.x * viewportStore.scale + viewportStore.canvasPos.scrollLeft
+      const screenY = svgPoint.y * viewportStore.scale + viewportStore.canvasPos.scrollTop
       const mouseEvent = createMockMouseEvent(screenX, screenY)
 
       const result = getSvgPoint(mouseEvent, svg)

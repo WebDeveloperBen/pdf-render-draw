@@ -18,9 +18,9 @@ describe("Selection Interactions", () => {
     setActivePinia(createPinia())
 
     // Set up minimal renderer state
-    const rendererStore = useRendererStore()
-    rendererStore.currentPage = 1
-    rendererStore.scale = 1
+    const viewportStore = useViewportStore()
+    viewportStore.currentPage = 1
+    viewportStore.scale = 1
   })
 
   describe("Store-Level Selection Logic", () => {

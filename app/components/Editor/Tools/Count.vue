@@ -54,7 +54,7 @@ const tool = useCountToolState()
 const config = COUNT_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("CountTool must be used within AnnotationRendererLayer")
+  throw new Error("CountTool must be used within AnnotationLayer")
 }
 
 const annotationStore = useAnnotationStore()

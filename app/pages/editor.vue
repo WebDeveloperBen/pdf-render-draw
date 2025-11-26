@@ -1,16 +1,16 @@
 <script setup lang="ts">
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 
 // Load PDF via store (lazy worker initialization)
 const pdfUrl = ref("/house.pdf")
 onMounted(() => {
-  rendererStore.loadPdf(pdfUrl.value)
+  viewportStore.loadPdf(pdfUrl.value)
 })
 
 // Watch for URL changes (e.g., if user loads a different PDF)
 watch(pdfUrl, (newUrl) => {
   if (newUrl) {
-    rendererStore.loadPdf(newUrl)
+    viewportStore.loadPdf(newUrl)
   }
 })
 const annotationStore = useAnnotationStore()
@@ -32,27 +32,27 @@ const tools = computed(() => toolRegistry.getCompleteToolbarTools())
 
 // Zoom controls
 function zoomIn() {
-  rendererStore.zoomIn()
+  viewportStore.zoomIn()
 }
 
 function zoomOut() {
-  rendererStore.zoomOut()
+  viewportStore.zoomOut()
 }
 
 function resetZoom() {
-  rendererStore.resetPageScale()
+  viewportStore.resetPageScale()
 }
 
 function rotateClockwise() {
-  rendererStore.rotateClockwise()
+  viewportStore.rotateClockwise()
 }
 
 function rotateCounterClockwise() {
-  rendererStore.rotateCounterClockwise()
+  viewportStore.rotateCounterClockwise()
 }
 
 function resetRotation() {
-  rendererStore.resetRotation()
+  viewportStore.resetRotation()
 }
 
 // Canvas panning state
@@ -86,9 +86,9 @@ function handleMouseMove(e: MouseEvent) {
     const deltaX = e.clientX - panStart.value.x
     const deltaY = e.clientY - panStart.value.y
 
-    rendererStore.setCanvasPos({
-      scrollLeft: rendererStore.getCanvasPos.scrollLeft + deltaX,
-      scrollTop: rendererStore.getCanvasPos.scrollTop + deltaY
+    viewportStore.setCanvasPos({
+      scrollLeft: viewportStore.getCanvasPos.scrollLeft + deltaX,
+      scrollTop: viewportStore.getCanvasPos.scrollTop + deltaY
     })
 
     panStart.value = { x: e.clientX, y: e.clientY }
@@ -150,17 +150,17 @@ if (typeof window !== "undefined") {
           <div class="page-nav">
             <button
               class="toolbar-btn-icon"
-              :disabled="rendererStore.getCurrentPage <= 1"
-              @click="rendererStore.setCurrentPage(Math.max(1, rendererStore.getCurrentPage - 1))"
+              :disabled="viewportStore.getCurrentPage <= 1"
+              @click="viewportStore.setCurrentPage(Math.max(1, viewportStore.getCurrentPage - 1))"
             >
               ‹
             </button>
-            <span class="page-indicator"> {{ rendererStore.getCurrentPage }} / {{ rendererStore.getTotalPages }} </span>
+            <span class="page-indicator"> {{ viewportStore.getCurrentPage }} / {{ viewportStore.getTotalPages }} </span>
             <button
               class="toolbar-btn-icon"
-              :disabled="rendererStore.getCurrentPage >= rendererStore.getTotalPages"
+              :disabled="viewportStore.getCurrentPage >= viewportStore.getTotalPages"
               @click="
-                rendererStore.setCurrentPage(Math.min(rendererStore.getTotalPages, rendererStore.getCurrentPage + 1))
+                viewportStore.setCurrentPage(Math.min(viewportStore.getTotalPages, viewportStore.getCurrentPage + 1))
               "
             >
               ›
@@ -174,7 +174,7 @@ if (typeof window !== "undefined") {
             <span class="control-label">Zoom</span>
             <button class="toolbar-btn-icon" title="Zoom out" @click="zoomOut">−</button>
             <button class="toolbar-btn-sm" title="Reset zoom" @click="resetZoom">
-              {{ Math.round(rendererStore.getScale * 100) }}%
+              {{ Math.round(viewportStore.getScale * 100) }}%
             </button>
             <button class="toolbar-btn-icon" title="Zoom in" @click="zoomIn">+</button>
           </div>
@@ -185,7 +185,7 @@ if (typeof window !== "undefined") {
             <span class="control-label">Rotate</span>
             <button class="toolbar-btn-icon" title="Rotate counter-clockwise" @click="rotateCounterClockwise">↺</button>
             <button class="toolbar-btn-sm" title="Reset rotation" @click="resetRotation">
-              {{ rendererStore.rotation }}°
+              {{ viewportStore.rotation }}°
             </button>
             <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">↻</button>
           </div>
@@ -234,7 +234,7 @@ if (typeof window !== "undefined") {
         @mouseleave="handleMouseUp"
         @contextmenu.prevent
       >
-        <Editor v-if="rendererStore.isPdfLoaded" />
+        <Editor v-if="viewportStore.isPdfLoaded" />
       </div>
     </div>
   </div>

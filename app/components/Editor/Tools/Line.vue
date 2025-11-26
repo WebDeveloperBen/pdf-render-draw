@@ -65,7 +65,7 @@ const tool = useLineToolState()
 const config = LINE_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("LineTool must be used within AnnotationRendererLayer")
+  throw new Error("LineTool must be used within AnnotationLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)

@@ -2,7 +2,7 @@
 import { COLORS } from "@/constants/ui"
 
 const annotationStore = useAnnotationStore()
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 
 const colorBlueDarker = COLORS.SELECTION_BLUE_DARKER
 
@@ -27,8 +27,8 @@ useEventListener(window, "mouseup", endRotate)
 function startRotate(e: MouseEvent, cornerIndex: number) {
   isDragging.value = true
   activeCorner.value = cornerIndex
-  startRotation.value = rendererStore.rotation
-  lastRotation.value = rendererStore.rotation
+  startRotation.value = viewportStore.rotation
+  lastRotation.value = viewportStore.rotation
   accumulatedRotation.value = 0
 
   // Calculate initial angle from center to mouse in screen space
@@ -80,7 +80,7 @@ function handleRotate(e: MouseEvent) {
   lastRotation.value = smoothedRotation
 
   // Update rotation in store
-  rendererStore.setRotation(smoothedRotation)
+  viewportStore.setRotation(smoothedRotation)
 
   debugLog("PdfRotateHandles", "Rotating:", {
     deltaDegrees: deltaDegrees.toFixed(1),
@@ -89,7 +89,7 @@ function handleRotate(e: MouseEvent) {
 }
 
 function endRotate() {
-  debugLog("PdfRotateHandles", "End rotate, final rotation:", rendererStore.rotation)
+  debugLog("PdfRotateHandles", "End rotate, final rotation:", viewportStore.rotation)
 
   isDragging.value = false
   activeCorner.value = null

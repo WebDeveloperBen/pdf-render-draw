@@ -4,15 +4,15 @@
  *
  * This component combines:
  * - PdfViewer: Renders the PDF document
- * - AnnotationRenderer: Interactive drawing and annotation layer
+ * - AnnotationLayer: Interactive drawing and annotation layer
  * - Transform handles: For editing existing annotations
  *
  * The layers are positioned absolutely and share the same coordinate system
  */
 
-// PDF is now loaded via rendererStore.loadPdf() - no props needed
+// PDF is now loaded via viewportStore.loadPdf() - no props needed
 
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 
 // V2 Editor event handlers for transform handles (drag/rotate/scale)
 const editorEventHandlers = useEditorEventHandlers()
@@ -53,15 +53,15 @@ const containerStyle = computed(() => {
         <EditorPdfViewer />
 
         <!-- SVG Annotation Layer (Interactive Drawing) -->
-        <EditorAnnotationRenderer />
+        <EditorAnnotationLayer />
       </div>
 
       <!-- Debug info -->
-      <div v-if="rendererStore.getPdfInitialised" class="debug-overlay">
+      <div v-if="viewportStore.getPdfInitialised" class="debug-overlay">
         <div class="debug-content">
-          <p><strong>Scale:</strong> {{ rendererStore.getScale.toFixed(2) }}x</p>
-          <p><strong>Rotation:</strong> {{ rendererStore.rotation }}°</p>
-          <p><strong>Page:</strong> {{ rendererStore.getCurrentPage }} / {{ rendererStore.getTotalPages }}</p>
+          <p><strong>Scale:</strong> {{ viewportStore.getScale.toFixed(2) }}x</p>
+          <p><strong>Rotation:</strong> {{ viewportStore.rotation }}°</p>
+          <p><strong>Page:</strong> {{ viewportStore.getCurrentPage }} / {{ viewportStore.getTotalPages }}</p>
         </div>
       </div>
     </div>

@@ -93,7 +93,7 @@ const tool = useAreaToolState()
 const config = AREA_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("AreaTool must be used within AnnotationRendererLayer")
+  throw new Error("AreaTool must be used within AnnotationLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)
@@ -111,7 +111,7 @@ const {
 } = tool
 
 // Get viewport-relative label rotation from renderer store
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 </script>
 <template>
   <g class="area-tool">
@@ -259,7 +259,7 @@ const rendererStore = useRendererStore()
             :fill="config.snap.text.fill"
             :font-size="config.snap.text.fontSize"
             :font-weight="config.snap.text.fontWeight"
-            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX} ${points[0].y - config.snap.text.offsetY})`"
+            :transform="`rotate(${viewportStore.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX} ${points[0].y - config.snap.text.offsetY})`"
           >
             Click to close
           </text>
@@ -273,7 +273,7 @@ const rendererStore = useRendererStore()
           :fill="config.preview.distance.fill"
           :font-size="config.preview.distance.fontSize"
           text-anchor="middle"
-          :transform="`rotate(${rendererStore.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`"
+          :transform="`rotate(${viewportStore.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`"
         >
           {{ previewArea }}m²
         </text>

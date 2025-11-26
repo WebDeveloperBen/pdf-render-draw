@@ -38,7 +38,7 @@ const tool = useFillToolState()
 const config = FILL_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("FillTool must be used within AnnotationRendererLayer")
+  throw new Error("FillTool must be used within AnnotationLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)

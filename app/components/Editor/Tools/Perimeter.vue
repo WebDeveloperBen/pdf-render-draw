@@ -103,7 +103,7 @@ const tool = usePerimeterToolState()
 const config = PERIMETER_TOOL_DEFAULTS
 
 if (!tool) {
-  throw new Error("PerimeterTool must be used within AnnotationRendererLayer")
+  throw new Error("PerimeterTool must be used within AnnotationLayer")
 }
 
 // Destructure everything we need (inherited + tool-specific)
@@ -120,7 +120,7 @@ const {
 } = tool
 
 // Get viewport-relative label rotation from renderer store
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 </script>
 <template>
   <g class="perimeter-tool">
@@ -256,7 +256,7 @@ const rendererStore = useRendererStore()
             :fill="config.segmentLabel.background.fill"
             :opacity="config.segmentLabel.background.opacity"
             :rx="config.segmentLabel.background.borderRadius"
-            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+            :transform="`rotate(${viewportStore.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           />
 
           <!-- Segment length label (viewport-relative rotation) -->
@@ -268,7 +268,7 @@ const rendererStore = useRendererStore()
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
-            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+            :transform="`rotate(${viewportStore.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           >
             {{ segment.length }}mm
           </text>

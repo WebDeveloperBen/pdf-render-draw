@@ -9,16 +9,16 @@ vi.mock("~/utils/debug", () => ({
 
 describe("Selection & Manipulation Workflow", () => {
   let annotationStore: ReturnType<typeof useAnnotationStore>
-  let rendererStore: ReturnType<typeof useRendererStore>
+  let viewportStore: ReturnType<typeof useViewportStore>
 
   beforeEach(() => {
     setActivePinia(createPinia())
     annotationStore = useAnnotationStore()
-    rendererStore = useRendererStore()
+    viewportStore = useViewportStore()
 
     // Set up stores
-    rendererStore.currentPage = 1
-    rendererStore.rotation = 0
+    viewportStore.currentPage = 1
+    viewportStore.rotation = 0
     // Renderer store has default pdfScale of "1:100"
   })
 

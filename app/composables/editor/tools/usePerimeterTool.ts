@@ -6,7 +6,7 @@ import { useCreateBaseTool } from "./useCreateBaseTool"
 const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
 
   // Add drawing behavior via composition
   const drawing = useDrawingTool<Perimeter>({
@@ -37,7 +37,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
         segments,
         totalLength,
         center,
-        labelRotation: -rendererStore.rotation, // Counter-rotate to appear upright in viewport
+        labelRotation: -viewportStore.rotation, // Counter-rotate to appear upright in viewport
         rotation: 0
       }
     },

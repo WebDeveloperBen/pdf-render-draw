@@ -5,10 +5,10 @@ import { FILL_TOOL_DEFAULTS } from "~/components/Editor/Tools/Fill.vue"
 const [useFillTool, useFillToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
 
   const completed = computed(
-    () => base.annotationStore.getAnnotationsByTypeAndPage("fill", rendererStore.getCurrentPage) as Fill[]
+    () => base.annotationStore.getAnnotationsByTypeAndPage("fill", viewportStore.getCurrentPage) as Fill[]
   )
 
   const selected = computed(() => {
@@ -79,7 +79,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     const fill: Fill = {
       id: uuidv4(),
       type: "fill",
-      pageNum: rendererStore.currentPage,
+      pageNum: viewportStore.currentPage,
       x: currentRect.value.x,
       y: currentRect.value.y,
       width: currentRect.value.width,

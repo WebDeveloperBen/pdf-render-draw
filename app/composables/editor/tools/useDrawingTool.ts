@@ -12,7 +12,7 @@ export interface DrawingToolConfig<T extends Annotation> {
 
 export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T>) {
   const annotationStore = useAnnotationStore()
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
   const historyStore = useHistoryStore()
 
   // Get modifier keys for multi-select support (optional for tests)
@@ -27,7 +27,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
 
   // Tool-specific state - only show annotations for current page
   const completed = computed(
-    () => annotationStore.getAnnotationsByTypeAndPage(config.type, rendererStore.getCurrentPage) as T[]
+    () => annotationStore.getAnnotationsByTypeAndPage(config.type, viewportStore.getCurrentPage) as T[]
   )
 
   const selected = computed(() => {
@@ -119,7 +119,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     const annotation: T = {
       id: uuidv4(),
       type: config.type,
-      pageNum: rendererStore.currentPage,
+      pageNum: viewportStore.currentPage,
       ...calculatedData
     } as T
 

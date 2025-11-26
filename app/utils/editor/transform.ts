@@ -71,8 +71,8 @@ export function projectDeltaToLocalSpace(
  */
 export function calculateDistance(p1: Point, p2: Point, dpi: number = 72): number {
   // Get scale from renderer store
-  const rendererStore = useRendererStore()
-  const scaleString = rendererStore.getPdfScale
+  const viewportStore = useViewportStore()
+  const scaleString = viewportStore.getPdfScale
 
   // Calculate distance in PDF units (points)
   const dx = p2.x - p1.x
@@ -124,8 +124,8 @@ export function calculatePolygonArea(points: Point[], dpi: number = 72): number 
   if (points.length < 3) return 0
 
   // Get scale from renderer store
-  const rendererStore = useRendererStore()
-  const scaleString = rendererStore.getPdfScale
+  const viewportStore = useViewportStore()
+  const scaleString = viewportStore.getPdfScale
   const scale = parsePdfPageScale(scaleString)
   const pixelsToMm = 25.4 / dpi
 

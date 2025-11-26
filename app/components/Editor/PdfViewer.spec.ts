@@ -23,7 +23,7 @@ describe("SimplePdfViewer Component", () => {
     })
 
     it("should get pdf from renderer store", () => {
-      // PDF is now loaded via rendererStore.loadPdf() and accessed via store
+      // PDF is now loaded via viewportStore.loadPdf() and accessed via store
       // Component no longer accepts a pdf prop
       const wrapper = mount(SimplePdfViewer)
       expect(wrapper.exists()).toBe(true)

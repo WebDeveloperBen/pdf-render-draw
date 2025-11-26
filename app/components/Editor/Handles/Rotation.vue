@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import RotationWheel from "~/components/Editor/Tools/RotationWheel.vue"
 
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 const annotationStore = useAnnotationStore()
 const modifierKeys = useModifierKeys()
 
@@ -149,8 +149,8 @@ function startRotation(e: MouseEvent, corner: string) {
   isDragging.value = true
   activeCorner.value = corner
 
-  startAngle.value = calculateAngle(e.clientX, e.clientY) - rendererStore.getRotation
-  currentAngle.value = rendererStore.getRotation
+  startAngle.value = calculateAngle(e.clientX, e.clientY) - viewportStore.getRotation
+  currentAngle.value = viewportStore.getRotation
 }
 
 // Handle drag
@@ -179,7 +179,7 @@ function handleDrag(e: MouseEvent) {
   }
 
   currentAngle.value = angle
-  rendererStore.setRotation(angle)
+  viewportStore.setRotation(angle)
 }
 
 // Stop rotation

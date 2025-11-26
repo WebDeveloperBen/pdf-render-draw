@@ -17,7 +17,7 @@ interface ShortcutCommand {
 export function useKeyboardShortcuts() {
   const historyStore = useHistoryStore()
   const annotationStore = useAnnotationStore()
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
   const { isMac } = usePlatform()
 
   // Clipboard state (in-memory for now, could use Clipboard API later)
@@ -31,7 +31,7 @@ export function useKeyboardShortcuts() {
     if (!clipboard.value) return
 
     const original = clipboard.value
-    const cursorPos = rendererStore.lastCursorPosition
+    const cursorPos = viewportStore.lastCursorPosition
 
     // Calculate offset - either to cursor or default 20px offset
     let offsetX = 20

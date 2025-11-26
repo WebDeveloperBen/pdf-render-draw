@@ -5,10 +5,10 @@ import { COUNT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Count.vue"
 const [useCountTool, useCountToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
 
   const completed = computed(
-    () => base.annotationStore.getAnnotationsByTypeAndPage("count", rendererStore.getCurrentPage) as Count[]
+    () => base.annotationStore.getAnnotationsByTypeAndPage("count", viewportStore.getCurrentPage) as Count[]
   )
 
   const selected = computed(() => {
@@ -28,7 +28,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
   })
 
   // Track cursor position for preview
-  const cursorPosition = computed(() => rendererStore.lastCursorPosition)
+  const cursorPosition = computed(() => viewportStore.lastCursorPosition)
 
   function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
@@ -47,7 +47,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     const count: Count = {
       id: uuidv4(),
       type: "count",
-      pageNum: rendererStore.currentPage,
+      pageNum: viewportStore.currentPage,
       x: point.x - markerSize / 2, // x,y is top-left corner of bounding box
       y: point.y - markerSize / 2,
       width: markerSize,

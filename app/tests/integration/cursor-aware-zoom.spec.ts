@@ -8,7 +8,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
 
   describe("Basic Zoom Mechanics", () => {
     it("should zoom in towards cursor position", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       // Set up PDF dimensions (simulating a 1200x800 PDF)
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -42,7 +42,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should zoom out from cursor position", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(2) // Start zoomed in
@@ -70,7 +70,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should clamp scale to min/max bounds", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
 
@@ -92,7 +92,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
 
   describe("Zoom at Different Positions", () => {
     it("should zoom towards top-left corner", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -113,7 +113,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should zoom towards bottom-right corner", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -133,7 +133,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should zoom towards center", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -160,7 +160,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should zoom at arbitrary position", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -186,7 +186,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
 
   describe("Zoom with Existing Pan/Scroll", () => {
     it("should zoom correctly when already panned", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -213,7 +213,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should zoom correctly at high scale with pan", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(3)
@@ -244,7 +244,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
 
   describe("Multiple Consecutive Zooms", () => {
     it("should maintain cursor position through multiple zoom in operations", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -273,7 +273,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should maintain cursor position through zoom in then zoom out", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -305,7 +305,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should handle zoom at changing cursor positions", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -331,7 +331,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
 
   describe("Zoom Without Mouse Position (Fallback)", () => {
     it("should zoom towards center when no mouse position provided", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -350,7 +350,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should respect scale limits when zooming without mouse position", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
 
@@ -368,7 +368,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
 
   describe("Edge Cases", () => {
     it("should handle zero-sized PDF gracefully", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 0, height: 0 })
       store.setScale(1)
@@ -380,7 +380,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should handle very small PDF", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 10, height: 10 })
       store.setScale(1)
@@ -394,7 +394,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should handle very large PDF", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 10000, height: 8000 })
       store.setScale(1)
@@ -414,7 +414,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should handle mouse at exact edge of PDF", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(1)
@@ -431,7 +431,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should handle negative scroll positions", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(2)
@@ -448,7 +448,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
 
   describe("Transform Formula Verification", () => {
     it("should correctly apply forward transform (PDF → Screen)", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
       store.setScale(2)
@@ -467,7 +467,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should correctly apply inverse transform (Screen → PDF)", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
 
@@ -484,7 +484,7 @@ describe("Cursor-Aware Zoom with Center Transform Origin", () => {
     })
 
     it("should verify transform round-trip", () => {
-      const store = useRendererStore()
+      const store = useViewportStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
 

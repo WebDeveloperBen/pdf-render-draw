@@ -12,7 +12,7 @@ import { useCreateBaseTool } from "./useCreateBaseTool"
 const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
 
   // Add drawing behavior via composition
   const drawing = useDrawingTool<Measurement>({
@@ -30,7 +30,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
         points: [start, end],
         distance,
         midpoint,
-        labelRotation: -rendererStore.rotation, // Counter-rotate to appear upright in viewport
+        labelRotation: -viewportStore.rotation, // Counter-rotate to appear upright in viewport
         rotation: 0
       }
     },

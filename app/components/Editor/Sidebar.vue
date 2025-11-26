@@ -10,7 +10,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 
 // Virtual scrolling setup
 const scrollContainerRef = ref<HTMLDivElement>()
@@ -22,7 +22,7 @@ const BUFFER_SIZE = DIMENSIONS.THUMBNAIL_BUFFER_SIZE
 
 // Calculate visible range
 const visiblePages = computed(() => {
-  const totalPages = rendererStore.getTotalPages
+  const totalPages = viewportStore.getTotalPages
   if (!totalPages) return []
 
   const containerHeight = scrollContainerRef.value?.clientHeight || 600
@@ -45,7 +45,7 @@ const offsetBefore = computed(() => {
 })
 
 const offsetAfter = computed(() => {
-  const totalPages = rendererStore.getTotalPages
+  const totalPages = viewportStore.getTotalPages
   if (!totalPages || visiblePages.value.length === 0) return 0
   const lastPage = visiblePages.value[visiblePages.value.length - 1]
   return lastPage ? (totalPages - lastPage) * ITEM_HEIGHT : 0
@@ -129,7 +129,7 @@ function cacheThumbnail(pageNum: number, imageData: ImageData) {
  * for typical 5-10 page viewport
  */
 watchThrottled(
-  [visiblePages, () => rendererStore.getDocumentProxy],
+  [visiblePages, () => viewportStore.getDocumentProxy],
   async ([pages, pdf]) => {
     if (!pdf || !pages.length) return
 
@@ -181,7 +181,7 @@ watchThrottled(
 
 // Clear cache when PDF changes
 watch(
-  () => rendererStore.getDocumentProxy,
+  () => viewportStore.getDocumentProxy,
   () => {
     renderedThumbnails.value.clear()
     currentlyRendering.value.clear()
@@ -217,7 +217,7 @@ async function renderThumbnail(pdf: PDFDocumentProxy, pageNum: number, canvas: H
 }
 
 function navigateToPage(pageNum: number) {
-  rendererStore.setCurrentPage(pageNum)
+  viewportStore.setCurrentPage(pageNum)
 }
 
 function scrollToPage(pageNum: number) {
@@ -234,9 +234,9 @@ function scrollToPage(pageNum: number) {
 watch(
   () => props.isOpen,
   (isOpen) => {
-    if (isOpen && rendererStore.getTotalPages > 0) {
+    if (isOpen && viewportStore.getTotalPages > 0) {
       nextTick(() => {
-        scrollToPage(rendererStore.getCurrentPage)
+        scrollToPage(viewportStore.getCurrentPage)
       })
     }
   }
@@ -260,7 +260,7 @@ watch(
         v-for="page in visiblePages"
         :key="page"
         class="page-item"
-        :class="{ active: page === rendererStore.getCurrentPage }"
+        :class="{ active: page === viewportStore.getCurrentPage }"
         @click="navigateToPage(page)"
       >
         <div class="page-content">

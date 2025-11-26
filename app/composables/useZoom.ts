@@ -8,7 +8,7 @@
 import { RENDERING } from '@/constants/rendering'
 
 export function useZoom() {
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
 
   /**
    * Handle wheel zoom event with trackpad/mouse normalization
@@ -39,16 +39,16 @@ export function useZoom() {
       // Use a percentage of deltaY for fine control
       const sensitivity = 0.003 // Increased from 0.001 for faster zoom (0.003 = 0.3% per deltaY unit)
       const zoomFactor = 1 - (e.deltaY * sensitivity)
-      newScale = rendererStore.getScale * zoomFactor
+      newScale = viewportStore.getScale * zoomFactor
     } else {
       // Mouse wheel: discrete zoom steps
       // Use standard zoom factor for predictable jumps (1.1x per step)
       const zoomFactor = e.deltaY < 0 ? RENDERING.ZOOM_FACTOR : 1 / RENDERING.ZOOM_FACTOR
-      newScale = rendererStore.getScale * zoomFactor
+      newScale = viewportStore.getScale * zoomFactor
     }
 
     // Apply zoom with cursor-aware positioning
-    rendererStore.zoomToScale(newScale, mousePos)
+    viewportStore.zoomToScale(newScale, mousePos)
   }
 
   /**
@@ -57,9 +57,9 @@ export function useZoom() {
    * @param e - WheelEvent from scroll/wheel
    */
   function handleWheelScroll(e: WheelEvent) {
-    rendererStore.setCanvasPos({
-      scrollTop: rendererStore.getCanvasPos.scrollTop - e.deltaY,
-      scrollLeft: rendererStore.getCanvasPos.scrollLeft - e.deltaX
+    viewportStore.setCanvasPos({
+      scrollTop: viewportStore.getCanvasPos.scrollTop - e.deltaY,
+      scrollLeft: viewportStore.getCanvasPos.scrollLeft - e.deltaX
     })
   }
 

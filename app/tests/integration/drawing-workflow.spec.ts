@@ -9,16 +9,16 @@ vi.mock("~/utils/debug", () => ({
 
 describe("Drawing Workflow & Visual Feedback", () => {
   let annotationStore: ReturnType<typeof useAnnotationStore>
-  let rendererStore: ReturnType<typeof useRendererStore>
+  let viewportStore: ReturnType<typeof useViewportStore>
 
   beforeEach(() => {
     setActivePinia(createPinia())
     annotationStore = useAnnotationStore()
-    rendererStore = useRendererStore()
+    viewportStore = useViewportStore()
 
     // Set up renderer store for current page
-    rendererStore.currentPage = 1
-    rendererStore.rotation = 0
+    viewportStore.currentPage = 1
+    viewportStore.rotation = 0
   })
 
   describe("Tool Activation for Drawing", () => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 
 const isVisible = ref(false)
 const position = ref({ x: 0, y: 0 })
@@ -52,8 +52,8 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
 // Show wheel at position
 function showWheel(x: number, y: number) {
   position.value = { x, y }
-  currentRotation.value = rendererStore.getRotation
-  angleInput.value = Math.round(rendererStore.getRotation)
+  currentRotation.value = viewportStore.getRotation
+  angleInput.value = Math.round(viewportStore.getRotation)
   isVisible.value = true
 }
 
@@ -123,7 +123,7 @@ function updateRotation(e: MouseEvent) {
   // Direct assignment - no damping, just proper angle wrapping
   currentRotation.value = angle
   angleInput.value = Math.round(angle)
-  rendererStore.setRotation(angle)
+  viewportStore.setRotation(angle)
 }
 
 // Stop dragging

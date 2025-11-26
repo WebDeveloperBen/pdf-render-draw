@@ -3,16 +3,16 @@
  * Used by rotation handle components to position handles at actual PDF corners
  */
 export function useRotatedPdfCorners() {
-  const rendererStore = useRendererStore()
+  const viewportStore = useViewportStore()
 
   const screenCorners = computed(() => {
-    const width = rendererStore.getCanvasSize.width
-    const height = rendererStore.getCanvasSize.height
-    const rotation = rendererStore.rotation
-    const scale = rendererStore.getScale
+    const width = viewportStore.getCanvasSize.width
+    const height = viewportStore.getCanvasSize.height
+    const rotation = viewportStore.rotation
+    const scale = viewportStore.getScale
     // Add scroll position as dependency to force recomputation when dragging
-    void rendererStore.canvasPos.scrollLeft
-    void rendererStore.canvasPos.scrollTop
+    void viewportStore.canvasPos.scrollLeft
+    void viewportStore.canvasPos.scrollTop
 
     if (!width || !height) return []
 
@@ -54,10 +54,10 @@ export function useRotatedPdfCorners() {
 
   const center = computed(() => {
     // Add dependencies to force recomputation when needed
-    void rendererStore.rotation
-    void rendererStore.getScale
-    void rendererStore.canvasPos.scrollLeft
-    void rendererStore.canvasPos.scrollTop
+    void viewportStore.rotation
+    void viewportStore.getScale
+    void viewportStore.canvasPos.scrollLeft
+    void viewportStore.canvasPos.scrollTop
 
     const canvas = document.querySelector('.pdf-canvas') as HTMLCanvasElement
     if (!canvas) return { x: 0, y: 0 }

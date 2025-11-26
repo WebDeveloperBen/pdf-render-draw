@@ -21,7 +21,7 @@ const toolComponents = {
   text: ToolsText
 } as const
 
-const rendererStore = useRendererStore()
+const viewportStore = useViewportStore()
 const annotationStore = useAnnotationStore()
 
 // SVG element ref
@@ -38,8 +38,8 @@ function hasActiveDrawingTool(tool: string) {
 }
 
 // PDF dimensions
-const pdfWidth = computed(() => rendererStore.getCanvasSize.width)
-const pdfHeight = computed(() => rendererStore.getCanvasSize.height)
+const pdfWidth = computed(() => viewportStore.getCanvasSize.width)
+const pdfHeight = computed(() => viewportStore.getCanvasSize.height)
 
 // SVG positioning (overlays PDF exactly)
 // SVG scales via CSS transform like the canvas to maintain coordinate consistency
@@ -50,7 +50,7 @@ const svgStyle = computed(() => {
     left: "0",
     width: `${pdfWidth.value}px`,
     height: `${pdfHeight.value}px`,
-    transform: rendererStore.getCanvasTransform,
+    transform: viewportStore.getCanvasTransform,
     transformOrigin: "center center" as const,
     pointerEvents: "all" as const,
     zIndex: 1001,
@@ -192,7 +192,7 @@ function handleMove(e: MouseEvent) {
   pt.x = e.clientX
   pt.y = e.clientY
   const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse())
-  rendererStore.setLastCursorPosition({ x: svgP.x, y: svgP.y })
+  viewportStore.setLastCursorPosition({ x: svgP.x, y: svgP.y })
 
   // If marquee is active, don't process tool handlers
   // (marquee update is handled by global listeners in useEditorEventHandlers)

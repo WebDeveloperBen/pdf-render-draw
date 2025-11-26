@@ -2,7 +2,7 @@
  * Tool Registry - Plugin system for annotation tools
  *
  * Tools register themselves here with their component and configuration.
- * AnnotationRendererLayer automatically discovers and renders all registered tools.
+ * AnnotationLayer automatically discovers and renders all registered tools.
  *
  * Note: Transformation logic is handled generically by useTransformBase and
  * data-structure type guards (hasPointsArray, hasPositionedRect) rather than

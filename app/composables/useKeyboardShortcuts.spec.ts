@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts"
 import { useAnnotationStore } from "~/stores/annotations"
-import { useRendererStore } from "~/stores/renderer"
+import { useViewportStore } from "~/stores/viewport"
 
 import type { Measurement, Area } from "~/types/annotations"
 
@@ -14,7 +14,7 @@ describe("Keyboard Shortcuts", () => {
   describe("Paste at Cursor", () => {
     it("should paste annotation at cursor position when cursor position is available", () => {
       const annotationStore = useAnnotationStore()
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
       const shortcuts = useKeyboardShortcuts()
 
       // Create an annotation at position (100, 100) to (200, 200)
@@ -39,7 +39,7 @@ describe("Keyboard Shortcuts", () => {
       shortcuts.clipboard.value = JSON.parse(JSON.stringify(annotationStore.selectedAnnotation))
 
       // Set cursor position to (400, 400)
-      rendererStore.setLastCursorPosition({ x: 400, y: 400 })
+      viewportStore.setLastCursorPosition({ x: 400, y: 400 })
 
       // Paste annotation
       shortcuts.pasteAnnotation()
@@ -106,7 +106,7 @@ describe("Keyboard Shortcuts", () => {
 
     it("should paste area annotation at cursor position", () => {
       const annotationStore = useAnnotationStore()
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
       const shortcuts = useKeyboardShortcuts()
 
       // Create an area annotation (triangle)
@@ -132,7 +132,7 @@ describe("Keyboard Shortcuts", () => {
       shortcuts.clipboard.value = JSON.parse(JSON.stringify(annotationStore.selectedAnnotation))
 
       // Set cursor position to (500, 500)
-      rendererStore.setLastCursorPosition({ x: 500, y: 500 })
+      viewportStore.setLastCursorPosition({ x: 500, y: 500 })
 
       // Paste annotation
       shortcuts.pasteAnnotation()
@@ -156,7 +156,7 @@ describe("Keyboard Shortcuts", () => {
   describe("Duplicate Annotation", () => {
     it("should duplicate annotation at cursor position", () => {
       const annotationStore = useAnnotationStore()
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
       const shortcuts = useKeyboardShortcuts()
 
       // Create an annotation
@@ -178,7 +178,7 @@ describe("Keyboard Shortcuts", () => {
       annotationStore.selectAnnotation("test-4")
 
       // Set cursor position
-      rendererStore.setLastCursorPosition({ x: 300, y: 300 })
+      viewportStore.setLastCursorPosition({ x: 300, y: 300 })
 
       // Duplicate annotation
       shortcuts.duplicateAnnotation()

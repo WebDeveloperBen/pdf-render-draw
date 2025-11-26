@@ -570,10 +570,10 @@ describe("Tool Error Handling", () => {
 
     it("should handle missing pageNum when creating annotation", () => {
       const annotationStore = useAnnotationStore()
-      const rendererStore = useRendererStore()
+      const viewportStore = useViewportStore()
 
       // Try to set invalid page number - this should be rejected by validation
-      rendererStore.setCurrentPage(NaN as unknown as number)
+      viewportStore.setCurrentPage(NaN as unknown as number)
 
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
