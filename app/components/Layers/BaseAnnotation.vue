@@ -19,6 +19,7 @@ const annotationStore = useAnnotationStore()
 const toolRegistry = useToolRegistry()
 const modifierKeys = useModifierKeys() // Shared composable - same instance across all components
 const dragState = useDragState() // Track drag state to prevent clicks after drag
+const bounds = useEditorBounds() // For clearing frozen bounds on selection change
 
 // Check if this annotation is selected
 const isSelected = computed(() => annotationStore.isAnnotationSelected(props.annotation.id))
@@ -45,6 +46,9 @@ function performSelection() {
     } else {
       annotationStore.selectAnnotation(props.annotation.id)
     }
+
+    // Clear frozen bounds so the transformer recalculates AABB for the new selection
+    bounds.unfreezeBounds()
   }
 }
 
