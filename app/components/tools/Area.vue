@@ -1,8 +1,89 @@
+<script lang="ts">
+/**
+ * Area Tool Configuration
+ *
+ * Default settings for the area annotation tool.
+ * These will eventually be customizable per-user and stored in the database
+ * as part of a WYSIWYG-style tool configuration system.
+ */
+
+export const AREA_TOOL_DEFAULTS = {
+  // Label background styling
+  label: {
+    background: {
+      offsetX: 40,
+      offsetY: 12,
+      width: 80,
+      height: 24,
+      opacity: 0.95,
+      borderRadius: 4,
+      fill: 'white'
+    }
+  },
+
+  // Preview styling (while drawing)
+  preview: {
+    cursorIndicator: {
+      radius: 4,
+      strokeWidth: 2,
+      opacity: 0.6
+    },
+    pointMarkers: {
+      firstRadius: 6,
+      otherRadius: 5,
+      firstFill: 'green',
+      stroke: 'white',
+      strokeWidth: 2
+    },
+    lines: {
+      strokeDashArray: '5,5',
+      opacity: 0.8,
+      closingLineOpacity: 0.5
+    },
+    polygonOpacityMultiplier: 0.3,
+    distance: {
+      fill: 'blue',
+      fontSize: 12
+    }
+  },
+
+  // Snap to close indicator
+  snap: {
+    radius: 10,
+    stroke: 'green',
+    strokeWidth: 2,
+    text: {
+      offsetX: 15,
+      offsetY: 10,
+      fontSize: 12,
+      fontWeight: 'bold',
+      fill: 'green'
+    }
+  },
+
+  // Selected/hover states
+  states: {
+    hover: {
+      fillOpacity: 0.5,
+      strokeWidth: 3
+    },
+    selected: {
+      stroke: 'blue',
+      strokeWidth: 3
+    }
+  }
+} as const
+
+export type AreaToolConfig = typeof AREA_TOOL_DEFAULTS
+</script>
+
 <script setup lang="ts">
 import { useAreaToolState } from "@/composables/tools/useAreaTool"
 
 // Inject the tool state (which extends BaseTool)
 const tool = useAreaToolState()
+const config = AREA_TOOL_DEFAULTS
+
 if (!tool) {
   throw new Error("AreaTool must be used within SvgAnnotationLayer")
 }
@@ -44,13 +125,13 @@ const rendererStore = useRendererStore()
 
         <!-- Label background with rotation -->
         <rect
-          :x="annotation.center.x - 40"
-          :y="annotation.center.y - 12"
-          width="80"
-          height="24"
-          fill="white"
-          opacity="0.95"
-          rx="4"
+          :x="annotation.center.x - config.label.background.offsetX"
+          :y="annotation.center.y - config.label.background.offsetY"
+          :width="config.label.background.width"
+          :height="config.label.background.height"
+          :fill="config.label.background.fill"
+          :opacity="config.label.background.opacity"
+          :rx="config.label.background.borderRadius"
           :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         />
 
@@ -78,11 +159,11 @@ const rendererStore = useRendererStore()
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        r="4"
+        :r="config.preview.cursorIndicator.radius"
         fill="none"
         :stroke="settings.areaToolSettings.strokeColor"
-        stroke-width="2"
-        opacity="0.6"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :opacity="config.preview.cursorIndicator.opacity"
       />
 
       <!-- Placed point markers (after starting) -->
@@ -92,10 +173,10 @@ const rendererStore = useRendererStore()
           :key="`point-${index}`"
           :cx="point.x"
           :cy="point.y"
-          :r="index === 0 ? 6 : 5"
-          :fill="index === 0 ? 'green' : settings.areaToolSettings.strokeColor"
-          :stroke="'white'"
-          :stroke-width="2"
+          :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
+          :fill="index === 0 ? config.preview.pointMarkers.firstFill : settings.areaToolSettings.strokeColor"
+          :stroke="config.preview.pointMarkers.stroke"
+          :stroke-width="config.preview.pointMarkers.strokeWidth"
           class="point-marker"
         />
 
@@ -111,8 +192,8 @@ const rendererStore = useRendererStore()
               :y2="points[index + 1]?.y ?? 0"
               :stroke="settings.areaToolSettings.strokeColor"
               :stroke-width="settings.areaToolSettings.strokeWidth"
-              stroke-dasharray="5,5"
-              opacity="0.8"
+              :stroke-dasharray="config.preview.lines.strokeDashArray"
+              :opacity="config.preview.lines.opacity"
             />
           </template>
 
@@ -126,8 +207,8 @@ const rendererStore = useRendererStore()
               :y2="tempEndPoint.y"
               :stroke="settings.areaToolSettings.strokeColor"
               :stroke-width="settings.areaToolSettings.strokeWidth"
-              stroke-dasharray="5,5"
-              opacity="0.8"
+              :stroke-dasharray="config.preview.lines.strokeDashArray"
+              :opacity="config.preview.lines.opacity"
             />
           </template>
 
@@ -140,8 +221,8 @@ const rendererStore = useRendererStore()
             :y2="points[0].y"
             :stroke="settings.areaToolSettings.strokeColor"
             :stroke-width="settings.areaToolSettings.strokeWidth"
-            stroke-dasharray="5,5"
-            opacity="0.5"
+            :stroke-dasharray="config.preview.lines.strokeDashArray"
+            :opacity="config.preview.lines.closingLineOpacity"
           />
         </g>
 
@@ -150,7 +231,7 @@ const rendererStore = useRendererStore()
           v-if="previewPolygon"
           :points="previewPolygon"
           :fill="settings.areaToolSettings.fillColor"
-          :fill-opacity="settings.areaToolSettings.opacity * 0.3"
+          :fill-opacity="settings.areaToolSettings.opacity * config.preview.polygonOpacityMultiplier"
           fill-rule="evenodd"
           pointer-events="none"
         />
@@ -160,19 +241,19 @@ const rendererStore = useRendererStore()
           <circle
             :cx="points[0].x"
             :cy="points[0].y"
-            r="10"
+            :r="config.snap.radius"
             fill="none"
-            stroke="green"
-            stroke-width="2"
+            :stroke="config.snap.stroke"
+            :stroke-width="config.snap.strokeWidth"
             class="snap-indicator"
           />
           <text
-            :x="points[0].x + 15"
-            :y="points[0].y - 10"
-            fill="green"
-            font-size="12"
-            font-weight="bold"
-            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${points[0].x + 15} ${points[0].y - 10})`"
+            :x="points[0].x + config.snap.text.offsetX"
+            :y="points[0].y - config.snap.text.offsetY"
+            :fill="config.snap.text.fill"
+            :font-size="config.snap.text.fontSize"
+            :font-weight="config.snap.text.fontWeight"
+            :transform="`rotate(${rendererStore.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX} ${points[0].y - config.snap.text.offsetY})`"
           >
             Click to close
           </text>
@@ -183,8 +264,8 @@ const rendererStore = useRendererStore()
           v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
           :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
           :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2"
-          fill="blue"
-          font-size="12"
+          :fill="config.preview.distance.fill"
+          :font-size="config.preview.distance.fontSize"
           text-anchor="middle"
           :transform="`rotate(${rendererStore.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`"
         >
@@ -202,13 +283,13 @@ const rendererStore = useRendererStore()
 }
 
 .area-polygon:hover {
-  fill-opacity: 0.5;
-  stroke-width: 3;
+  fill-opacity: v-bind('config.states.hover.fillOpacity');
+  stroke-width: v-bind('config.states.hover.strokeWidth');
 }
 
 .area-polygon.selected-polygon {
-  stroke: blue;
-  stroke-width: 3;
+  stroke: v-bind('config.states.selected.stroke');
+  stroke-width: v-bind('config.states.selected.strokeWidth');
 }
 
 .snap-indicator {

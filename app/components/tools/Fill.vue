@@ -1,6 +1,42 @@
+<script lang="ts">
+/**
+ * Fill Tool Configuration
+ *
+ * Default settings for the fill annotation tool.
+ * These will eventually be customizable per-user and stored in the database
+ * as part of a WYSIWYG-style tool configuration system.
+ */
+
+export const FILL_TOOL_DEFAULTS = {
+  // Default fill appearance
+  color: '#3b82f6',
+  opacity: 0.3,
+
+  // Preview styling (while drawing)
+  preview: {
+    fillOpacity: 0.3,
+    strokeWidth: 2,
+    strokeDashArray: '5,5',
+    opacity: 0.7
+  },
+
+  // Border styling for completed fills
+  border: {
+    strokeWidth: 1,
+    strokeWidthSelected: 2,
+    strokeOpacity: 0.5,
+    strokeOpacitySelected: 1
+  }
+} as const
+
+export type FillToolConfig = typeof FILL_TOOL_DEFAULTS
+</script>
+
 <script setup lang="ts">
 // Inject the tool state (which extends BaseTool)
 const tool = useFillToolState()
+const config = FILL_TOOL_DEFAULTS
+
 if (!tool) {
   throw new Error("FillTool must be used within SvgAnnotationLayer")
 }
@@ -39,8 +75,8 @@ const {
           :height="annotation.height"
           fill="transparent"
           :stroke="isSelected ? settings.fillToolSettings.fillColor : annotation.color"
-          :stroke-width="isSelected ? 2 : 1"
-          :stroke-opacity="isSelected ? 1 : 0.5"
+          :stroke-width="isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth"
+          :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
           class="fill-border"
         />
       </template>
@@ -54,10 +90,10 @@ const {
       :width="currentRect.width"
       :height="currentRect.height"
       :fill="settings.fillToolSettings.fillColor"
-      :fill-opacity="0.3"
+      :fill-opacity="config.preview.fillOpacity"
       :stroke="settings.fillToolSettings.fillColor"
-      stroke-width="2"
-      stroke-dasharray="5,5"
+      :stroke-width="config.preview.strokeWidth"
+      :stroke-dasharray="config.preview.strokeDashArray"
       class="preview-rect"
       pointer-events="none"
     />
@@ -80,6 +116,6 @@ const {
 }
 
 .preview-rect {
-  opacity: 0.7;
+  opacity: v-bind('config.preview.opacity');
 }
 </style>

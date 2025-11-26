@@ -1,8 +1,65 @@
+<script lang="ts">
+/**
+ * Line Tool Configuration
+ *
+ * Default settings for the line annotation tool.
+ * These will eventually be customizable per-user and stored in the database
+ * as part of a WYSIWYG-style tool configuration system.
+ */
+
+export const LINE_TOOL_DEFAULTS = {
+  // Hit area for easier clicking
+  hitArea: {
+    strokeWidth: 20
+  },
+
+  // Point markers on completed lines
+  markers: {
+    radius: 4
+  },
+
+  // Preview styling (while drawing)
+  preview: {
+    cursorIndicator: {
+      radius: 4,
+      strokeWidth: 2,
+      opacity: 0.6
+    },
+    line: {
+      strokeDashArray: '5,5',
+      opacity: 0.7
+    },
+    pointRadius: 4,
+    tempEndPoint: {
+      radius: 3,
+      fill: 'blue',
+      opacity: 0.5
+    }
+  },
+
+  // Selected/hover states
+  states: {
+    hover: {
+      strokeWidth: 3,
+      stroke: 'orange'
+    },
+    selected: {
+      stroke: 'blue',
+      strokeWidth: 3
+    }
+  }
+} as const
+
+export type LineToolConfig = typeof LINE_TOOL_DEFAULTS
+</script>
+
 <script setup lang="ts">
 import { useLineToolState } from "@/composables/tools/useLineTool"
 
 // Inject the tool state (which extends BaseTool)
 const tool = useLineToolState()
+const config = LINE_TOOL_DEFAULTS
+
 if (!tool) {
   throw new Error("LineTool must be used within SvgAnnotationLayer")
 }
@@ -34,7 +91,7 @@ watch(completed, (newVal) => {
         <polyline
           :points="toSvgPoints(annotation.points)"
           stroke="transparent"
-          stroke-width="20"
+          :stroke-width="config.hitArea.strokeWidth"
           fill="none"
           class="line-hitbox"
         />
@@ -54,7 +111,7 @@ watch(completed, (newVal) => {
           v-if="annotation.points[0]"
           :cx="annotation.points[0].x"
           :cy="annotation.points[0].y"
-          r="4"
+          :r="config.markers.radius"
           :fill="settings.lineToolSettings.strokeColor"
           class="start-marker"
         />
@@ -64,7 +121,7 @@ watch(completed, (newVal) => {
           v-if="annotation.points[annotation.points.length - 1]"
           :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
           :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
-          r="4"
+          :r="config.markers.radius"
           :fill="settings.lineToolSettings.strokeColor"
           class="end-marker"
         />
@@ -78,11 +135,11 @@ watch(completed, (newVal) => {
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        r="4"
+        :r="config.preview.cursorIndicator.radius"
         fill="none"
         :stroke="settings.lineToolSettings.strokeColor"
-        stroke-width="2"
-        opacity="0.6"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :opacity="config.preview.cursorIndicator.opacity"
       />
 
       <!-- After first click -->
@@ -94,8 +151,8 @@ watch(completed, (newVal) => {
           :stroke="settings.lineToolSettings.strokeColor"
           :stroke-width="settings.lineToolSettings.strokeWidth"
           fill="none"
-          stroke-dasharray="5,5"
-          opacity="0.7"
+          :stroke-dasharray="config.preview.line.strokeDashArray"
+          :opacity="config.preview.line.opacity"
         />
 
         <!-- Preview points -->
@@ -104,12 +161,19 @@ watch(completed, (newVal) => {
           :key="idx"
           :cx="point.x"
           :cy="point.y"
-          r="4"
+          :r="config.preview.pointRadius"
           :fill="settings.lineToolSettings.strokeColor"
         />
 
         <!-- Temp end point indicator -->
-        <circle v-if="tempEndPoint" :cx="tempEndPoint.x" :cy="tempEndPoint.y" r="3" fill="blue" opacity="0.5" />
+        <circle
+          v-if="tempEndPoint"
+          :cx="tempEndPoint.x"
+          :cy="tempEndPoint.y"
+          :r="config.preview.tempEndPoint.radius"
+          :fill="config.preview.tempEndPoint.fill"
+          :opacity="config.preview.tempEndPoint.opacity"
+        />
       </g>
     </g>
   </g>
@@ -130,14 +194,14 @@ watch(completed, (newVal) => {
 /* Hover effect */
 .line-path:hover,
 .line-hitbox:hover ~ .line-path {
-  stroke-width: 3;
-  stroke: orange;
+  stroke-width: v-bind('config.states.hover.strokeWidth');
+  stroke: v-bind('config.states.hover.stroke');
 }
 
 /* Selected state */
 .line-path.selected-path {
-  stroke: blue;
-  stroke-width: 3;
+  stroke: v-bind('config.states.selected.stroke');
+  stroke-width: v-bind('config.states.selected.strokeWidth');
 }
 
 .start-marker,

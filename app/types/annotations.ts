@@ -72,15 +72,14 @@ export interface Fill extends BaseAnnotation {
 
 export interface TextAnnotation extends BaseAnnotation {
   type: 'text'
-  x: number
-  y: number
+  x: number // Top-left corner X (consistent with other positioned annotations)
+  y: number // Top-left corner Y (consistent with other positioned annotations)
   width: number
   height: number
   content: string
   fontSize: number
   color: string
   // rotation, _groupCenter, _originalCenter inherited from BaseAnnotation (in radians)
-  // Note: Text uses rotation differently - it's baked in at creation time, not for transforms
 }
 
 export interface Count extends BaseAnnotation {

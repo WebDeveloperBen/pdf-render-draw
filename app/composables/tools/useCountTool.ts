@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
+import { COUNT_TOOL_DEFAULTS } from "~/components/tools/Count.vue"
 
 const [useCountTool, useCountToolState] = createInjectionState(() => {
   // Inherit base functionality
@@ -41,8 +42,8 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 
-    // Count marker radius is 15, so bounding box is 30x30
-    const markerSize = 30
+    // Use tool defaults for marker size (radius * 2)
+    const markerSize = COUNT_TOOL_DEFAULTS.marker.radius * 2
     const count: Count = {
       id: uuidv4(),
       type: "count",

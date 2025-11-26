@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
+import { TEXT_TOOL_DEFAULTS } from "~/components/tools/Text.vue"
 
 const [useTextTool, useTextToolState] = createInjectionState(() => {
   // Inherit base functionality
@@ -34,22 +35,22 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 
-    // Text dimensions
-    const width = 200
-    const height = 50
-    const fontSize = 16
+    // Use tool defaults from constants (will be user-configurable in the future)
+    const { width, height, fontSize, color, placeholder } = TEXT_TOOL_DEFAULTS
 
+    // Store x, y as TOP-LEFT corner (consistent with Fill, Count, and other positioned annotations)
+    // This ensures bounds calculation works correctly for selection and transforms
     const text: TextAnnotation = {
       id: uuidv4(),
       type: "text",
       pageNum: rendererStore.currentPage,
       x: point.x - width / 2,
-      y: point.y + fontSize + 2 - height / 2,
+      y: point.y - height / 2,
       width,
       height,
-      content: "Double-click to edit",
+      content: placeholder,
       fontSize,
-      color: "#000000",
+      color,
       rotation: degreesToRadians(-rendererStore.rotation) // Counter-rotate to appear upright in viewport
     }
 

@@ -1,6 +1,76 @@
+<script lang="ts">
+/**
+ * Measure Tool Configuration
+ *
+ * Default settings for the measure annotation tool.
+ * These will eventually be customizable per-user and stored in the database
+ * as part of a WYSIWYG-style tool configuration system.
+ */
+
+export const MEASURE_TOOL_DEFAULTS = {
+  // Hit area for easier clicking on thin lines
+  hitArea: {
+    strokeWidth: 15
+  },
+
+  // Label background styling
+  label: {
+    background: {
+      offsetX: 30,
+      offsetY: 10,
+      width: 60,
+      height: 20,
+      opacity: 0.9,
+      borderRadius: 3,
+      fill: 'white'
+    }
+  },
+
+  // Preview styling (while drawing)
+  preview: {
+    cursorIndicator: {
+      radius: 4,
+      strokeWidth: 2,
+      opacity: 0.6
+    },
+    startMarker: {
+      radius: 6,
+      fill: 'green',
+      stroke: 'white',
+      strokeWidth: 2
+    },
+    line: {
+      strokeDashArray: '5,5',
+      opacity: 0.7
+    },
+    distance: {
+      offsetY: 10,
+      fill: 'blue',
+      fontSize: 12
+    }
+  },
+
+  // Selected/hover states
+  states: {
+    hover: {
+      strokeWidth: 4,
+      dropShadow: 'drop-shadow(0 0 6px rgba(66, 153, 225, 0.8))'
+    },
+    selected: {
+      stroke: '#4299e1',
+      strokeWidth: 3
+    }
+  }
+} as const
+
+export type MeasureToolConfig = typeof MEASURE_TOOL_DEFAULTS
+</script>
+
 <script setup lang="ts">
 // Inject the tool state (which extends BaseTool)
 const tool = useMeasureToolState()
+const config = MEASURE_TOOL_DEFAULTS
+
 if (!tool) {
   throw new Error("MeasureTool must be used within SvgAnnotationLayer")
 }
@@ -34,7 +104,7 @@ const rendererStore = useRendererStore()
           :x2="annotation.points[1].x"
           :y2="annotation.points[1].y"
           stroke="transparent"
-          stroke-width="15"
+          :stroke-width="config.hitArea.strokeWidth"
           class="measurement-hit-area"
         />
 
@@ -52,13 +122,13 @@ const rendererStore = useRendererStore()
 
         <!-- Label background with rotation -->
         <rect
-          :x="annotation.midpoint.x - 30"
-          :y="annotation.midpoint.y - 10"
-          width="60"
-          height="20"
-          fill="white"
-          opacity="0.9"
-          rx="3"
+          :x="annotation.midpoint.x - config.label.background.offsetX"
+          :y="annotation.midpoint.y - config.label.background.offsetY"
+          :width="config.label.background.width"
+          :height="config.label.background.height"
+          :fill="config.label.background.fill"
+          :opacity="config.label.background.opacity"
+          :rx="config.label.background.borderRadius"
           :transform="`rotate(${annotation.labelRotation} ${annotation.midpoint.x} ${annotation.midpoint.y})`"
         />
 
@@ -86,11 +156,11 @@ const rendererStore = useRendererStore()
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        r="4"
+        :r="config.preview.cursorIndicator.radius"
         fill="none"
         :stroke="settings.measureToolSettings.strokeColor"
-        stroke-width="2"
-        opacity="0.6"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :opacity="config.preview.cursorIndicator.opacity"
       />
 
       <!-- After first click -->
@@ -99,10 +169,10 @@ const rendererStore = useRendererStore()
         <circle
           :cx="points[0].x"
           :cy="points[0].y"
-          r="6"
-          fill="green"
-          stroke="white"
-          stroke-width="2"
+          :r="config.preview.startMarker.radius"
+          :fill="config.preview.startMarker.fill"
+          :stroke="config.preview.startMarker.stroke"
+          :stroke-width="config.preview.startMarker.strokeWidth"
           class="point-marker"
         />
 
@@ -114,17 +184,17 @@ const rendererStore = useRendererStore()
           :y2="tempEndPoint.y"
           :stroke="settings.measureToolSettings.strokeColor"
           :stroke-width="settings.measureToolSettings.strokeWidth"
-          stroke-dasharray="5,5"
-          opacity="0.7"
+          :stroke-dasharray="config.preview.line.strokeDashArray"
+          :opacity="config.preview.line.opacity"
         />
 
         <!-- Preview distance (viewport-relative rotation) -->
         <text
           v-if="previewDistance"
           :x="(points[0].x + tempEndPoint.x) / 2"
-          :y="(points[0].y + tempEndPoint.y) / 2 - 10"
-          fill="blue"
-          font-size="12"
+          :y="(points[0].y + tempEndPoint.y) / 2 - config.preview.distance.offsetY"
+          :fill="config.preview.distance.fill"
+          :font-size="config.preview.distance.fontSize"
           text-anchor="middle"
           :transform="`rotate(${rendererStore.getViewportLabelRotation} ${(points[0].x + tempEndPoint.x) / 2} ${(points[0].y + tempEndPoint.y) / 2})`"
         >
@@ -150,13 +220,13 @@ const rendererStore = useRendererStore()
 }
 
 .measurement-line:hover {
-  stroke-width: 4;
-  filter: drop-shadow(0 0 6px rgba(66, 153, 225, 0.8));
+  stroke-width: v-bind('config.states.hover.strokeWidth');
+  filter: v-bind('config.states.hover.dropShadow');
 }
 
 .measurement-line.selected-line {
-  stroke: #4299e1;
-  stroke-width: 3;
+  stroke: v-bind('config.states.selected.stroke');
+  stroke-width: v-bind('config.states.selected.strokeWidth');
 }
 
 .measurement-label {

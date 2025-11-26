@@ -1,5 +1,58 @@
+<script lang="ts">
+/**
+ * Count Tool Configuration
+ *
+ * Default settings for the count annotation tool.
+ * These will eventually be customizable per-user and stored in the database
+ * as part of a WYSIWYG-style tool configuration system.
+ */
+
+export const COUNT_TOOL_DEFAULTS = {
+  // Hit area for easier clicking
+  hitArea: {
+    radius: 20
+  },
+
+  // Count marker appearance
+  marker: {
+    radius: 15,
+    fill: '#ff9800',
+    stroke: '#000000',
+    strokeWidth: 2,
+    // Size of bounding box (2 * radius)
+    get size() {
+      return this.radius * 2
+    }
+  },
+
+  // Text styling
+  text: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    fill: 'white'
+  },
+
+  // Preview styling
+  preview: {
+    opacity: 0.7
+  },
+
+  // Hover state
+  states: {
+    hover: {
+      radius: 18,
+      strokeWidth: 3
+    }
+  }
+} as const
+
+export type CountToolConfig = typeof COUNT_TOOL_DEFAULTS
+</script>
+
 <script setup lang="ts">
 const tool = useCountToolState()
+const config = COUNT_TOOL_DEFAULTS
+
 if (!tool) {
   throw new Error("CountTool must be used within SvgAnnotationLayer")
 }
@@ -20,7 +73,7 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
         <circle
           :cx="annotation.x + annotation.width / 2"
           :cy="annotation.y + annotation.height / 2"
-          r="20"
+          :r="config.hitArea.radius"
           fill="transparent"
           class="count-hitbox"
         />
@@ -29,10 +82,10 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
         <circle
           :cx="annotation.x + annotation.width / 2"
           :cy="annotation.y + annotation.height / 2"
-          r="15"
-          fill="#ff9800"
-          stroke="#000000"
-          stroke-width="2"
+          :r="config.marker.radius"
+          :fill="config.marker.fill"
+          :stroke="config.marker.stroke"
+          :stroke-width="config.marker.strokeWidth"
           class="count-marker"
         />
 
@@ -42,9 +95,9 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
           :y="annotation.y + annotation.height / 2"
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size="12"
-          font-weight="bold"
-          fill="white"
+          :font-size="config.text.fontSize"
+          :font-weight="config.text.fontWeight"
+          :fill="config.text.fill"
           class="count-number"
         >
           {{ annotation.number }}
@@ -57,11 +110,11 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
       <circle
         :cx="cursorPosition.x"
         :cy="cursorPosition.y"
-        r="15"
-        fill="#ff9800"
-        stroke="#000000"
-        stroke-width="2"
-        opacity="0.7"
+        :r="config.marker.radius"
+        :fill="config.marker.fill"
+        :stroke="config.marker.stroke"
+        :stroke-width="config.marker.strokeWidth"
+        :opacity="config.preview.opacity"
         class="preview-marker"
       />
       <text
@@ -69,10 +122,10 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
         :y="cursorPosition.y"
         text-anchor="middle"
         dominant-baseline="middle"
-        font-size="12"
-        font-weight="bold"
-        fill="white"
-        opacity="0.7"
+        :font-size="config.text.fontSize"
+        :font-weight="config.text.fontWeight"
+        :fill="config.text.fill"
+        :opacity="config.preview.opacity"
         class="preview-number"
       >
         {{ nextCountNumber }}
@@ -95,8 +148,8 @@ const showPreview = computed(() => annotationStore.activeTool === "count" && cur
 
 /* Hover effect */
 .count-hitbox:hover ~ .count-marker {
-  r: 18;
-  stroke-width: 3;
+  r: v-bind('config.states.hover.radius');
+  stroke-width: v-bind('config.states.hover.strokeWidth');
 }
 
 /* Text styling */

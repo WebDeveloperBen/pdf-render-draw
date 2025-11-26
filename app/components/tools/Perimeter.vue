@@ -1,6 +1,99 @@
+<script lang="ts">
+/**
+ * Perimeter Tool Configuration
+ *
+ * Default settings for the perimeter annotation tool.
+ * These will eventually be customizable per-user and stored in the database
+ * as part of a WYSIWYG-style tool configuration system.
+ */
+
+export const PERIMETER_TOOL_DEFAULTS = {
+  // Segment label background styling
+  segmentLabel: {
+    background: {
+      offsetX: 25,
+      offsetY: 10,
+      width: 50,
+      height: 20,
+      opacity: 0.9,
+      borderRadius: 3,
+      fill: 'white'
+    }
+  },
+
+  // Total label background styling
+  totalLabel: {
+    background: {
+      offsetX: 40,
+      offsetY: 12,
+      width: 80,
+      height: 24,
+      opacity: 0.95,
+      borderRadius: 4,
+      fill: 'white'
+    },
+    fontSizeBonus: 2  // Added to settings.labelSize for total
+  },
+
+  // Preview styling (while drawing)
+  preview: {
+    cursorIndicator: {
+      radius: 4,
+      strokeWidth: 2,
+      opacity: 0.6
+    },
+    pointMarkers: {
+      firstRadius: 6,
+      otherRadius: 5,
+      firstFill: 'green',
+      stroke: 'white',
+      strokeWidth: 2
+    },
+    polygon: {
+      opacityMultiplier: 0.5,
+      strokeDashArray: '5,5'
+    },
+    segmentLabel: {
+      fill: 'blue',
+      fontSize: 12
+    }
+  },
+
+  // Snap to close indicator
+  snap: {
+    radius: 10,
+    stroke: 'green',
+    strokeWidth: 2,
+    text: {
+      offsetX: 15,
+      offsetY: 10,
+      fontSize: 12,
+      fontWeight: 'bold',
+      fill: 'green'
+    }
+  },
+
+  // Selected/hover states
+  states: {
+    hover: {
+      fillOpacity: 0.5,
+      strokeWidth: 3
+    },
+    selected: {
+      stroke: 'blue',
+      strokeWidth: 3
+    }
+  }
+} as const
+
+export type PerimeterToolConfig = typeof PERIMETER_TOOL_DEFAULTS
+</script>
+
 <script setup lang="ts">
 // Inject the tool state (which extends BaseTool)
 const tool = usePerimeterToolState()
+const config = PERIMETER_TOOL_DEFAULTS
+
 if (!tool) {
   throw new Error("PerimeterTool must be used within SvgAnnotationLayer")
 }
@@ -43,13 +136,13 @@ const rendererStore = useRendererStore()
         <g v-for="(segment, idx) in annotation.segments" :key="idx">
           <!-- Label background with rotation -->
           <rect
-            :x="segment.midpoint.x - 25"
-            :y="segment.midpoint.y - 10"
-            width="50"
-            height="20"
-            fill="white"
-            opacity="0.9"
-            rx="3"
+            :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
+            :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
+            :width="config.segmentLabel.background.width"
+            :height="config.segmentLabel.background.height"
+            :fill="config.segmentLabel.background.fill"
+            :opacity="config.segmentLabel.background.opacity"
+            :rx="config.segmentLabel.background.borderRadius"
             :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           />
 
@@ -71,20 +164,20 @@ const rendererStore = useRendererStore()
 
         <!-- Total perimeter label at center with rotation -->
         <rect
-          :x="annotation.center.x - 40"
-          :y="annotation.center.y - 12"
-          width="80"
-          height="24"
-          fill="white"
-          opacity="0.95"
-          rx="4"
+          :x="annotation.center.x - config.totalLabel.background.offsetX"
+          :y="annotation.center.y - config.totalLabel.background.offsetY"
+          :width="config.totalLabel.background.width"
+          :height="config.totalLabel.background.height"
+          :fill="config.totalLabel.background.fill"
+          :opacity="config.totalLabel.background.opacity"
+          :rx="config.totalLabel.background.borderRadius"
           :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         />
         <text
           :x="annotation.center.x"
           :y="annotation.center.y"
           :fill="settings.perimeterToolSettings.labelColor"
-          :font-size="settings.perimeterToolSettings.labelSize + 2"
+          :font-size="settings.perimeterToolSettings.labelSize + config.totalLabel.fontSizeBonus"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
@@ -103,11 +196,11 @@ const rendererStore = useRendererStore()
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        r="4"
+        :r="config.preview.cursorIndicator.radius"
         fill="none"
         :stroke="settings.perimeterToolSettings.strokeColor"
-        stroke-width="2"
-        opacity="0.6"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :opacity="config.preview.cursorIndicator.opacity"
       />
 
       <!-- After first click -->
@@ -118,10 +211,10 @@ const rendererStore = useRendererStore()
           :key="`point-${index}`"
           :cx="point.x"
           :cy="point.y"
-          :r="index === 0 ? 6 : 5"
-          :fill="index === 0 ? 'green' : settings.perimeterToolSettings.strokeColor"
-          :stroke="'white'"
-          :stroke-width="2"
+          :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
+          :fill="index === 0 ? config.preview.pointMarkers.firstFill : settings.perimeterToolSettings.strokeColor"
+          :stroke="config.preview.pointMarkers.stroke"
+          :stroke-width="config.preview.pointMarkers.strokeWidth"
           class="point-marker"
         />
 
@@ -130,10 +223,10 @@ const rendererStore = useRendererStore()
           v-if="points.length >= 2"
           :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
           :fill="settings.perimeterToolSettings.fillColor"
-          :fill-opacity="settings.perimeterToolSettings.opacity * 0.5"
+          :fill-opacity="settings.perimeterToolSettings.opacity * config.preview.polygon.opacityMultiplier"
           :stroke="settings.perimeterToolSettings.strokeColor"
           :stroke-width="settings.perimeterToolSettings.strokeWidth"
-          stroke-dasharray="5,5"
+          :stroke-dasharray="config.preview.polygon.strokeDashArray"
         />
 
         <!-- Preview segment labels -->
@@ -145,18 +238,18 @@ const rendererStore = useRendererStore()
             :y2="segment.end.y"
             :stroke="settings.perimeterToolSettings.strokeColor"
             :stroke-width="settings.perimeterToolSettings.strokeWidth"
-            :stroke-dasharray="idx === previewSegments.length - 1 ? '5,5' : '0'"
+            :stroke-dasharray="idx === previewSegments.length - 1 ? config.preview.polygon.strokeDashArray : '0'"
           />
 
           <!-- Segment length label background (viewport-relative rotation) -->
           <rect
-            :x="segment.midpoint.x - 25"
-            :y="segment.midpoint.y - 10"
-            width="50"
-            height="20"
-            fill="white"
-            opacity="0.9"
-            rx="3"
+            :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
+            :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
+            :width="config.segmentLabel.background.width"
+            :height="config.segmentLabel.background.height"
+            :fill="config.segmentLabel.background.fill"
+            :opacity="config.segmentLabel.background.opacity"
+            :rx="config.segmentLabel.background.borderRadius"
             :transform="`rotate(${rendererStore.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           />
 
@@ -164,8 +257,8 @@ const rendererStore = useRendererStore()
           <text
             :x="segment.midpoint.x"
             :y="segment.midpoint.y"
-            fill="blue"
-            font-size="12"
+            :fill="config.preview.segmentLabel.fill"
+            :font-size="config.preview.segmentLabel.fontSize"
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
@@ -180,13 +273,19 @@ const rendererStore = useRendererStore()
           <circle
             :cx="points[0].x"
             :cy="points[0].y"
-            r="10"
+            :r="config.snap.radius"
             fill="none"
-            stroke="green"
-            stroke-width="2"
+            :stroke="config.snap.stroke"
+            :stroke-width="config.snap.strokeWidth"
             class="snap-indicator"
           />
-          <text :x="points[0].x + 15" :y="points[0].y - 10" fill="green" font-size="12" font-weight="bold">
+          <text
+            :x="points[0].x + config.snap.text.offsetX"
+            :y="points[0].y - config.snap.text.offsetY"
+            :fill="config.snap.text.fill"
+            :font-size="config.snap.text.fontSize"
+            :font-weight="config.snap.text.fontWeight"
+          >
             Click to close
           </text>
         </g>
@@ -202,13 +301,13 @@ const rendererStore = useRendererStore()
 }
 
 .perimeter-polygon:hover {
-  fill-opacity: 0.5;
-  stroke-width: 3;
+  fill-opacity: v-bind('config.states.hover.fillOpacity');
+  stroke-width: v-bind('config.states.hover.strokeWidth');
 }
 
 .perimeter-polygon.selected-polygon {
-  stroke: blue;
-  stroke-width: 3;
+  stroke: v-bind('config.states.selected.stroke');
+  stroke-width: v-bind('config.states.selected.strokeWidth');
 }
 
 .segment-label,
