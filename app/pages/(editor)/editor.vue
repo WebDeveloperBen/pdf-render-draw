@@ -126,117 +126,123 @@ if (typeof window !== "undefined") {
 
 <template>
   <div class="editor-page">
-    <!-- Page Sidebar -->
-    <EditorSidebar :is-open="isSidebarOpen" @close="closeSidebar" />
+    <ClientOnly>
+      <!-- Page Sidebar -->
+      <EditorSidebar :is-open="isSidebarOpen" @close="closeSidebar" />
 
-    <!-- Main Editor Area -->
-    <div class="editor-main" :class="{ 'sidebar-open': isSidebarOpen }">
-      <!-- Toolbar -->
-      <div class="toolbar">
-        <!-- Left side - Navigation -->
-        <div class="toolbar-section">
-          <button
-            class="toolbar-btn"
-            :class="{ active: isSidebarOpen }"
-            title="Toggle pages sidebar"
-            @click="toggleSidebar"
-          >
-            <span class="icon">☰</span>
-            Pages
-          </button>
-
-          <div class="divider" />
-
-          <div class="page-nav">
+      <!-- Main Editor Area -->
+      <div class="editor-main" :class="{ 'sidebar-open': isSidebarOpen }">
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <!-- Left side - Navigation -->
+          <div class="toolbar-section">
             <button
-              class="toolbar-btn-icon"
-              :disabled="viewportStore.getCurrentPage <= 1"
-              @click="viewportStore.setCurrentPage(Math.max(1, viewportStore.getCurrentPage - 1))"
+              class="toolbar-btn"
+              :class="{ active: isSidebarOpen }"
+              title="Toggle pages sidebar"
+              @click="toggleSidebar"
             >
-              ‹
+              <span class="icon">☰</span>
+              Pages
             </button>
-            <span class="page-indicator"> {{ viewportStore.getCurrentPage }} / {{ viewportStore.getTotalPages }} </span>
+
+            <div class="divider" />
+
+            <div class="page-nav">
+              <button
+                class="toolbar-btn-icon"
+                :disabled="viewportStore.getCurrentPage <= 1"
+                @click="viewportStore.setCurrentPage(Math.max(1, viewportStore.getCurrentPage - 1))"
+              >
+                ‹
+              </button>
+              <span class="page-indicator">
+                {{ viewportStore.getCurrentPage }} / {{ viewportStore.getTotalPages }}
+              </span>
+              <button
+                class="toolbar-btn-icon"
+                :disabled="viewportStore.getCurrentPage >= viewportStore.getTotalPages"
+                @click="
+                  viewportStore.setCurrentPage(Math.min(viewportStore.getTotalPages, viewportStore.getCurrentPage + 1))
+                "
+              >
+                ›
+              </button>
+            </div>
+          </div>
+
+          <!-- Center - Zoom & Rotation Controls -->
+          <div class="toolbar-section">
+            <div class="control-group">
+              <span class="control-label">Zoom</span>
+              <button class="toolbar-btn-icon" title="Zoom out" @click="zoomOut">−</button>
+              <button class="toolbar-btn-sm" title="Reset zoom" @click="resetZoom">
+                {{ Math.round(viewportStore.getScale * 100) }}%
+              </button>
+              <button class="toolbar-btn-icon" title="Zoom in" @click="zoomIn">+</button>
+            </div>
+
+            <div class="divider" />
+
+            <div class="control-group">
+              <span class="control-label">Rotate</span>
+              <button class="toolbar-btn-icon" title="Rotate counter-clockwise" @click="rotateCounterClockwise">
+                ↺
+              </button>
+              <button class="toolbar-btn-sm" title="Reset rotation" @click="resetRotation">
+                {{ viewportStore.rotation }}°
+              </button>
+              <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">↻</button>
+            </div>
+          </div>
+
+          <!-- Right side - Info -->
+          <div class="toolbar-section">
+            <span class="info-text">Annotations: {{ annotationStore.annotations.length }}</span>
+          </div>
+        </div>
+
+        <!-- Tool Palette -->
+        <div class="tool-palette">
+          <div class="tool-group">
+            <span class="tool-group-label">Tools</span>
             <button
-              class="toolbar-btn-icon"
-              :disabled="viewportStore.getCurrentPage >= viewportStore.getTotalPages"
-              @click="
-                viewportStore.setCurrentPage(Math.min(viewportStore.getTotalPages, viewportStore.getCurrentPage + 1))
-              "
+              v-for="tool in tools"
+              :key="tool.id"
+              :class="['tool-btn', { active: annotationStore.activeTool === tool.id }]"
+              :title="tool.name"
+              @click="annotationStore.setActiveTool(tool.id)"
             >
-              ›
+              <span class="tool-icon">{{ tool.icon }}</span>
+              <span class="tool-name">{{ tool.name }}</span>
+            </button>
+
+            <button
+              :class="['tool-btn', { active: annotationStore.activeTool === 'selection' }]"
+              title="Selection"
+              @click="annotationStore.setActiveTool('selection')"
+            >
+              <span class="tool-icon">🔍</span>
+              <span class="tool-name">Select</span>
             </button>
           </div>
         </div>
 
-        <!-- Center - Zoom & Rotation Controls -->
-        <div class="toolbar-section">
-          <div class="control-group">
-            <span class="control-label">Zoom</span>
-            <button class="toolbar-btn-icon" title="Zoom out" @click="zoomOut">−</button>
-            <button class="toolbar-btn-sm" title="Reset zoom" @click="resetZoom">
-              {{ Math.round(viewportStore.getScale * 100) }}%
-            </button>
-            <button class="toolbar-btn-icon" title="Zoom in" @click="zoomIn">+</button>
-          </div>
-
-          <div class="divider" />
-
-          <div class="control-group">
-            <span class="control-label">Rotate</span>
-            <button class="toolbar-btn-icon" title="Rotate counter-clockwise" @click="rotateCounterClockwise">↺</button>
-            <button class="toolbar-btn-sm" title="Reset rotation" @click="resetRotation">
-              {{ viewportStore.rotation }}°
-            </button>
-            <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">↻</button>
-          </div>
-        </div>
-
-        <!-- Right side - Info -->
-        <div class="toolbar-section">
-          <span class="info-text">Annotations: {{ annotationStore.annotations.length }}</span>
+        <!-- PDF Editor Canvas -->
+        <div
+          class="editor-container"
+          :class="{ panning: isPanning, 'space-pressed': spacePressed }"
+          @wheel="handleWheel"
+          @mousedown="handleMouseDown"
+          @mousemove="handleMouseMove"
+          @mouseup="handleMouseUp"
+          @mouseleave="handleMouseUp"
+          @contextmenu.prevent
+        >
+          <Editor v-if="viewportStore.isPdfLoaded" />
         </div>
       </div>
-
-      <!-- Tool Palette -->
-      <div class="tool-palette">
-        <div class="tool-group">
-          <span class="tool-group-label">Tools</span>
-          <button
-            v-for="tool in tools"
-            :key="tool.id"
-            :class="['tool-btn', { active: annotationStore.activeTool === tool.id }]"
-            :title="tool.name"
-            @click="annotationStore.setActiveTool(tool.id)"
-          >
-            <span class="tool-icon">{{ tool.icon }}</span>
-            <span class="tool-name">{{ tool.name }}</span>
-          </button>
-
-          <button
-            :class="['tool-btn', { active: annotationStore.activeTool === 'selection' }]"
-            title="Selection"
-            @click="annotationStore.setActiveTool('selection')"
-          >
-            <span class="tool-icon">🔍</span>
-            <span class="tool-name">Select</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- PDF Editor Canvas -->
-      <div
-        class="editor-container"
-        :class="{ panning: isPanning, 'space-pressed': spacePressed }"
-        @wheel="handleWheel"
-        @mousedown="handleMouseDown"
-        @mousemove="handleMouseMove"
-        @mouseup="handleMouseUp"
-        @mouseleave="handleMouseUp"
-        @contextmenu.prevent
-      >
-        <Editor v-if="viewportStore.isPdfLoaded" />
-      </div>
-    </div>
+    </ClientOnly>
   </div>
 </template>
 

@@ -38,8 +38,7 @@ const containerStyle = computed(() => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
-    background: "#1e1e1e"
+    overflow: "hidden"
   }
 })
 </script>
@@ -47,6 +46,13 @@ const containerStyle = computed(() => {
 <template>
   <EditorPdfEditorProvider>
     <div ref="containerRef" class="pdf-editor" :style="containerStyle">
+      <!-- Grid pattern background -->
+      <UiGridPattern
+        :width="32"
+        :height="32"
+        class="fill-neutral-700/20 stroke-neutral-700/30"
+      />
+
       <!-- PDF Container - wraps both canvas and SVG -->
       <div class="pdf-container">
         <!-- PDF Viewer Layer (Canvas) -->
@@ -73,6 +79,7 @@ const containerStyle = computed(() => {
   position: relative;
   width: 100%;
   height: 100%;
+  background: #1a1a1a;
 }
 
 .pdf-container {
@@ -85,6 +92,7 @@ const containerStyle = computed(() => {
   top: 16px;
   right: 16px;
   pointer-events: none;
+  user-select: none;
   z-index: 1000;
 }
 

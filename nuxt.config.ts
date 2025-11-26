@@ -1,9 +1,9 @@
+import tailwindcss from "@tailwindcss/vite"
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-
-  // Disable SSR - PDF.js requires browser APIs
-  ssr: false,
+  telemetry: false,
+  css: ["./app/assets/css/main.css"],
   typescript: {
     typeCheck: true,
     strict: true
@@ -17,6 +17,7 @@ export default defineNuxtConfig({
   },
   // required for pdfjs-dist top level await usage
   vite: {
+    plugins: [tailwindcss()],
     build: {
       target: "ESNEXT"
     },

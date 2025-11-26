@@ -6,7 +6,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
   // ============================================
 
   const annotations = ref<Annotation[]>([])
-  const activeTool = ref<ToolType | "selection" | "rotate" | "">("")
+  const activeTool = ref<ToolType | "selection" | "rotate" | "">("measure")
   const selectedAnnotationIds = ref<string[]>([]) // Multi-select support
   const isDrawing = ref(false)
 
