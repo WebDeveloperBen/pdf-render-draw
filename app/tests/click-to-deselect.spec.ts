@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import type { Fill } from "~/types/annotations"
 
 /**
  * Tests for click-outside-to-deselect behavior

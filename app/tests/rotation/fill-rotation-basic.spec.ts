@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import { useAnnotationStore } from "~/stores/annotations"
-import type { Fill, Measurement, Area, Perimeter, PerimeterSegment } from "~/types/annotations"
-import { calculateBounds } from "~/utils/bounds"
 
 // Mock UUID
 vi.mock("uuid", () => ({

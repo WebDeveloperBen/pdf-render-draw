@@ -9,16 +9,13 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest"
-import { useTextEditingState } from "@/composables/useTextEditingState"
-import { useAnnotationStore } from "~/stores/annotations"
-import type { TextAnnotation } from "~/types/annotations"
 
 describe("Regression: Text Editing", () => {
   beforeEach(() => {
     const annotationStore = useAnnotationStore()
     annotationStore.clearAnnotations()
     annotationStore.deselectAll()
-    annotationStore.setActiveTool('')
+    annotationStore.setActiveTool("")
 
     // Reset text editing state
     const textEditing = useTextEditingState()

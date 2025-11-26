@@ -12,7 +12,7 @@ export const useEditorScale = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
-  const dragState = useDragState()
+  const dragState = useEditorDragState()
 
   // Scaling state
   const isScaling = ref(false)

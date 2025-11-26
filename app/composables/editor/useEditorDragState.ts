@@ -5,7 +5,7 @@
  * from firing immediately after drag ends.
  */
 
-const _useDragState = () => {
+export const useEditorDragState = createSharedComposable(() => {
   const justFinishedDragging = ref(false)
   let preventClickTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -27,6 +27,4 @@ const _useDragState = () => {
     markDragEnd,
     isDragJustFinished
   }
-}
-
-export const useDragState = createSharedComposable(_useDragState)
+})

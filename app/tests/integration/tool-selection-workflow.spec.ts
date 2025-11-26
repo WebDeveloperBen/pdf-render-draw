@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import { useAnnotationStore } from "~/stores/annotations"
 
 // Mock debug utils
 vi.mock("~/utils/debug", () => ({
@@ -69,7 +68,10 @@ describe("Tool Selection & Visual Feedback Workflow", () => {
         id: "test-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -127,7 +129,10 @@ describe("Tool Selection & Visual Feedback Workflow", () => {
         id: "test-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -137,7 +142,6 @@ describe("Tool Selection & Visual Feedback Workflow", () => {
       // Tool should still be active
       expect(annotationStore.activeTool).toBe("measure")
     })
-
-
   })
 })
+

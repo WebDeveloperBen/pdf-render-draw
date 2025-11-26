@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import type { Measurement } from "~/types/annotations"
 
 describe("Mouse Events Integration", () => {
   beforeEach(() => {
@@ -16,7 +15,10 @@ describe("Mouse Events Integration", () => {
         type: "measure",
         pageNum: 1,
         rotation: 0,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0
@@ -38,7 +40,10 @@ describe("Mouse Events Integration", () => {
         type: "measure",
         pageNum: 1,
         rotation: 0,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0
@@ -63,7 +68,10 @@ describe("Mouse Events Integration", () => {
         type: "measure",
         pageNum: 1,
         rotation: 0,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0
@@ -74,7 +82,10 @@ describe("Mouse Events Integration", () => {
         type: "measure",
         pageNum: 1,
         rotation: 0,
-        points: [{ x: 300, y: 300 }, { x: 400, y: 400 }],
+        points: [
+          { x: 300, y: 300 },
+          { x: 400, y: 400 }
+        ],
         distance: 141.42,
         midpoint: { x: 350, y: 350 },
         labelRotation: 0
@@ -100,7 +111,10 @@ describe("Mouse Events Integration", () => {
         type: "measure",
         pageNum: 1,
         rotation: 0,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0
@@ -111,7 +125,10 @@ describe("Mouse Events Integration", () => {
         type: "measure",
         pageNum: 1,
         rotation: 0,
-        points: [{ x: 300, y: 300 }, { x: 400, y: 400 }],
+        points: [
+          { x: 300, y: 300 },
+          { x: 400, y: 400 }
+        ],
         distance: 141.42,
         midpoint: { x: 350, y: 350 },
         labelRotation: 0
@@ -142,7 +159,10 @@ describe("Mouse Events Integration", () => {
         type: "measure",
         pageNum: 1,
         rotation: 0,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0
@@ -167,3 +187,4 @@ describe("Mouse Events Integration", () => {
     })
   })
 })
+

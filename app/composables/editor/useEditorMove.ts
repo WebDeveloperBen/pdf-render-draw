@@ -12,7 +12,7 @@ export const useEditorMove = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
-  const dragState = useDragState()
+  const dragState = useEditorDragState()
 
   // Drag state
   const isDragging = ref(false)

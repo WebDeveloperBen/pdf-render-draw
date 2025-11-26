@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import { useAnnotationStore } from "~/stores/annotations"
-import { useRendererStore } from "~/stores/renderer"
-import type { Measurement, Area } from "~/types/annotations"
 
 // Mock debug utils
 vi.mock("~/utils/debug", () => ({
@@ -30,7 +27,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -41,7 +41,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -65,7 +68,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -76,7 +82,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -97,7 +106,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -125,7 +137,7 @@ describe("Multi-Select & Group Operations Workflow", () => {
 
       // Select all
       const allAnnotations = annotationStore.annotations
-      annotationStore.selectAnnotations(allAnnotations.map(a => a.id))
+      annotationStore.selectAnnotations(allAnnotations.map((a) => a.id))
 
       expect(annotationStore.selectedAnnotationIds).toHaveLength(2)
       expect(annotationStore.selectedAnnotationIds).toEqual(["measure-1", "area-1"])
@@ -136,7 +148,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -147,7 +162,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -171,7 +189,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -182,7 +203,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -203,7 +227,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -214,7 +241,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -239,7 +269,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -250,7 +283,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -263,10 +299,16 @@ describe("Multi-Select & Group Operations Workflow", () => {
 
       // Move both annotations 50 units right and 25 units down
       annotationStore.updateAnnotation("measure-1", {
-        points: [{ x: 150, y: 125 }, { x: 250, y: 225 }]
+        points: [
+          { x: 150, y: 125 },
+          { x: 250, y: 225 }
+        ]
       })
       annotationStore.updateAnnotation("measure-2", {
-        points: [{ x: 100, y: 75 }, { x: 200, y: 75 }]
+        points: [
+          { x: 100, y: 75 },
+          { x: 200, y: 75 }
+        ]
       })
 
       // Verify both moved
@@ -285,7 +327,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -296,7 +341,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 120, y: 120 }, { x: 220, y: 220 }],
+        points: [
+          { x: 120, y: 120 },
+          { x: 220, y: 220 }
+        ],
         distance: 141.42,
         midpoint: { x: 170, y: 170 },
         labelRotation: 0,
@@ -309,10 +357,16 @@ describe("Multi-Select & Group Operations Workflow", () => {
 
       // Both should move together maintaining 20-unit offset
       annotationStore.updateAnnotation("measure-1", {
-        points: [{ x: 150, y: 125 }, { x: 250, y: 225 }]
+        points: [
+          { x: 150, y: 125 },
+          { x: 250, y: 225 }
+        ]
       })
       annotationStore.updateAnnotation("measure-2", {
-        points: [{ x: 170, y: 145 }, { x: 270, y: 245 }]
+        points: [
+          { x: 170, y: 145 },
+          { x: 270, y: 245 }
+        ]
       })
 
       const updated1 = annotationStore.getAnnotationById("measure-1") as Measurement
@@ -332,7 +386,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -343,7 +400,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -378,7 +438,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -412,7 +475,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -433,7 +499,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -448,7 +517,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1-copy",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 120, y: 120 }, { x: 220, y: 220 }],
+        points: [
+          { x: 120, y: 120 },
+          { x: 220, y: 220 }
+        ],
         distance: 141.42,
         midpoint: { x: 170, y: 170 },
         labelRotation: 0,
@@ -460,7 +532,7 @@ describe("Multi-Select & Group Operations Workflow", () => {
       // Should have both original and pasted
       const annotations = annotationStore.getAnnotationsByTypeAndPage("measure", 1)
       expect(annotations).toHaveLength(2)
-      expect(annotations.map(a => a.id)).toEqual(["measure-1", "measure-1-copy"])
+      expect(annotations.map((a) => a.id)).toEqual(["measure-1", "measure-1-copy"])
     })
 
     it("should duplicate selected annotations", () => {
@@ -468,7 +540,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -483,7 +558,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1-duplicate",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 110, y: 110 }, { x: 210, y: 210 }],
+        points: [
+          { x: 110, y: 110 },
+          { x: 210, y: 210 }
+        ],
         distance: 141.42,
         midpoint: { x: 160, y: 160 },
         labelRotation: 0,
@@ -503,7 +581,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -514,7 +595,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -540,7 +624,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -551,7 +638,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -562,7 +652,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "measure-3",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 25, y: 25 }, { x: 125, y: 25 }],
+        points: [
+          { x: 25, y: 25 },
+          { x: 125, y: 25 }
+        ],
         distance: 100,
         midpoint: { x: 75, y: 25 },
         labelRotation: 0,
@@ -591,7 +684,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "workflow-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -626,7 +722,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
 
       // 4. Perform group move
       annotationStore.updateAnnotation("workflow-1", {
-        points: [{ x: 120, y: 120 }, { x: 220, y: 220 }]
+        points: [
+          { x: 120, y: 120 },
+          { x: 220, y: 220 }
+        ]
       })
       annotationStore.updateAnnotation("workflow-2", {
         points: [
@@ -654,7 +753,10 @@ describe("Multi-Select & Group Operations Workflow", () => {
         id: "mixed-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -704,3 +806,4 @@ describe("Multi-Select & Group Operations Workflow", () => {
     })
   })
 })
+

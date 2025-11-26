@@ -2,23 +2,20 @@
  * Regression Tests: Click Handling
  *
  * Tests for bugs fixed in click/double-click handling:
- * - Click prevention after drag (useDragState)
+ * - Click prevention after drag (useEditorDragState)
  * - Double-click debouncing to prevent interference with single-click
  * - Click outside to deselect
  * - Click timing and event ordering
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
-import { useDragState } from "@/composables/useDragState"
-import { useAnnotationStore } from "~/stores/annotations"
-import { useTimeoutFn } from "@vueuse/core"
 
 describe("Regression: Click Handling", () => {
   beforeEach(() => {
     const annotationStore = useAnnotationStore()
     annotationStore.clearAnnotations()
     annotationStore.deselectAll()
-    annotationStore.setActiveTool('')
+    annotationStore.setActiveTool("")
     vi.useFakeTimers()
   })
 
@@ -28,7 +25,7 @@ describe("Regression: Click Handling", () => {
 
   describe("Bug Fix: Click Prevention After Drag", () => {
     it("should prevent click handler from firing immediately after drag ends", () => {
-      const dragState = useDragState()
+      const dragState = useEditorDragState()
 
       // GIVEN: Drag just finished
       dragState.markDragEnd()
@@ -45,9 +42,9 @@ describe("Regression: Click Handling", () => {
     })
 
     it("should use shared drag state across components", () => {
-      // GIVEN: Two instances of useDragState
-      const dragState1 = useDragState()
-      const dragState2 = useDragState()
+      // GIVEN: Two instances of useEditorDragState
+      const dragState1 = useEditorDragState()
+      const dragState2 = useEditorDragState()
 
       // THEN: They should be the same instance (singleton)
       expect(dragState1).toBe(dragState2)
@@ -61,7 +58,7 @@ describe("Regression: Click Handling", () => {
 
     it("should prevent selection changes when drag just finished", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useDragState()
+      const dragState = useEditorDragState()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -181,7 +178,7 @@ describe("Regression: Click Handling", () => {
   describe("Click Outside to Deselect", () => {
     it("should deselect annotation when clicking outside", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useDragState()
+      const dragState = useEditorDragState()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -212,7 +209,7 @@ describe("Regression: Click Handling", () => {
 
     it("should not deselect if drag just finished", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useDragState()
+      const dragState = useEditorDragState()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -242,7 +239,7 @@ describe("Regression: Click Handling", () => {
 
     it("should not deselect if currently drawing", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useDragState()
+      const dragState = useEditorDragState()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -271,7 +268,7 @@ describe("Regression: Click Handling", () => {
 
   describe("Click Event Ordering", () => {
     it("should handle click → drag → release sequence correctly", () => {
-      const dragState = useDragState()
+      const dragState = useEditorDragState()
       const clickHandler = vi.fn()
 
       // WHEN: Click (mousedown)

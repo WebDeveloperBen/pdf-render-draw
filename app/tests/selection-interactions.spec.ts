@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import type { Measurement, Area, Fill, Line } from "~/types/annotations"
-import type { Point } from "~/types"
 
 /**
  * Selection Interactions Test Suite
@@ -36,7 +34,8 @@ describe("Selection Interactions", () => {
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }] as [Point, Point],
+          { x: 200, y: 100 }
+        ] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
         labelRotation: 0,
@@ -63,7 +62,8 @@ describe("Selection Interactions", () => {
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }] as [Point, Point],
+          { x: 200, y: 100 }
+        ] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
         labelRotation: 0,
@@ -76,7 +76,8 @@ describe("Selection Interactions", () => {
         pageNum: 1,
         points: [
           { x: 100, y: 200 },
-          { x: 200, y: 200 }] as [Point, Point],
+          { x: 200, y: 200 }
+        ] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 200 },
         labelRotation: 0,
@@ -134,7 +135,8 @@ describe("Selection Interactions", () => {
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }] as [Point, Point],
+          { x: 200, y: 100 }
+        ] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
         labelRotation: 0,
@@ -147,7 +149,8 @@ describe("Selection Interactions", () => {
         pageNum: 1,
         points: [
           { x: 100, y: 200 },
-          { x: 200, y: 200 }] as [Point, Point],
+          { x: 200, y: 200 }
+        ] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 200 },
         labelRotation: 0,
@@ -245,7 +248,8 @@ describe("Selection Interactions", () => {
         pageNum: 1,
         points: [
           { x: 100, y: 100 },
-          { x: 200, y: 100 }] as [Point, Point],
+          { x: 200, y: 100 }
+        ] as [Point, Point],
         distance: 3528,
         midpoint: { x: 150, y: 100 },
         labelRotation: 0,
@@ -365,7 +369,8 @@ describe("Selection Interactions", () => {
           pageNum: 1,
           points: [
             { x: 100, y: 100 },
-            { x: 200, y: 100 }] as [Point, Point],
+            { x: 200, y: 100 }
+          ] as [Point, Point],
           distance: 3528,
           midpoint: { x: 150, y: 100 },
           labelRotation: 0,
@@ -377,7 +382,8 @@ describe("Selection Interactions", () => {
           pageNum: 1,
           points: [
             { x: 100, y: 200 },
-            { x: 200, y: 200 }] as [Point, Point],
+            { x: 200, y: 200 }
+          ] as [Point, Point],
           distance: 3528,
           midpoint: { x: 150, y: 200 },
           labelRotation: 0,
@@ -389,7 +395,8 @@ describe("Selection Interactions", () => {
           pageNum: 1,
           points: [
             { x: 100, y: 300 },
-            { x: 200, y: 300 }] as [Point, Point],
+            { x: 200, y: 300 }
+          ] as [Point, Point],
           distance: 3528,
           midpoint: { x: 150, y: 300 },
           labelRotation: 0,

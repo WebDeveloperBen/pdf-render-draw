@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import { useAnnotationStore } from "~/stores/annotations"
-import { useRendererStore } from "~/stores/renderer"
-import type { Measurement, Area } from "~/types/annotations"
 
 // Mock debug utils
 vi.mock("~/utils/debug", () => ({
@@ -49,7 +46,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "test-measure",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -87,7 +87,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "new-measure",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -137,7 +140,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -153,7 +159,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
       expect(created.id).toBe("measure-1")
       expect(created.type).toBe("measure")
       expect(created.pageNum).toBe(1)
-      expect(created.points).toEqual([{ x: 50, y: 50 }, { x: 150, y: 50 }])
+      expect(created.points).toEqual([
+        { x: 50, y: 50 },
+        { x: 150, y: 50 }
+      ])
       expect(created.distance).toBe(100)
       expect(created.midpoint).toEqual({ x: 100, y: 50 })
       expect(created.labelRotation).toBe(0)
@@ -197,7 +206,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "measure-page1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
         distance: 100,
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
@@ -208,7 +220,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "measure-page2",
         type: "measure",
         pageNum: 2,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
         distance: 100,
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
@@ -245,7 +260,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "workflow-measure",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 10, y: 10 }, { x: 110, y: 10 }],
+        points: [
+          { x: 10, y: 10 },
+          { x: 110, y: 10 }
+        ],
         distance: 100,
         midpoint: { x: 60, y: 10 },
         labelRotation: 0,
@@ -270,7 +288,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
         distance: 100,
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
@@ -283,7 +304,10 @@ describe("Drawing Workflow & Visual Feedback", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 0, y: 100 }, { x: 0, y: 200 }],
+        points: [
+          { x: 0, y: 100 },
+          { x: 0, y: 200 }
+        ],
         distance: 100,
         midpoint: { x: 0, y: 150 },
         labelRotation: 0,
@@ -293,7 +317,7 @@ describe("Drawing Workflow & Visual Feedback", () => {
 
       const annotations = annotationStore.getAnnotationsByTypeAndPage("measure", 1)
       expect(annotations).toHaveLength(2)
-      expect(annotations.map(a => a.id)).toEqual(["measure-1", "measure-2"])
+      expect(annotations.map((a) => a.id)).toEqual(["measure-1", "measure-2"])
     })
 
     it("should handle tool switching during workflow", () => {
@@ -315,3 +339,4 @@ describe("Drawing Workflow & Visual Feedback", () => {
     })
   })
 })
+

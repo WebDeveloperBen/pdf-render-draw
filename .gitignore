@@ -24,3 +24,4 @@ logs
 !.env.example
 
 coverage/**
+app/tests/e2e/screenshots/**

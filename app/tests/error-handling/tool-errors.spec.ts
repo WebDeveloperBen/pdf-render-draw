@@ -1,12 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
-import { useBaseTool } from '@/composables/tools/useBaseTool'
-import { useDrawingTool } from '@/composables/tools/useDrawingTool'
-import { calculateDistance, calculatePolygonArea, calculateCentroid } from '~/utils/calculations'
-import type { Point } from '~/types'
-import type { Measurement } from '~/types/annotations'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
+import { mount } from "@vue/test-utils"
 
 // Helper to test composables within Vue setup context
 function withSetup<T>(composable: () => T): T {
@@ -14,21 +8,21 @@ function withSetup<T>(composable: () => T): T {
   const app = defineComponent({
     setup() {
       result = composable()
-      return () => h('div')
+      return () => h("div")
     }
   })
   mount(app)
   return result!
 }
 
-describe('Tool Error Handling', () => {
+describe("Tool Error Handling", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('SVG Coordinate Conversion Errors', () => {
-    it('should handle getSvgPoint with null currentTarget', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+  describe("SVG Coordinate Conversion Errors", () => {
+    it("should handle getSvgPoint with null currentTarget", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const invalidEvent = {
         currentTarget: null,
@@ -40,11 +34,11 @@ describe('Tool Error Handling', () => {
       expect(() => base.getSvgPoint(invalidEvent)).toThrow()
     })
 
-    it('should handle getSvgPoint with non-SVG element', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle getSvgPoint with non-SVG element", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const invalidEvent = {
-        currentTarget: document.createElement('div'),
+        currentTarget: document.createElement("div"),
         clientX: 100,
         clientY: 200
       } as unknown as MouseEvent
@@ -53,8 +47,8 @@ describe('Tool Error Handling', () => {
       expect(() => base.getSvgPoint(invalidEvent)).toThrow()
     })
 
-    it('should handle getScreenCTM returning null', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle getScreenCTM returning null", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const mockSvg = {
         createSVGPoint: () => ({ x: 0, y: 0 }),
@@ -71,8 +65,8 @@ describe('Tool Error Handling', () => {
       expect(() => base.getSvgPoint(invalidEvent)).toThrow()
     })
 
-    it('should handle createSVGPoint not available', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle createSVGPoint not available", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const mockSvg = {
         getScreenCTM: () => ({ inverse: () => ({}) })
@@ -88,15 +82,15 @@ describe('Tool Error Handling', () => {
       expect(() => base.getSvgPoint(invalidEvent)).toThrow()
     })
 
-    it('should handle matrixTransform throwing error', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle matrixTransform throwing error", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const mockSvg = {
         createSVGPoint: () => ({
           x: 0,
           y: 0,
           matrixTransform: () => {
-            throw new Error('Matrix transform failed')
+            throw new Error("Matrix transform failed")
           }
         }),
         getScreenCTM: () => ({ inverse: () => ({}) })
@@ -108,11 +102,11 @@ describe('Tool Error Handling', () => {
         clientY: 200
       } as unknown as MouseEvent
 
-      expect(() => base.getSvgPoint(invalidEvent)).toThrow('Matrix transform failed')
+      expect(() => base.getSvgPoint(invalidEvent)).toThrow("Matrix transform failed")
     })
   })
 
-  describe('Invalid Mouse Coordinates', () => {
+  describe("Invalid Mouse Coordinates", () => {
     function createMockSvg() {
       return {
         createSVGPoint: () => ({
@@ -124,8 +118,8 @@ describe('Tool Error Handling', () => {
       } as unknown as SVGSVGElement
     }
 
-    it('should handle mouse event with NaN clientX/clientY', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle mouse event with NaN clientX/clientY", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const mockSvg = createMockSvg()
       const invalidEvent = {
@@ -142,8 +136,8 @@ describe('Tool Error Handling', () => {
       // Note: The current implementation doesn't validate coordinates
     })
 
-    it('should handle mouse event with Infinity coordinates', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle mouse event with Infinity coordinates", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const mockSvg = createMockSvg()
       const invalidEvent = {
@@ -157,8 +151,8 @@ describe('Tool Error Handling', () => {
       // Note: No validation exists for Infinity values
     })
 
-    it('should handle mouse event with negative coordinates', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle mouse event with negative coordinates", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const mockSvg = {
         createSVGPoint: () => ({
@@ -180,8 +174,8 @@ describe('Tool Error Handling', () => {
       // Negative coordinates are valid (e.g., panning)
     })
 
-    it('should handle mouse event with no coordinate properties', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle mouse event with no coordinate properties", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const mockSvg = createMockSvg()
       const invalidEvent = {
@@ -195,7 +189,7 @@ describe('Tool Error Handling', () => {
     })
   })
 
-  describe('Drawing Outside Bounds', () => {
+  describe("Drawing Outside Bounds", () => {
     function createMockMouseEvent(x: number, y: number): MouseEvent {
       const mockSvg = {
         createSVGPoint: () => ({
@@ -216,11 +210,11 @@ describe('Tool Error Handling', () => {
       } as unknown as MouseEvent
     }
 
-    it('should handle click at coordinates beyond canvas size (very large values)', () => {
+    it("should handle click at coordinates beyond canvas size (very large values)", () => {
       const annotationStore = useAnnotationStore()
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: ((points: Point[]) => ({
@@ -241,11 +235,11 @@ describe('Tool Error Handling', () => {
       // Note: No bounds checking exists
     })
 
-    it('should handle click at negative coordinates', () => {
+    it("should handle click at negative coordinates", () => {
       const annotationStore = useAnnotationStore()
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: ((points: Point[]) => ({
@@ -266,11 +260,11 @@ describe('Tool Error Handling', () => {
       // Negative coordinates are allowed
     })
 
-    it('should handle drawing line from (0,0) to (Infinity, Infinity)', () => {
+    it("should handle drawing line from (0,0) to (Infinity, Infinity)", () => {
       const annotationStore = useAnnotationStore()
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: ((points: Point[]) => ({
@@ -291,16 +285,19 @@ describe('Tool Error Handling', () => {
 
       expect(annotationStore.annotations).toHaveLength(1)
       expect(annotationStore.annotations[0]).toMatchObject({
-        type: 'measure',
-        points: [{ x: 0, y: 0 }, { x: Infinity, y: Infinity }]
+        type: "measure",
+        points: [
+          { x: 0, y: 0 },
+          { x: Infinity, y: Infinity }
+        ]
       })
       // Note: Infinity values are not validated
     })
   })
 
-  describe('Snap to 45° Edge Cases', () => {
-    it('should handle snap with only one point placed (no previous point)', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+  describe("Snap to 45° Edge Cases", () => {
+    it("should handle snap with only one point placed (no previous point)", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       // Try to snap when no start point exists
       const start: Point = { x: 100, y: 100 }
@@ -316,8 +313,8 @@ describe('Tool Error Handling', () => {
       expect(isFinite(snapped.y)).toBe(true)
     })
 
-    it('should handle snap with NaN start point', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle snap with NaN start point", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const start: Point = { x: NaN, y: NaN }
       const end: Point = { x: 150, y: 130 }
@@ -331,8 +328,8 @@ describe('Tool Error Handling', () => {
       // Note: No NaN validation in snapTo45Degrees
     })
 
-    it('should handle snap with same start and end point', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle snap with same start and end point", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const start: Point = { x: 100, y: 100 }
       const end: Point = { x: 100, y: 100 }
@@ -346,8 +343,8 @@ describe('Tool Error Handling', () => {
       // Same point returns same point
     })
 
-    it('should handle snap with Infinity end point', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle snap with Infinity end point", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
 
       const start: Point = { x: 0, y: 0 }
       const end: Point = { x: Infinity, y: Infinity }
@@ -362,66 +359,66 @@ describe('Tool Error Handling', () => {
     })
   })
 
-  describe('Calculation Errors', () => {
-    it('should handle calculateDistance with NaN coordinates', () => {
+  describe("Calculation Errors", () => {
+    it("should handle calculateDistance with NaN coordinates", () => {
       const p1: Point = { x: NaN, y: NaN }
       const p2: Point = { x: 100, y: 100 }
 
-      const distance = calculateDistance(p1, p2, '1:100')
+      const distance = calculateDistance(p1, p2, "1:100")
 
       expect(isNaN(distance)).toBe(true)
       // Note: No NaN validation in calculations
     })
 
-    it('should handle calculateDistance with Infinity coordinates', () => {
+    it("should handle calculateDistance with Infinity coordinates", () => {
       const p1: Point = { x: 0, y: 0 }
       const p2: Point = { x: Infinity, y: Infinity }
 
-      const distance = calculateDistance(p1, p2, '1:100')
+      const distance = calculateDistance(p1, p2, "1:100")
 
       expect(distance).toBe(Infinity)
       // Math.sqrt(Infinity) = Infinity
     })
 
-    it('should handle calculatePolygonArea with less than 3 points', () => {
+    it("should handle calculatePolygonArea with less than 3 points", () => {
       const points: Point[] = [
         { x: 0, y: 0 },
         { x: 100, y: 0 }
       ]
 
-      const area = calculatePolygonArea(points, '1:100')
+      const area = calculatePolygonArea(points, "1:100")
 
       // Should return 0 (tested in calculations.spec.ts)
       expect(area).toBe(0)
     })
 
-    it('should handle calculatePolygonArea with duplicate points', () => {
+    it("should handle calculatePolygonArea with duplicate points", () => {
       const points: Point[] = [
         { x: 0, y: 0 },
         { x: 0, y: 0 },
         { x: 0, y: 0 }
       ]
 
-      const area = calculatePolygonArea(points, '1:100')
+      const area = calculatePolygonArea(points, "1:100")
 
       // Should return 0 (no area)
       expect(area).toBe(0)
     })
 
-    it('should handle calculatePolygonArea with NaN coordinates', () => {
+    it("should handle calculatePolygonArea with NaN coordinates", () => {
       const points: Point[] = [
         { x: NaN, y: NaN },
         { x: 100, y: 0 },
         { x: 100, y: 100 }
       ]
 
-      const area = calculatePolygonArea(points, '1:100')
+      const area = calculatePolygonArea(points, "1:100")
 
       expect(isNaN(area)).toBe(true)
       // Note: No NaN validation
     })
 
-    it('should handle calculateCentroid with empty points array', () => {
+    it("should handle calculateCentroid with empty points array", () => {
       const points: Point[] = []
 
       // This will cause division by zero
@@ -432,7 +429,7 @@ describe('Tool Error Handling', () => {
       // Note: No empty array validation
     })
 
-    it('should handle calculateCentroid with NaN points', () => {
+    it("should handle calculateCentroid with NaN points", () => {
       const points: Point[] = [
         { x: NaN, y: NaN },
         { x: 100, y: 100 }
@@ -445,7 +442,7 @@ describe('Tool Error Handling', () => {
     })
   })
 
-  describe('Tool State Errors', () => {
+  describe("Tool State Errors", () => {
     function createMockMouseEvent(x: number, y: number): MouseEvent {
       const mockSvg = {
         createSVGPoint: () => ({
@@ -466,8 +463,8 @@ describe('Tool Error Handling', () => {
       } as unknown as MouseEvent
     }
 
-    it('should handle complete drawing with no points', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle complete drawing with no points", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
       const annotationStore = useAnnotationStore()
 
       // Try to complete without any points
@@ -479,13 +476,13 @@ describe('Tool Error Handling', () => {
       // Returns empty array, doesn't throw
     })
 
-    it('should handle complete drawing with insufficient points', () => {
+    it("should handle complete drawing with insufficient points", () => {
       const annotationStore = useAnnotationStore()
       let onCreateCalled = false
 
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: ((points: Point[]) => ({
@@ -494,7 +491,9 @@ describe('Tool Error Handling', () => {
             midpoint: { x: 0, y: 0 },
             labelRotation: 0
           })) as any,
-          onCreate: () => { onCreateCalled = true }
+          onCreate: () => {
+            onCreateCalled = true
+          }
         })
       )
 
@@ -510,8 +509,8 @@ describe('Tool Error Handling', () => {
       expect(onCreateCalled).toBe(false)
     })
 
-    it('should handle cancel drawing when not drawing', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 2 }))
+    it("should handle cancel drawing when not drawing", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 2 }))
       const annotationStore = useAnnotationStore()
 
       // Reset when not drawing
@@ -524,11 +523,11 @@ describe('Tool Error Handling', () => {
       expect(base.points.value).toEqual([])
     })
 
-    it('should handle click when isDrawing flag is corrupted', () => {
+    it("should handle click when isDrawing flag is corrupted", () => {
       const annotationStore = useAnnotationStore()
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: ((points: Point[]) => ({
@@ -552,8 +551,8 @@ describe('Tool Error Handling', () => {
       expect(tool.points.value.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('should handle array mutation during drawing', () => {
-      const base = withSetup(() => useBaseTool({ type: 'test', minPoints: 3 }))
+    it("should handle array mutation during drawing", () => {
+      const base = withSetup(() => useBaseTool({ type: "test", minPoints: 3 }))
       const annotationStore = useAnnotationStore()
 
       // Start drawing
@@ -570,7 +569,7 @@ describe('Tool Error Handling', () => {
       // Note: No validation on point structure
     })
 
-    it('should handle missing pageNum when creating annotation', () => {
+    it("should handle missing pageNum when creating annotation", () => {
       const annotationStore = useAnnotationStore()
       const rendererStore = useRendererStore()
 
@@ -579,7 +578,7 @@ describe('Tool Error Handling', () => {
 
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: ((points: Point[]) => ({
@@ -604,17 +603,16 @@ describe('Tool Error Handling', () => {
       // Note: Renderer store HAS page validation
     })
 
-    it('should handle calculate function throwing error', () => {
-      const annotationStore = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    it("should handle calculate function throwing error", () => {
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: () => {
-            throw new Error('Calculation failed')
+            throw new Error("Calculation failed")
           },
           onCreate: () => {}
         })
@@ -626,18 +624,17 @@ describe('Tool Error Handling', () => {
       tool.handleClick(event1)
 
       // Second click will trigger calculate, which throws
-      expect(() => tool.handleClick(event2)).toThrow('Calculation failed')
+      expect(() => tool.handleClick(event2)).toThrow("Calculation failed")
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should handle onCreate callback throwing error', () => {
-      const annotationStore = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    it("should handle onCreate callback throwing error", () => {
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const tool = withSetup(() =>
         useDrawingTool<Measurement>({
-          type: 'measure',
+          type: "measure",
           minPoints: 2,
           canClose: false,
           calculate: ((points: Point[]) => ({
@@ -647,7 +644,7 @@ describe('Tool Error Handling', () => {
             labelRotation: 0
           })) as any,
           onCreate: () => {
-            throw new Error('onCreate failed')
+            throw new Error("onCreate failed")
           }
         })
       )
@@ -658,17 +655,17 @@ describe('Tool Error Handling', () => {
       tool.handleClick(event1)
 
       // Second click will trigger onCreate, which throws
-      expect(() => tool.handleClick(event2)).toThrow('onCreate failed')
+      expect(() => tool.handleClick(event2)).toThrow("onCreate failed")
 
       consoleErrorSpy.mockRestore()
     })
   })
 
-  describe('Edge Cases with canSnapToClose', () => {
-    it('should handle canSnapToClose with null tempEndPoint', () => {
+  describe("Edge Cases with canSnapToClose", () => {
+    it("should handle canSnapToClose with null tempEndPoint", () => {
       const base = withSetup(() =>
         useBaseTool({
-          type: 'polygon',
+          type: "polygon",
           minPoints: 3,
           canClose: true,
           snapDistance: 25
@@ -687,10 +684,10 @@ describe('Tool Error Handling', () => {
       expect(base.canSnapToClose.value).toBe(false)
     })
 
-    it('should handle canSnapToClose with NaN firstPoint', () => {
+    it("should handle canSnapToClose with NaN firstPoint", () => {
       const base = withSetup(() =>
         useBaseTool({
-          type: 'polygon',
+          type: "polygon",
           minPoints: 3,
           canClose: true,
           snapDistance: 25
@@ -711,14 +708,14 @@ describe('Tool Error Handling', () => {
       // NaN < number is always false
     })
 
-    it('should handle canSnapToClose with Infinity snapDistance', () => {
+    it("should handle canSnapToClose with Infinity snapDistance", () => {
       const settingsStore = useSettingStore()
       // toolSnapDistance is a computed property (readonly), so update the underlying ref
       settingsStore.updateGeneralSettings({ toolSnapDistance: Infinity })
 
       const base = withSetup(() =>
         useBaseTool({
-          type: 'polygon',
+          type: "polygon",
           minPoints: 3,
           canClose: true
         })

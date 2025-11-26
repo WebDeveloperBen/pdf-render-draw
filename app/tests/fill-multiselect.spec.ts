@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import type { Fill } from "~/types/annotations"
 
 describe("Fill Multi-Select", () => {
   beforeEach(() => {
@@ -68,7 +67,10 @@ describe("Fill Multi-Select", () => {
       id: "l1",
       type: "line" as const,
       pageNum: 1,
-      points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+      points: [
+        { x: 100, y: 100 },
+        { x: 200, y: 200 }
+      ],
       rotation: 0
     }
 
@@ -83,6 +85,4 @@ describe("Fill Multi-Select", () => {
     annotationStore.selectAnnotation("l1", { addToSelection: true })
     expect(annotationStore.selectedAnnotationIds).toEqual(["f1", "l1"])
   })
-
-
 })

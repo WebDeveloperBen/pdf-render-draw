@@ -1,14 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useRendererStore } from '~/stores/renderer'
+import { describe, it, expect, beforeEach } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
 
-describe('Cursor-Aware Zoom with Center Transform Origin', () => {
+describe("Cursor-Aware Zoom with Center Transform Origin", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Basic Zoom Mechanics', () => {
-    it('should zoom in towards cursor position', () => {
+  describe("Basic Zoom Mechanics", () => {
+    it("should zoom in towards cursor position", () => {
       const store = useRendererStore()
 
       // Set up PDF dimensions (simulating a 1200x800 PDF)
@@ -42,7 +41,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfY).toBeCloseTo(originalPdfY, 5)
     })
 
-    it('should zoom out from cursor position', () => {
+    it("should zoom out from cursor position", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -70,7 +69,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfY).toBeCloseTo(originalPdfY, 5)
     })
 
-    it('should clamp scale to min/max bounds', () => {
+    it("should clamp scale to min/max bounds", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -91,8 +90,8 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
     })
   })
 
-  describe('Zoom at Different Positions', () => {
-    it('should zoom towards top-left corner', () => {
+  describe("Zoom at Different Positions", () => {
+    it("should zoom towards top-left corner", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -105,7 +104,6 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
 
       // PDF point at top-left should stay under cursor
       const centerX = 1200 / 2
-      const centerY = 800 / 2
       const newScale = store.getScale
 
       const pdfX = (mousePos.x - store.canvasPos.scrollLeft - centerX * (1 - newScale)) / newScale
@@ -114,7 +112,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfX).toBeCloseTo(originalPdfX, 5)
     })
 
-    it('should zoom towards bottom-right corner', () => {
+    it("should zoom towards bottom-right corner", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -125,7 +123,6 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
 
       store.zoomIn(mousePos)
 
-      const centerX = 1200 / 2
       const centerY = 800 / 2
       const newScale = store.getScale
 
@@ -135,7 +132,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfY).toBeCloseTo(originalPdfY, 5)
     })
 
-    it('should zoom towards center', () => {
+    it("should zoom towards center", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -162,7 +159,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfY).toBeCloseTo(400, 5)
     })
 
-    it('should zoom at arbitrary position', () => {
+    it("should zoom at arbitrary position", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -178,7 +175,6 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
 
       // Verify point stays under cursor
       const centerX = 1200 / 2
-      const centerY = 800 / 2
       const newScale = store.getScale
 
       const pdfX = (mousePos.x - store.canvasPos.scrollLeft - centerX * (1 - newScale)) / newScale
@@ -188,8 +184,8 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
     })
   })
 
-  describe('Zoom with Existing Pan/Scroll', () => {
-    it('should zoom correctly when already panned', () => {
+  describe("Zoom with Existing Pan/Scroll", () => {
+    it("should zoom correctly when already panned", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -216,7 +212,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfY).toBeCloseTo(originalPdfY, 5)
     })
 
-    it('should zoom correctly at high scale with pan', () => {
+    it("should zoom correctly at high scale with pan", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -234,8 +230,8 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       const centerX = 1200 / 2
       const centerY = 800 / 2
 
-      const originalPdfX = (250 - (-500) - centerX * (1 - 3)) / 3
-      const originalPdfY = (400 - (-300) - centerY * (1 - 3)) / 3
+      const originalPdfX = (250 - -500 - centerX * (1 - 3)) / 3
+      const originalPdfY = (400 - -300 - centerY * (1 - 3)) / 3
 
       const newScale = store.getScale
       const pdfX = (mousePos.x - store.canvasPos.scrollLeft - centerX * (1 - newScale)) / newScale
@@ -246,8 +242,8 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
     })
   })
 
-  describe('Multiple Consecutive Zooms', () => {
-    it('should maintain cursor position through multiple zoom in operations', () => {
+  describe("Multiple Consecutive Zooms", () => {
+    it("should maintain cursor position through multiple zoom in operations", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -276,7 +272,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfY).toBeCloseTo(originalPdfY, 3)
     })
 
-    it('should maintain cursor position through zoom in then zoom out', () => {
+    it("should maintain cursor position through zoom in then zoom out", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -308,7 +304,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfY).toBeCloseTo(originalPdfY, 3)
     })
 
-    it('should handle zoom at changing cursor positions', () => {
+    it("should handle zoom at changing cursor positions", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -316,7 +312,6 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       store.setCanvasPos({ scrollLeft: 0, scrollTop: 0 })
 
       const centerX = 1200 / 2
-      const centerY = 800 / 2
 
       // Zoom at position 1
       const pos1 = { x: 300, y: 200 }
@@ -334,8 +329,8 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
     })
   })
 
-  describe('Zoom Without Mouse Position (Fallback)', () => {
-    it('should zoom towards center when no mouse position provided', () => {
+  describe("Zoom Without Mouse Position (Fallback)", () => {
+    it("should zoom towards center when no mouse position provided", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -354,7 +349,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(store.canvasPos.scrollTop).toBe(0)
     })
 
-    it('should respect scale limits when zooming without mouse position', () => {
+    it("should respect scale limits when zooming without mouse position", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -371,8 +366,8 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
     })
   })
 
-  describe('Edge Cases', () => {
-    it('should handle zero-sized PDF gracefully', () => {
+  describe("Edge Cases", () => {
+    it("should handle zero-sized PDF gracefully", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 0, height: 0 })
@@ -384,7 +379,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       }).not.toThrow()
     })
 
-    it('should handle very small PDF', () => {
+    it("should handle very small PDF", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 10, height: 10 })
@@ -398,7 +393,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(store.getScale).toBeGreaterThan(1)
     })
 
-    it('should handle very large PDF', () => {
+    it("should handle very large PDF", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 10000, height: 8000 })
@@ -410,7 +405,6 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       store.zoomIn(mousePos)
 
       const centerX = 10000 / 2
-      const centerY = 8000 / 2
       const newScale = store.getScale
 
       const pdfX = (mousePos.x - store.canvasPos.scrollLeft - centerX * (1 - newScale)) / newScale
@@ -419,7 +413,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfX).toBeCloseTo(originalPdfX, 3)
     })
 
-    it('should handle mouse at exact edge of PDF', () => {
+    it("should handle mouse at exact edge of PDF", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -436,7 +430,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(store.getScale).toBeGreaterThan(1)
     })
 
-    it('should handle negative scroll positions', () => {
+    it("should handle negative scroll positions", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -452,8 +446,8 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
     })
   })
 
-  describe('Transform Formula Verification', () => {
-    it('should correctly apply forward transform (PDF → Screen)', () => {
+  describe("Transform Formula Verification", () => {
+    it("should correctly apply forward transform (PDF → Screen)", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -472,7 +466,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(expectedScreenX).toBe(300)
     })
 
-    it('should correctly apply inverse transform (Screen → PDF)', () => {
+    it("should correctly apply inverse transform (Screen → PDF)", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })
@@ -489,7 +483,7 @@ describe('Cursor-Aware Zoom with Center Transform Origin', () => {
       expect(pdfX).toBe(400)
     })
 
-    it('should verify transform round-trip', () => {
+    it("should verify transform round-trip", () => {
       const store = useRendererStore()
 
       store.setCanvasSize({ width: 1200, height: 800 })

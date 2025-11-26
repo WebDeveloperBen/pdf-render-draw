@@ -90,7 +90,7 @@ const combinedBounds = computed(() => {
 
   // Get bounds for each annotation (already accounts for rotation)
   const allBounds = selectedAnnotations.value
-    .map(annotation => calculateBounds(annotation))
+    .map((annotation) => calculateBounds(annotation))
     .filter((bounds): bounds is Bounds => bounds !== null)
 
   if (allBounds.length === 0) return null
@@ -432,7 +432,7 @@ function handleMove(deltaX: number, deltaY: number) {
 }
 
 function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean) {
-  const dragState = useDragState()
+  const dragState = useEditorDragState()
 
   if (originalAnnotationStates.value.length === 0) {
     originalAnnotationStates.value = []
@@ -497,9 +497,7 @@ function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean
           type: originalAnn.type,
           originalPos: { x: originalAnn.x, y: originalAnn.y },
           originalCenter: { x: annCenterX, y: annCenterY },
-          currentPos: currentAnn && hasPositionedRect(currentAnn)
-            ? { x: currentAnn.x, y: currentAnn.y }
-            : "not found",
+          currentPos: currentAnn && hasPositionedRect(currentAnn) ? { x: currentAnn.x, y: currentAnn.y } : "not found",
           groupCenter: { x: centerX, y: centerY },
           rotationDeg: transformBase.currentRotationDelta.value * (180 / Math.PI),
           rotatedCenter: { x: rotatedCenterX, y: rotatedCenterY },

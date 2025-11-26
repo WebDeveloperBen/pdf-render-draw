@@ -8,15 +8,13 @@
  */
 
 import { describe, it, expect, beforeEach } from "vitest"
-import { useAnnotationStore } from "~/stores/annotations"
-import type { TextAnnotation } from "~/types/annotations"
 
 describe("Regression: Transform Handles", () => {
   beforeEach(() => {
     const annotationStore = useAnnotationStore()
     annotationStore.clearAnnotations()
     annotationStore.deselectAll()
-    annotationStore.setActiveTool('')
+    annotationStore.setActiveTool("")
   })
 
   describe("Bug Fix: Rotation-Aware Resize", () => {

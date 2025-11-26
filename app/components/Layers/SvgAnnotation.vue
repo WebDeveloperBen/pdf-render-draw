@@ -71,7 +71,7 @@ useTextTool()!
 useFillTool()!
 
 const selectionMarquee = useEditorMarquee()
-const dragState = useDragState()
+const dragState = useEditorDragState()
 const toolRegistry = useToolRegistry()
 
 // Enable keyboard shortcuts (undo/redo, copy/paste, etc.)

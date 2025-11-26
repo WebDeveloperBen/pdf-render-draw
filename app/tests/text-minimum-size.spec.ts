@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import type { TextAnnotation } from "~/types/annotations"
 
 /**
  * Tests to verify text annotations cannot be resized smaller than their content

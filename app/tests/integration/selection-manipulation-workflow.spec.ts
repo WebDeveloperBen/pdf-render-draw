@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import { useAnnotationStore } from "~/stores/annotations"
-import { useRendererStore } from "~/stores/renderer"
-import type { Measurement, Area } from "~/types/annotations"
 
 // Mock debug utils
 vi.mock("~/utils/debug", () => ({
@@ -33,7 +30,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -58,7 +58,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -82,7 +85,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -93,7 +99,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-2",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 50, y: 50 }, { x: 150, y: 50 }],
+        points: [
+          { x: 50, y: 50 },
+          { x: 150, y: 50 }
+        ],
         distance: 100,
         midpoint: { x: 100, y: 50 },
         labelRotation: 0,
@@ -119,7 +128,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -142,7 +154,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -164,7 +179,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -188,7 +206,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -265,7 +286,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -277,7 +301,10 @@ describe("Selection & Manipulation Workflow", () => {
 
       // Resize by scaling up (simulate dragging corner handle)
       annotationStore.updateAnnotation("measure-1", {
-        points: [{ x: 50, y: 50 }, { x: 250, y: 250 }]
+        points: [
+          { x: 50, y: 50 },
+          { x: 250, y: 250 }
+        ]
       })
 
       // Verify resize worked
@@ -337,7 +364,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -349,7 +379,10 @@ describe("Selection & Manipulation Workflow", () => {
 
       // Rotate 90 degrees clockwise
       annotationStore.updateAnnotation("measure-1", {
-        points: [{ x: 200, y: 100 }, { x: 100, y: 200 }],
+        points: [
+          { x: 200, y: 100 },
+          { x: 100, y: 200 }
+        ],
         rotation: Math.PI / 2, // 90 degrees
         labelRotation: Math.PI / 2
       })
@@ -368,7 +401,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "measure-1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -457,7 +493,10 @@ describe("Selection & Manipulation Workflow", () => {
         id: "workflow-measure",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 100, y: 100 }, { x: 200, y: 200 }],
+        points: [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 }
+        ],
         distance: 141.42,
         midpoint: { x: 150, y: 150 },
         labelRotation: 0,
@@ -475,7 +514,10 @@ describe("Selection & Manipulation Workflow", () => {
 
       // 4. Perform move transformation
       annotationStore.updateAnnotation("workflow-measure", {
-        points: [{ x: 120, y: 120 }, { x: 220, y: 220 }],
+        points: [
+          { x: 120, y: 120 },
+          { x: 220, y: 220 }
+        ],
         midpoint: { x: 170, y: 170 }
       })
 
@@ -544,3 +586,4 @@ describe("Selection & Manipulation Workflow", () => {
     })
   })
 })
+

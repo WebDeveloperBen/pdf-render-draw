@@ -13,7 +13,7 @@ export const useEditorRotation = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
-  const dragState = useDragState()
+  const dragState = useEditorDragState()
 
   // Rotation state
   const isRotating = ref(false)

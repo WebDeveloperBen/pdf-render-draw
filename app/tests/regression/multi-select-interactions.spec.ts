@@ -10,15 +10,13 @@
  */
 
 import { describe, it, expect, beforeEach } from "vitest"
-import { useAnnotationStore } from "~/stores/annotations"
-import { useModifierKeys } from "@/composables/useModifierKeys"
 
 describe("Regression: Multi-Select Interactions", () => {
   beforeEach(() => {
     const annotationStore = useAnnotationStore()
     annotationStore.clearAnnotations()
     annotationStore.deselectAll()
-    annotationStore.setActiveTool('')
+    annotationStore.setActiveTool("")
   })
 
   describe("Bug Fix: Modifier Key State Sharing", () => {

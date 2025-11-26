@@ -35,13 +35,10 @@
  * These gaps are documented in tests and may be intentional design decisions.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useAnnotationStore } from '~/stores/annotations'
-import type { Point } from '~/types'
-import type { TextAnnotation, Measurement, Area, Perimeter, Line, Fill } from '~/types/annotations'
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
 
-describe('Annotation Store - Error Handling and Validation', () => {
+describe("Annotation Store - Error Handling and Validation", () => {
   beforeEach(() => {
     // Create a fresh pinia instance for each test
     setActivePinia(createPinia())
@@ -49,69 +46,69 @@ describe('Annotation Store - Error Handling and Validation', () => {
     vi.clearAllMocks()
   })
 
-  describe('Invalid Annotation Types', () => {
-    it('should throw error when adding annotation with invalid type (not in union)', () => {
+  describe("Invalid Annotation Types", () => {
+    it("should throw error when adding annotation with invalid type (not in union)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const invalidTypeAnnotation = {
-        id: 'invalid-1',
-        type: 'invalid-type',
-        pageNum: 1,
+        id: "invalid-1",
+        type: "invalid-type",
+        pageNum: 1
       } as any
 
-      expect(() => store.addAnnotation(invalidTypeAnnotation)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(invalidTypeAnnotation)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding annotation with type as null', () => {
+    it("should throw error when adding annotation with type as null", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const nullTypeAnnotation = {
-        id: 'null-type-1',
+        id: "null-type-1",
         type: null,
-        pageNum: 1,
+        pageNum: 1
       } as any
 
-      expect(() => store.addAnnotation(nullTypeAnnotation)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(nullTypeAnnotation)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding annotation with type as undefined', () => {
+    it("should throw error when adding annotation with type as undefined", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const undefinedTypeAnnotation = {
-        id: 'undefined-type-1',
+        id: "undefined-type-1",
         type: undefined,
-        pageNum: 1,
+        pageNum: 1
       } as any
 
-      expect(() => store.addAnnotation(undefinedTypeAnnotation)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(undefinedTypeAnnotation)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding annotation with type as empty string', () => {
+    it("should throw error when adding annotation with type as empty string", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const emptyTypeAnnotation = {
-        id: 'empty-type-1',
-        type: '',
-        pageNum: 1,
+        id: "empty-type-1",
+        type: "",
+        pageNum: 1
       } as any
 
-      expect(() => store.addAnnotation(emptyTypeAnnotation)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(emptyTypeAnnotation)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
@@ -119,140 +116,140 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('Missing Required Fields', () => {
-    it('should throw error when adding measurement without id', () => {
+  describe("Missing Required Fields", () => {
+    it("should throw error when adding measurement without id", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const noIdMeasurement = {
-        type: 'measure',
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noIdMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(noIdMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding measurement without pageNum', () => {
+    it("should throw error when adding measurement without pageNum", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const noPageNumMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noPageNumMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(noPageNumMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding measurement without points array', () => {
+    it("should throw error when adding measurement without points array", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const noPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noPointsMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(noPointsMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding area without center', () => {
+    it("should throw error when adding area without center", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const noCenterArea = {
-        id: 'area-1',
-        type: 'area',
+        id: "area-1",
+        type: "area",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
           { x: 100, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         area: 5000,
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noCenterArea)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(noCenterArea)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding perimeter without segments', () => {
+    it("should throw error when adding perimeter without segments", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const noSegmentsPerimeter = {
-        id: 'perimeter-1',
-        type: 'perimeter',
+        id: "perimeter-1",
+        type: "perimeter",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
           { x: 100, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         totalLength: 300,
         center: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noSegmentsPerimeter)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(noSegmentsPerimeter)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding text annotation without fontSize', () => {
+    it("should throw error when adding text annotation without fontSize", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const noFontSizeText = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
-        color: '#000',
-        rotation: 0,
+        content: "Test",
+        color: "#000",
+        rotation: 0
       } as any
 
-      expect(() => store.addAnnotation(noFontSizeText)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(noFontSizeText)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
@@ -260,108 +257,108 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('Malformed Data', () => {
-    it('should throw error when points array is null', () => {
+  describe("Malformed Data", () => {
+    it("should throw error when points array is null", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const nullPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: null,
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(nullPointsMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(nullPointsMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when points array is undefined', () => {
+    it("should throw error when points array is undefined", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const undefinedPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: undefined,
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(undefinedPointsMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(undefinedPointsMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when points array is empty for measurement', () => {
+    it("should throw error when points array is empty for measurement", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const emptyPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: [],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(emptyPointsMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(emptyPointsMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when points array contains invalid coordinates (NaN)', () => {
+    it("should throw error when points array contains invalid coordinates (NaN)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const nanPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: [
           { x: NaN, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(nanPointsMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(nanPointsMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should accept points array with Infinity coordinates (no Infinity validation)', () => {
+    it("should accept points array with Infinity coordinates (no Infinity validation)", () => {
       const store = useAnnotationStore()
 
       const infinityPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: [
           { x: Infinity, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
       // Note: validateAnnotation doesn't check for Infinity, only NaN
@@ -370,21 +367,21 @@ describe('Annotation Store - Error Handling and Validation', () => {
       expect(store.annotations).toHaveLength(1)
     })
 
-    it('should throw error when points array contains non-object elements', () => {
+    it("should throw error when points array contains non-object elements", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const invalidPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
-        points: ['not', 'a', 'point'],
+        points: ["not", "a", "point"],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(invalidPointsMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(invalidPointsMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
@@ -392,73 +389,73 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('Page Number Validation', () => {
-    it('should throw error when adding annotation with page number 0', () => {
+  describe("Page Number Validation", () => {
+    it("should throw error when adding annotation with page number 0", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const zeroPageText: any = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 0,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
-      expect(() => store.addAnnotation(zeroPageText)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(zeroPageText)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding annotation with negative page number', () => {
+    it("should throw error when adding annotation with negative page number", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const negativePageText: any = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: -1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
-      expect(() => store.addAnnotation(negativePageText)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(negativePageText)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when adding annotation with non-integer page number', () => {
+    it("should throw error when adding annotation with non-integer page number", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const floatPageText: any = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1.5,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       // Note: validateAnnotation accepts any number >= 1, doesn't enforce integers
@@ -469,21 +466,21 @@ describe('Annotation Store - Error Handling and Validation', () => {
       consoleErrorSpy.mockRestore()
     })
 
-    it('should accept annotation with valid page number beyond common limits', () => {
+    it("should accept annotation with valid page number beyond common limits", () => {
       const store = useAnnotationStore()
 
       const highPageText: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 9999,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       // Note: validateAnnotation doesn't check against total pages
@@ -493,68 +490,65 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('Update/Delete Non-Existent Annotations', () => {
-    it('should warn and not throw when updating annotation that does not exist', () => {
+  describe("Update/Delete Non-Existent Annotations", () => {
+    it("should warn and not throw when updating annotation that does not exist", () => {
       const store = useAnnotationStore()
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
 
       // Try to update non-existent annotation
-      expect(() => store.updateAnnotation('non-existent-id', { pageNum: 2 })).not.toThrow()
-      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('not found'))
+      expect(() => store.updateAnnotation("non-existent-id", { pageNum: 2 })).not.toThrow()
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("not found"))
 
       consoleWarnSpy.mockRestore()
     })
 
-    it('should silently succeed when deleting annotation that does not exist', () => {
+    it("should silently succeed when deleting annotation that does not exist", () => {
       const store = useAnnotationStore()
 
       // Try to delete non-existent annotation (should not throw)
-      expect(() => store.deleteAnnotation('non-existent-id')).not.toThrow()
+      expect(() => store.deleteAnnotation("non-existent-id")).not.toThrow()
       expect(store.annotations).toHaveLength(0)
     })
 
-    it('should warn when selecting annotation with invalid ID', () => {
+    it("should warn when selecting annotation with invalid ID", () => {
       const store = useAnnotationStore()
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
 
       // Try to select non-existent annotation
-      store.selectAnnotation('non-existent-id')
+      store.selectAnnotation("non-existent-id")
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('not found'),
-        expect.any(Array)
-      )
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("not found"), expect.any(Array))
       expect(store.selectedAnnotationIds).toHaveLength(0)
 
       consoleWarnSpy.mockRestore()
     })
 
-    it('should warn when multi-selecting with mix of valid and invalid IDs', () => {
+    it("should warn when multi-selecting with mix of valid and invalid IDs", () => {
       const store = useAnnotationStore()
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
 
       const validText: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       store.addAnnotation(validText)
 
       // Try to select mix of valid and invalid IDs
-      store.selectAnnotations(['text-1', 'non-existent-1', 'non-existent-2'])
+      store.selectAnnotations(["text-1", "non-existent-1", "non-existent-2"])
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('not found'),
-        expect.arrayContaining(['non-existent-1', 'non-existent-2'])
+        expect.stringContaining("not found"),
+        expect.arrayContaining(["non-existent-1", "non-existent-2"])
       )
       // Should not select anything when some IDs are invalid
       expect(store.selectedAnnotationIds).toHaveLength(0)
@@ -562,54 +556,54 @@ describe('Annotation Store - Error Handling and Validation', () => {
       consoleWarnSpy.mockRestore()
     })
 
-    it('should throw error when updating annotation to invalid state', () => {
+    it("should throw error when updating annotation to invalid state", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const validText: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       store.addAnnotation(validText)
 
       // Try to update to invalid state (negative page)
-      expect(() => store.updateAnnotation('text-1', { pageNum: -1 })).toThrow('Invalid annotation update')
+      expect(() => store.updateAnnotation("text-1", { pageNum: -1 })).toThrow("Invalid annotation update")
       expect(consoleErrorSpy).toHaveBeenCalled()
 
       // Annotation should not be updated
-      const annotation = store.getAnnotationById('text-1')
+      const annotation = store.getAnnotationById("text-1")
       expect(annotation?.pageNum).toBe(1)
 
       consoleErrorSpy.mockRestore()
     })
   })
 
-  describe('Rotation Validation', () => {
-    it('should accept NaN rotation value (no validation for rotation)', () => {
+  describe("Rotation Validation", () => {
+    it("should accept NaN rotation value (no validation for rotation)", () => {
       const store = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 0 },
+          { x: 100, y: 0 }
         ],
         distance: 3528,
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
-        rotation: NaN,
+        rotation: NaN
       }
 
       // Note: validateAnnotation doesn't validate rotation field
@@ -618,21 +612,21 @@ describe('Annotation Store - Error Handling and Validation', () => {
       expect(store.annotations).toHaveLength(1)
     })
 
-    it('should accept Infinity rotation value (no validation for rotation)', () => {
+    it("should accept Infinity rotation value (no validation for rotation)", () => {
       const store = useAnnotationStore()
 
       const measurement: Measurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 0 },
+          { x: 100, y: 0 }
         ],
         distance: 3528,
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
-        rotation: Infinity,
+        rotation: Infinity
       }
 
       // Note: validateAnnotation doesn't validate rotation field
@@ -642,83 +636,83 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('Negative Distance/Area Values', () => {
-    it('should throw error when measurement has negative distance', () => {
+  describe("Negative Distance/Area Values", () => {
+    it("should throw error when measurement has negative distance", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const negativeDistanceMeasurement: any = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 0 },
+          { x: 100, y: 0 }
         ],
         distance: -100,
         midpoint: { x: 50, y: 0 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
-      expect(() => store.addAnnotation(negativeDistanceMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(negativeDistanceMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when area has negative area value', () => {
+    it("should throw error when area has negative area value", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const negativeAreaAnnotation: any = {
-        id: 'area-1',
-        type: 'area',
+        id: "area-1",
+        type: "area",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
           { x: 100, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         area: -500,
         center: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
-      expect(() => store.addAnnotation(negativeAreaAnnotation)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(negativeAreaAnnotation)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when perimeter has negative totalLength', () => {
+    it("should throw error when perimeter has negative totalLength", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const negativePerimeterAnnotation: any = {
-        id: 'perimeter-1',
-        type: 'perimeter',
+        id: "perimeter-1",
+        type: "perimeter",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
           { x: 100, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         segments: [
           {
             start: { x: 0, y: 0 },
             end: { x: 100, y: 0 },
             length: 100,
-            midpoint: { x: 50, y: 0 },
-          },
+            midpoint: { x: 50, y: 0 }
+          }
         ],
         totalLength: -300,
         center: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       }
 
-      expect(() => store.addAnnotation(negativePerimeterAnnotation)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(negativePerimeterAnnotation)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
@@ -726,41 +720,41 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('setAnnotations Bulk Validation', () => {
-    it('should throw error when setting annotations with invalid items', () => {
+  describe("setAnnotations Bulk Validation", () => {
+    it("should throw error when setting annotations with invalid items", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const validText: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Valid',
+        content: "Valid",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       const invalidText: any = {
-        id: 'text-2',
-        type: 'text',
+        id: "text-2",
+        type: "text",
         pageNum: -1, // Invalid
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Invalid',
+        content: "Invalid",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       expect(() => store.setAnnotations([validText, invalidText])).toThrow(
-        'Cannot set annotations: 1 invalid annotation(s)'
+        "Cannot set annotations: 1 invalid annotation(s)"
       )
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
@@ -768,22 +762,22 @@ describe('Annotation Store - Error Handling and Validation', () => {
       consoleErrorSpy.mockRestore()
     })
 
-    it('should accept empty array when setting annotations', () => {
+    it("should accept empty array when setting annotations", () => {
       const store = useAnnotationStore()
 
       // Add some annotations first
       const text: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
       store.addAnnotation(text)
       expect(store.annotations).toHaveLength(1)
@@ -794,41 +788,41 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('importFromJSON Validation', () => {
-    it('should throw error when importing invalid JSON string', () => {
+  describe("importFromJSON Validation", () => {
+    it("should throw error when importing invalid JSON string", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
-      const invalidJson = 'not valid json {['
+      const invalidJson = "not valid json {["
 
-      expect(() => store.importFromJSON(invalidJson)).toThrow('valid JSON')
+      expect(() => store.importFromJSON(invalidJson)).toThrow("valid JSON")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when importing JSON with invalid annotations', () => {
+    it("should throw error when importing JSON with invalid annotations", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const invalidAnnotations = JSON.stringify([
         {
-          id: 'text-1',
-          type: 'text',
+          id: "text-1",
+          type: "text",
           pageNum: -1, // Invalid
           x: 100,
           y: 100,
           width: 200,
           height: 50,
-          content: 'Test',
+          content: "Test",
           fontSize: 16,
-          color: '#000',
-          rotation: 0,
-        },
+          color: "#000",
+          rotation: 0
+        }
       ])
 
-      expect(() => store.importFromJSON(invalidAnnotations)).toThrow('Import contains 1 invalid annotation(s)')
+      expect(() => store.importFromJSON(invalidAnnotations)).toThrow("Import contains 1 invalid annotation(s)")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
@@ -836,285 +830,285 @@ describe('Annotation Store - Error Handling and Validation', () => {
     })
   })
 
-  describe('State Preservation After Errors', () => {
-    it('should preserve store state after failed addAnnotation', () => {
+  describe("State Preservation After Errors", () => {
+    it("should preserve store state after failed addAnnotation", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const validText: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Valid',
+        content: "Valid",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       store.addAnnotation(validText)
       expect(store.annotations).toHaveLength(1)
 
       const invalidText: any = {
-        id: 'text-2',
-        type: 'text',
+        id: "text-2",
+        type: "text",
         pageNum: -1, // Invalid
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Invalid',
+        content: "Invalid",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       expect(() => store.addAnnotation(invalidText)).toThrow()
 
       // Original annotation should still be there
       expect(store.annotations).toHaveLength(1)
-      expect(store.annotations[0]?.id).toBe('text-1')
+      expect(store.annotations[0]?.id).toBe("text-1")
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should preserve store state after failed updateAnnotation', () => {
+    it("should preserve store state after failed updateAnnotation", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const validText: TextAnnotation = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Original',
+        content: "Original",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
       store.addAnnotation(validText)
 
       // Try to update to invalid state
-      expect(() => store.updateAnnotation('text-1', { pageNum: 0 })).toThrow()
+      expect(() => store.updateAnnotation("text-1", { pageNum: 0 })).toThrow()
 
       // Original state should be preserved
-      const annotation = store.getAnnotationById('text-1') as TextAnnotation
+      const annotation = store.getAnnotationById("text-1") as TextAnnotation
       expect(annotation.pageNum).toBe(1)
-      expect(annotation.content).toBe('Original')
+      expect(annotation.content).toBe("Original")
 
       consoleErrorSpy.mockRestore()
     })
   })
 
-  describe('Additional Edge Cases', () => {
-    it('should throw error when adding annotation with empty id string', () => {
+  describe("Additional Edge Cases", () => {
+    it("should throw error when adding annotation with empty id string", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const emptyIdText = {
-        id: '',
-        type: 'text',
+        id: "",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 16,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       } as any
 
-      expect(() => store.addAnnotation(emptyIdText)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(emptyIdText)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when fill annotation has opacity > 1', () => {
+    it("should throw error when fill annotation has opacity > 1", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const invalidOpacityFill: any = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 100,
         y: 200,
-        color: '#FF0000',
-        opacity: 1.5,
+        color: "#FF0000",
+        opacity: 1.5
       }
 
-      expect(() => store.addAnnotation(invalidOpacityFill)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(invalidOpacityFill)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when fill annotation has negative opacity', () => {
+    it("should throw error when fill annotation has negative opacity", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const negativeOpacityFill: any = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 100,
         y: 200,
-        color: '#FF0000',
-        opacity: -0.5,
+        color: "#FF0000",
+        opacity: -0.5
       }
 
-      expect(() => store.addAnnotation(negativeOpacityFill)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(negativeOpacityFill)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when text annotation has zero or negative fontSize', () => {
+    it("should throw error when text annotation has zero or negative fontSize", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const zeroFontSizeText: any = {
-        id: 'text-1',
-        type: 'text',
+        id: "text-1",
+        type: "text",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 200,
         height: 50,
-        content: 'Test',
+        content: "Test",
         fontSize: 0,
-        color: '#000',
-        rotation: 0,
+        color: "#000",
+        rotation: 0
       }
 
-      expect(() => store.addAnnotation(zeroFontSizeText)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(zeroFontSizeText)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when measurement has wrong number of points (3 instead of 2)', () => {
+    it("should throw error when measurement has wrong number of points (3 instead of 2)", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const wrongPointsMeasurement = {
-        id: 'measure-1',
-        type: 'measure',
+        id: "measure-1",
+        type: "measure",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
           { x: 50, y: 50 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         distance: 141.42,
         midpoint: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(wrongPointsMeasurement)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(wrongPointsMeasurement)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when area annotation has less than 3 points', () => {
+    it("should throw error when area annotation has less than 3 points", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const twoPointArea = {
-        id: 'area-1',
-        type: 'area',
+        id: "area-1",
+        type: "area",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
-          { x: 100, y: 0 },
+          { x: 100, y: 0 }
         ],
         area: 0,
         center: { x: 50, y: 0 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(twoPointArea)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(twoPointArea)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when line annotation has less than 2 points', () => {
+    it("should throw error when line annotation has less than 2 points", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const singlePointLine = {
-        id: 'line-1',
-        type: 'line',
+        id: "line-1",
+        type: "line",
         pageNum: 1,
-        points: [{ x: 0, y: 0 }],
+        points: [{ x: 0, y: 0 }]
       } as any
 
-      expect(() => store.addAnnotation(singlePointLine)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(singlePointLine)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when annotation object is null', () => {
+    it("should throw error when annotation object is null", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
-      expect(() => store.addAnnotation(null as any)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(null as any)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when annotation object is undefined', () => {
+    it("should throw error when annotation object is undefined", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
-      expect(() => store.addAnnotation(undefined as any)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(undefined as any)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should throw error when perimeter has empty segments array', () => {
+    it("should throw error when perimeter has empty segments array", () => {
       const store = useAnnotationStore()
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
       const emptySegmentsPerimeter = {
-        id: 'perimeter-1',
-        type: 'perimeter',
+        id: "perimeter-1",
+        type: "perimeter",
         pageNum: 1,
         points: [
           { x: 0, y: 0 },
           { x: 100, y: 0 },
-          { x: 100, y: 100 },
+          { x: 100, y: 100 }
         ],
         segments: [],
         totalLength: 300,
         center: { x: 50, y: 50 },
-        labelRotation: 0,
+        labelRotation: 0
       } as any
 
-      expect(() => store.addAnnotation(emptySegmentsPerimeter)).toThrow('Invalid annotation')
+      expect(() => store.addAnnotation(emptySegmentsPerimeter)).toThrow("Invalid annotation")
       expect(consoleErrorSpy).toHaveBeenCalled()
       expect(store.annotations).toHaveLength(0)
 

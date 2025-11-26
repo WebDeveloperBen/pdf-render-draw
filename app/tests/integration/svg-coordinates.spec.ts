@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { setActivePinia, createPinia } from "pinia"
-import { getSvgPoint } from "~/utils/svg"
-import { useSvgCoordinates } from "~/utils/useSvgCoordinates"
-import { useRendererStore } from "~/stores/renderer"
 
 /**
  * Integration Tests: SVG Coordinate Conversion

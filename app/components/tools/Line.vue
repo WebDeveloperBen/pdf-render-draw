@@ -26,13 +26,13 @@ export const LINE_TOOL_DEFAULTS = {
       opacity: 0.6
     },
     line: {
-      strokeDashArray: '5,5',
+      strokeDashArray: "5,5",
       opacity: 0.7
     },
     pointRadius: 4,
     tempEndPoint: {
       radius: 3,
-      fill: 'blue',
+      fill: "blue",
       opacity: 0.5
     }
   },
@@ -41,10 +41,10 @@ export const LINE_TOOL_DEFAULTS = {
   states: {
     hover: {
       strokeWidth: 3,
-      stroke: 'orange'
+      stroke: "orange"
     },
     selected: {
-      stroke: 'blue',
+      stroke: "blue",
       strokeWidth: 3
     }
   }
@@ -54,7 +54,7 @@ export type LineToolConfig = typeof LINE_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-import { useLineToolState } from "@/composables/tools/useLineTool"
+import { useLineToolState } from "~/composables/editor/tools/useLineTool"
 
 // Inject the tool state (which extends BaseTool)
 const tool = useLineToolState()
@@ -77,9 +77,13 @@ const {
 } = tool
 
 // Debug: watch completed to see when it changes
-watch(completed, (newVal) => {
-  console.log('[Line.vue] Completed lines changed:', newVal.length, newVal)
-}, { immediate: true })
+watch(
+  completed,
+  (newVal) => {
+    console.log("[Line.vue] Completed lines changed:", newVal.length, newVal)
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -194,14 +198,14 @@ watch(completed, (newVal) => {
 /* Hover effect */
 .line-path:hover,
 .line-hitbox:hover ~ .line-path {
-  stroke-width: v-bind('config.states.hover.strokeWidth');
-  stroke: v-bind('config.states.hover.stroke');
+  stroke-width: v-bind("config.states.hover.strokeWidth");
+  stroke: v-bind("config.states.hover.stroke");
 }
 
 /* Selected state */
 .line-path.selected-path {
-  stroke: v-bind('config.states.selected.stroke');
-  stroke-width: v-bind('config.states.selected.strokeWidth');
+  stroke: v-bind("config.states.selected.stroke");
+  stroke-width: v-bind("config.states.selected.strokeWidth");
 }
 
 .start-marker,

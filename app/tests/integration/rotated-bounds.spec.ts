@@ -5,33 +5,29 @@
  * and multi-select with rotated elements work correctly.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useAnnotationStore } from '~/stores/annotations'
-import { calculateBounds } from '~/utils/bounds'
-import { getRotatedRectBounds, getUnionBounds } from '~/utils/transform-math'
-import type { Fill } from '~/types/annotations'
+import { describe, it, expect, beforeEach } from "vitest"
+import { setActivePinia, createPinia } from "pinia"
 
-describe('Rotated Element Bounding Boxes', () => {
+describe("Rotated Element Bounding Boxes", () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('Single Rotated Element', () => {
-    it('should calculate correct bounds for 90-degree rotated fill', () => {
+  describe("Single Rotated Element", () => {
+    it("should calculate correct bounds for 90-degree rotated fill", () => {
       const store = useAnnotationStore()
 
       // Create a fill annotation at (100, 100) with size 50x30
       const fill: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 50,
         height: 30,
         rotation: Math.PI / 2, // 90 degrees
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
@@ -49,17 +45,17 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(bounds!.height).toBeCloseTo(50, 1)
     })
 
-    it('should calculate correct bounds for 45-degree rotated fill', () => {
+    it("should calculate correct bounds for 45-degree rotated fill", () => {
       const fill: Fill = {
-        id: 'fill-2',
-        type: 'fill',
+        id: "fill-2",
+        type: "fill",
         pageNum: 1,
         x: 0,
         y: 0,
         width: 100,
         height: 100,
         rotation: Math.PI / 4, // 45 degrees
-        color: '#00ff00',
+        color: "#00ff00",
         opacity: 0.5
       }
 
@@ -73,17 +69,17 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(bounds!.height).toBeCloseTo(expectedSize, 1)
     })
 
-    it('should not change bounds for non-rotated element', () => {
+    it("should not change bounds for non-rotated element", () => {
       const fill: Fill = {
-        id: 'fill-3',
-        type: 'fill',
+        id: "fill-3",
+        type: "fill",
         pageNum: 1,
         x: 50,
         y: 75,
         width: 100,
         height: 80,
         rotation: 0,
-        color: '#0000ff',
+        color: "#0000ff",
         opacity: 0.5
       }
 
@@ -96,17 +92,17 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(bounds!.height).toBe(80)
     })
 
-    it('should ignore rotation when ignoreRotation flag is true', () => {
+    it("should ignore rotation when ignoreRotation flag is true", () => {
       const fill: Fill = {
-        id: 'fill-4',
-        type: 'fill',
+        id: "fill-4",
+        type: "fill",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 50,
         height: 30,
         rotation: Math.PI / 2, // 90 degrees
-        color: '#ff00ff',
+        color: "#ff00ff",
         opacity: 0.5
       }
 
@@ -121,33 +117,33 @@ describe('Rotated Element Bounding Boxes', () => {
     })
   })
 
-  describe('Multi-Select with Rotated Elements', () => {
-    it('should calculate correct union bounds for two non-rotated fills', () => {
+  describe("Multi-Select with Rotated Elements", () => {
+    it("should calculate correct union bounds for two non-rotated fills", () => {
       const store = useAnnotationStore()
 
       const fill1: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 0,
         y: 0,
         width: 50,
         height: 50,
         rotation: 0,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
       const fill2: Fill = {
-        id: 'fill-2',
-        type: 'fill',
+        id: "fill-2",
+        type: "fill",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 50,
         height: 50,
         rotation: 0,
-        color: '#00ff00',
+        color: "#00ff00",
         opacity: 0.5
       }
 
@@ -169,30 +165,30 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(unionBounds!.height).toBe(150) // From 0 to 150
     })
 
-    it('should calculate correct union bounds for two rotated fills', () => {
+    it("should calculate correct union bounds for two rotated fills", () => {
       const fill1: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 0,
         y: 0,
         width: 100,
         height: 50,
         rotation: Math.PI / 4, // 45 degrees
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
       const fill2: Fill = {
-        id: 'fill-2',
-        type: 'fill',
+        id: "fill-2",
+        type: "fill",
         pageNum: 1,
         x: 200,
         y: 200,
         width: 100,
         height: 50,
         rotation: -Math.PI / 4, // -45 degrees
-        color: '#00ff00',
+        color: "#00ff00",
         opacity: 0.5
       }
 
@@ -212,30 +208,30 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(unionBounds!.y + unionBounds!.height).toBeGreaterThan(bounds2!.y + bounds2!.height - 1)
     })
 
-    it('should calculate correct union bounds for one rotated and one non-rotated fill', () => {
+    it("should calculate correct union bounds for one rotated and one non-rotated fill", () => {
       const fill1: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 0,
         y: 0,
         width: 100,
         height: 100,
         rotation: 0,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
       const fill2: Fill = {
-        id: 'fill-2',
-        type: 'fill',
+        id: "fill-2",
+        type: "fill",
         pageNum: 1,
         x: 150,
         y: 150,
         width: 80,
         height: 60,
         rotation: Math.PI / 2, // 90 degrees
-        color: '#00ff00',
+        color: "#00ff00",
         opacity: 0.5
       }
 
@@ -254,8 +250,8 @@ describe('Rotated Element Bounding Boxes', () => {
     })
   })
 
-  describe('Transform Math Utilities', () => {
-    it('should calculate rotated rect bounds correctly', () => {
+  describe("Transform Math Utilities", () => {
+    it("should calculate rotated rect bounds correctly", () => {
       // Test the direct utility function
       const bounds = getRotatedRectBounds(0, 0, 100, 50, Math.PI / 2)
 
@@ -263,7 +259,7 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(bounds.height).toBeCloseTo(100, 1)
     })
 
-    it('should handle 180-degree rotation', () => {
+    it("should handle 180-degree rotation", () => {
       const bounds = getRotatedRectBounds(100, 100, 50, 30, Math.PI)
 
       // 180° rotation shouldn't change dimensions, just flip position
@@ -271,7 +267,7 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(bounds.height).toBeCloseTo(30, 1)
     })
 
-    it('should handle negative rotation', () => {
+    it("should handle negative rotation", () => {
       const bounds1 = getRotatedRectBounds(0, 0, 100, 50, Math.PI / 4)
       const bounds2 = getRotatedRectBounds(0, 0, 100, 50, -Math.PI / 4)
 
@@ -280,7 +276,7 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(bounds1.height).toBeCloseTo(bounds2.height, 1)
     })
 
-    it('should handle full 360-degree rotation (should be same as 0)', () => {
+    it("should handle full 360-degree rotation (should be same as 0)", () => {
       const boundsOriginal = getRotatedRectBounds(50, 50, 100, 80, 0)
       const bounds360 = getRotatedRectBounds(50, 50, 100, 80, 2 * Math.PI)
 
@@ -291,20 +287,20 @@ describe('Rotated Element Bounding Boxes', () => {
     })
   })
 
-  describe('Bounds Stability During Rotation', () => {
-    it('should maintain original bounds during rotation drag', () => {
+  describe("Bounds Stability During Rotation", () => {
+    it("should maintain original bounds during rotation drag", () => {
       const store = useAnnotationStore()
 
       const fill: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 100,
         y: 100,
         width: 50,
         height: 30,
         rotation: 0,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
@@ -331,19 +327,19 @@ describe('Rotated Element Bounding Boxes', () => {
       store.rotationDragDelta = 0
     })
 
-    it('should update bounds after rotation is committed', () => {
+    it("should update bounds after rotation is committed", () => {
       const store = useAnnotationStore()
 
       const fill: Fill = {
-        id: 'fill-1',
-        type: 'fill',
+        id: "fill-1",
+        type: "fill",
         pageNum: 1,
         x: 0,
         y: 0,
         width: 100,
         height: 50,
         rotation: 0,
-        color: '#ff0000',
+        color: "#ff0000",
         opacity: 0.5
       }
 
@@ -354,9 +350,9 @@ describe('Rotated Element Bounding Boxes', () => {
       expect(initialBounds!.height).toBe(50)
 
       // Commit rotation (update the actual rotation property)
-      store.updateAnnotation('fill-1', { rotation: Math.PI / 2 })
+      store.updateAnnotation("fill-1", { rotation: Math.PI / 2 })
 
-      const updatedFill = store.getAnnotationById('fill-1') as Fill
+      const updatedFill = store.getAnnotationById("fill-1") as Fill
       const rotatedBounds = calculateBounds(updatedFill)
 
       // After 90° rotation, bounds should swap width/height

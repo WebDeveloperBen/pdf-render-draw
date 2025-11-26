@@ -17,7 +17,7 @@ export const AREA_TOOL_DEFAULTS = {
       height: 24,
       opacity: 0.95,
       borderRadius: 4,
-      fill: 'white'
+      fill: "white"
     }
   },
 
@@ -31,18 +31,18 @@ export const AREA_TOOL_DEFAULTS = {
     pointMarkers: {
       firstRadius: 6,
       otherRadius: 5,
-      firstFill: 'green',
-      stroke: 'white',
+      firstFill: "green",
+      stroke: "white",
       strokeWidth: 2
     },
     lines: {
-      strokeDashArray: '5,5',
+      strokeDashArray: "5,5",
       opacity: 0.8,
       closingLineOpacity: 0.5
     },
     polygonOpacityMultiplier: 0.3,
     distance: {
-      fill: 'blue',
+      fill: "blue",
       fontSize: 12
     }
   },
@@ -50,14 +50,14 @@ export const AREA_TOOL_DEFAULTS = {
   // Snap to close indicator
   snap: {
     radius: 10,
-    stroke: 'green',
+    stroke: "green",
     strokeWidth: 2,
     text: {
       offsetX: 15,
       offsetY: 10,
       fontSize: 12,
-      fontWeight: 'bold',
-      fill: 'green'
+      fontWeight: "bold",
+      fill: "green"
     }
   },
 
@@ -68,7 +68,7 @@ export const AREA_TOOL_DEFAULTS = {
       strokeWidth: 3
     },
     selected: {
-      stroke: 'blue',
+      stroke: "blue",
       strokeWidth: 3
     }
   }
@@ -78,7 +78,7 @@ export type AreaToolConfig = typeof AREA_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-import { useAreaToolState } from "@/composables/tools/useAreaTool"
+import { useAreaToolState } from "~/composables/editor/tools/useAreaTool"
 
 // Inject the tool state (which extends BaseTool)
 const tool = useAreaToolState()
@@ -283,13 +283,13 @@ const rendererStore = useRendererStore()
 }
 
 .area-polygon:hover {
-  fill-opacity: v-bind('config.states.hover.fillOpacity');
-  stroke-width: v-bind('config.states.hover.strokeWidth');
+  fill-opacity: v-bind("config.states.hover.fillOpacity");
+  stroke-width: v-bind("config.states.hover.strokeWidth");
 }
 
 .area-polygon.selected-polygon {
-  stroke: v-bind('config.states.selected.stroke');
-  stroke-width: v-bind('config.states.selected.strokeWidth');
+  stroke: v-bind("config.states.selected.stroke");
+  stroke-width: v-bind("config.states.selected.strokeWidth");
 }
 
 .snap-indicator {

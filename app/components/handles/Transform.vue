@@ -318,7 +318,7 @@ function handleMove(deltaX: number, deltaY: number) {
 }
 
 function handleEndDrag(mode: "resize" | "rotate" | "move" | null, moved: boolean) {
-  const dragState = useDragState()
+  const dragState = useEditorDragState()
 
   if (!selectedAnnotation.value || !originalAnnotationState.value) {
     // Clean up component-specific state
