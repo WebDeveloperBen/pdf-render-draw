@@ -47,11 +47,7 @@ const containerStyle = computed(() => {
   <EditorPdfEditorProvider>
     <div ref="containerRef" class="pdf-editor" :style="containerStyle">
       <!-- Grid pattern background -->
-      <UiGridPattern
-        :width="32"
-        :height="32"
-        class="fill-neutral-700/20 stroke-neutral-700/30"
-      />
+      <BackgroundGridPattern :width="32" :height="32" class="fill-neutral-700/20 stroke-neutral-700/30" />
 
       <!-- PDF Container - wraps both canvas and SVG -->
       <div class="pdf-container">

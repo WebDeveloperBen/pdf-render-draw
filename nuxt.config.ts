@@ -7,7 +7,8 @@ export default defineNuxtConfig({
   devtools: { enabled: !isTauri },
   telemetry: false,
   ssr: !isTauri,
-  css: ["./app/assets/css/main.css"],
+  css: ["./app/assets/css/tailwind.css", "~/assets/css/tailwind.css"],
+
   typescript: {
     typeCheck: true,
     strict: true
@@ -46,13 +47,33 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: ["@pinia/nuxt", "@vueuse/nuxt", "@nuxt/eslint", "@nuxt/test-utils/module"],
+  modules: [
+    "@pinia/nuxt",
+    "@vueuse/nuxt",
+    "@nuxt/eslint",
+    "@nuxt/test-utils/module",
+    "@nuxtjs/color-mode",
+    "motion-v/nuxt",
+    "@nuxt/icon",
+    "@nuxt/fonts"
+  ],
+
   pinia: {
     storesDirs: ["./stores/**"]
   },
+
   imports: {
-    dirs: ["./types"]
+    dirs: ["./types"],
+    imports: [{
+      from: "tailwind-variants",
+      name: "tv"
+    }, {
+      from: "tailwind-variants",
+      name: "VariantProps",
+      type: true
+    }]
   },
+
   // required for pdfjs-dist top level await usage
   vite: {
     plugins: [tailwindcss()],
@@ -78,11 +99,30 @@ export default defineNuxtConfig({
       strictPort: true
     }
   },
+
   // Enables the development server to be discoverable by other devices when running on iOS physical devices
   devServer: {
     host: "0",
     port: isTauri ? 3001 : 3000 // avoid cached service workers
   },
+
   // Avoids error [unhandledRejection] EMFILE: too many open files, watch
-  ignore: ["**/src-tauri/**"]
+  ignore: ["**/src-tauri/**"],
+
+  colorMode: {
+    storageKey: "pdf-render-draw-color-mode",
+    classSuffix: ""
+  },
+
+  icon: {
+    clientBundle: {
+      scan: true,
+      sizeLimitKb: 0
+    },
+
+    mode: "svg",
+    class: "shrink-0",
+    fetchTimeout: 2000,
+    serverBundle: "local"
+  }
 })
