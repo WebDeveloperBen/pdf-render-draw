@@ -4,11 +4,17 @@ const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUIL
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
+  future: { typescriptBundlerResolution: true, compatibilityVersion: 5 },
   devtools: { enabled: !isTauri },
   telemetry: false,
   ssr: !isTauri,
   css: ["./app/assets/css/tailwind.css", "~/assets/css/tailwind.css"],
-
+  experimental: {
+    viewTransition: true,
+    typedPages: true,
+    typescriptPlugin: true,
+    enforceModuleCompatibility: true
+  },
   typescript: {
     typeCheck: true,
     strict: true
@@ -56,6 +62,7 @@ export default defineNuxtConfig({
     "motion-v/nuxt",
     "@nuxt/icon",
     "@nuxt/fonts",
+    "reka-ui/nuxt",
     "@yuta-inoue-ph/nuxt-vcalendar",
     "@vee-validate/nuxt",
     "vue-sonner/nuxt"
@@ -67,18 +74,22 @@ export default defineNuxtConfig({
 
   imports: {
     dirs: ["./types"],
-    imports: [{
-      from: "tailwind-variants",
-      name: "tv"
-    }, {
-      from: "tailwind-variants",
-      name: "VariantProps",
-      type: true
-    }, {
-      from: "vue-sonner",
-      name: "toast",
-      as: "useSonner"
-    }]
+    imports: [
+      {
+        from: "tailwind-variants",
+        name: "tv"
+      },
+      {
+        from: "tailwind-variants",
+        name: "VariantProps",
+        type: true
+      },
+      {
+        from: "vue-sonner",
+        name: "toast",
+        as: "useSonner"
+      }
+    ]
   },
 
   // required for pdfjs-dist top level await usage
@@ -135,13 +146,17 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      script: [{
-        src: "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js",
-        defer: true
-      }, {
-        src: "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.min.js",
-        defer: true
-      }]
+      script: [
+        {
+          src: "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js",
+          defer: true
+        },
+        {
+          src: "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.min.js",
+          defer: true
+        }
+      ]
     }
   }
 })
+

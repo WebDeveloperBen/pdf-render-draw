@@ -1,107 +1,73 @@
 <script lang="ts" setup>
-import {
-  Command,
-  GalleryVerticalEnd,
-  Settings2,
-  ChevronRight,
-  ChevronsUpDown,
-  LogOut,
-  Users,
-  Layers,
-  Shield,
-  Server,
-  Database,
-  Bot
-} from "lucide-vue-next"
+const appConfig = useAppConfig() as { app?: { name?: string } }
+const name = appConfig.app?.name ?? "MetreMate"
 
-const {
-  app: { name }
-} = useAppConfig()
+const route = useRoute()
 
-const data = {
-  teams: [
-    {
-      name,
-      logo: GalleryVerticalEnd,
-      plan: "Production"
-    },
-    {
-      name: "Development",
-      logo: Command,
-      plan: "Dev"
-    }
-  ],
-  navMain: [
-    {
-      title: "Applications",
-      url: "/applications",
-      icon: Layers,
-      isActive: true
-    },
-    {
-      title: "Knowledge",
-      url: "/knowledge",
-      icon: Database
-    }
-  ],
-  navPlayground: [
-    {
-      title: "Prompts",
-      icon: Layers,
-      url: "/prompts",
-      isActive: true
-    },
-    {
-      title: "Playground",
-      url: "/playground",
-      icon: Server
-    }
-  ],
-  // navObservability: [
-  //   { title: "Analytics", url: "/observability/analytics", icon: LineChart },
-  //   {
-  //     title: "Monitoring",
-  //     url: "/observability/logs",
-  //     icon: FileText
-  //   }
-  // ],
-  navGovernance: [
-    {
-      title: "Policies",
-      url: "/governance/policies",
-      icon: Shield
-    }
-  ],
-  navAdmin: [
-    {
-      title: "Users",
-      url: "/users",
-      icon: Users,
-      items: [
-        {
-          title: "Overview",
-          url: "/users"
-        },
-        {
-          title: "Roles",
-          url: "/users/roles"
-        }
-      ]
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2
-    }
-  ]
+// TODO: Replace with actual auth check
+const isAdmin = ref(true)
+
+// Navigation structure
+const navMain = [
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: "lucide:layout-dashboard"
+  },
+  {
+    title: "Projects",
+    url: "/projects",
+    icon: "lucide:folder-open"
+  }
+]
+
+const navSupport = [
+  {
+    title: "Help & Support",
+    url: "/support",
+    icon: "lucide:help-circle"
+  }
+]
+
+const navAdmin = [
+  {
+    title: "Users",
+    url: "/users",
+    icon: "lucide:users",
+    items: [
+      { title: "Overview", url: "/users" },
+      { title: "Roles", url: "/users/roles" }
+    ]
+  }
+]
+
+// Mock user - replace with your auth composable
+const currentUser = {
+  name: "Demo User",
+  email: "demo@metremate.com",
+  initials: "DU"
 }
 
-useSeoMeta({ title: "Admin Dashboard" })
+const signOut = () => {
+  navigateTo("/login")
+}
+
+// Breadcrumb generation from route
+const breadcrumbItems = computed(() => {
+  const paths = route.path.split("/").filter(Boolean)
+  return paths.map((segment, index) => ({
+    label: segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
+    link: "/" + paths.slice(0, index + 1).join("/")
+  }))
+})
+
+useSeoMeta({ title: `${name} - Measure with precision` })
 </script>
+
 <template>
   <UiSidebarProvider v-slot="{ isMobile }">
-    <!-- App Sidebar -->
     <UiSidebar collapsible="icon">
+      <!-- Header -->
       <UiSidebarHeader>
         <UiSidebarMenu>
           <UiSidebarMenuItem>
@@ -112,27 +78,29 @@ useSeoMeta({ title: "Admin Dashboard" })
             >
               <NuxtLink to="/">
                 <div
-                  class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+                  class="flex aspect-square size-8 items-center justify-center rounded-lg bg-orange-500 text-white"
                 >
-                  <img src="/logo.svg" alt="Logo" class="size-4 brightness-0 invert" />
+                  <Icon name="lucide:ruler" class="size-4" />
                 </div>
                 <div class="grid flex-1 text-left text-sm leading-tight">
                   <span class="truncate font-semibold">{{ name }}</span>
+                  <span class="truncate text-xs text-muted-foreground">Measure with precision</span>
                 </div>
               </NuxtLink>
             </UiSidebarMenuButton>
           </UiSidebarMenuItem>
         </UiSidebarMenu>
       </UiSidebarHeader>
+
       <UiSidebarContent>
-        <!-- Platform -->
+        <!-- Main Navigation -->
         <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Platform" />
+          <UiSidebarGroupLabel label="Main" />
           <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="(item, index) in data.navMain" :key="index">
+            <UiSidebarMenuItem v-for="item in navMain" :key="item.url">
               <UiSidebarMenuButton as-child :tooltip="item.title">
-                <NuxtLink :href="item.url">
-                  <component :is="item.icon" />
+                <NuxtLink :to="item.url">
+                  <Icon :name="item.icon" class="size-4" />
                   <span>{{ item.title }}</span>
                 </NuxtLink>
               </UiSidebarMenuButton>
@@ -140,58 +108,29 @@ useSeoMeta({ title: "Admin Dashboard" })
           </UiSidebarMenu>
         </UiSidebarGroup>
 
-        <!-- Governance -->
-        <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Governance" />
+        <!-- Admin Section (conditional) -->
+        <UiSidebarGroup v-if="isAdmin">
+          <UiSidebarGroupLabel label="Admin" />
           <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="(item, index) in data.navGovernance" :key="index">
-              <UiSidebarMenuButton as-child :tooltip="item.title">
-                <NuxtLink :href="item.url">
-                  <component :is="item.icon" />
-                  <span>{{ item.title }}</span>
-                </NuxtLink>
-              </UiSidebarMenuButton>
-            </UiSidebarMenuItem>
-          </UiSidebarMenu>
-        </UiSidebarGroup>
-        <!-- Observability -->
-        <!-- <UiSidebarGroup> -->
-        <!--   <UiSidebarGroupLabel label="Observability" /> -->
-        <!--   <UiSidebarMenu> -->
-        <!--     <template v-for="(item, index) in data.navObservability" :key="index"> -->
-        <!--       Items with sub-items -->
-        <!--       <UiSidebarMenuButton as-child :tooltip="item.title"> -->
-        <!--         <NuxtLink :href="item.url"> -->
-        <!--           <component :is="item.icon" /> -->
-        <!--           <span>{{ item.title }}</span> -->
-        <!--         </NuxtLink> -->
-        <!--       </UiSidebarMenuButton> -->
-        <!--     </template> -->
-        <!--   </UiSidebarMenu> -->
-        <!-- </UiSidebarGroup> -->
-        <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Administration" />
-          <UiSidebarMenu>
-            <template v-for="(item, index) in data.navAdmin" :key="index">
-              <!-- Items with sub-items -->
+            <template v-for="item in navAdmin" :key="item.url">
               <UiCollapsible v-if="item.items" v-slot="{ open }" as-child>
                 <UiSidebarMenuItem>
                   <UiCollapsibleTrigger as-child>
                     <UiSidebarMenuButton :tooltip="item.title">
-                      <component :is="item.icon" />
+                      <Icon :name="item.icon" class="size-4" />
                       <span>{{ item.title }}</span>
-                      <component
-                        :is="ChevronRight"
-                        class="ml-auto transition-transform duration-200"
+                      <Icon
+                        name="lucide:chevron-right"
+                        class="ml-auto size-4 transition-transform duration-200"
                         :class="[open && 'rotate-90']"
                       />
                     </UiSidebarMenuButton>
                   </UiCollapsibleTrigger>
                   <UiCollapsibleContent>
                     <UiSidebarMenuSub>
-                      <UiSidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
+                      <UiSidebarMenuSubItem v-for="subItem in item.items" :key="subItem.url">
                         <UiSidebarMenuSubButton as-child>
-                          <NuxtLink :href="subItem.url">
+                          <NuxtLink :to="subItem.url">
                             <span>{{ subItem.title }}</span>
                           </NuxtLink>
                         </UiSidebarMenuSubButton>
@@ -200,21 +139,28 @@ useSeoMeta({ title: "Admin Dashboard" })
                   </UiCollapsibleContent>
                 </UiSidebarMenuItem>
               </UiCollapsible>
-              <!-- Items without sub-items -->
-              <UiSidebarMenuItem v-else>
-                <UiSidebarMenuButton as-child :tooltip="item.title">
-                  <NuxtLink :href="item.url">
-                    <component :is="item.icon" />
-                    <span>{{ item.title }}</span>
-                  </NuxtLink>
-                </UiSidebarMenuButton>
-              </UiSidebarMenuItem>
             </template>
           </UiSidebarMenu>
         </UiSidebarGroup>
+
+        <!-- Support (pushed to bottom) -->
+        <UiSidebarGroup class="mt-auto">
+          <UiSidebarMenu>
+            <UiSidebarMenuItem v-for="item in navSupport" :key="item.url">
+              <UiSidebarMenuButton as-child :tooltip="item.title">
+                <NuxtLink :to="item.url">
+                  <Icon :name="item.icon" class="size-4" />
+                  <span>{{ item.title }}</span>
+                </NuxtLink>
+              </UiSidebarMenuButton>
+            </UiSidebarMenuItem>
+          </UiSidebarMenu>
+        </UiSidebarGroup>
       </UiSidebarContent>
+
       <UiSidebarRail />
-      <!-- Footer-->
+
+      <!-- Footer -->
       <UiSidebarFooter>
         <UiSidebarMenu>
           <UiSidebarMenuItem>
@@ -232,7 +178,7 @@ useSeoMeta({ title: "Admin Dashboard" })
                     <span class="truncate font-semibold">{{ currentUser.name }}</span>
                     <span class="truncate text-xs">{{ currentUser.email }}</span>
                   </div>
-                  <component :is="ChevronsUpDown" class="ml-auto size-4" />
+                  <Icon name="lucide:chevrons-up-down" class="ml-auto size-4" />
                 </UiSidebarMenuButton>
               </UiDropdownMenuTrigger>
               <UiDropdownMenuContent
@@ -255,26 +201,34 @@ useSeoMeta({ title: "Admin Dashboard" })
                 <UiDropdownMenuSeparator />
                 <UiDropdownMenuGroup>
                   <NuxtLink to="/settings">
-                    <UiDropdownMenuItem :icon="Settings2" title="Settings" />
+                    <UiDropdownMenuItem title="Settings">
+                      <template #icon>
+                        <Icon name="lucide:settings" class="size-4" />
+                      </template>
+                    </UiDropdownMenuItem>
                   </NuxtLink>
                 </UiDropdownMenuGroup>
                 <UiDropdownMenuSeparator />
-                <UiDropdownMenuItem :icon="LogOut" title="Log out" @click="signOut" />
+                <UiDropdownMenuItem title="Log out" @click="signOut">
+                  <template #icon>
+                    <Icon name="lucide:log-out" class="size-4" />
+                  </template>
+                </UiDropdownMenuItem>
               </UiDropdownMenuContent>
             </UiDropdownMenu>
           </UiSidebarMenuItem>
         </UiSidebarMenu>
       </UiSidebarFooter>
     </UiSidebar>
-    <!-- Sidebar main content -->
+
+    <!-- Main content -->
     <UiSidebarInset>
-      <!-- Navbar -->
       <UiNavbar class="flex relative h-16 shrink-0 items-center gap-2 border-b px-4">
         <UiSidebarTrigger class="-ml-1" />
         <UiDivider orientation="vertical" class="mr-2 h-4 w-px" />
         <UiBreadcrumbs :items="breadcrumbItems" />
-        <div class="ml-auto">
-          <ThemeToggle />
+        <div class="ml-auto flex items-center gap-2">
+          <BackgroundThemeToggle />
         </div>
       </UiNavbar>
       <UiContainer>

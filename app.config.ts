@@ -1,10 +1,10 @@
 export default defineAppConfig({
   // Application branding
   app: {
-    name: "Metre Mate",
+    name: "MetreMate",
     domain: "http://localhost:3000",
     shortName: "MM",
-    description: "Cool Drawing Tool",
-    logo: "GalleryVerticalEnd"
+    description: "Draw and measure building plans with precision",
+    tagline: "Measure with precision"
   }
 })
