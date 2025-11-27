@@ -67,6 +67,8 @@ const containerStyle = computed(() => {
         </div>
       </div>
     </div>
+
+    <EditorHandlesPdfRotate />
   </EditorPdfEditorProvider>
 </template>
 
