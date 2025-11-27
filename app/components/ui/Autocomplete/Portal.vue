@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { ComboboxPortal } from "reka-ui";
-  import type { ComboboxPortalProps } from "reka-ui";
+import { ComboboxPortal } from "reka-ui"
+import type { ComboboxPortalProps } from "reka-ui"
 
-  const props = defineProps<ComboboxPortalProps>();
+const props = defineProps<ComboboxPortalProps>()
 </script>

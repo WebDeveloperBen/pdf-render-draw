@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { EditableInput } from "reka-ui";
-  import type { EditableInputProps } from "reka-ui";
+import { EditableInput } from "reka-ui"
+import type { EditableInputProps } from "reka-ui"
 
-  const props = defineProps<EditableInputProps>();
+const props = defineProps<EditableInputProps>()
 </script>

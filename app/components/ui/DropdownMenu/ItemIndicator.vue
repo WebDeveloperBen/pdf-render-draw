@@ -11,21 +11,21 @@
 </template>
 
 <script lang="ts" setup>
-  import { DropdownMenuItemIndicator } from "reka-ui";
-  import type { DropdownMenuItemIndicatorProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { DropdownMenuItemIndicator } from "reka-ui"
+import type { DropdownMenuItemIndicatorProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    DropdownMenuItemIndicatorProps & {
-      /** The icon to display */
-      icon?: string;
-      /** Custom class(es) to add to the parent */
-      class?: HTMLAttributes["class"];
-    }
-  >();
-  const forwarded = reactiveOmit(props, "class", "icon");
+const props = defineProps<
+  DropdownMenuItemIndicatorProps & {
+    /** The icon to display */
+    icon?: string
+    /** Custom class(es) to add to the parent */
+    class?: HTMLAttributes["class"]
+  }
+>()
+const forwarded = reactiveOmit(props, "class", "icon")
 
-  const styles = tv({
-    base: "flex items-center justify-center",
-  });
+const styles = tv({
+  base: "flex items-center justify-center"
+})
 </script>

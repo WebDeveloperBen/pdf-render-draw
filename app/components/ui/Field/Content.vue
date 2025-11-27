@@ -1,28 +1,23 @@
 <template>
-  <Primitive
-    :as
-    :as-child
-    data-slot="field-content"
-    :class="fieldContentStyles({ class: props.class })"
-  >
+  <Primitive :as :as-child data-slot="field-content" :class="fieldContentStyles({ class: props.class })">
     <slot />
   </Primitive>
 </template>
 <script lang="ts">
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  export const fieldContentStyles = tv({
-    base: ["group/field-content flex flex-1 flex-col gap-1.5 leading-snug"],
-  });
+export const fieldContentStyles = tv({
+  base: ["group/field-content flex flex-1 flex-col gap-1.5 leading-snug"]
+})
 </script>
 <script lang="ts" setup>
-  const props = defineProps<
-    PrimitiveProps & {
-      /**
-       * Additional classes to apply to the element.
-       */
-      class?: HTMLAttributes["class"];
-    }
-  >();
+const props = defineProps<
+  PrimitiveProps & {
+    /**
+     * Additional classes to apply to the element.
+     */
+    class?: HTMLAttributes["class"]
+  }
+>()
 </script>

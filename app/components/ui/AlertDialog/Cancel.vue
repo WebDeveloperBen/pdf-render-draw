@@ -9,34 +9,34 @@
 </template>
 
 <script lang="ts" setup>
-  import { buttonStyles } from "~/components/ui/Button.vue";
-  import { AlertDialogCancel } from "reka-ui";
-  import type { AlertDialogCancelProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { buttonStyles } from "~/components/ui/Button.vue"
+import { AlertDialogCancel } from "reka-ui"
+import type { AlertDialogCancelProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<
-      AlertDialogCancelProps & {
-        /** Action to perform when the button is clicked */
-        onClick?: () => void;
-        /** Text to display in the button */
-        text?: string;
-        /** Custom class(es) to add to the button */
-        class?: HTMLAttributes["class"];
-        /** Whether the button is disabled */
-        disabled?: boolean;
-        /** The button's visual variant */
-        variant?: VariantProps<typeof buttonStyles>["variant"];
-        /** The button's visual size */
-        size?: VariantProps<typeof buttonStyles>["size"];
-      }
-    >(),
-    {
-      text: "Cancel",
-      variant: "outline",
-      size: "default",
+const props = withDefaults(
+  defineProps<
+    AlertDialogCancelProps & {
+      /** Action to perform when the button is clicked */
+      onClick?: () => void
+      /** Text to display in the button */
+      text?: string
+      /** Custom class(es) to add to the button */
+      class?: HTMLAttributes["class"]
+      /** Whether the button is disabled */
+      disabled?: boolean
+      /** The button's visual variant */
+      variant?: VariantProps<typeof buttonStyles>["variant"]
+      /** The button's visual size */
+      size?: VariantProps<typeof buttonStyles>["size"]
     }
-  );
+  >(),
+  {
+    text: "Cancel",
+    variant: "outline",
+    size: "default"
+  }
+)
 
-  const forwarded = reactiveOmit(props, "class", "text", "variant", "size");
+const forwarded = reactiveOmit(props, "class", "text", "variant", "size")
 </script>

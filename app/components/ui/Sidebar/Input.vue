@@ -10,19 +10,19 @@
 </template>
 
 <script lang="ts">
-  import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes } from "vue"
 
-  export const sideBarInputStyles = tv({
-    base: "h-8 w-full bg-background shadow-none",
-  });
+export const sideBarInputStyles = tv({
+  base: "h-8 w-full bg-background shadow-none"
+})
 </script>
 <script setup lang="ts">
-  const props = defineProps<{
-    /**
-     * Additional classes to apply to the parent element.
-     */
-    class?: HTMLAttributes["class"];
-  }>();
+const props = defineProps<{
+  /**
+   * Additional classes to apply to the parent element.
+   */
+  class?: HTMLAttributes["class"]
+}>()
 
-  const model = defineModel<any>();
+const model = defineModel<any>()
 </script>

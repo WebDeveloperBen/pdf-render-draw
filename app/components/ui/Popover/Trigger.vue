@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { PopoverTrigger } from "reka-ui";
-  import type { PopoverTriggerProps } from "reka-ui";
+import { PopoverTrigger } from "reka-ui"
+import type { PopoverTriggerProps } from "reka-ui"
 
-  const props = defineProps<PopoverTriggerProps>();
+const props = defineProps<PopoverTriggerProps>()
 </script>

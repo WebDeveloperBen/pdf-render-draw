@@ -8,7 +8,7 @@
       '--cell-size': `${cellSize}px`,
       '--opacity': opacity,
       '--light-line': lightLineColor,
-      '--dark-line': darkLineColor,
+      '--dark-line': darkLineColor
     }"
   >
     <div class="absolute inset-0 transform-[rotateX(var(--grid-angle))]">
@@ -22,55 +22,52 @@
 </template>
 
 <script lang="ts">
-  import { Primitive } from "reka-ui";
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { Primitive } from "reka-ui"
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  export type RetroGridProps = PrimitiveProps & {
-    /**
-     * Additional CSS classes to apply to the grid container
-     */
-    class?: HTMLAttributes["class"];
-    /**
-     * Rotation angle of the grid in degrees
-     * @default 65
-     */
-    angle?: number;
-    /**
-     * Grid cell size in pixels
-     * @default 60
-     */
-    cellSize?: number;
-    /**
-     * Grid opacity value between 0 and 1
-     * @default 0.5
-     */
-    opacity?: number;
-    /**
-     * Grid line color in light mode
-     * @default "gray"
-     */
-    lightLineColor?: string;
-    /**
-     * Grid line color in dark mode
-     * @default "gray"
-     */
-    darkLineColor?: string;
-  };
+export type RetroGridProps = PrimitiveProps & {
+  /**
+   * Additional CSS classes to apply to the grid container
+   */
+  class?: HTMLAttributes["class"]
+  /**
+   * Rotation angle of the grid in degrees
+   * @default 65
+   */
+  angle?: number
+  /**
+   * Grid cell size in pixels
+   * @default 60
+   */
+  cellSize?: number
+  /**
+   * Grid opacity value between 0 and 1
+   * @default 0.5
+   */
+  opacity?: number
+  /**
+   * Grid line color in light mode
+   * @default "gray"
+   */
+  lightLineColor?: string
+  /**
+   * Grid line color in dark mode
+   * @default "gray"
+   */
+  darkLineColor?: string
+}
 </script>
 
 <script lang="ts" setup>
-  const props = withDefaults(defineProps<RetroGridProps>(), {
-    angle: 65,
-    cellSize: 60,
-    opacity: 0.5,
-    lightLineColor: "gray",
-    darkLineColor: "gray",
-  });
-  const styles = tv({
-    base: [
-      "pointer-events-none absolute size-full overflow-hidden perspective-[200px]",
-      "opacity-(--opacity)",
-    ],
-  });
+const props = withDefaults(defineProps<RetroGridProps>(), {
+  angle: 65,
+  cellSize: 60,
+  opacity: 0.5,
+  lightLineColor: "gray",
+  darkLineColor: "gray"
+})
+const styles = tv({
+  base: ["pointer-events-none absolute size-full overflow-hidden perspective-[200px]", "opacity-(--opacity)"]
+})
 </script>

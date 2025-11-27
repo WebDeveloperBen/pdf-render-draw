@@ -5,16 +5,16 @@
 </template>
 
 <script lang="ts" setup>
-  import { TabsRoot, useForwardPropsEmits } from "reka-ui";
-  import type { TabsRootEmits, TabsRootProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { TabsRoot, useForwardPropsEmits } from "reka-ui"
+import type { TabsRootEmits, TabsRootProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(defineProps<TabsRootProps & { class?: HTMLAttributes["class"] }>(), {
-    orientation: "horizontal",
-    activationMode: "automatic",
-  });
-  const emits = defineEmits<TabsRootEmits>();
-  const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"), emits);
+const props = withDefaults(defineProps<TabsRootProps & { class?: HTMLAttributes["class"] }>(), {
+  orientation: "horizontal",
+  activationMode: "automatic"
+})
+const emits = defineEmits<TabsRootEmits>()
+const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"), emits)
 
-  const styles = tv({ base: "flex flex-col gap-2" });
+const styles = tv({ base: "flex flex-col gap-2" })
 </script>

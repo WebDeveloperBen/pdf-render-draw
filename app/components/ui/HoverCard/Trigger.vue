@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { HoverCardTrigger } from "reka-ui";
-  import type { HoverCardTriggerProps } from "reka-ui";
+import { HoverCardTrigger } from "reka-ui"
+import type { HoverCardTriggerProps } from "reka-ui"
 
-  defineOptions({ inheritAttrs: false });
-  const props = defineProps<HoverCardTriggerProps>();
+defineOptions({ inheritAttrs: false })
+const props = defineProps<HoverCardTriggerProps>()
 </script>

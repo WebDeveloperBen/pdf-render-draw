@@ -10,17 +10,17 @@
 </template>
 
 <script lang="ts" setup>
-  import { StepperDescription, useForwardProps } from "reka-ui";
-  import type { StepperDescriptionProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { StepperDescription, useForwardProps } from "reka-ui"
+import type { StepperDescriptionProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    StepperDescriptionProps & {
-      class?: HTMLAttributes["class"];
-    }
-  >();
+const props = defineProps<
+  StepperDescriptionProps & {
+    class?: HTMLAttributes["class"]
+  }
+>()
 
-  const forwarded = useForwardProps(reactiveOmit(props, "class"));
+const forwarded = useForwardProps(reactiveOmit(props, "class"))
 
-  const styles = tv({ base: "text-sm text-muted-foreground" });
+const styles = tv({ base: "text-sm text-muted-foreground" })
 </script>

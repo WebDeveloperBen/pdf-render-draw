@@ -13,10 +13,7 @@
             >
               <template v-if="!header.isPlaceholder">
                 <div class="flex items-center gap-3">
-                  <FlexRender
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
+                  <FlexRender :render="header.column.columnDef.header" :props="header.getContext()" />
                   <Icon
                     v-if="header.column.getCanSort() && header.column.getIsSorted() === 'asc'"
                     :name="ascIcon"
@@ -49,10 +46,7 @@
             </UiTableCell>
           </UiTableRow>
 
-          <UiTableEmpty
-            v-if="table.getRowModel().rows.length === 0"
-            :colspan="table.getAllLeafColumns().length"
-          >
+          <UiTableEmpty v-if="table.getRowModel().rows.length === 0" :colspan="table.getAllLeafColumns().length">
             <slot :table="table" name="empty"> No data available. </slot>
           </UiTableEmpty>
         </UiTableBody>
@@ -60,9 +54,7 @@
     </div>
 
     <div v-if="showPagination" class="@container">
-      <div
-        class="my-6 flex flex-col justify-between gap-4 px-2 @[700px]:flex-row @[700px]:items-center"
-      >
+      <div class="my-6 flex flex-col justify-between gap-4 px-2 @[700px]:flex-row @[700px]:items-center">
         <div class="flex items-center justify-between gap-3">
           <slot name="rowsSelected" :table="table">
             <div v-if="showSelect" class="text-sm whitespace-nowrap text-muted-foreground">
@@ -84,11 +76,7 @@
                 <UiSelectContent class="min-w-fit" side="top" align="start">
                   <UiSelectGroup>
                     <!-- eslint-disable vue/no-template-shadow -->
-                    <UiSelectItem
-                      v-for="pageSize in pageSizes"
-                      :key="pageSize"
-                      :value="`${pageSize}`"
-                    >
+                    <UiSelectItem v-for="pageSize in pageSizes" :key="pageSize" :value="`${pageSize}`">
                       {{ pageSize }}
                     </UiSelectItem>
                   </UiSelectGroup>
@@ -100,9 +88,7 @@
 
         <div class="flex items-center justify-between gap-3">
           <slot :table="table" name="page">
-            <div
-              class="flex items-center justify-center text-sm font-medium whitespace-nowrap text-foreground"
-            >
+            <div class="flex items-center justify-center text-sm font-medium whitespace-nowrap text-foreground">
               Page {{ table.getState().pagination.pageIndex + 1 }} of
               {{ table.getPageCount() }}
             </div>
@@ -155,220 +141,215 @@
 </template>
 
 <script lang="ts" setup generic="T extends object">
-  import CheckBox from "@/components/ui/Checkbox/Checkbox.vue";
-  import {
-    FlexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useVueTable,
-  } from "@tanstack/vue-table";
-  import type { ColumnDef, SortingState, Table } from "@tanstack/vue-table";
-  import type { HTMLAttributes } from "vue";
+import CheckBox from "@/components/ui/Checkbox/Checkbox.vue"
+import {
+  FlexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useVueTable
+} from "@tanstack/vue-table"
+import type { ColumnDef, SortingState, Table } from "@tanstack/vue-table"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<{
-      /**
-       * The data to display in the table.
-       */
-      data?: T[];
-      /**
-       * The columns to display in the table.
-       */
-      columns?: ColumnDef<T>[];
-      /**
-       * The search term to filter the table data.
-       */
-      search?: string;
-      /**
-       * Whether to show the select checkbox column.
-       */
-      showSelect?: boolean;
-      /**
-       * The page sizes to display in the pagination dropdown.
-       */
-      pageSizes?: number[];
-      /**
-       * The initial page size for the table.
-       */
-      pageSize?: number;
-      /**
-       * The initial sorting state of the table.
-       */
-      sorting?: SortingState;
-      /**
-       * The class(es) to apply to the table.
-       */
-      tableClass?: HTMLAttributes["class"];
-      /**
-       * The icon to display for ascending sorting.
-       */
-      ascIcon?: string;
-      /**
-       * The icon to display for descending sorting.
-       */
-      descIcon?: string;
-      /**
-       * The icon to display for unsorted columns.
-       */
-      unsortedIcon?: string;
-      /**
-       * Custom class(es) to add to the parent element.
-       */
-      class?: HTMLAttributes["class"];
-      /**
-       * Whether to show pagination controls.
-       *
-       * @default true
-       */
-      showPagination?: boolean;
-      /**
-       * The text to display for the rows per page label.
-       *
-       * @default "Rows per page:"
-       */
-      rowsPerPageText?: string;
-    }>(),
-    {
-      pageSizes: () => [10, 20, 30, 40, 50, 100],
-      pageSize: () => 10,
-      columns: () => [],
-      data: () => [],
-      sorting: () => [],
-      ascIcon: "lucide:chevron-up",
-      descIcon: "lucide:chevron-down",
-      unsortedIcon: "lucide:chevrons-up-down",
-      showPagination: true,
-      rowsPerPageText: "Rows per page:",
-    }
-  );
-
-  defineOptions({ inheritAttrs: false });
-
-  const styles = tv({
-    base: "w-full overflow-x-auto",
-  });
-
-  const checkBoxHeader: ColumnDef<any> = {
-    id: "checkbox",
-    header: ({ table }) => {
-      return h(
-        "div",
-        { class: "flex items-center justify-center" },
-        h(CheckBox, {
-          modelValue: table.getIsAllRowsSelected()
-            ? true
-            : table.getIsSomeRowsSelected()
-              ? "indeterminate"
-              : false,
-          "onUpdate:modelValue": (value: boolean | "indeterminate") =>
-            table.toggleAllPageRowsSelected(!!value),
-          ariaLabel: "Select all",
-        })
-      );
-    },
-    cell: ({ row }) => {
-      return h(
-        "div",
-        { class: "flex items-center justify-center " },
-        h(CheckBox, {
-          modelValue: row.getIsSelected(),
-          "onUpdate:modelValue": (value: boolean | "indeterminate") => row.toggleSelected(!!value),
-          ariaLabel: "Select row",
-        })
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  };
-
-  const localColumns: ColumnDef<T>[] = [...props.columns];
-
-  if (props.showSelect) {
-    localColumns.unshift(checkBoxHeader);
+const props = withDefaults(
+  defineProps<{
+    /**
+     * The data to display in the table.
+     */
+    data?: T[]
+    /**
+     * The columns to display in the table.
+     */
+    columns?: ColumnDef<T>[]
+    /**
+     * The search term to filter the table data.
+     */
+    search?: string
+    /**
+     * Whether to show the select checkbox column.
+     */
+    showSelect?: boolean
+    /**
+     * The page sizes to display in the pagination dropdown.
+     */
+    pageSizes?: number[]
+    /**
+     * The initial page size for the table.
+     */
+    pageSize?: number
+    /**
+     * The initial sorting state of the table.
+     */
+    sorting?: SortingState
+    /**
+     * The class(es) to apply to the table.
+     */
+    tableClass?: HTMLAttributes["class"]
+    /**
+     * The icon to display for ascending sorting.
+     */
+    ascIcon?: string
+    /**
+     * The icon to display for descending sorting.
+     */
+    descIcon?: string
+    /**
+     * The icon to display for unsorted columns.
+     */
+    unsortedIcon?: string
+    /**
+     * Custom class(es) to add to the parent element.
+     */
+    class?: HTMLAttributes["class"]
+    /**
+     * Whether to show pagination controls.
+     *
+     * @default true
+     */
+    showPagination?: boolean
+    /**
+     * The text to display for the rows per page label.
+     *
+     * @default "Rows per page:"
+     */
+    rowsPerPageText?: string
+  }>(),
+  {
+    pageSizes: () => [10, 20, 30, 40, 50, 100],
+    pageSize: () => 10,
+    columns: () => [],
+    data: () => [],
+    sorting: () => [],
+    ascIcon: "lucide:chevron-up",
+    descIcon: "lucide:chevron-down",
+    unsortedIcon: "lucide:chevrons-up-down",
+    showPagination: true,
+    rowsPerPageText: "Rows per page:"
   }
+)
 
-  const emit = defineEmits<{
-    ready: [table: Table<T>];
-  }>();
+defineOptions({ inheritAttrs: false })
 
-  const localSorting = ref(props.sorting);
-  const globalFilter = ref(props.search);
-  const columnVisibility = ref({});
-  const rowSelection = ref({});
+const styles = tv({
+  base: "w-full overflow-x-auto"
+})
 
-  const updateFn = (updaterOrValue: any, v: MaybeRefOrGetter) => {
-    if (typeof updaterOrValue === "function") {
-      return updaterOrValue(toValue(v));
-    }
-    return updaterOrValue;
-  };
+const checkBoxHeader: ColumnDef<any> = {
+  id: "checkbox",
+  header: ({ table }) => {
+    return h(
+      "div",
+      { class: "flex items-center justify-center" },
+      h(CheckBox, {
+        modelValue: table.getIsAllRowsSelected() ? true : table.getIsSomeRowsSelected() ? "indeterminate" : false,
+        "onUpdate:modelValue": (value: boolean | "indeterminate") => table.toggleAllPageRowsSelected(!!value),
+        ariaLabel: "Select all"
+      })
+    )
+  },
+  cell: ({ row }) => {
+    return h(
+      "div",
+      { class: "flex items-center justify-center " },
+      h(CheckBox, {
+        modelValue: row.getIsSelected(),
+        "onUpdate:modelValue": (value: boolean | "indeterminate") => row.toggleSelected(!!value),
+        ariaLabel: "Select row"
+      })
+    )
+  },
+  enableSorting: false,
+  enableHiding: false
+}
 
-  const table = useVueTable({
-    get data() {
-      return props.data;
-    },
-    get columns() {
-      return localColumns;
-    },
-    initialState: {
-      pagination: {
-        pageSize: props.pageSize,
-      },
-      rowSelection: rowSelection.value,
-      globalFilter: props.search,
-    },
-    state: {
-      get sorting() {
-        return localSorting.value;
-      },
-      get globalFilter() {
-        return props.search;
-      },
-      get columnVisibility() {
-        return columnVisibility.value;
-      },
-      get rowSelection() {
-        return rowSelection.value;
-      },
-    },
-    onSortingChange: (updaterOrValue) => {
-      localSorting.value = updateFn(updaterOrValue, localSorting);
-    },
-    onGlobalFilterChange: (updaterOrValue) => {
-      globalFilter.value = updateFn(updaterOrValue, globalFilter);
-    },
-    onRowSelectionChange: (updaterOrValue) => {
-      rowSelection.value = updateFn(updaterOrValue, rowSelection);
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    enableRowSelection: () => !!props.showSelect,
-  });
+const localColumns: ColumnDef<T>[] = [...props.columns]
 
-  function toggleColumnVisibility(column: any) {
-    columnVisibility.value = {
-      ...columnVisibility.value,
-      [column.id]: !column.getIsVisible(),
-    };
+if (props.showSelect) {
+  localColumns.unshift(checkBoxHeader)
+}
+
+const emit = defineEmits<{
+  ready: [table: Table<T>]
+}>()
+
+const localSorting = ref(props.sorting)
+const globalFilter = ref(props.search)
+const columnVisibility = ref({})
+const rowSelection = ref({})
+
+const updateFn = (updaterOrValue: any, v: MaybeRefOrGetter) => {
+  if (typeof updaterOrValue === "function") {
+    return updaterOrValue(toValue(v))
   }
+  return updaterOrValue
+}
 
-  // eslint-disable-next-line vue/no-dupe-keys
-  const pageSize = computed({
-    get() {
-      return table.getState().pagination.pageSize.toString();
+const table = useVueTable({
+  get data() {
+    return props.data
+  },
+  get columns() {
+    return localColumns
+  },
+  initialState: {
+    pagination: {
+      pageSize: props.pageSize
     },
-    set(value) {
-      table.setPageSize(Number(value));
+    rowSelection: rowSelection.value,
+    globalFilter: props.search
+  },
+  state: {
+    get sorting() {
+      return localSorting.value
     },
-  });
+    get globalFilter() {
+      return props.search
+    },
+    get columnVisibility() {
+      return columnVisibility.value
+    },
+    get rowSelection() {
+      return rowSelection.value
+    }
+  },
+  onSortingChange: (updaterOrValue) => {
+    localSorting.value = updateFn(updaterOrValue, localSorting)
+  },
+  onGlobalFilterChange: (updaterOrValue) => {
+    globalFilter.value = updateFn(updaterOrValue, globalFilter)
+  },
+  onRowSelectionChange: (updaterOrValue) => {
+    rowSelection.value = updateFn(updaterOrValue, rowSelection)
+  },
+  getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  enableRowSelection: () => !!props.showSelect
+})
 
-  onMounted(() => {
-    emit("ready", table);
-  });
+function toggleColumnVisibility(column: any) {
+  columnVisibility.value = {
+    ...columnVisibility.value,
+    [column.id]: !column.getIsVisible()
+  }
+}
 
-  defineExpose({ toggleColumnVisibility });
+// eslint-disable-next-line vue/no-dupe-keys
+const pageSize = computed({
+  get() {
+    return table.getState().pagination.pageSize.toString()
+  },
+  set(value) {
+    table.setPageSize(Number(value))
+  }
+})
+
+onMounted(() => {
+  emit("ready", table)
+})
+
+defineExpose({ toggleColumnVisibility })
 </script>

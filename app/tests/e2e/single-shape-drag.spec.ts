@@ -88,7 +88,7 @@ test.describe("Single Shape Drag Sensitivity Bug", () => {
 
     // Get initial position from DOM
     const initialPosition = await page.evaluate(() => {
-      const fill = document.querySelector('rect.fill-rect[data-annotation-id]')
+      const fill = document.querySelector("rect.fill-rect[data-annotation-id]")
       if (!fill) return null
       return {
         id: fill.getAttribute("data-annotation-id"),
@@ -117,7 +117,7 @@ test.describe("Single Shape Drag Sensitivity Bug", () => {
 
     // Verify selection
     const selectedAnnotation = await page.evaluate(() => {
-      const fill = document.querySelector('rect.fill-rect[data-annotation-id]')
+      const fill = document.querySelector("rect.fill-rect[data-annotation-id]")
       const parent = fill?.closest(".base-annotation")
       return {
         hasSelectedClass: parent?.classList.contains("selected"),
@@ -158,7 +158,7 @@ test.describe("Single Shape Drag Sensitivity Bug", () => {
 
     // Get final position from DOM
     const finalPosition = await page.evaluate(() => {
-      const fill = document.querySelector('rect.fill-rect[data-annotation-id]')
+      const fill = document.querySelector("rect.fill-rect[data-annotation-id]")
       if (!fill) return null
       return {
         id: fill.getAttribute("data-annotation-id"),

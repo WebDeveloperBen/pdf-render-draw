@@ -10,20 +10,20 @@
 </template>
 
 <script lang="ts" setup>
-  import { Primitive } from "reka-ui";
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { Primitive } from "reka-ui"
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    PrimitiveProps & {
-      /**
-       * The custom class(es) to add to the element
-       */
-      class?: HTMLAttributes["class"];
-    }
-  >();
+const props = defineProps<
+  PrimitiveProps & {
+    /**
+     * The custom class(es) to add to the element
+     */
+    class?: HTMLAttributes["class"]
+  }
+>()
 
-  const styles = tv({
-    base: "ml-auto text-xs tracking-widest text-muted-foreground",
-  });
+const styles = tv({
+  base: "ml-auto text-xs tracking-widest text-muted-foreground"
+})
 </script>

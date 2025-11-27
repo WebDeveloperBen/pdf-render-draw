@@ -30,5 +30,5 @@ export const RENDERING = {
   DEFAULT_DEVICE_PIXEL_RATIO: 1,
 
   /** Distance threshold for snap-to-close in PDF points */
-  TOOL_SNAP_DISTANCE: 25,
+  TOOL_SNAP_DISTANCE: 25
 } as const

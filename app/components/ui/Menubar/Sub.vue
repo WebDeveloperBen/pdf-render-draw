@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { MenubarSub, useForwardPropsEmits } from "reka-ui";
-  import type { MenubarSubEmits, MenubarSubProps } from "reka-ui";
+import { MenubarSub, useForwardPropsEmits } from "reka-ui"
+import type { MenubarSubEmits, MenubarSubProps } from "reka-ui"
 
-  const props = defineProps<MenubarSubProps>();
-  const emits = defineEmits<MenubarSubEmits>();
-  const forwarded = useForwardPropsEmits(props, emits);
+const props = defineProps<MenubarSubProps>()
+const emits = defineEmits<MenubarSubEmits>()
+const forwarded = useForwardPropsEmits(props, emits)
 </script>

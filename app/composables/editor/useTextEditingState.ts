@@ -15,7 +15,7 @@ export const useTextEditingState = () => {
 
   function startEditing(id: string) {
     const annotation = annotationStore.getAnnotationById(id)
-    if (annotation && annotation.type === 'text' && 'content' in annotation) {
+    if (annotation && annotation.type === "text" && "content" in annotation) {
       editingId.value = id
       editingContent.value = annotation.content as string
     }
@@ -45,6 +45,6 @@ export const useTextEditingState = () => {
     editingContent,
     startEditing,
     finishEditing,
-    cancelEditing,
+    cancelEditing
   }
 }

@@ -9,11 +9,11 @@
 
 export const MEASURE_TOOL_DEFAULTS = {
   // Tool styling
-  strokeColor: 'black',
+  strokeColor: "black",
   strokeWidth: 1,
-  labelColor: 'black',
+  labelColor: "black",
   labelSize: 8,
-  labelStrokeStyle: 'bold' as const,
+  labelStrokeStyle: "bold" as const,
 
   // Hit area for easier clicking on thin lines
   hitArea: {
@@ -29,7 +29,7 @@ export const MEASURE_TOOL_DEFAULTS = {
       height: 20,
       opacity: 0.9,
       borderRadius: 3,
-      fill: 'white'
+      fill: "white"
     }
   },
 
@@ -42,17 +42,17 @@ export const MEASURE_TOOL_DEFAULTS = {
     },
     startMarker: {
       radius: 6,
-      fill: 'green',
-      stroke: 'white',
+      fill: "green",
+      stroke: "white",
       strokeWidth: 2
     },
     line: {
-      strokeDashArray: '5,5',
+      strokeDashArray: "5,5",
       opacity: 0.7
     },
     distance: {
       offsetY: 10,
-      fill: 'blue',
+      fill: "blue",
       fontSize: 12
     }
   },
@@ -61,10 +61,10 @@ export const MEASURE_TOOL_DEFAULTS = {
   states: {
     hover: {
       strokeWidth: 4,
-      dropShadow: 'drop-shadow(0 0 6px rgba(66, 153, 225, 0.8))'
+      dropShadow: "drop-shadow(0 0 6px rgba(66, 153, 225, 0.8))"
     },
     selected: {
-      stroke: '#4299e1',
+      stroke: "#4299e1",
       strokeWidth: 3
     }
   }
@@ -225,13 +225,13 @@ const viewportStore = useViewportStore()
 }
 
 .measurement-line:hover {
-  stroke-width: v-bind('config.states.hover.strokeWidth');
-  filter: v-bind('config.states.hover.dropShadow');
+  stroke-width: v-bind("config.states.hover.strokeWidth");
+  filter: v-bind("config.states.hover.dropShadow");
 }
 
 .measurement-line.selected-line {
-  stroke: v-bind('config.states.selected.stroke');
-  stroke-width: v-bind('config.states.selected.strokeWidth');
+  stroke: v-bind("config.states.selected.stroke");
+  stroke-width: v-bind("config.states.selected.strokeWidth");
 }
 
 .measurement-label {

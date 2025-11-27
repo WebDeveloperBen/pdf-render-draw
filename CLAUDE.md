@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PDF annotation editor built with Nuxt 4 and PDF.js. Renders PDFs on canvas with an SVG overlay for interactive annotations. Uses transformation matrices for coordinate transformations and SVG transforms for visual effects.
+**MetreMate** - A PDF annotation editor for tradespeople to draw and measure building plans. Built with Nuxt 4, PDF.js, and a comprehensive UI component system.
 
-**Key constraint:** SSR disabled - PDF.js requires browser APIs.
+**Key constraint:** SSR disabled for editor - PDF.js requires browser APIs.
 
 ## Commands
 
@@ -21,54 +21,142 @@ pnpm test                   # Run Vitest unit tests
 pnpm test path/to/file      # Run specific test file
 pnpm test:coverage          # Run tests with coverage report
 pnpm exec playwright test   # Run E2E tests
-pnpm exec playwright test --ui  # E2E with interactive UI
 
 # Code Quality
 pnpm lint                   # ESLint with auto-fix
 ```
 
-## Architecture
+## Tech Stack
 
-### Coordinate Systems
+### Core
+- **Nuxt 4** with TypeScript strict mode
+- **Tailwind CSS v4** via `@tailwindcss/vite` plugin
+- **Pinia** for state management
+- **VueUse** for composables
 
-The editor uses PDF coordinates as the single source of truth:
-- All annotation data stored in PDF coordinate space (no normalization)
-- CSS transforms (`translate`, `scale`, `rotate`) sync the SVG layer with the PDF canvas
-- `viewportStore.getCanvasTransform` provides the unified transform string
+### UI Components
+- **UI-Thing** (shadcn-vue style) components in `app/components/ui/`
+- **Reka UI** as the headless component primitive layer
+- **tailwind-variants** (`tv()`) for component styling with variants
+- **motion-v** for animations
 
-### Core Stores (Pinia)
+### Icons
+- **@nuxt/icon** with Iconify - use `<Icon name="lucide:icon-name" />` format
+- Do NOT use lucide-vue-next directly
 
-- **`annotations.ts`**: Flat array of annotations, selection state, CRUD operations with validation
-- **`viewport.ts`**: PDF viewport state (scale, rotation, scroll position, pdfScale), PDF.js document loading
-- **`history.ts`**: Undo/redo command stack
+### Forms & Validation
+- **vee-validate** with `@vee-validate/nuxt`
+- **zod** for schema validation via `@vee-validate/zod`
 
-### Annotation Types
+### PDF
+- **pdfjs-dist** for PDF rendering (lazy-loaded)
+- Worker loads on first `loadPdf()` call
 
-All annotations extend `BaseAnnotation` with `id`, `type`, `pageNum`, `rotation`:
-- **Point-based:** `Measurement` (2 points), `Area` (3+ points), `Perimeter` (3+ points), `Line` (2+ points)
-- **Positioned rectangles:** `Fill`, `TextAnnotation`, `Count` (have `x`, `y`, `width`, `height`)
+## Project Structure
 
-Type guards in `app/types/annotations.ts`: `isMeasurement()`, `isArea()`, `isFill()`, etc.
+### Pages (Route Groups)
+```
+app/pages/
+├── (auth)/           # /login, /register - no sidebar
+├── (dashboard)/      # Main app with sidebar layout
+│   ├── index.vue           → /
+│   ├── projects/
+│   │   ├── index.vue       → /projects
+│   │   └── [id].vue        → /projects/:id
+│   ├── users/
+│   │   ├── index.vue       → /users
+│   │   └── roles.vue       → /users/roles
+│   ├── support.vue         → /support
+│   └── settings.vue        → /settings
+├── (editor)/         # Full-screen editor - custom layout
+└── (payment)/        # Payment flows
+```
 
-### Composables Structure
+Route groups `(folder)` don't appear in URLs.
 
+### Layouts
+- `default.vue` - Dashboard layout with sidebar (uses `UiSidebar*` components)
+- Editor pages should use a custom layout or `definePageMeta({ layout: false })`
+
+### UI Components
+```
+app/components/ui/
+├── Sidebar/          # App navigation sidebar
+├── Button.vue        # Exports buttonStyles for variant reuse
+├── Form/             # Form components with vee-validate integration
+├── Vee/              # Vee-validate wrapped form inputs
+└── ...               # ~80+ shadcn-style components
+```
+
+Component imports use `Ui` prefix auto-imported: `<UiButton>`, `<UiCard>`, etc.
+
+### Composables
 ```
 app/composables/
 ├── editor/
-│   ├── tools/          # Tool-specific: useAreaTool, useMeasureTool, etc.
-│   ├── useEditorBounds.ts      # Bounding box calculations
-│   ├── useEditorCoordinates.ts # SVG coordinate conversion
-│   ├── useEditorEventHandlers.ts # Global mouse/keyboard events
-│   ├── useEditorRotation.ts    # Rotation transforms
-│   ├── useEditorScale.ts       # Scale transforms
-│   ├── useEditorMove.ts        # Drag/move operations
-│   └── useEditorSelection.ts   # Selection logic
-└── useKeyboardShortcuts.ts     # Global keyboard shortcuts
+│   ├── tools/                  # Tool-specific composables
+│   ├── useEditorBounds.ts
+│   ├── useEditorCoordinates.ts
+│   └── ...
+├── useCarousel.ts              # UI-Thing carousel state
+├── useFormField.ts             # Form field context
+└── useKeyboardShortcuts.ts
 ```
 
-### Tool Factory Pattern
+## Styling Patterns
 
-Tools use `useDrawingTool` factory with callbacks:
+### tailwind-variants (tv)
+Components use `tv()` for variant-based styling:
+```typescript
+const buttonStyles = tv({
+  base: "inline-flex items-center justify-center rounded-md",
+  variants: {
+    variant: {
+      default: "bg-primary text-primary-foreground",
+      outline: "border border-input bg-background",
+    },
+    size: {
+      default: "h-10 px-4 py-2",
+      sm: "h-9 px-3",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "default",
+  },
+})
+```
+
+### CSS Variables (Tailwind v4)
+Theme colors defined in `app/assets/css/tailwind.css`:
+```css
+--color-primary: ...;
+--color-background: ...;
+--color-foreground: ...;
+```
+
+Use semantic color classes: `bg-primary`, `text-muted-foreground`, `border-input`
+
+## Editor Architecture
+
+### Coordinate Systems
+- All annotation data stored in PDF coordinate space
+- CSS transforms sync SVG layer with PDF canvas
+- `viewportStore.getCanvasTransform` provides unified transform
+
+### Core Stores (Pinia)
+- **`annotations.ts`**: Annotations array, selection, CRUD with validation
+- **`viewport.ts`**: PDF viewport state, scale, rotation, document loading
+- **`history.ts`**: Undo/redo command stack
+
+### Annotation Types
+All extend `BaseAnnotation` with `id`, `type`, `pageNum`, `rotation`:
+- **Point-based:** `Measurement`, `Area`, `Perimeter`, `Line`
+- **Rectangles:** `Fill`, `TextAnnotation`, `Count`
+
+Type guards in `app/types/annotations.ts`: `isMeasurement()`, `isArea()`, etc.
+
+### Tool Factory Pattern
 ```typescript
 const tool = useDrawingTool<Measurement>({
   type: 'measure',
@@ -78,41 +166,18 @@ const tool = useDrawingTool<Measurement>({
 })
 ```
 
-### Tool Styling
+## Testing
 
-Each tool component exports a `*_TOOL_DEFAULTS` constant with all styling (colors, stroke widths, etc.):
-```typescript
-// In Measure.vue
-export const MEASURE_TOOL_DEFAULTS = {
-  strokeColor: 'black',
-  strokeWidth: 1,
-  labelColor: 'black',
-  // ...
-}
-```
+- Unit tests colocated as `*.spec.ts`
+- Test environment: `nuxt` with `happy-dom`
+- Coverage targets: `app/composables/**`, `app/stores/**`, `app/utils/**`
+- E2E: Playwright in `app/tests/e2e/`
 
-### Transform Handles
+## Key Conventions
 
-Annotations display transform handles when selected:
-- Scale handles at corners/edges
-- Rotation handle offset from center
-- Multi-select uses group transforms around combined center
-
-### PDF Worker Initialization
-
-PDF.js worker loads lazily on first `loadPdf()` call - not at app startup. This keeps non-editor pages fast.
-
-## Testing Patterns
-
-Unit tests colocated with source files as `*.spec.ts`. Test environment is `nuxt` with `happy-dom`.
-
-Coverage targets: `app/composables/**`, `app/stores/**`, `app/utils/**`
-
-E2E tests in `app/tests/e2e/` using Playwright against `http://localhost:3000`.
-
-## Key Implementation Details
-
-- Rotation stored in radians on annotations, displayed in degrees in UI
-- Labels have `labelRotation` (degrees) baked at creation time to appear upright regardless of PDF rotation
-- `recalculateDerivedValues()` updates `distance`, `midpoint`, `area`, `center` when points change
-- Validation via `validateAnnotation()` shape-based checker (tool-agnostic)
+1. **Icons**: Always `<Icon name="lucide:icon-name" />`, never direct lucide imports
+2. **Components**: Use `Ui` prefix from auto-imports
+3. **Styling**: Prefer `tv()` variants over inline conditional classes
+4. **Forms**: Use `UiVee*` components for validated inputs
+5. **Routes**: Use typed routes with `useRoute("route-name")` for params
+6. **Toasts**: Use `useSonner()` (auto-imported from vue-sonner)

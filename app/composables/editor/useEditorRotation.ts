@@ -177,11 +177,7 @@ export const useEditorRotation = createSharedComposable(() => {
           const shapeCenterY = originalPos.y + annotation.height / 2
           const shapeCenter = { x: shapeCenterX, y: shapeCenterY }
 
-          const rotatedCenter = rotatePointAroundCenter(
-            shapeCenter,
-            rotationCenter.value!,
-            rotationDelta
-          )
+          const rotatedCenter = rotatePointAroundCenter(shapeCenter, rotationCenter.value!, rotationDelta)
 
           const newPos = {
             x: rotatedCenter.x - annotation.width / 2,

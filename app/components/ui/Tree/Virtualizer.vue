@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { TreeVirtualizer, useForwardPropsEmits } from "reka-ui";
-  import type { TreeVirtualizerProps } from "reka-ui";
+import { TreeVirtualizer, useForwardPropsEmits } from "reka-ui"
+import type { TreeVirtualizerProps } from "reka-ui"
 
-  const props = defineProps<TreeVirtualizerProps>();
-  const forwarded = useForwardPropsEmits(props);
+const props = defineProps<TreeVirtualizerProps>()
+const forwarded = useForwardPropsEmits(props)
 </script>

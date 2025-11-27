@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { DropdownMenuPortal } from "reka-ui";
-  import type { DropdownMenuPortalProps } from "reka-ui";
+import { DropdownMenuPortal } from "reka-ui"
+import type { DropdownMenuPortalProps } from "reka-ui"
 
-  const props = defineProps<DropdownMenuPortalProps>();
+const props = defineProps<DropdownMenuPortalProps>()
 </script>

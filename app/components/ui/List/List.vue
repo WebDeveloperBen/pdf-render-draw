@@ -5,23 +5,23 @@
 </template>
 
 <script lang="ts" setup>
-  import { Primitive } from "reka-ui";
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { Primitive } from "reka-ui"
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<
-      PrimitiveProps & {
-        /** Custom class(es) to add to the parent */
-        class?: HTMLAttributes["class"];
-      }
-    >(),
-    {
-      as: "ul",
+const props = withDefaults(
+  defineProps<
+    PrimitiveProps & {
+      /** Custom class(es) to add to the parent */
+      class?: HTMLAttributes["class"]
     }
-  );
-  const forwarded = reactiveOmit(props, "class");
-  const styles = tv({
-    base: "w-full py-2",
-  });
+  >(),
+  {
+    as: "ul"
+  }
+)
+const forwarded = reactiveOmit(props, "class")
+const styles = tv({
+  base: "w-full py-2"
+})
 </script>

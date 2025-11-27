@@ -10,31 +10,31 @@
 </template>
 
 <script lang="ts" setup>
-  import { ToggleGroupRoot, useForwardPropsEmits } from "reka-ui";
-  import type { ToggleVariants } from "../Toggle.vue";
-  import type { ToggleGroupRootEmits, ToggleGroupRootProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { ToggleGroupRoot, useForwardPropsEmits } from "reka-ui"
+import type { ToggleVariants } from "../Toggle.vue"
+import type { ToggleGroupRootEmits, ToggleGroupRootProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<
-      ToggleGroupRootProps & {
-        /** custom class to add to the parent */
-        class?: HTMLAttributes["class"];
-        variant?: ToggleVariants["variant"];
-        size?: ToggleVariants["size"];
-      }
-    >(),
-    {
-      type: "single",
+const props = withDefaults(
+  defineProps<
+    ToggleGroupRootProps & {
+      /** custom class to add to the parent */
+      class?: HTMLAttributes["class"]
+      variant?: ToggleVariants["variant"]
+      size?: ToggleVariants["size"]
     }
-  );
+  >(),
+  {
+    type: "single"
+  }
+)
 
-  const emit = defineEmits<ToggleGroupRootEmits>();
-  const forwarded = useForwardPropsEmits(reactiveOmit(props, "class", "variant", "size"), emit);
+const emit = defineEmits<ToggleGroupRootEmits>()
+const forwarded = useForwardPropsEmits(reactiveOmit(props, "class", "variant", "size"), emit)
 
-  const styles = tv({
-    base: "flex items-center justify-center gap-1",
-  });
+const styles = tv({
+  base: "flex items-center justify-center gap-1"
+})
 
-  provide("toggleGroup", { variant: props.variant, size: props.size });
+provide("toggleGroup", { variant: props.variant, size: props.size })
 </script>

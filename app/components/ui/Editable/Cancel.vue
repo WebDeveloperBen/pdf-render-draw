@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { EditableCancelTrigger } from "reka-ui";
-  import type { EditableCancelTriggerProps } from "reka-ui";
+import { EditableCancelTrigger } from "reka-ui"
+import type { EditableCancelTriggerProps } from "reka-ui"
 
-  const props = defineProps<EditableCancelTriggerProps>();
+const props = defineProps<EditableCancelTriggerProps>()
 </script>

@@ -171,55 +171,53 @@
 </template>
 
 <script lang="ts">
-  import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes } from "vue"
 
-  export type FormBuilder = {
-    description?: string;
-    hint?: string;
-    disabled?: boolean;
-    label?: string;
-    name: string;
-    placeholder?: string;
-    required?: boolean;
-    type?: string;
-    value?: any;
-    rules?: any;
-    class?: HTMLAttributes["class"];
-    slot?: string;
-    wrapperClass?: HTMLAttributes["class"];
-    renderIf?: () => boolean;
-    options?: any[];
-    variant:
-      | "Checkbox"
-      | "NativeCheckbox"
-      | "Input"
-      | "Divider"
-      | "CurrencyInput"
-      | "DateField"
-      | "FileInput"
-      | "Select"
-      | "Textarea"
-      | "MultiSelect"
-      | "PinInput"
-      | "TagsInput"
-      | "RadioGroup"
-      | "VueformSlider";
-    [key: string]: any;
-  };
-  export type FormBuilderProps = {
-    fields: FormBuilder[];
-  };
+export type FormBuilder = {
+  description?: string
+  hint?: string
+  disabled?: boolean
+  label?: string
+  name: string
+  placeholder?: string
+  required?: boolean
+  type?: string
+  value?: any
+  rules?: any
+  class?: HTMLAttributes["class"]
+  slot?: string
+  wrapperClass?: HTMLAttributes["class"]
+  renderIf?: () => boolean
+  options?: any[]
+  variant:
+    | "Checkbox"
+    | "NativeCheckbox"
+    | "Input"
+    | "Divider"
+    | "CurrencyInput"
+    | "DateField"
+    | "FileInput"
+    | "Select"
+    | "Textarea"
+    | "MultiSelect"
+    | "PinInput"
+    | "TagsInput"
+    | "RadioGroup"
+    | "VueformSlider"
+  [key: string]: any
+}
+export type FormBuilderProps = {
+  fields: FormBuilder[]
+}
 </script>
 
 <script lang="ts" setup>
-  defineProps<FormBuilderProps>();
+defineProps<FormBuilderProps>()
 
-  const omit = (obj: FormBuilder, keys: Array<keyof FormBuilder>) =>
-    Object.fromEntries(
-      Object.entries(obj).filter(([key]) => !keys.includes(key as keyof FormBuilder))
-    );
+const omit = (obj: FormBuilder, keys: Array<keyof FormBuilder>) =>
+  Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key as keyof FormBuilder)))
 
-  const removeFields = (field: FormBuilder) => {
-    return omit(field, ["wrapperClass", "renderIf", "variant", "slot"]);
-  };
+const removeFields = (field: FormBuilder) => {
+  return omit(field, ["wrapperClass", "renderIf", "variant", "slot"])
+}
 </script>

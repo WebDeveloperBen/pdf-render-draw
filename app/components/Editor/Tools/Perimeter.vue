@@ -9,11 +9,11 @@
 
 export const PERIMETER_TOOL_DEFAULTS = {
   // Tool styling
-  fillColor: 'green',
-  strokeColor: 'green',
+  fillColor: "green",
+  strokeColor: "green",
   strokeWidth: 1,
   opacity: 0.2,
-  labelColor: 'green',
+  labelColor: "green",
   labelSize: 10,
 
   // Segment label background styling
@@ -25,7 +25,7 @@ export const PERIMETER_TOOL_DEFAULTS = {
       height: 20,
       opacity: 0.9,
       borderRadius: 3,
-      fill: 'white'
+      fill: "white"
     }
   },
 
@@ -38,9 +38,9 @@ export const PERIMETER_TOOL_DEFAULTS = {
       height: 24,
       opacity: 0.95,
       borderRadius: 4,
-      fill: 'white'
+      fill: "white"
     },
-    fontSizeBonus: 2  // Added to settings.labelSize for total
+    fontSizeBonus: 2 // Added to settings.labelSize for total
   },
 
   // Preview styling (while drawing)
@@ -53,16 +53,16 @@ export const PERIMETER_TOOL_DEFAULTS = {
     pointMarkers: {
       firstRadius: 6,
       otherRadius: 5,
-      firstFill: 'green',
-      stroke: 'white',
+      firstFill: "green",
+      stroke: "white",
       strokeWidth: 2
     },
     polygon: {
       opacityMultiplier: 0.5,
-      strokeDashArray: '5,5'
+      strokeDashArray: "5,5"
     },
     segmentLabel: {
-      fill: 'blue',
+      fill: "blue",
       fontSize: 12
     }
   },
@@ -70,14 +70,14 @@ export const PERIMETER_TOOL_DEFAULTS = {
   // Snap to close indicator
   snap: {
     radius: 10,
-    stroke: 'green',
+    stroke: "green",
     strokeWidth: 2,
     text: {
       offsetX: 15,
       offsetY: 10,
       fontSize: 12,
-      fontWeight: 'bold',
-      fill: 'green'
+      fontWeight: "bold",
+      fill: "green"
     }
   },
 
@@ -88,7 +88,7 @@ export const PERIMETER_TOOL_DEFAULTS = {
       strokeWidth: 3
     },
     selected: {
-      stroke: 'blue',
+      stroke: "blue",
       strokeWidth: 3
     }
   }
@@ -307,13 +307,13 @@ const viewportStore = useViewportStore()
 }
 
 .perimeter-polygon:hover {
-  fill-opacity: v-bind('config.states.hover.fillOpacity');
-  stroke-width: v-bind('config.states.hover.strokeWidth');
+  fill-opacity: v-bind("config.states.hover.fillOpacity");
+  stroke-width: v-bind("config.states.hover.strokeWidth");
 }
 
 .perimeter-polygon.selected-polygon {
-  stroke: v-bind('config.states.selected.stroke');
-  stroke-width: v-bind('config.states.selected.strokeWidth');
+  stroke: v-bind("config.states.selected.stroke");
+  stroke-width: v-bind("config.states.selected.strokeWidth");
 }
 
 .segment-label,

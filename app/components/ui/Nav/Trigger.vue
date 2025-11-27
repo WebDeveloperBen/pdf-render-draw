@@ -7,8 +7,8 @@
     :class="styles({ class: props.class })"
     @click="
       ($event: MouseEvent) => {
-        injectedValues?.toggleNav();
-        props.onClick?.($event);
+        injectedValues?.toggleNav()
+        props.onClick?.($event)
       }
     "
   >
@@ -18,33 +18,33 @@
 </template>
 
 <script lang="ts" setup>
-  import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes } from "vue"
 
-  import { navProviderKey } from "./Provider.vue";
+import { navProviderKey } from "./Provider.vue"
 
-  const injectedValues = inject(navProviderKey);
+const injectedValues = inject(navProviderKey)
 
-  if (!injectedValues) {
-    throw createError({
-      statusCode: 500,
-      message: "Nav context not found. Make sure to wrap your component with <NavProvider>.",
-    });
+if (!injectedValues) {
+  throw createError({
+    statusCode: 500,
+    message: "Nav context not found. Make sure to wrap your component with <NavProvider>."
+  })
+}
+
+const props = withDefaults(
+  defineProps<{
+    ariaLabel?: string
+    class?: HTMLAttributes["class"]
+    onClick?: (event: MouseEvent) => void
+    icon?: string
+  }>(),
+  {
+    ariaLabel: "Toggle Navbar",
+    icon: "lucide:menu"
   }
+)
 
-  const props = withDefaults(
-    defineProps<{
-      ariaLabel?: string;
-      class?: HTMLAttributes["class"];
-      onClick?: (event: MouseEvent) => void;
-      icon?: string;
-    }>(),
-    {
-      ariaLabel: "Toggle Navbar",
-      icon: "lucide:menu",
-    }
-  );
-
-  const styles = tv({
-    base: "-ml-2 min-lg:hidden",
-  });
+const styles = tv({
+  base: "-ml-2 min-lg:hidden"
+})
 </script>

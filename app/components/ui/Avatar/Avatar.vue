@@ -1,10 +1,5 @@
 <template>
-  <AvatarRoot
-    data-slot="avatar"
-    :as="as"
-    :as-child="asChild"
-    :class="styles({ class: props.class })"
-  >
+  <AvatarRoot data-slot="avatar" :as="as" :as-child="asChild" :class="styles({ class: props.class })">
     <slot>
       <slot name="image">
         <UiAvatarImage
@@ -23,42 +18,42 @@
 </template>
 
 <script lang="ts" setup>
-  import { AvatarRoot } from "reka-ui";
-  import type { AvatarImageEmits, AvatarImageProps, AvatarRootProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { AvatarRoot } from "reka-ui"
+import type { AvatarImageEmits, AvatarImageProps, AvatarRootProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    AvatarRootProps &
-      Partial<AvatarImageProps> & {
-        /**
-         * Class to add to the root element
-         */
-        class?: HTMLAttributes["class"];
-        /**
-         * Class to pass to the image element
-         */
-        imageClass?: HTMLAttributes["class"];
-        /**
-         * Class to pass to the fallback element
-         */
-        fallbackClass?: HTMLAttributes["class"];
-        /**
-         * The `alt` attribute value for the image
-         */
-        alt?: string;
-        /**
-         * The fallback text to display when the image fails to load
-         */
-        fallback?: string;
-        /**
-         * Useful for delaying rendering so it only appears for those with slower connections.
-         */
-        delayMs?: number;
-      }
-  >();
+const props = defineProps<
+  AvatarRootProps &
+    Partial<AvatarImageProps> & {
+      /**
+       * Class to add to the root element
+       */
+      class?: HTMLAttributes["class"]
+      /**
+       * Class to pass to the image element
+       */
+      imageClass?: HTMLAttributes["class"]
+      /**
+       * Class to pass to the fallback element
+       */
+      fallbackClass?: HTMLAttributes["class"]
+      /**
+       * The `alt` attribute value for the image
+       */
+      alt?: string
+      /**
+       * The fallback text to display when the image fails to load
+       */
+      fallback?: string
+      /**
+       * Useful for delaying rendering so it only appears for those with slower connections.
+       */
+      delayMs?: number
+    }
+>()
 
-  const emits = defineEmits<AvatarImageEmits>();
-  const styles = tv({
-    base: "relative flex size-8 shrink-0 overflow-hidden rounded-full",
-  });
+const emits = defineEmits<AvatarImageEmits>()
+const styles = tv({
+  base: "relative flex size-8 shrink-0 overflow-hidden rounded-full"
+})
 </script>

@@ -143,68 +143,77 @@ defineExpose({
   <div v-if="isVisible" class="rotation-wheel" :style="wheelStyle">
     <!-- SVG for smooth graphics -->
     <svg width="70" height="70" viewBox="0 0 70 70" class="wheel-svg">
-        <!-- Outer circle track -->
-        <circle cx="35" cy="35" r="28" fill="none" stroke="rgba(0, 0, 0, 0.06)" stroke-width="1" />
+      <!-- Outer circle track -->
+      <circle cx="35" cy="35" r="28" fill="none" stroke="rgba(0, 0, 0, 0.06)" stroke-width="1" />
 
-        <!-- Rotation arc (shows swept angle) -->
-        <path
-          v-if="currentRotation > 0"
-          :d="getArcPath()"
-          fill="none"
-          stroke="url(#arcGradient)"
-          stroke-width="3"
-          stroke-linecap="round"
-          class="rotation-arc"
-        />
+      <!-- Rotation arc (shows swept angle) -->
+      <path
+        v-if="currentRotation > 0"
+        :d="getArcPath()"
+        fill="none"
+        stroke="url(#arcGradient)"
+        stroke-width="3"
+        stroke-linecap="round"
+        class="rotation-arc"
+      />
 
-        <!-- Gradient for arc -->
-        <defs>
-          <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color: #667eea; stop-opacity: 1" />
-            <stop offset="100%" style="stop-color: #764ba2; stop-opacity: 1" />
-          </linearGradient>
-        </defs>
+      <!-- Gradient for arc -->
+      <defs>
+        <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color: #667eea; stop-opacity: 1" />
+          <stop offset="100%" style="stop-color: #764ba2; stop-opacity: 1" />
+        </linearGradient>
+      </defs>
 
-        <!-- Snap indicators (subtle dots at key angles) -->
+      <!-- Snap indicators (subtle dots at key angles) -->
+      <circle
+        v-for="angle in snapAngles"
+        :key="angle"
+        :cx="35 + 28 * Math.sin((angle * Math.PI) / 180)"
+        :cy="35 - 28 * Math.cos((angle * Math.PI) / 180)"
+        :r="isNearSnap(angle) ? 2 : 1"
+        :fill="isNearSnap(angle) ? '#667eea' : 'rgba(0, 0, 0, 0.15)'"
+        class="snap-dot"
+        :class="{ active: isNearSnap(angle) }"
+      />
+
+      <!-- Reference line (0° north) -->
+      <line x1="35" y1="10" x2="35" y2="14" stroke="rgba(0, 0, 0, 0.2)" stroke-width="1" stroke-linecap="round" />
+
+      <!-- Rotation handle -->
+      <g :transform="`rotate(${currentRotation} 35 35)`">
+        <!-- Handle line -->
+        <line x1="35" y1="35" x2="35" y2="10" stroke="#667eea" stroke-width="1.5" stroke-linecap="round" />
+        <!-- Handle dot - click this to drag -->
         <circle
-          v-for="angle in snapAngles"
-          :key="angle"
-          :cx="35 + 28 * Math.sin((angle * Math.PI) / 180)"
-          :cy="35 - 28 * Math.cos((angle * Math.PI) / 180)"
-          :r="isNearSnap(angle) ? 2 : 1"
-          :fill="isNearSnap(angle) ? '#667eea' : 'rgba(0, 0, 0, 0.15)'"
-          class="snap-dot"
-          :class="{ active: isNearSnap(angle) }"
+          cx="35"
+          cy="10"
+          r="4"
+          fill="white"
+          stroke="#667eea"
+          stroke-width="2"
+          class="handle-dot"
+          @mousedown.stop="startDrag"
         />
+      </g>
 
-        <!-- Reference line (0° north) -->
-        <line x1="35" y1="10" x2="35" y2="14" stroke="rgba(0, 0, 0, 0.2)" stroke-width="1" stroke-linecap="round" />
+      <!-- Center point -->
+      <circle cx="35" cy="35" r="1.5" fill="rgba(0, 0, 0, 0.2)" />
 
-        <!-- Rotation handle -->
-        <g :transform="`rotate(${currentRotation} 35 35)`">
-          <!-- Handle line -->
-          <line x1="35" y1="35" x2="35" y2="10" stroke="#667eea" stroke-width="1.5" stroke-linecap="round" />
-          <!-- Handle dot - click this to drag -->
-          <circle cx="35" cy="10" r="4" fill="white" stroke="#667eea" stroke-width="2" class="handle-dot" @mousedown.stop="startDrag" />
-        </g>
-
-        <!-- Center point -->
-        <circle cx="35" cy="35" r="1.5" fill="rgba(0, 0, 0, 0.2)" />
-
-        <!-- Angle text in center -->
-        <text
-          x="35"
-          y="35"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          class="angle-text"
-          fill="#667eea"
-          font-size="10"
-          font-weight="600"
-        >
-          {{ Math.round(currentRotation) }}°
-        </text>
-      </svg>
+      <!-- Angle text in center -->
+      <text
+        x="35"
+        y="35"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        class="angle-text"
+        fill="#667eea"
+        font-size="10"
+        font-weight="600"
+      >
+        {{ Math.round(currentRotation) }}°
+      </text>
+    </svg>
   </div>
 </template>
 

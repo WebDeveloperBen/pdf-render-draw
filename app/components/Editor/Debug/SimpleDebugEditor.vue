@@ -679,7 +679,12 @@ const marqueeBounds = computed(() => {
 function handleMarqueeStart(event: MouseEvent) {
   // Don't start marquee if clicking on a shape, handle, or selection box
   const target = event.target as Element
-  if (target.closest('.shape') || target.closest('.selection-box') || target.closest('.rotation-handle') || target.closest('.scale-handle')) {
+  if (
+    target.closest(".shape") ||
+    target.closest(".selection-box") ||
+    target.closest(".rotation-handle") ||
+    target.closest(".scale-handle")
+  ) {
     return
   }
 
@@ -693,7 +698,7 @@ function handleMarqueeStart(event: MouseEvent) {
   marqueeStartPoint.value = svgPoint
   marqueeEndPoint.value = svgPoint
   marqueeShiftKey.value = event.shiftKey
-  cursor.set('crosshair')
+  cursor.set("crosshair")
 
   // If not holding shift, clear selection
   if (!event.shiftKey) {
@@ -814,7 +819,14 @@ defineExpose({
   <div class="debug-editor">
     <h2>Debug SVG Editor - Phase 6: Drag-Select</h2>
 
-    <svg width="800" height="600" viewBox="0 0 800 600" class="editor-canvas" @click="handleBackgroundClick" @mousedown="handleMarqueeStart">
+    <svg
+      width="800"
+      height="600"
+      viewBox="0 0 800 600"
+      class="editor-canvas"
+      @click="handleBackgroundClick"
+      @mousedown="handleMarqueeStart"
+    >
       <!-- Grid background for reference -->
       <defs>
         <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
@@ -1031,8 +1043,8 @@ defineExpose({
         {{ Math.round(selectionBounds.width) }} × {{ Math.round(selectionBounds.height) }}
       </p>
       <p class="hint">
-        <strong>Tip:</strong> Click to select, Shift+Click to multi-select, Drag on canvas to marquee select, Drag selection box to move, Drag rotation
-        handle to rotate, Drag scale handles to resize
+        <strong>Tip:</strong> Click to select, Shift+Click to multi-select, Drag on canvas to marquee select, Drag
+        selection box to move, Drag rotation handle to rotate, Drag scale handles to resize
       </p>
     </div>
   </div>

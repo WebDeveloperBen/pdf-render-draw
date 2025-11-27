@@ -8,29 +8,29 @@
   </Primitive>
 </template>
 <script lang="ts">
-  import { reactiveOmit } from "@vueuse/core";
-  import { Primitive } from "reka-ui";
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { reactiveOmit } from "@vueuse/core"
+import { Primitive } from "reka-ui"
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  export type DescriptionDetailsProps = PrimitiveProps & {
-    /**
-     * Text to display in the description term
-     */
-    text?: string;
-    /**
-     * Custom class(es) to add to the element
-     */
-    class?: HTMLAttributes["class"];
-  };
+export type DescriptionDetailsProps = PrimitiveProps & {
+  /**
+   * Text to display in the description term
+   */
+  text?: string
+  /**
+   * Custom class(es) to add to the element
+   */
+  class?: HTMLAttributes["class"]
+}
 
-  export const descriptionListDetailsStyles = tv({
-    base: "border-t pt-3 text-muted-foreground first:border-none sm:py-3",
-  });
+export const descriptionListDetailsStyles = tv({
+  base: "border-t pt-3 text-muted-foreground first:border-none sm:py-3"
+})
 </script>
 
 <script lang="ts" setup>
-  const props = withDefaults(defineProps<DescriptionDetailsProps>(), {
-    as: "dt",
-  });
+const props = withDefaults(defineProps<DescriptionDetailsProps>(), {
+  as: "dt"
+})
 </script>

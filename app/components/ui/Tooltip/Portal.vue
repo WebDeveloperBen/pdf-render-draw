@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { TooltipPortal } from "reka-ui";
-  import type { TooltipPortalProps } from "reka-ui";
+import { TooltipPortal } from "reka-ui"
+import type { TooltipPortalProps } from "reka-ui"
 
-  const props = defineProps<TooltipPortalProps>();
+const props = defineProps<TooltipPortalProps>()
 </script>

@@ -1,10 +1,5 @@
 <template>
-  <ListboxContent
-    data-slot="command-list"
-    v-bind="forwarded"
-    cmdk-list
-    :class="styles({ class: props.class })"
-  >
+  <ListboxContent data-slot="command-list" v-bind="forwarded" cmdk-list :class="styles({ class: props.class })">
     <div role="presentation">
       <slot />
     </div>
@@ -12,21 +7,21 @@
 </template>
 
 <script setup lang="ts">
-  import { reactiveOmit } from "@vueuse/core";
-  import { ListboxContent, useForwardProps } from "reka-ui";
-  import type { ListboxContentProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { reactiveOmit } from "@vueuse/core"
+import { ListboxContent, useForwardProps } from "reka-ui"
+import type { ListboxContentProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    ListboxContentProps & {
-      /** Custom class(es) to add to the element */
-      class?: HTMLAttributes["class"];
-    }
-  >();
+const props = defineProps<
+  ListboxContentProps & {
+    /** Custom class(es) to add to the element */
+    class?: HTMLAttributes["class"]
+  }
+>()
 
-  const forwarded = useForwardProps(reactiveOmit(props, "class"));
+const forwarded = useForwardProps(reactiveOmit(props, "class"))
 
-  const styles = tv({
-    base: "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
-  });
+const styles = tv({
+  base: "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto"
+})
 </script>

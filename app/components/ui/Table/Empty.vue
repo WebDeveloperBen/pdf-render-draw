@@ -9,19 +9,19 @@
 </template>
 
 <script lang="ts" setup>
-  import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<{
-      colspan?: number;
-      class?: HTMLAttributes["class"];
-    }>(),
-    {
-      colspan: 1,
-    }
-  );
+const props = withDefaults(
+  defineProps<{
+    colspan?: number
+    class?: HTMLAttributes["class"]
+  }>(),
+  {
+    colspan: 1
+  }
+)
 
-  const styles = tv({
-    base: "p-4 align-middle text-sm whitespace-nowrap text-foreground",
-  });
+const styles = tv({
+  base: "p-4 align-middle text-sm whitespace-nowrap text-foreground"
+})
 </script>

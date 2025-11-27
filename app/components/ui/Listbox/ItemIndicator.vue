@@ -7,16 +7,14 @@
 </template>
 
 <script lang="ts" setup>
-  import { ListboxItemIndicator, useForwardPropsEmits } from "reka-ui";
-  import type { ListboxItemIndicatorProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { ListboxItemIndicator, useForwardPropsEmits } from "reka-ui"
+import type { ListboxItemIndicatorProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    ListboxItemIndicatorProps & { class?: HTMLAttributes["class"]; icon?: string }
-  >();
-  const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"));
+const props = defineProps<ListboxItemIndicatorProps & { class?: HTMLAttributes["class"]; icon?: string }>()
+const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"))
 
-  const styles = tv({
-    base: "size-4 shrink-0 text-primary",
-  });
+const styles = tv({
+  base: "size-4 shrink-0 text-primary"
+})
 </script>

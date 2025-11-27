@@ -33,34 +33,34 @@
 </template>
 
 <script lang="ts" setup>
-  import { DialogContent, useForwardPropsEmits } from "reka-ui";
-  import type { DialogContentEmits, DialogContentProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { DialogContent, useForwardPropsEmits } from "reka-ui"
+import type { DialogContentEmits, DialogContentProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  defineOptions({ inheritAttrs: false });
-  const props = defineProps<
-    DialogContentProps & {
-      /** Icon to display in the close button */
-      icon?: string;
-      /** Title text */
-      title?: string;
-      /** Description text */
-      description?: string;
-      /** Custom class(es) to add to the parent */
-      class?: HTMLAttributes["class"];
-      /** Whether to hide the close button */
-      hideClose?: boolean;
-      /** Where to render the dialog */
-      to?: string | HTMLElement;
-    }
-  >();
-  const emits = defineEmits<DialogContentEmits>();
-  const forwarded = useForwardPropsEmits(
-    reactiveOmit(props, "icon", "title", "description", "class", "hideClose", "to"),
-    emits
-  );
+defineOptions({ inheritAttrs: false })
+const props = defineProps<
+  DialogContentProps & {
+    /** Icon to display in the close button */
+    icon?: string
+    /** Title text */
+    title?: string
+    /** Description text */
+    description?: string
+    /** Custom class(es) to add to the parent */
+    class?: HTMLAttributes["class"]
+    /** Whether to hide the close button */
+    hideClose?: boolean
+    /** Where to render the dialog */
+    to?: string | HTMLElement
+  }
+>()
+const emits = defineEmits<DialogContentEmits>()
+const forwarded = useForwardPropsEmits(
+  reactiveOmit(props, "icon", "title", "description", "class", "hideClose", "to"),
+  emits
+)
 
-  const styles = tv({
-    base: "fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100%-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-xl border bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-100",
-  });
+const styles = tv({
+  base: "fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100%-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-xl border bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-100"
+})
 </script>

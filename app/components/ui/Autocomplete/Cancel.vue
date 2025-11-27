@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { ComboboxCancel } from "reka-ui";
-  import type { ComboboxCancelProps } from "reka-ui";
+import { ComboboxCancel } from "reka-ui"
+import type { ComboboxCancelProps } from "reka-ui"
 
-  const props = defineProps<ComboboxCancelProps>();
+const props = defineProps<ComboboxCancelProps>()
 </script>

@@ -44,46 +44,38 @@
 </template>
 
 <script lang="ts" setup>
-  import { motion } from "motion-v";
-  import type { PinInputRootProps } from "reka-ui";
+import { motion } from "motion-v"
+import type { PinInputRootProps } from "reka-ui"
 
-  const variants = {
-    initial: { opacity: 0, y: -2 },
-    animate: { opacity: 1, y: 0 },
-  };
+const variants = {
+  initial: { opacity: 0, y: -2 },
+  animate: { opacity: 1, y: 0 }
+}
 
-  const props = defineProps<
-    Omit<PinInputRootProps, "as" | "asChild"> & {
-      label?: string;
-      hint?: string;
-      id?: string;
-      rules?: any;
-      validateOnMount?: boolean;
-      separator?: string;
-      inputCount?: number;
-    }
-  >();
+const props = defineProps<
+  Omit<PinInputRootProps, "as" | "asChild"> & {
+    label?: string
+    hint?: string
+    id?: string
+    rules?: any
+    validateOnMount?: boolean
+    separator?: string
+    inputCount?: number
+  }
+>()
 
-  const emits = defineEmits<{
-    complete: [value: string[]];
-    "update:modelValue": [value: string[]];
-  }>();
+const emits = defineEmits<{
+  complete: [value: string[]]
+  "update:modelValue": [value: string[]]
+}>()
 
-  const forwarded = reactiveOmit(
-    props,
-    "label",
-    "hint",
-    "id",
-    "rules",
-    "validateOnMount",
-    "modelValue"
-  );
-  const inputId = props.id || useId();
+const forwarded = reactiveOmit(props, "label", "hint", "id", "rules", "validateOnMount", "modelValue")
+const inputId = props.id || useId()
 
-  const { errorMessage, value } = useField(() => props.name || inputId, props.rules, {
-    initialValue: props.modelValue || [],
-    label: props.label,
-    validateOnMount: props.validateOnMount,
-    syncVModel: true,
-  });
+const { errorMessage, value } = useField(() => props.name || inputId, props.rules, {
+  initialValue: props.modelValue || [],
+  label: props.label,
+  validateOnMount: props.validateOnMount,
+  syncVModel: true
+})
 </script>

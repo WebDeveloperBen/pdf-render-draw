@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { SelectPortal } from "reka-ui";
-  import type { SelectPortalProps } from "reka-ui";
+import { SelectPortal } from "reka-ui"
+import type { SelectPortalProps } from "reka-ui"
 
-  const props = defineProps<SelectPortalProps>();
+const props = defineProps<SelectPortalProps>()
 </script>

@@ -19,12 +19,12 @@
         :class="[hasIcon && 'pl-9']"
         :accept="accept"
         @change="
-          handleChange($event);
-          emits('change', $event.target.files);
+          handleChange($event)
+          emits('change', $event.target.files)
         "
         @blur="
-          handleBlur($event);
-          emits('blur', $event);
+          handleBlur($event)
+          emits('blur', $event)
         "
       />
     </div>
@@ -60,37 +60,37 @@
 </template>
 
 <script lang="ts" setup>
-  import { AnimatePresence, motion } from "motion-v";
+import { AnimatePresence, motion } from "motion-v"
 
-  const variants = {
-    initial: { opacity: 0, y: -2 },
-    animate: { opacity: 1, y: 0 },
-  };
+const variants = {
+  initial: { opacity: 0, y: -2 },
+  animate: { opacity: 1, y: 0 }
+}
 
-  const props = defineProps<{
-    label?: string;
-    icon?: string;
-    hint?: string;
-    name: string;
-    id?: string;
-    rules?: any;
-    validateOnMount?: boolean;
-    multiple?: boolean;
-    accept?: string;
-    required?: boolean;
-  }>();
+const props = defineProps<{
+  label?: string
+  icon?: string
+  hint?: string
+  name: string
+  id?: string
+  rules?: any
+  validateOnMount?: boolean
+  multiple?: boolean
+  accept?: string
+  required?: boolean
+}>()
 
-  const emits = defineEmits<{
-    change: [files?: FileList | File | File[] | null];
-    blur: [event?: FocusEvent];
-  }>();
+const emits = defineEmits<{
+  change: [files?: FileList | File | File[] | null]
+  blur: [event?: FocusEvent]
+}>()
 
-  const inputId = props.id || useId();
+const inputId = props.id || useId()
 
-  const hasIcon = computed(() => Boolean(props.icon) || Boolean(useSlots().icon));
+const hasIcon = computed(() => Boolean(props.icon) || Boolean(useSlots().icon))
 
-  const { errorMessage, handleChange, handleBlur } = useField(() => props.name, props.rules, {
-    label: props.label,
-    validateOnMount: props.validateOnMount,
-  });
+const { errorMessage, handleChange, handleBlur } = useField(() => props.name, props.rules, {
+  label: props.label,
+  validateOnMount: props.validateOnMount
+})
 </script>

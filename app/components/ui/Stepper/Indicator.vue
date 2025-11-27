@@ -22,20 +22,20 @@
 </template>
 
 <script lang="ts" setup>
-  import { StepperIndicator, useForwardProps } from "reka-ui";
-  import type { StepperIndicatorProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { StepperIndicator, useForwardProps } from "reka-ui"
+import type { StepperIndicatorProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    StepperIndicatorProps & {
-      class?: HTMLAttributes["class"];
-      isLoading?: boolean;
-    }
-  >();
+const props = defineProps<
+  StepperIndicatorProps & {
+    class?: HTMLAttributes["class"]
+    isLoading?: boolean
+  }
+>()
 
-  const forwarded = useForwardProps(reactiveOmit(props, "class", "isLoading"));
+const forwarded = useForwardProps(reactiveOmit(props, "class", "isLoading"))
 
-  const styles = tv({
-    base: "relative flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground group-data-[state=active]/step:bg-primary group-data-[state=active]/step:text-primary-foreground group-data-[state=completed]/step:bg-primary group-data-[state=completed]/step:text-primary-foreground",
-  });
+const styles = tv({
+  base: "relative flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground group-data-[state=active]/step:bg-primary group-data-[state=active]/step:text-primary-foreground group-data-[state=completed]/step:bg-primary group-data-[state=completed]/step:text-primary-foreground"
+})
 </script>

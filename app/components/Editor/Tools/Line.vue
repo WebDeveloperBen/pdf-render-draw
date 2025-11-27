@@ -9,7 +9,7 @@
 
 export const LINE_TOOL_DEFAULTS = {
   // Tool styling
-  strokeColor: 'blue',
+  strokeColor: "blue",
   strokeWidth: 3,
 
   // Hit area for easier clicking

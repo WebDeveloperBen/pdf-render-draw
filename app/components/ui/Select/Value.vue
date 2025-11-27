@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { SelectValue } from "reka-ui";
-  import type { SelectValueProps } from "reka-ui";
+import { SelectValue } from "reka-ui"
+import type { SelectValueProps } from "reka-ui"
 
-  const props = defineProps<SelectValueProps>();
+const props = defineProps<SelectValueProps>()
 </script>

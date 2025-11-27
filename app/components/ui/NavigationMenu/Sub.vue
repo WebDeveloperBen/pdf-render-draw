@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { NavigationMenuSub, useForwardPropsEmits } from "reka-ui";
-  import type { NavigationMenuSubEmits, NavigationMenuSubProps } from "reka-ui";
+import { NavigationMenuSub, useForwardPropsEmits } from "reka-ui"
+import type { NavigationMenuSubEmits, NavigationMenuSubProps } from "reka-ui"
 
-  const props = defineProps<NavigationMenuSubProps>();
-  const emits = defineEmits<NavigationMenuSubEmits>();
-  const forwarded = useForwardPropsEmits(props, emits);
+const props = defineProps<NavigationMenuSubProps>()
+const emits = defineEmits<NavigationMenuSubEmits>()
+const forwarded = useForwardPropsEmits(props, emits)
 </script>

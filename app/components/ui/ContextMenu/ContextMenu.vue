@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { ContextMenuRoot, useForwardPropsEmits } from "reka-ui";
-  import type { ContextMenuRootEmits, ContextMenuRootProps } from "reka-ui";
+import { ContextMenuRoot, useForwardPropsEmits } from "reka-ui"
+import type { ContextMenuRootEmits, ContextMenuRootProps } from "reka-ui"
 
-  const props = defineProps<ContextMenuRootProps>();
-  const emit = defineEmits<ContextMenuRootEmits>();
-  const forwarded = useForwardPropsEmits(props, emit);
+const props = defineProps<ContextMenuRootProps>()
+const emit = defineEmits<ContextMenuRootEmits>()
+const forwarded = useForwardPropsEmits(props, emit)
 </script>

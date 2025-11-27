@@ -99,10 +99,13 @@ export const useEditorMove = createSharedComposable(() => {
       else if ("x" in annotation && "y" in annotation) {
         const originalPos = dragOriginalPositions.value.get(annotation.id)
         if (originalPos) {
-          annotationStore.updateAnnotation(annotation.id, Object.assign({
-            x: originalPos.x + deltaX,
-            y: originalPos.y + deltaY
-          }))
+          annotationStore.updateAnnotation(
+            annotation.id,
+            Object.assign({
+              x: originalPos.x + deltaX,
+              y: originalPos.y + deltaY
+            })
+          )
         }
       }
     }

@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-  import type { MenubarPortalProps } from "reka-ui";
+import type { MenubarPortalProps } from "reka-ui"
 
-  const props = defineProps<MenubarPortalProps>();
+const props = defineProps<MenubarPortalProps>()
 </script>

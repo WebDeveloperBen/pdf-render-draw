@@ -1,31 +1,27 @@
 <template>
-  <Primitive
-    data-slot="item-title"
-    v-bind="forwarded"
-    :class="itemTitleStyles({ class: props.class })"
-  >
+  <Primitive data-slot="item-title" v-bind="forwarded" :class="itemTitleStyles({ class: props.class })">
     <slot />
   </Primitive>
 </template>
 
 <script lang="ts">
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  export const itemTitleStyles = tv({
-    base: "flex w-fit items-center gap-2 text-sm leading-snug font-medium",
-  });
+export const itemTitleStyles = tv({
+  base: "flex w-fit items-center gap-2 text-sm leading-snug font-medium"
+})
 
-  export type ItemTitleProps = PrimitiveProps & {
-    /**
-     * Additional classes to apply to the parent element.
-     */
-    class?: HTMLAttributes["class"];
-  };
+export type ItemTitleProps = PrimitiveProps & {
+  /**
+   * Additional classes to apply to the parent element.
+   */
+  class?: HTMLAttributes["class"]
+}
 </script>
 
 <script lang="ts" setup>
-  const props = withDefaults(defineProps<ItemTitleProps>(), {});
+const props = withDefaults(defineProps<ItemTitleProps>(), {})
 
-  const forwarded = reactiveOmit(props, ["class"]);
+const forwarded = reactiveOmit(props, ["class"])
 </script>

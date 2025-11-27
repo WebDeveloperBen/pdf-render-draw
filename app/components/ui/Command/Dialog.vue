@@ -15,38 +15,38 @@
 </template>
 
 <script lang="ts" setup>
-  import { useForwardPropsEmits } from "reka-ui";
-  import type { DialogRootEmits, DialogRootProps } from "reka-ui";
+import { useForwardPropsEmits } from "reka-ui"
+import type { DialogRootEmits, DialogRootProps } from "reka-ui"
 
-  const props = withDefaults(
-    defineProps<
-      DialogRootProps & {
-        /**
-         * The title of the command dialog.
-         *
-         * @default "Command Palette"
-         */
-        title?: string;
-        /**
-         * The description of the command dialog.
-         *
-         * @default "Search for a command to run...".
-         */
-        description?: string;
-        /**
-         * Whether to show the close button in the dialog header.
-         *
-         * @default true
-         */
-        showCloseButton?: boolean;
-      }
-    >(),
-    {
-      title: "Command Palette",
-      description: "Search for a command to run...",
+const props = withDefaults(
+  defineProps<
+    DialogRootProps & {
+      /**
+       * The title of the command dialog.
+       *
+       * @default "Command Palette"
+       */
+      title?: string
+      /**
+       * The description of the command dialog.
+       *
+       * @default "Search for a command to run...".
+       */
+      description?: string
+      /**
+       * Whether to show the close button in the dialog header.
+       *
+       * @default true
+       */
+      showCloseButton?: boolean
     }
-  );
-  const emits = defineEmits<DialogRootEmits>();
+  >(),
+  {
+    title: "Command Palette",
+    description: "Search for a command to run..."
+  }
+)
+const emits = defineEmits<DialogRootEmits>()
 
-  const forwarded = useForwardPropsEmits(props, emits);
+const forwarded = useForwardPropsEmits(props, emits)
 </script>

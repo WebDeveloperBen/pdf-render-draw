@@ -17,7 +17,7 @@ export function useRotatedPdfCorners() {
     if (!width || !height) return []
 
     // Get the canvas element's actual transformed position
-    const canvas = document.querySelector('.pdf-canvas') as HTMLCanvasElement
+    const canvas = document.querySelector(".pdf-canvas") as HTMLCanvasElement
     if (!canvas) return []
 
     const rect = canvas.getBoundingClientRect()
@@ -34,10 +34,10 @@ export function useRotatedPdfCorners() {
 
     // Calculate corners relative to center, accounting for rotation
     const corners = [
-      { dx: -halfWidth, dy: -halfHeight },  // top-left
-      { dx: halfWidth, dy: -halfHeight },   // top-right
-      { dx: halfWidth, dy: halfHeight },    // bottom-right
-      { dx: -halfWidth, dy: halfHeight },   // bottom-left
+      { dx: -halfWidth, dy: -halfHeight }, // top-left
+      { dx: halfWidth, dy: -halfHeight }, // top-right
+      { dx: halfWidth, dy: halfHeight }, // bottom-right
+      { dx: -halfWidth, dy: halfHeight } // bottom-left
     ]
 
     return corners.map(({ dx, dy }) => {
@@ -59,7 +59,7 @@ export function useRotatedPdfCorners() {
     void viewportStore.canvasPos.scrollLeft
     void viewportStore.canvasPos.scrollTop
 
-    const canvas = document.querySelector('.pdf-canvas') as HTMLCanvasElement
+    const canvas = document.querySelector(".pdf-canvas") as HTMLCanvasElement
     if (!canvas) return { x: 0, y: 0 }
 
     const rect = canvas.getBoundingClientRect()

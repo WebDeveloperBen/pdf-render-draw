@@ -3,7 +3,7 @@ import type {
   DocumentInitParameters,
   OnProgressParameters,
   PDFDataRangeTransport,
-  TypedArray,
+  TypedArray
 } from "pdfjs-dist/types/src/display/api"
 import type { Metadata } from "pdfjs-dist/types/src/display/metadata"
 
@@ -27,14 +27,7 @@ export type UpdatePasswordFn = (newPassword: string) => void
 export type OnPasswordCallback = (updatePassword: UpdatePasswordFn, reason: unknown) => void
 export type OnErrorCallback = (error: unknown) => void
 
-export type UsePDFSrc =
-  | string
-  | URL
-  | TypedArray
-  | PDFDataRangeTransport
-  | DocumentInitParameters
-  | undefined
-  | null
+export type UsePDFSrc = string | URL | TypedArray | PDFDataRangeTransport | DocumentInitParameters | undefined | null
 
 export interface UsePDFOptions {
   onProgress?: OnProgressCallback

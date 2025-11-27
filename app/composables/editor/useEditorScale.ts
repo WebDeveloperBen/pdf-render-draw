@@ -237,12 +237,15 @@ export const useEditorScale = createSharedComposable(() => {
         const newCenterY = centerY + offsetY * scaleY
 
         // Update positioned annotation
-        annotationStore.updateAnnotation(annotation.id, Object.assign({
-          width: scaledWidth,
-          height: scaledHeight,
-          x: newCenterX - scaledWidth / 2,
-          y: newCenterY - scaledHeight / 2
-        }))
+        annotationStore.updateAnnotation(
+          annotation.id,
+          Object.assign({
+            width: scaledWidth,
+            height: scaledHeight,
+            x: newCenterX - scaledWidth / 2,
+            y: newCenterY - scaledHeight / 2
+          })
+        )
       }
     }
 

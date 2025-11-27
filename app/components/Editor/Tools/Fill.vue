@@ -9,14 +9,14 @@
 
 export const FILL_TOOL_DEFAULTS = {
   // Default fill appearance
-  color: '#3b82f6',
+  color: "#3b82f6",
   opacity: 0.3,
 
   // Preview styling (while drawing)
   preview: {
     fillOpacity: 0.3,
     strokeWidth: 2,
-    strokeDashArray: '5,5',
+    strokeDashArray: "5,5",
     opacity: 0.7
   },
 
@@ -114,6 +114,6 @@ const {
 }
 
 .preview-rect {
-  opacity: v-bind('config.preview.opacity');
+  opacity: v-bind("config.preview.opacity");
 }
 </style>

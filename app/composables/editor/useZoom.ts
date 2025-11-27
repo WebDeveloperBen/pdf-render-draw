@@ -5,7 +5,7 @@
  * Provides cursor-aware zooming for better UX.
  */
 
-import { RENDERING } from '@/constants/rendering'
+import { RENDERING } from "@/constants/rendering"
 
 export function useZoom() {
   const viewportStore = useViewportStore()
@@ -38,7 +38,7 @@ export function useZoom() {
       // Trackpad: smooth, granular zoom
       // Use a percentage of deltaY for fine control
       const sensitivity = 0.003 // Increased from 0.001 for faster zoom (0.003 = 0.3% per deltaY unit)
-      const zoomFactor = 1 - (e.deltaY * sensitivity)
+      const zoomFactor = 1 - e.deltaY * sensitivity
       newScale = viewportStore.getScale * zoomFactor
     } else {
       // Mouse wheel: discrete zoom steps

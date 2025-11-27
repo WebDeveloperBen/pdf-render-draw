@@ -9,11 +9,11 @@
 
 export const AREA_TOOL_DEFAULTS = {
   // Tool styling
-  fillColor: '#f05a24',
-  strokeColor: '#f05a24',
+  fillColor: "#f05a24",
+  strokeColor: "#f05a24",
   strokeWidth: 1,
   opacity: 0.2,
-  labelColor: 'black',
+  labelColor: "black",
   labelSize: 10,
 
   // Label background styling

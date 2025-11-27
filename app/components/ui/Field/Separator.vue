@@ -15,17 +15,17 @@
   </div>
 </template>
 <script lang="ts">
-  import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes } from "vue"
 
-  export const fieldSeparatorStyles = tv({
-    base: ["relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2"],
-  });
+export const fieldSeparatorStyles = tv({
+  base: ["relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2"]
+})
 </script>
 <script lang="ts" setup>
-  const props = defineProps<{
-    /**
-     * Additional classes to apply to the element.
-     */
-    class?: HTMLAttributes["class"];
-  }>();
+const props = defineProps<{
+  /**
+   * Additional classes to apply to the element.
+   */
+  class?: HTMLAttributes["class"]
+}>()
 </script>

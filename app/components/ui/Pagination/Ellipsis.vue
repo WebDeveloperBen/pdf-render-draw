@@ -9,15 +9,15 @@
 </template>
 
 <script lang="ts" setup>
-  import { reactiveOmit } from "@vueuse/core";
-  import { PaginationEllipsis } from "reka-ui";
-  import type { PaginationEllipsisProps } from "reka-ui";
+import { reactiveOmit } from "@vueuse/core"
+import { PaginationEllipsis } from "reka-ui"
+import type { PaginationEllipsisProps } from "reka-ui"
 
-  const props = defineProps<
-    PaginationEllipsisProps & {
-      /** Icon to show */
-      icon?: string;
-    }
-  >();
-  const forwarded = reactiveOmit(props, "icon");
+const props = defineProps<
+  PaginationEllipsisProps & {
+    /** Icon to show */
+    icon?: string
+  }
+>()
+const forwarded = reactiveOmit(props, "icon")
 </script>

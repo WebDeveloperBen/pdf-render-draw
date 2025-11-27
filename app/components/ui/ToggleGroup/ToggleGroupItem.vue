@@ -11,24 +11,24 @@
 </template>
 
 <script lang="ts" setup>
-  import { ToggleGroupItem, useForwardProps } from "reka-ui";
-  import type { ToggleGroupItemProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { ToggleGroupItem, useForwardProps } from "reka-ui"
+import type { ToggleGroupItemProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  import { toggleStyles } from "../Toggle.vue";
+import { toggleStyles } from "../Toggle.vue"
 
-  const props = defineProps<
-    ToggleGroupItemProps & {
-      /** custom class to add to the toggle */
-      class?: HTMLAttributes["class"];
-      /** icon to display */
-      icon?: string;
-      /** variant of the toggle */
-      variant?: VariantProps<typeof toggleStyles>["variant"];
-      /** size of the toggle */
-      size?: VariantProps<typeof toggleStyles>["size"];
-    }
-  >();
+const props = defineProps<
+  ToggleGroupItemProps & {
+    /** custom class to add to the toggle */
+    class?: HTMLAttributes["class"]
+    /** icon to display */
+    icon?: string
+    /** variant of the toggle */
+    variant?: VariantProps<typeof toggleStyles>["variant"]
+    /** size of the toggle */
+    size?: VariantProps<typeof toggleStyles>["size"]
+  }
+>()
 
-  const forwarded = useForwardProps(reactiveOmit(props, "class", "icon", "variant", "size"));
+const forwarded = useForwardProps(reactiveOmit(props, "class", "icon", "variant", "size"))
 </script>

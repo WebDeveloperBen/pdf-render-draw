@@ -3,13 +3,13 @@
 </template>
 
 <script lang="ts" setup>
-  import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<{
-    /** Custom class(es) to add to the element */
-    class?: HTMLAttributes["class"];
-  }>();
-  const forwarded = reactiveOmit(props, "class");
+const props = defineProps<{
+  /** Custom class(es) to add to the element */
+  class?: HTMLAttributes["class"]
+}>()
+const forwarded = reactiveOmit(props, "class")
 
-  const styles = tv({ base: "h-5" });
+const styles = tv({ base: "h-5" })
 </script>

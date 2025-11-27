@@ -69,7 +69,7 @@ export const useViewportStore = defineStore("viewport", () => {
    *
    * Example: PDF rotated 90° → labels rotate -90° to stay upright
    */
-  const getViewportLabelRotation = computed(() => rotation.value === 0 ? 0 : -rotation.value)
+  const getViewportLabelRotation = computed(() => (rotation.value === 0 ? 0 : -rotation.value))
 
   const getCanvasPos = computed(() => canvasPos.value)
   const getPdfPosition = computed(() => {
@@ -87,8 +87,9 @@ export const useViewportStore = defineStore("viewport", () => {
   const getPdfInitialised = computed(() => pdfInitialised.value)
 
   // Transform getters - single source of truth for rotation/scale/position
-  const getCanvasTransform = computed(() =>
-    `translate(${canvasPos.value.scrollLeft}px, ${canvasPos.value.scrollTop}px) scale(${scale.value}) rotate(${rotation.value}deg)`
+  const getCanvasTransform = computed(
+    () =>
+      `translate(${canvasPos.value.scrollLeft}px, ${canvasPos.value.scrollTop}px) scale(${scale.value}) rotate(${rotation.value}deg)`
   )
 
   const getSvgTransform = (offsetX: number = 0, offsetY: number = 0) =>
@@ -103,7 +104,7 @@ export const useViewportStore = defineStore("viewport", () => {
    * @param newScale - The new scale value
    */
   const setScale = (newScale: number) => {
-    if (!validateNumber(newScale, 'scale')) return
+    if (!validateNumber(newScale, "scale")) return
     // Clamp scale between min and max
     scale.value = clamp(newScale, RENDERING.MIN_SCALE, RENDERING.MAX_SCALE)
   }
@@ -159,7 +160,7 @@ export const useViewportStore = defineStore("viewport", () => {
    * @param deg - Rotation in degrees
    */
   const setRotation = (deg: number) => {
-    if (!validateNumber(deg, 'rotation')) return
+    if (!validateNumber(deg, "rotation")) return
     // Normalize to 0-360 range
     rotation.value = normalizeAngle(deg)
   }
@@ -188,7 +189,7 @@ export const useViewportStore = defineStore("viewport", () => {
    * @param pos - Object containing scrollTop and scrollLeft
    */
   const setCanvasPos = (pos: { scrollTop: number; scrollLeft: number }) => {
-    if (!validateNumericProperties(pos, ['scrollTop', 'scrollLeft'], 'canvas position')) return
+    if (!validateNumericProperties(pos, ["scrollTop", "scrollLeft"], "canvas position")) return
     canvasPos.value = pos
   }
   const setDocumentProxy = (doc: PDFDocumentProxy | undefined) => (DocumentProxy.value = doc)
@@ -199,9 +200,9 @@ export const useViewportStore = defineStore("viewport", () => {
    * @param size - Object containing width and height
    */
   const setCanvasSize = (size: { width: number; height: number }) => {
-    if (!validateNumericProperties(size, ['width', 'height'], 'canvas size')) return
+    if (!validateNumericProperties(size, ["width", "height"], "canvas size")) return
     if (size.width < 0 || size.height < 0) {
-      console.warn('Invalid canvas size:', size)
+      console.warn("Invalid canvas size:", size)
       return
     }
     pdfCanvasSize.value = size
@@ -211,9 +212,9 @@ export const useViewportStore = defineStore("viewport", () => {
    * @param page - Page number (1-indexed)
    */
   const setCurrentPage = (page: number) => {
-    if (!validateInteger(page, 'page number')) return
+    if (!validateInteger(page, "page number")) return
     if (page < 1) {
-      console.warn('Invalid page number:', page)
+      console.warn("Invalid page number:", page)
       return
     }
     if (totalPages.value > 0 && page > totalPages.value) {
@@ -352,7 +353,7 @@ export const useViewportStore = defineStore("viewport", () => {
     getLoadingProgress,
     loadError,
     getLoadError,
-    isPdfLoaded,
+    isPdfLoaded
   }
 })
 if (import.meta.hot) {

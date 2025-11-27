@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { CollapsibleTrigger, useForwardProps } from "reka-ui";
-  import type { CollapsibleTriggerProps } from "reka-ui";
+import { CollapsibleTrigger, useForwardProps } from "reka-ui"
+import type { CollapsibleTriggerProps } from "reka-ui"
 
-  const props = defineProps<CollapsibleTriggerProps>();
-  const forwarded = useForwardProps(props);
+const props = defineProps<CollapsibleTriggerProps>()
+const forwarded = useForwardProps(props)
 </script>

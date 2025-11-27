@@ -1,36 +1,32 @@
 <template>
-  <Primitive
-    data-slot="item-description"
-    v-bind="forwarded"
-    :class="itemDescriptionStyles({ class: props.class })"
-  >
+  <Primitive data-slot="item-description" v-bind="forwarded" :class="itemDescriptionStyles({ class: props.class })">
     <slot />
   </Primitive>
 </template>
 
 <script lang="ts">
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  export const itemDescriptionStyles = tv({
-    base: [
-      "line-clamp-2 text-sm leading-normal font-normal text-balance text-muted-foreground",
-      "[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
-    ],
-  });
+export const itemDescriptionStyles = tv({
+  base: [
+    "line-clamp-2 text-sm leading-normal font-normal text-balance text-muted-foreground",
+    "[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary"
+  ]
+})
 
-  export type ItemDescriptionProps = PrimitiveProps & {
-    /**
-     * Additional classes to apply to the parent element.
-     */
-    class?: HTMLAttributes["class"];
-  };
+export type ItemDescriptionProps = PrimitiveProps & {
+  /**
+   * Additional classes to apply to the parent element.
+   */
+  class?: HTMLAttributes["class"]
+}
 </script>
 
 <script lang="ts" setup>
-  const props = withDefaults(defineProps<ItemDescriptionProps>(), {
-    as: "p",
-  });
+const props = withDefaults(defineProps<ItemDescriptionProps>(), {
+  as: "p"
+})
 
-  const forwarded = reactiveOmit(props, ["class"]);
+const forwarded = reactiveOmit(props, ["class"])
 </script>

@@ -26,10 +26,7 @@ const id = useId()
 <template>
   <svg
     aria-hidden="true"
-    :class="[
-      'pointer-events-none absolute inset-0 h-full w-full fill-gray-400/30 stroke-gray-400/30',
-      props.class
-    ]"
+    :class="['pointer-events-none absolute inset-0 h-full w-full fill-gray-400/30 stroke-gray-400/30', props.class]"
     v-bind="$attrs"
   >
     <defs>
@@ -41,11 +38,7 @@ const id = useId()
         :x="props.x"
         :y="props.y"
       >
-        <path
-          :d="`M.5 ${props.height}V.5H${props.width}`"
-          fill="none"
-          :stroke-dasharray="props.strokeDasharray"
-        />
+        <path :d="`M.5 ${props.height}V.5H${props.width}`" fill="none" :stroke-dasharray="props.strokeDasharray" />
       </pattern>
     </defs>
     <rect width="100%" height="100%" stroke-width="0" :fill="`url(#${id})`" />

@@ -7,24 +7,24 @@
 </template>
 
 <script lang="ts" setup>
-  import { DrawerTitle } from "vaul-vue";
-  import type { DrawerTitleProps } from "vaul-vue";
-  import type { HTMLAttributes } from "vue";
+import { DrawerTitle } from "vaul-vue"
+import type { DrawerTitleProps } from "vaul-vue"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    DrawerTitleProps & {
-      /**
-       * Custom class(es) to add to the parent.
-       */
-      class?: HTMLAttributes["class"];
-      /**
-       * The text content of the title.
-       */
-      text?: string;
-    }
-  >();
+const props = defineProps<
+  DrawerTitleProps & {
+    /**
+     * Custom class(es) to add to the parent.
+     */
+    class?: HTMLAttributes["class"]
+    /**
+     * The text content of the title.
+     */
+    text?: string
+  }
+>()
 
-  const styles = tv({
-    base: "text-lg leading-none font-semibold tracking-tight",
-  });
+const styles = tv({
+  base: "text-lg leading-none font-semibold tracking-tight"
+})
 </script>

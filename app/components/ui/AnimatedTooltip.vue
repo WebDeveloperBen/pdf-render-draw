@@ -13,26 +13,26 @@
       :initial="{
         opacity: 0,
         y: 20,
-        scale: 0.6,
+        scale: 0.6
       }"
       :animate="{
         opacity: 1,
         y: 0,
-        scale: 1,
+        scale: 1
       }"
       :transition="{
         type: 'spring',
         stiffness: 260,
-        damping: 10,
+        damping: 10
       }"
       :exit="{
         opacity: 0,
         y: 20,
-        scale: 0.6,
+        scale: 0.6
       }"
       :style="{
         translateX: `${translation}px`,
-        rotate: `${rotation}deg`,
+        rotate: `${rotation}deg`
       }"
       class="absolute -top-16 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs whitespace-nowrap shadow-xl"
     >
@@ -58,52 +58,52 @@
 </template>
 
 <script setup lang="ts">
-  import { Motion } from "motion-v";
+import { Motion } from "motion-v"
 
-  interface Item {
-    id?: string;
-    title: string;
-    description?: string;
-    image: string;
-  }
+interface Item {
+  id?: string
+  title: string
+  description?: string
+  image: string
+}
 
-  const props = defineProps<{
-    items: Item[];
-  }>();
+const props = defineProps<{
+  items: Item[]
+}>()
 
-  // create ids for items
-  const constructedItems = props.items.map((item) => ({
-    ...item,
-    id: item.id || useId(),
-  }));
+// create ids for items
+const constructedItems = props.items.map((item) => ({
+  ...item,
+  id: item.id || useId()
+}))
 
-  const hoveredIndex = ref<string | null>(null);
-  const mouseX = ref<number>(0);
+const hoveredIndex = ref<string | null>(null)
+const mouseX = ref<number>(0)
 
-  // Calculate rotation and translation based on mouse position
-  const rotation = computed<number>(() => {
-    const x = mouseX.value;
-    return (x / 100) * 50;
-  });
+// Calculate rotation and translation based on mouse position
+const rotation = computed<number>(() => {
+  const x = mouseX.value
+  return (x / 100) * 50
+})
 
-  const translation = computed<number>(() => {
-    const x = mouseX.value;
-    return (x / 100) * 50;
-  });
+const translation = computed<number>(() => {
+  const x = mouseX.value
+  return (x / 100) * 50
+})
 
-  // Handle initial mouse position and hover
-  function handleMouseEnter(event: MouseEvent, itemId: string) {
-    hoveredIndex.value = itemId;
-    // Calculate initial position immediately
-    const rect = (event.target as HTMLElement)?.getBoundingClientRect();
-    const halfWidth = rect.width / 2;
-    mouseX.value = event.clientX - rect.left - halfWidth;
-  }
+// Handle initial mouse position and hover
+function handleMouseEnter(event: MouseEvent, itemId: string) {
+  hoveredIndex.value = itemId
+  // Calculate initial position immediately
+  const rect = (event.target as HTMLElement)?.getBoundingClientRect()
+  const halfWidth = rect.width / 2
+  mouseX.value = event.clientX - rect.left - halfWidth
+}
 
-  // Handle mouse movement
-  function handleMouseMove(event: MouseEvent) {
-    const rect = (event.target as HTMLElement)?.getBoundingClientRect();
-    const halfWidth = rect.width / 2;
-    mouseX.value = event.clientX - rect.left - halfWidth;
-  }
+// Handle mouse movement
+function handleMouseMove(event: MouseEvent) {
+  const rect = (event.target as HTMLElement)?.getBoundingClientRect()
+  const halfWidth = rect.width / 2
+  mouseX.value = event.clientX - rect.left - halfWidth
+}
 </script>

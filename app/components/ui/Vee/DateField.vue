@@ -40,35 +40,35 @@
 </template>
 
 <script lang="ts" setup>
-  import { AnimatePresence, motion } from "motion-v";
-  import type { DateFieldRootProps } from "reka-ui";
+import { AnimatePresence, motion } from "motion-v"
+import type { DateFieldRootProps } from "reka-ui"
 
-  const variants = {
-    initial: { opacity: 0, y: -2 },
-    animate: { opacity: 1, y: 0 },
-  };
+const variants = {
+  initial: { opacity: 0, y: -2 },
+  animate: { opacity: 1, y: 0 }
+}
 
-  const props = defineProps<
-    DateFieldRootProps & {
-      label?: string;
-      labelHint?: string;
-      hint?: string;
-      modelValue?: string;
-      name?: string;
+const props = defineProps<
+  DateFieldRootProps & {
+    label?: string
+    labelHint?: string
+    hint?: string
+    modelValue?: string
+    name?: string
 
-      rules?: any;
-      validateOnMount?: boolean;
-      separator?: string;
-      separatorIcon?: string;
-    }
-  >();
+    rules?: any
+    validateOnMount?: boolean
+    separator?: string
+    separatorIcon?: string
+  }
+>()
 
-  const inputId = props.id || useId();
+const inputId = props.id || useId()
 
-  const { errorMessage, value } = useField(() => props.name || inputId, props.rules, {
-    initialValue: props.modelValue,
-    label: props.label,
-    validateOnMount: props.validateOnMount,
-    syncVModel: true,
-  });
+const { errorMessage, value } = useField(() => props.name || inputId, props.rules, {
+  initialValue: props.modelValue,
+  label: props.label,
+  validateOnMount: props.validateOnMount,
+  syncVModel: true
+})
 </script>

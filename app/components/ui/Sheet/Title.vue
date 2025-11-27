@@ -5,20 +5,20 @@
 </template>
 
 <script lang="ts" setup>
-  import { DialogTitle } from "reka-ui";
-  import type { DialogTitleProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { DialogTitle } from "reka-ui"
+import type { DialogTitleProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    DialogTitleProps & {
-      /** Custom class(es) to add to parent element */
-      class?: HTMLAttributes["class"];
-      /** Title text */
-      title?: string;
-    }
-  >();
-  const forwarded = reactiveOmit(props, "class", "title");
-  const styles = tv({
-    base: "font-semibold text-foreground",
-  });
+const props = defineProps<
+  DialogTitleProps & {
+    /** Custom class(es) to add to parent element */
+    class?: HTMLAttributes["class"]
+    /** Title text */
+    title?: string
+  }
+>()
+const forwarded = reactiveOmit(props, "class", "title")
+const styles = tv({
+  base: "font-semibold text-foreground"
+})
 </script>

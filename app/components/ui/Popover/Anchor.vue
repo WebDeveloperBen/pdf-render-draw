@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { PopoverAnchor, useForwardProps } from "reka-ui";
-  import type { PopoverAnchorProps } from "reka-ui";
+import { PopoverAnchor, useForwardProps } from "reka-ui"
+import type { PopoverAnchorProps } from "reka-ui"
 
-  const props = defineProps<PopoverAnchorProps>();
-  const forwarded = useForwardProps(props);
+const props = defineProps<PopoverAnchorProps>()
+const forwarded = useForwardProps(props)
 </script>

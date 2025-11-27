@@ -8,26 +8,26 @@
 </template>
 
 <script lang="ts" setup>
-  import { PopoverClose, useForwardProps } from "reka-ui";
-  import type { PopoverCloseProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { PopoverClose, useForwardProps } from "reka-ui"
+import type { PopoverCloseProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<
-      PopoverCloseProps & {
-        class?: HTMLAttributes["class"];
-        icon?: string;
-        srText?: string;
-      }
-    >(),
-    {
-      icon: "heroicons:x-mark",
-      srText: "Close",
+const props = withDefaults(
+  defineProps<
+    PopoverCloseProps & {
+      class?: HTMLAttributes["class"]
+      icon?: string
+      srText?: string
     }
-  );
-  const forwarded = useForwardProps(reactiveOmit(props, "icon", "srText", "class"));
+  >(),
+  {
+    icon: "heroicons:x-mark",
+    srText: "Close"
+  }
+)
+const forwarded = useForwardProps(reactiveOmit(props, "icon", "srText", "class"))
 
-  const styles = tv({
-    base: "absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
-  });
+const styles = tv({
+  base: "absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+})
 </script>

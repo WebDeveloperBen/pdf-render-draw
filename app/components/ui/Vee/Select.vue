@@ -55,35 +55,35 @@
 </template>
 
 <script lang="ts" setup>
-  import { AnimatePresence, motion } from "motion-v";
+import { AnimatePresence, motion } from "motion-v"
 
-  const variants = {
-    initial: { opacity: 0, y: -2 },
-    animate: { opacity: 1, y: 0 },
-  };
+const variants = {
+  initial: { opacity: 0, y: -2 },
+  animate: { opacity: 1, y: 0 }
+}
 
-  const props = defineProps<{
-    label?: string;
-    icon?: string;
-    hint?: string;
-    modelValue?: string;
-    name?: string;
-    id?: string;
-    rules?: any;
-    validateOnMount?: boolean;
-    type?: string;
-    trailingIcon?: string;
-    required?: boolean;
-  }>();
+const props = defineProps<{
+  label?: string
+  icon?: string
+  hint?: string
+  modelValue?: string
+  name?: string
+  id?: string
+  rules?: any
+  validateOnMount?: boolean
+  type?: string
+  trailingIcon?: string
+  required?: boolean
+}>()
 
-  const inputId = props.id || useId();
+const inputId = props.id || useId()
 
-  const hasIcon = computed(() => Boolean(props.icon) || Boolean(useSlots().icon));
+const hasIcon = computed(() => Boolean(props.icon) || Boolean(useSlots().icon))
 
-  const { errorMessage, value, handleBlur } = useField(() => props.name || inputId, props.rules, {
-    initialValue: props.modelValue,
-    label: props.label,
-    validateOnMount: props.validateOnMount,
-    syncVModel: true,
-  });
+const { errorMessage, value, handleBlur } = useField(() => props.name || inputId, props.rules, {
+  initialValue: props.modelValue,
+  label: props.label,
+  validateOnMount: props.validateOnMount,
+  syncVModel: true
+})
 </script>

@@ -9,22 +9,22 @@
   </motion.div>
 </template>
 <script lang="ts">
-  import { motion } from "motion-v";
-  import type { MotionProps } from "motion-v";
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { motion } from "motion-v"
+import type { MotionProps } from "motion-v"
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  export interface AnimatedSpanProps extends Omit<MotionProps, "as" | "asChild">, PrimitiveProps {
-    class?: HTMLAttributes["class"];
-    delay?: number;
-  }
+export interface AnimatedSpanProps extends Omit<MotionProps, "as" | "asChild">, PrimitiveProps {
+  class?: HTMLAttributes["class"]
+  delay?: number
+}
 
-  const styles = tv({ base: "grid text-sm font-normal tracking-tight" });
+const styles = tv({ base: "grid text-sm font-normal tracking-tight" })
 </script>
 
 <script lang="ts" setup>
-  const props = withDefaults(defineProps<AnimatedSpanProps>(), {
-    delay: 0,
-    as: "span",
-  });
+const props = withDefaults(defineProps<AnimatedSpanProps>(), {
+  delay: 0,
+  as: "span"
+})
 </script>

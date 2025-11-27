@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { Primitive } from "reka-ui";
-  import type { PrimitiveProps } from "reka-ui";
+import { Primitive } from "reka-ui"
+import type { PrimitiveProps } from "reka-ui"
 
-  defineProps<PrimitiveProps>();
+defineProps<PrimitiveProps>()
 </script>

@@ -157,6 +157,17 @@ export default defineNuxtConfig({
         }
       ]
     }
+  },
+
+  nitro: {
+    openAPI: {
+      route: "/_docs/openapi.json",
+      production: false,
+      meta: { title: "MetreMate API Documentation" },
+      ui: { scalar: { theme: "purple", route: "/docs" } }
+    },
+    experimental: {
+      openAPI: true
+    }
   }
 })
-

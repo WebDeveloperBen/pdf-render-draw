@@ -40,40 +40,40 @@
 </template>
 
 <script lang="ts" setup>
-  import { AnimatePresence, motion } from "motion-v";
-  import { useForwardProps } from "reka-ui";
-  import type { RadioGroupRootProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { AnimatePresence, motion } from "motion-v"
+import { useForwardProps } from "reka-ui"
+import type { RadioGroupRootProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const variants = {
-    initial: { opacity: 0, y: -2 },
-    animate: { opacity: 1, y: 0 },
-  };
+const variants = {
+  initial: { opacity: 0, y: -2 },
+  animate: { opacity: 1, y: 0 }
+}
 
-  const props = defineProps<
-    RadioGroupRootProps & {
-      label?: string;
-      hint?: string;
-      id?: string;
-      rules?: any;
-      validateOnMount?: boolean;
-      class?: HTMLAttributes["class"];
-      name: string;
-    }
-  >();
+const props = defineProps<
+  RadioGroupRootProps & {
+    label?: string
+    hint?: string
+    id?: string
+    rules?: any
+    validateOnMount?: boolean
+    class?: HTMLAttributes["class"]
+    name: string
+  }
+>()
 
-  const forwarded = useForwardProps(props);
-  const styles = tv({
-    base: "flex flex-col",
-  });
+const forwarded = useForwardProps(props)
+const styles = tv({
+  base: "flex flex-col"
+})
 
-  defineOptions({ inheritAttrs: false });
+defineOptions({ inheritAttrs: false })
 
-  const { errorMessage, value } = useField(() => props.name, props.rules, {
-    initialValue: props.modelValue,
-    label: props.label,
-    validateOnMount: props.validateOnMount,
-    type: "radio",
-    syncVModel: true,
-  });
+const { errorMessage, value } = useField(() => props.name, props.rules, {
+  initialValue: props.modelValue,
+  label: props.label,
+  validateOnMount: props.validateOnMount,
+  type: "radio",
+  syncVModel: true
+})
 </script>

@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { HoverCardPortal } from "reka-ui";
-  import type { HoverCardPortalProps } from "reka-ui";
+import { HoverCardPortal } from "reka-ui"
+import type { HoverCardPortalProps } from "reka-ui"
 
-  const props = defineProps<HoverCardPortalProps>();
+const props = defineProps<HoverCardPortalProps>()
 </script>

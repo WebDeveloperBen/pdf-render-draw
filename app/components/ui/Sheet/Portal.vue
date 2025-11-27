@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { DialogPortal } from "reka-ui";
-  import type { DialogPortalProps } from "reka-ui";
+import { DialogPortal } from "reka-ui"
+import type { DialogPortalProps } from "reka-ui"
 
-  const props = defineProps<DialogPortalProps>();
+const props = defineProps<DialogPortalProps>()
 </script>

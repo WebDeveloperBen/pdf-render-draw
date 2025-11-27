@@ -13,12 +13,7 @@
           <path d="M-3 13 15-5M-5 5l18-18M-1 21 17 3" />
         </pattern>
       </defs>
-      <rect
-        stroke="none"
-        fill="url(#pattern-5c1e4f0e-62d5-498b-8ff0-cf77bb448c8e)"
-        width="100%"
-        height="100%"
-      />
+      <rect stroke="none" fill="url(#pattern-5c1e4f0e-62d5-498b-8ff0-cf77bb448c8e)" width="100%" height="100%" />
     </svg>
 
     <slot />
@@ -26,26 +21,26 @@
 </template>
 
 <script lang="ts">
-  import { Primitive } from "reka-ui";
-  import type { PrimitiveProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { Primitive } from "reka-ui"
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  export const placeHolderStyles = tv({
-    slots: {
-      wrapper:
-        "relative flex items-center justify-center overflow-hidden rounded-md border border-dashed px-4 opacity-75",
-      svg: "absolute inset-0 size-full stroke-foreground/10",
-    },
-  });
+export const placeHolderStyles = tv({
+  slots: {
+    wrapper:
+      "relative flex items-center justify-center overflow-hidden rounded-md border border-dashed px-4 opacity-75",
+    svg: "absolute inset-0 size-full stroke-foreground/10"
+  }
+})
 </script>
 
 <script lang="ts" setup>
-  const props = defineProps<
-    PrimitiveProps & {
-      /**
-       * Additional classes to add to the parent element.
-       */
-      class?: HTMLAttributes["class"];
-    }
-  >();
+const props = defineProps<
+  PrimitiveProps & {
+    /**
+     * Additional classes to add to the parent element.
+     */
+    class?: HTMLAttributes["class"]
+  }
+>()
 </script>

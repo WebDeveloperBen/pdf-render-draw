@@ -39,58 +39,58 @@
 </template>
 
 <script lang="ts" setup>
-  import { SliderRoot, useForwardPropsEmits } from "reka-ui";
-  import type { SliderRootEmits, SliderRootProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { SliderRoot, useForwardPropsEmits } from "reka-ui"
+import type { SliderRootEmits, SliderRootProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<
-      SliderRootProps & {
-        /** Custom class(es) to add to parent element */
-        class?: HTMLAttributes["class"];
-        showTooltip?: boolean;
-      }
-    >(),
-    {
-      orientation: "horizontal",
-      min: 0,
-      step: 1,
-      max: 100,
-      modelValue: () => [0],
-      minStepsBetweenThumbs: 1,
+const props = withDefaults(
+  defineProps<
+    SliderRootProps & {
+      /** Custom class(es) to add to parent element */
+      class?: HTMLAttributes["class"]
+      showTooltip?: boolean
     }
-  );
+  >(),
+  {
+    orientation: "horizontal",
+    min: 0,
+    step: 1,
+    max: 100,
+    modelValue: () => [0],
+    minStepsBetweenThumbs: 1
+  }
+)
 
-  const emits = defineEmits<SliderRootEmits>();
-  const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"), emits);
+const emits = defineEmits<SliderRootEmits>()
+const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"), emits)
 
-  const styles = tv({
-    base: "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
-  });
+const styles = tv({
+  base: "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col"
+})
 
-  const showTooltipState = ref(false);
+const showTooltipState = ref(false)
 
-  const handlePointerDown = () => {
-    if (props.showTooltip) {
-      showTooltipState.value = true;
-    }
-  };
+const handlePointerDown = () => {
+  if (props.showTooltip) {
+    showTooltipState.value = true
+  }
+}
 
-  const handlePointerUp = () => {
-    if (props.showTooltip) {
-      showTooltipState.value = false;
-    }
-  };
+const handlePointerUp = () => {
+  if (props.showTooltip) {
+    showTooltipState.value = false
+  }
+}
 
-  onMounted(() => {
-    if (props.showTooltip) {
-      document.addEventListener("pointerup", handlePointerUp);
-    }
-  });
+onMounted(() => {
+  if (props.showTooltip) {
+    document.addEventListener("pointerup", handlePointerUp)
+  }
+})
 
-  onUnmounted(() => {
-    if (props.showTooltip) {
-      document.removeEventListener("pointerup", handlePointerUp);
-    }
-  });
+onUnmounted(() => {
+  if (props.showTooltip) {
+    document.removeEventListener("pointerup", handlePointerUp)
+  }
+})
 </script>

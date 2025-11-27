@@ -35,24 +35,21 @@
 </template>
 
 <script lang="ts" setup>
-  import { AlertDialogRoot, useForwardPropsEmits } from "reka-ui";
-  import type { AlertDialogEmits, AlertDialogProps } from "reka-ui";
+import { AlertDialogRoot, useForwardPropsEmits } from "reka-ui"
+import type { AlertDialogEmits, AlertDialogProps } from "reka-ui"
 
-  const props = defineProps<
-    AlertDialogProps & {
-      /** Text to display in the trigger button */
-      triggerText?: string;
-      /** Text to be passed to the `AlertDialogTitle` */
-      title?: string;
-      /** Text to be passed to the `AlertDialogDescription` */
-      description?: string;
-    }
-  >();
+const props = defineProps<
+  AlertDialogProps & {
+    /** Text to display in the trigger button */
+    triggerText?: string
+    /** Text to be passed to the `AlertDialogTitle` */
+    title?: string
+    /** Text to be passed to the `AlertDialogDescription` */
+    description?: string
+  }
+>()
 
-  const emits = defineEmits<AlertDialogEmits>();
+const emits = defineEmits<AlertDialogEmits>()
 
-  const forwarded = useForwardPropsEmits(
-    reactiveOmit(props, "description", "title", "triggerText"),
-    emits
-  );
+const forwarded = useForwardPropsEmits(reactiveOmit(props, "description", "title", "triggerText"), emits)
 </script>

@@ -1,31 +1,27 @@
 <template>
-  <MenubarLabel
-    data-slot="menubar-label"
-    :class="styles({ inset, class: props.class })"
-    v-bind="forwarded"
-  >
+  <MenubarLabel data-slot="menubar-label" :class="styles({ inset, class: props.class })" v-bind="forwarded">
     <slot />
   </MenubarLabel>
 </template>
 
 <script lang="ts" setup>
-  import { MenubarLabel } from "reka-ui";
-  import type { MenubarLabelProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { MenubarLabel } from "reka-ui"
+import type { MenubarLabelProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    MenubarLabelProps & {
-      class?: HTMLAttributes["class"];
-      inset?: boolean;
+const props = defineProps<
+  MenubarLabelProps & {
+    class?: HTMLAttributes["class"]
+    inset?: boolean
+  }
+>()
+const forwarded = reactiveOmit(props, "class", "inset")
+const styles = tv({
+  base: "px-2 py-1.5 text-sm font-medium data-[inset=true]:pl-8",
+  variants: {
+    inset: {
+      true: "pl-8"
     }
-  >();
-  const forwarded = reactiveOmit(props, "class", "inset");
-  const styles = tv({
-    base: "px-2 py-1.5 text-sm font-medium data-[inset=true]:pl-8",
-    variants: {
-      inset: {
-        true: "pl-8",
-      },
-    },
-  });
+  }
+})
 </script>

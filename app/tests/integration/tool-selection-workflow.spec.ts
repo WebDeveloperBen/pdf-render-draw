@@ -144,4 +144,3 @@ describe("Tool Selection & Visual Feedback Workflow", () => {
     })
   })
 })
-

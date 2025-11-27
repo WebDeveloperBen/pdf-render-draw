@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { ComboboxSeparator } from "reka-ui";
-  import type { ComboboxSeparatorProps } from "reka-ui";
+import { ComboboxSeparator } from "reka-ui"
+import type { ComboboxSeparatorProps } from "reka-ui"
 
-  const props = defineProps<ComboboxSeparatorProps>();
+const props = defineProps<ComboboxSeparatorProps>()
 </script>

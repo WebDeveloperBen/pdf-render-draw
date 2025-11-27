@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { ScrollAreaCorner } from "reka-ui";
-  import type { ScrollAreaCornerProps } from "reka-ui";
+import { ScrollAreaCorner } from "reka-ui"
+import type { ScrollAreaCornerProps } from "reka-ui"
 
-  const props = defineProps<ScrollAreaCornerProps>();
+const props = defineProps<ScrollAreaCornerProps>()
 </script>

@@ -5,16 +5,16 @@
 </template>
 
 <script lang="ts" setup>
-  import { EditableRoot, useForwardExpose, useForwardPropsEmits } from "reka-ui";
-  import type { EditableRootEmits, EditableRootProps } from "reka-ui";
+import { EditableRoot, useForwardExpose, useForwardPropsEmits } from "reka-ui"
+import type { EditableRootEmits, EditableRootProps } from "reka-ui"
 
-  const { currentRef, forwardRef } = useForwardExpose();
-  const props = defineProps<EditableRootProps>();
-  const emit = defineEmits<EditableRootEmits & { ready: [v?: any] }>();
-  const forwarded = useForwardPropsEmits(props, emit);
+const { currentRef, forwardRef } = useForwardExpose()
+const props = defineProps<EditableRootProps>()
+const emit = defineEmits<EditableRootEmits & { ready: [v?: any] }>()
+const forwarded = useForwardPropsEmits(props, emit)
 
-  onMounted(() => {
-    // Emit the ready event with the current ref value
-    emit("ready", currentRef);
-  });
+onMounted(() => {
+  // Emit the ready event with the current ref value
+  emit("ready", currentRef)
+})
 </script>

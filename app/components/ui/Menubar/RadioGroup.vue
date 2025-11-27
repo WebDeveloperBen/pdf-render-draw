@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { MenubarRadioGroup, useForwardPropsEmits } from "reka-ui";
-  import type { MenubarRadioGroupEmits, MenubarRadioGroupProps } from "reka-ui";
+import { MenubarRadioGroup, useForwardPropsEmits } from "reka-ui"
+import type { MenubarRadioGroupEmits, MenubarRadioGroupProps } from "reka-ui"
 
-  const props = defineProps<MenubarRadioGroupProps>();
-  const emits = defineEmits<MenubarRadioGroupEmits>();
-  const forwarded = useForwardPropsEmits(props, emits);
+const props = defineProps<MenubarRadioGroupProps>()
+const emits = defineEmits<MenubarRadioGroupEmits>()
+const forwarded = useForwardPropsEmits(props, emits)
 </script>

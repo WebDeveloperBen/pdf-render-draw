@@ -5,26 +5,26 @@
 </template>
 
 <script lang="ts" setup>
-  import { MenubarRoot, useForwardPropsEmits } from "reka-ui";
-  import type { MenubarRootEmits, MenubarRootProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { MenubarRoot, useForwardPropsEmits } from "reka-ui"
+import type { MenubarRootEmits, MenubarRootProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = withDefaults(
-    defineProps<
-      MenubarRootProps & {
-        /** Custom class(es) to add to the parent */
-        class?: HTMLAttributes["class"];
-      }
-    >(),
-    {
-      loop: true,
+const props = withDefaults(
+  defineProps<
+    MenubarRootProps & {
+      /** Custom class(es) to add to the parent */
+      class?: HTMLAttributes["class"]
     }
-  );
+  >(),
+  {
+    loop: true
+  }
+)
 
-  const emits = defineEmits<MenubarRootEmits>();
-  const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"), emits);
+const emits = defineEmits<MenubarRootEmits>()
+const forwarded = useForwardPropsEmits(reactiveOmit(props, "class"), emits)
 
-  const styles = tv({
-    base: "flex h-9 items-center gap-1 rounded-md border bg-background p-1 shadow-xs",
-  });
+const styles = tv({
+  base: "flex h-9 items-center gap-1 rounded-md border bg-background p-1 shadow-xs"
+})
 </script>

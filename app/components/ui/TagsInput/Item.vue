@@ -1,9 +1,5 @@
 <template>
-  <TagsInputItem
-    data-slot="tags-input-item"
-    v-bind="forwarded"
-    :class="styles({ class: props.class })"
-  >
+  <TagsInputItem data-slot="tags-input-item" v-bind="forwarded" :class="styles({ class: props.class })">
     <slot>
       <slot name="text">
         <UiTagsInputItemText />
@@ -16,15 +12,13 @@
 </template>
 
 <script lang="ts" setup>
-  import { TagsInputItem } from "reka-ui";
-  import type { TagsInputItemProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { TagsInputItem } from "reka-ui"
+import type { TagsInputItemProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    TagsInputItemProps & { class?: HTMLAttributes["class"]; icon?: string }
-  >();
-  const forwarded = reactiveOmit(props, "class", "icon");
-  const styles = tv({
-    base: "relative flex h-7 items-center gap-1 rounded-sm border border-input bg-transparent px-2 text-xs font-medium hover:bg-background dark:bg-accent",
-  });
+const props = defineProps<TagsInputItemProps & { class?: HTMLAttributes["class"]; icon?: string }>()
+const forwarded = reactiveOmit(props, "class", "icon")
+const styles = tv({
+  base: "relative flex h-7 items-center gap-1 rounded-sm border border-input bg-transparent px-2 text-xs font-medium hover:bg-background dark:bg-accent"
+})
 </script>

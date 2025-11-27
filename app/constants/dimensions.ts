@@ -61,5 +61,5 @@ export const DIMENSIONS = {
   MOVEMENT_THRESHOLD: 1,
 
   /** Snap angle increment in degrees for Shift+drag */
-  ANGLE_SNAP_DEGREES: 45,
+  ANGLE_SNAP_DEGREES: 45
 } as const

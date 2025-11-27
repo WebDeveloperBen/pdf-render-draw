@@ -6,7 +6,7 @@
  * Validate that a value is a finite number
  */
 export function validateNumber(value: unknown, name: string): boolean {
-  if (typeof value !== 'number' || !isFinite(value)) {
+  if (typeof value !== "number" || !isFinite(value)) {
     console.warn(`Invalid ${name} value:`, value)
     return false
   }
@@ -29,7 +29,7 @@ export function validatePositiveNumber(value: unknown, name: string): boolean {
  * Validate that a value is an integer
  */
 export function validateInteger(value: unknown, name: string): boolean {
-  if (typeof value !== 'number' || !isFinite(value)) {
+  if (typeof value !== "number" || !isFinite(value)) {
     console.warn(`Invalid ${name}:`, value)
     return false
   }
@@ -44,12 +44,8 @@ export function validateInteger(value: unknown, name: string): boolean {
  * Validate that an object has required numeric properties
  * Validates all properties and produces a single warning about the whole object if any fail
  */
-export function validateNumericProperties(
-  obj: unknown,
-  properties: string[],
-  name: string
-): boolean {
-  if (typeof obj !== 'object' || obj === null) {
+export function validateNumericProperties(obj: unknown, properties: string[], name: string): boolean {
+  if (typeof obj !== "object" || obj === null) {
     console.warn(`Invalid ${name}:`, obj)
     return false
   }
@@ -57,7 +53,7 @@ export function validateNumericProperties(
   // Check all properties first
   for (const prop of properties) {
     const value = (obj as Record<string, unknown>)[prop]
-    if (typeof value !== 'number' || !isFinite(value)) {
+    if (typeof value !== "number" || !isFinite(value)) {
       console.warn(`Invalid ${name}:`, obj)
       return false
     }

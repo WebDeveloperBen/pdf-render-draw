@@ -339,4 +339,3 @@ describe("Drawing Workflow & Visual Feedback", () => {
     })
   })
 })
-

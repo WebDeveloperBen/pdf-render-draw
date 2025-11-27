@@ -1,11 +1,11 @@
 export default {
-  "theme": "orange",
-  "tailwindCSSLocation": "app/assets/css/tailwind.css",
-  "componentsLocation": "app/components/Ui",
-  "composablesLocation": "app/composables",
-  "pluginsLocation": "app/plugins",
-  "utilsLocation": "app/utils",
-  "force": false,
-  "useDefaultFilename": true,
-  "packageManager": "pnpm"
+  theme: "orange",
+  tailwindCSSLocation: "app/assets/css/tailwind.css",
+  componentsLocation: "app/components/Ui",
+  composablesLocation: "app/composables",
+  pluginsLocation: "app/plugins",
+  utilsLocation: "app/utils",
+  force: false,
+  useDefaultFilename: true,
+  packageManager: "pnpm"
 }

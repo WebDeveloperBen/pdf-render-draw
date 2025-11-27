@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { TooltipTrigger } from "reka-ui";
-  import type { TooltipTriggerProps } from "reka-ui";
+import { TooltipTrigger } from "reka-ui"
+import type { TooltipTriggerProps } from "reka-ui"
 
-  const props = defineProps<TooltipTriggerProps>();
+const props = defineProps<TooltipTriggerProps>()
 </script>

@@ -1,24 +1,20 @@
 <template>
-  <SelectSeparator
-    data-slot="select-separator"
-    :class="styles({ class: props.class })"
-    v-bind="forwarded"
-  />
+  <SelectSeparator data-slot="select-separator" :class="styles({ class: props.class })" v-bind="forwarded" />
 </template>
 
 <script lang="ts" setup>
-  import { SelectSeparator } from "reka-ui";
-  import type { SelectSeparatorProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+import { SelectSeparator } from "reka-ui"
+import type { SelectSeparatorProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
 
-  const props = defineProps<
-    SelectSeparatorProps & {
-      /** Custom class(es) to add to the parent */
-      class?: HTMLAttributes["class"];
-    }
-  >();
-  const forwarded = reactiveOmit(props, "class");
-  const styles = tv({
-    base: "pointer-events-none -mx-1 my-1 h-px bg-border",
-  });
+const props = defineProps<
+  SelectSeparatorProps & {
+    /** Custom class(es) to add to the parent */
+    class?: HTMLAttributes["class"]
+  }
+>()
+const forwarded = reactiveOmit(props, "class")
+const styles = tv({
+  base: "pointer-events-none -mx-1 my-1 h-px bg-border"
+})
 </script>

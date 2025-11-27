@@ -123,7 +123,7 @@ test.describe("Group Rotation E2E", () => {
 
     // Get initial positions from DOM
     const initialPositions = await page.evaluate(() => {
-      const fills = Array.from(document.querySelectorAll('rect.fill-rect[data-annotation-id]'))
+      const fills = Array.from(document.querySelectorAll("rect.fill-rect[data-annotation-id]"))
       return fills.map((el) => ({
         id: el.getAttribute("data-annotation-id"),
         x: parseFloat(el.getAttribute("x") || "0"),
@@ -200,18 +200,21 @@ test.describe("Group Rotation E2E", () => {
     const groupCenterSvgY = (pos0.y + pos0.height / 2 + pos1.y + pos1.height / 2) / 2
 
     // Map center to screen via CTM to avoid double-translates
-    const { centerScreenX, centerScreenY } = await page.evaluate(([cx, cy]: [number, number]) => {
-      const svg = document.querySelector("svg") as SVGSVGElement | null
-      const ctm = svg?.getScreenCTM()
-      if (svg && ctm) {
-        const pt = svg.createSVGPoint()
-        pt.x = cx
-        pt.y = cy
-        const screen = pt.matrixTransform(ctm)
-        return { centerScreenX: screen.x, centerScreenY: screen.y }
-      }
-      return { centerScreenX: 0, centerScreenY: 0 }
-    }, [groupCenterSvgX, groupCenterSvgY] as [number, number])
+    const { centerScreenX, centerScreenY } = await page.evaluate(
+      ([cx, cy]: [number, number]) => {
+        const svg = document.querySelector("svg") as SVGSVGElement | null
+        const ctm = svg?.getScreenCTM()
+        if (svg && ctm) {
+          const pt = svg.createSVGPoint()
+          pt.x = cx
+          pt.y = cy
+          const screen = pt.matrixTransform(ctm)
+          return { centerScreenX: screen.x, centerScreenY: screen.y }
+        }
+        return { centerScreenX: 0, centerScreenY: 0 }
+      },
+      [groupCenterSvgX, groupCenterSvgY] as [number, number]
+    )
 
     // Rotation handle radius: half height (25) + ROTATION_DISTANCE (30) = 55
     const radius = 55
@@ -248,7 +251,7 @@ test.describe("Group Rotation E2E", () => {
 
     // Get final positions and transforms from DOM
     const finalPositions = await page.evaluate(() => {
-      const fills = Array.from(document.querySelectorAll('rect.fill-rect[data-annotation-id]'))
+      const fills = Array.from(document.querySelectorAll("rect.fill-rect[data-annotation-id]"))
       return fills.map((el) => {
         const id = el.getAttribute("data-annotation-id")
         const x = parseFloat(el.getAttribute("x") || "0")
@@ -314,7 +317,7 @@ test.describe("Group Rotation E2E", () => {
     const expectedX2 = Math.round((newCenter2X - fill2Initial.width / 2) * 100) / 100
     const expectedY2 = Math.round((newCenter2Y - fill2Initial.height / 2) * 100) / 100
 
-    const expectedRotationDeg = Math.round((rotationDelta * 180) / Math.PI * 100) / 100 // 45°
+    const expectedRotationDeg = Math.round(((rotationDelta * 180) / Math.PI) * 100) / 100 // 45°
 
     console.log("\n✅ Expected state:")
     console.log("  Fill 1:", { x: expectedX1, y: expectedY1, rotation: expectedRotationDeg })
@@ -326,16 +329,32 @@ test.describe("Group Rotation E2E", () => {
     if (!fill1Final || !fill2Final) throw new Error("Final positions not found")
 
     console.log("\n🔍 Verification:")
-    console.log("  Fill 1 X:", { expected: expectedX1, actual: fill1Final.x, diff: Math.abs(fill1Final.x - expectedX1) })
-    console.log("  Fill 1 Y:", { expected: expectedY1, actual: fill1Final.y, diff: Math.abs(fill1Final.y - expectedY1) })
+    console.log("  Fill 1 X:", {
+      expected: expectedX1,
+      actual: fill1Final.x,
+      diff: Math.abs(fill1Final.x - expectedX1)
+    })
+    console.log("  Fill 1 Y:", {
+      expected: expectedY1,
+      actual: fill1Final.y,
+      diff: Math.abs(fill1Final.y - expectedY1)
+    })
     console.log("  Fill 1 rotation:", {
       expected: expectedRotationDeg,
       actual: fill1Final.rotation,
       diff: Math.abs(fill1Final.rotation - expectedRotationDeg)
     })
 
-    console.log("  Fill 2 X:", { expected: expectedX2, actual: fill2Final.x, diff: Math.abs(fill2Final.x - expectedX2) })
-    console.log("  Fill 2 Y:", { expected: expectedY2, actual: fill2Final.y, diff: Math.abs(fill2Final.y - expectedY2) })
+    console.log("  Fill 2 X:", {
+      expected: expectedX2,
+      actual: fill2Final.x,
+      diff: Math.abs(fill2Final.x - expectedX2)
+    })
+    console.log("  Fill 2 Y:", {
+      expected: expectedY2,
+      actual: fill2Final.y,
+      diff: Math.abs(fill2Final.y - expectedY2)
+    })
     console.log("  Fill 2 rotation:", {
       expected: expectedRotationDeg,
       actual: fill2Final.rotation,

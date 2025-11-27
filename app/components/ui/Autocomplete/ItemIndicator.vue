@@ -5,12 +5,12 @@
 </template>
 
 <script lang="ts" setup>
-  import { ComboboxItemIndicator } from "reka-ui";
-  import type { ComboboxItemIndicatorProps } from "reka-ui";
+import { ComboboxItemIndicator } from "reka-ui"
+import type { ComboboxItemIndicatorProps } from "reka-ui"
 
-  const props = defineProps<
-    ComboboxItemIndicatorProps & {
-      icon?: string;
-    }
-  >();
+const props = defineProps<
+  ComboboxItemIndicatorProps & {
+    icon?: string
+  }
+>()
 </script>

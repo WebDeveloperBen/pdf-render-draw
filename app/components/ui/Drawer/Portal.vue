@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { DrawerPortal } from "vaul-vue";
-  import type { DrawerPortalProps } from "vaul-vue";
+import { DrawerPortal } from "vaul-vue"
+import type { DrawerPortalProps } from "vaul-vue"
 
-  const props = defineProps<DrawerPortalProps>();
+const props = defineProps<DrawerPortalProps>()
 </script>
