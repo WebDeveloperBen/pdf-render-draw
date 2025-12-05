@@ -53,7 +53,7 @@ export function useTauri() {
 
 ```typescript
 // composables/useNativeAuth.ts
-import { authClient } from "~/lib/auth-client"
+import { authClient } from "~/auth-client"
 
 export function useNativeAuth() {
   const { isTauri, invoke } = useTauri()
@@ -160,7 +160,7 @@ export function useNativeAuth() {
 ### Auth Client Configuration
 
 ```typescript
-// lib/auth-client.ts
+// utils/auth-client.ts
 import { createAuthClient } from "better-auth/vue"
 import { bearer } from "@better-auth/bearer/client"
 import { jwt } from "@better-auth/jwt/client"
