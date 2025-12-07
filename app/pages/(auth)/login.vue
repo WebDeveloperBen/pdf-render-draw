@@ -19,7 +19,7 @@ const handleSignIn = async () => {
     }
 
     toast.success("Signed in successfully")
-    navigateTo("/")
+    await navigateTo("/")
   } catch (error: any) {
     toast.error(error.message || "Failed to sign in")
   } finally {

@@ -3,6 +3,7 @@ const colorMode = useColorMode()
 
 function toggleTheme() {
   colorMode.preference = colorMode.value === "light" ? "dark" : "light"
+  console.log(colorMode.preference)
   document.documentElement.setAttribute("data-theme", colorMode.preference)
 }
 </script>

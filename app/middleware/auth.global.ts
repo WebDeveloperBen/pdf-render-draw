@@ -8,12 +8,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const isPublicRoute = publicRoutes.some((route) => to.path.startsWith(route))
 
   // If user is authenticated and trying to access login, redirect to dashboard
-  if (session && isPublicRoute) {
+  if (session.value && isPublicRoute) {
     return navigateTo("/")
   }
 
   // If user is not authenticated and trying to access protected routes, redirect to login
-  if (!session && !isPublicRoute) {
+  if (!session.value && !isPublicRoute) {
     return navigateTo("/login")
   }
 })

@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   },
 
   alias: {
-    '@auth': fileURLToPath(new URL('./auth.ts', import.meta.url))
+    "@auth": fileURLToPath(new URL("./auth.ts", import.meta.url))
   },
 
   // Runtime configuration
@@ -133,6 +133,8 @@ export default defineNuxtConfig({
   ignore: ["**/src-tauri/**"],
 
   colorMode: {
+    preference: "dark",
+    fallback: "dark",
     storageKey: "pdf-render-draw-color-mode",
     classSuffix: ""
   },

@@ -92,11 +92,11 @@ export default defineEventHandler(async (event) => {
   }))
 
   return {
-    totalProjects: totalProjectsResult.count,
-    personalProjects: personalProjectsResult.count,
-    teamProjects: teamProjectsResult.count,
-    totalOrganizations: totalOrganizationsResult.count,
-    totalShares: totalSharesResult.count,
+    totalProjects: totalProjectsResult?.count ?? 0,
+    personalProjects: personalProjectsResult?.count ?? 0,
+    teamProjects: teamProjectsResult?.count ?? 0,
+    totalOrganizations: totalOrganizationsResult?.count ?? 0,
+    totalShares: totalSharesResult?.count ?? 0,
     recentActivity
   }
 })
