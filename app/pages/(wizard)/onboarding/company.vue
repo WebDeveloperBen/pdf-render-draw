@@ -9,13 +9,28 @@ definePageMeta({
 const wizardData = useState<WizardData>("wizard-data", () => ({}))
 
 const companyName = ref(wizardData.value.companyName || "")
+const abn = ref(wizardData.value.abn || "")
 const role = ref(wizardData.value.role || "")
 const teamSize = ref(wizardData.value.teamSize || "")
+
+// Format ABN as XX XXX XXX XXX
+const formatAbn = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 5) return `${digits.slice(0, 2)} ${digits.slice(2)}`
+  if (digits.length <= 8) return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`
+  return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`
+}
+
+const handleAbnInput = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  abn.value = formatAbn(input.value)
+}
 
 const roles = [
   { value: "contractor", label: "Contractor", icon: "lucide:hard-hat" },
   { value: "pm", label: "Project Manager", icon: "lucide:clipboard-list" },
-  { value: "architect", label: "Architect", icon: "lucide:ruler-square" },
+  { value: "architect", label: "Architect", icon: "lucide:pencil-ruler" },
   { value: "engineer", label: "Engineer", icon: "lucide:cog" },
   { value: "estimator", label: "Estimator", icon: "lucide:calculator" },
   { value: "owner", label: "Business Owner", icon: "lucide:briefcase" },
@@ -31,6 +46,11 @@ const teamSizes = [
 ]
 
 const handleNext = () => {
+  if (!companyName.value.trim()) {
+    toast.error("Please enter your company name")
+    return
+  }
+
   if (!role.value) {
     toast.error("Please select your role")
     return
@@ -42,6 +62,7 @@ const handleNext = () => {
   }
 
   wizardData.value.companyName = companyName.value
+  wizardData.value.abn = abn.value.replace(/\s/g, "") // Store without spaces
   wizardData.value.role = role.value
   wizardData.value.teamSize = teamSize.value
 
@@ -77,133 +98,126 @@ const handleBack = () => {
     <UiCard class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-gradient-to-br from-background via-background to-muted/5">
       <UiCardContent class="p-6 sm:p-10 space-y-10">
         <!-- Company Name -->
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div>
-            <UiLabel for="company" class="text-base font-semibold flex items-center gap-2">
-              <Icon name="lucide:briefcase" class="size-4 text-primary" />
+            <UiLabel for="company" class="text-base font-semibold justify-start">
+              <Icon name="lucide:building-2" class="size-4 text-primary" />
               Company Name
-              <UiBadge variant="secondary" class="ml-auto text-xs font-normal">Optional</UiBadge>
+              <span class="text-destructive">*</span>
             </UiLabel>
-            <p class="text-sm text-muted-foreground mt-1.5">
-              Personalize your workspace and branding
+            <p class="text-sm text-muted-foreground mt-1">
+              This will appear on your quotes and invoices
             </p>
           </div>
           <div class="relative group/input">
-            <div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
-              <Icon name="lucide:building-2" class="size-5 text-muted-foreground group-focus-within/input:text-primary transition-all duration-300" />
-            </div>
             <UiInput
               id="company"
               v-model="companyName"
               placeholder="Acme Construction Co."
-              class="pl-14 h-14 text-base border-2 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all shadow-sm hover:shadow-md hover:border-primary/50"
+              class="h-12 text-base border-2 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all shadow-sm hover:shadow-md hover:border-primary/50"
             />
           </div>
         </div>
 
-        <!-- Role Selection -->
-        <div class="space-y-5">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <UiLabel class="text-base font-semibold flex items-center gap-2">
-                <Icon name="lucide:user-cog" class="size-4 text-primary" />
-                What's your role?
-                <span class="text-destructive ml-1">*</span>
-              </UiLabel>
-              <p class="text-sm text-muted-foreground mt-1">
-                We'll customize your experience
-              </p>
-            </div>
-            <UiBadge v-if="role" variant="outline" class="text-sm font-medium w-fit">
-              {{ roles.find((r) => r.value === role)?.label }}
-            </UiBadge>
+        <!-- ABN -->
+        <div class="space-y-3">
+          <div>
+            <UiLabel for="abn" class="text-base font-semibold flex items-center gap-2">
+              <Icon name="lucide:file-check" class="size-4 text-primary" />
+              ABN
+              <UiBadge variant="secondary" class="ml-auto text-xs font-normal">Optional</UiBadge>
+            </UiLabel>
+            <p class="text-sm text-muted-foreground mt-1">
+              Australian Business Number for invoicing
+            </p>
+          </div>
+          <div class="relative group/input">
+            <UiInput
+              id="abn"
+              :model-value="abn"
+              placeholder="12 345 678 901"
+              class="h-12 text-base border-2 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all shadow-sm hover:shadow-md hover:border-primary/50 font-mono tracking-wide"
+              @input="handleAbnInput"
+            />
+          </div>
+        </div>
+
+        <!-- Team Size -->
+        <div class="space-y-4">
+          <div>
+            <UiLabel class="text-base font-semibold justify-start">
+              <Icon name="lucide:users" class="size-4 text-primary" />
+              Team size?
+              <span class="text-destructive">*</span>
+            </UiLabel>
+            <p class="text-sm text-muted-foreground mt-1">
+              Helps us recommend the right plan
+            </p>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="size in teamSizes"
+              :key="size.value"
+              type="button"
+              class="flex items-center gap-2 px-4 py-2.5 border-2 rounded-full transition-all text-sm font-medium"
+              :class="
+                teamSize === size.value
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border hover:border-primary/30 hover:bg-muted/50'
+              "
+              @click="teamSize = size.value"
+            >
+              <Icon :name="size.icon" class="size-4" />
+              <span>{{ size.label }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="space-y-4">
+          <div>
+            <UiLabel class="text-base font-semibold justify-start">
+              <Icon name="lucide:user-cog" class="size-4 text-primary" />
+              What's your role?
+              <span class="text-destructive">*</span>
+            </UiLabel>
+            <p class="text-sm text-muted-foreground mt-1">
+              We'll customize your experience
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             <button
               v-for="r in roles"
               :key="r.value"
               type="button"
-              class="group relative flex flex-col items-center gap-3 p-5 border-2 rounded-2xl transition-all hover:border-primary/40 hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 hover:scale-[1.03] active:scale-[0.97] hover:shadow-lg"
+              class="group relative flex flex-col items-center gap-3 p-4 border-2 rounded-xl transition-all hover:border-primary/40 hover:bg-primary/5"
               :class="
                 role === r.value
-                  ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-xl shadow-primary/20 scale-[1.02]'
+                  ? 'border-primary bg-primary/5'
                   : 'border-border'
               "
               @click="role = r.value"
             >
               <div
-                class="flex size-14 items-center justify-center rounded-xl transition-all duration-300 shadow-sm"
+                class="flex size-12 items-center justify-center rounded-lg transition-all"
                 :class="
                   role === r.value
-                    ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/30 scale-110'
-                    : 'bg-muted text-muted-foreground group-hover:bg-gradient-to-br group-hover:from-primary/20 group-hover:to-primary/10 group-hover:text-primary group-hover:scale-105'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
                 "
               >
-                <Icon :name="r.icon" class="size-7" />
+                <Icon :name="r.icon" class="size-6" />
               </div>
-              <span class="font-semibold text-sm text-center leading-tight">{{ r.label }}</span>
+              <span class="font-medium text-sm text-center">{{ r.label }}</span>
 
               <!-- Check indicator -->
               <div
                 v-if="role === r.value"
-                class="absolute -top-2 -right-2 flex size-7 items-center justify-center rounded-full bg-primary shadow-lg border-4 border-background"
+                class="absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full bg-primary border-2 border-background"
               >
-                <Icon name="lucide:check" class="size-4 text-primary-foreground" />
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Team Size -->
-        <div class="space-y-5">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <UiLabel class="text-base font-semibold flex items-center gap-2">
-                <Icon name="lucide:users" class="size-4 text-primary" />
-                Team size?
-                <span class="text-destructive ml-1">*</span>
-              </UiLabel>
-              <p class="text-sm text-muted-foreground mt-1">
-                Choose the best plan for your needs
-              </p>
-            </div>
-            <UiBadge v-if="teamSize" variant="outline" class="text-sm font-medium w-fit">
-              {{ teamSizes.find((t) => t.value === teamSize)?.label }}
-            </UiBadge>
-          </div>
-
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
-            <button
-              v-for="size in teamSizes"
-              :key="size.value"
-              type="button"
-              class="group relative flex flex-col items-center gap-3 p-5 border-2 rounded-2xl transition-all hover:border-primary/40 hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 hover:scale-[1.03] active:scale-[0.97] hover:shadow-lg"
-              :class="
-                teamSize === size.value
-                  ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-xl shadow-primary/20 scale-[1.02]'
-                  : 'border-border'
-              "
-              @click="teamSize = size.value"
-            >
-              <div
-                class="flex size-12 items-center justify-center rounded-xl transition-all duration-300 shadow-sm"
-                :class="
-                  teamSize === size.value
-                    ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/30 scale-110'
-                    : 'bg-muted text-muted-foreground group-hover:bg-gradient-to-br group-hover:from-primary/20 group-hover:to-primary/10 group-hover:text-primary group-hover:scale-105'
-                "
-              >
-                <Icon :name="size.icon" class="size-6" />
-              </div>
-              <span class="font-semibold text-sm text-center leading-tight">{{ size.label }}</span>
-
-              <!-- Check indicator -->
-              <div
-                v-if="teamSize === size.value"
-                class="absolute -top-2 -right-2 flex size-7 items-center justify-center rounded-full bg-primary shadow-lg border-4 border-background"
-              >
-                <Icon name="lucide:check" class="size-4 text-primary-foreground" />
+                <Icon name="lucide:check" class="size-3.5 text-primary-foreground" />
               </div>
             </button>
           </div>
@@ -218,7 +232,7 @@ const handleBack = () => {
         <span class="font-medium">Back</span>
       </UiButton>
 
-      <UiButton size="lg" class="h-12 px-10 text-base shadow-xl shadow-primary/25 bg-gradient-to-r from-primary to-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" :disabled="!role || !teamSize" @click="handleNext">
+      <UiButton size="lg" class="h-12 px-10 text-base shadow-xl shadow-primary/25 bg-gradient-to-r from-primary to-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" :disabled="!companyName.trim() || !role || !teamSize" @click="handleNext">
         <span class="font-semibold">Continue</span>
         <Icon name="lucide:arrow-right" class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>

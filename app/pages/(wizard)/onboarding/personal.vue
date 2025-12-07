@@ -11,6 +11,20 @@ const session = authClient.useSession()
 
 const phone = ref(wizardData.value.phone || "")
 
+// Check if we have a real name (not just email prefix)
+const userFirstName = computed(() => {
+  const name = session.value.data?.user.name
+  const email = session.value.data?.user.email
+
+  // If no name, or name matches email prefix, use generic greeting
+  if (!name) return null
+  const emailPrefix = email?.split("@")[0]?.toLowerCase()
+  if (name.toLowerCase() === emailPrefix) return null
+
+  // Return first name only
+  return name.split(" ")[0]
+})
+
 const handleNext = () => {
   if (phone.value) {
     const phoneRegex = /^[\d\s\-\+\(\)]+$/
@@ -44,7 +58,7 @@ const handleSkip = () => {
           Welcome aboard!
         </h2>
         <p class="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
-          Let's personalise your MetreMate experience
+          Just a few details to get you started
         </p>
       </div>
     </div>
@@ -52,27 +66,18 @@ const handleSkip = () => {
     <!-- Main Card -->
     <UiCard class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-gradient-to-br from-background via-background to-muted/5">
       <UiCardContent class="p-6 sm:p-10 space-y-8">
-        <!-- User Preview -->
-        <div class="group relative flex items-center gap-5 p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl border-2 border-primary/20 overflow-hidden transition-all hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30">
-          <div class="absolute top-0 right-0 size-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 transition-transform group-hover:scale-125" />
-          <div class="absolute bottom-0 left-0 size-32 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-
-          <div class="relative">
-            <UiAvatar class="size-20 ring-4 ring-primary/30 ring-offset-4 ring-offset-background shadow-xl shadow-primary/20 transition-all group-hover:ring-primary/40 group-hover:scale-105">
-              <UiAvatarFallback class="text-xl font-bold bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
-                {{ session.data?.user.name.slice(0, 2).toUpperCase() }}
-              </UiAvatarFallback>
-            </UiAvatar>
-            <div class="absolute -bottom-1 -right-1 flex size-7 items-center justify-center rounded-full bg-primary shadow-lg border-4 border-background">
-              <Icon name="lucide:check" class="size-4 text-primary-foreground" />
-            </div>
+        <!-- User Greeting -->
+        <div class="flex items-center gap-4">
+          <div class="flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
+            <Icon name="lucide:hand-metal" class="size-6 text-primary" />
           </div>
-
-          <div class="relative flex-1 min-w-0 space-y-1">
-            <p class="font-bold text-xl truncate">{{ session.data?.user.name }}</p>
-            <p class="text-sm text-muted-foreground truncate flex items-center gap-2">
+          <div>
+            <p class="text-2xl font-bold">
+              Hey{{ userFirstName ? ` ${userFirstName}` : ' there' }}!
+            </p>
+            <p class="text-sm text-muted-foreground flex items-center gap-1.5">
               <Icon name="lucide:mail" class="size-3.5" />
-              {{ session.data?.user.email }}
+              Signed in as {{ session.data?.user.email }}
             </p>
           </div>
         </div>
@@ -111,7 +116,7 @@ const handleSkip = () => {
             <div class="space-y-1 pt-0.5">
               <p class="text-sm font-medium">Your privacy matters</p>
               <p class="text-xs text-muted-foreground leading-relaxed">
-                We'll only use your number for important updates and security notifications. Never for marketing.
+                Your number appears on quotes you share and helps your team reach you. Never used for marketing.
               </p>
             </div>
           </div>
@@ -131,31 +136,31 @@ const handleSkip = () => {
           <div class="grid sm:grid-cols-3 gap-4">
             <div class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default">
               <div class="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20">
-                <Icon name="lucide:bell" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+                <Icon name="lucide:users" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
-                <p class="text-sm font-semibold">Instant alerts</p>
-                <p class="text-xs text-muted-foreground leading-relaxed">Get real-time project updates via SMS</p>
+                <p class="text-sm font-semibold">Team coordination</p>
+                <p class="text-xs text-muted-foreground leading-relaxed">Easy for collaborators to reach you on projects</p>
               </div>
             </div>
 
             <div class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default">
               <div class="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20">
-                <Icon name="lucide:shield" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+                <Icon name="lucide:file-text" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
-                <p class="text-sm font-semibold">2FA security</p>
-                <p class="text-xs text-muted-foreground leading-relaxed">Enhanced account protection</p>
+                <p class="text-sm font-semibold">Professional quotes</p>
+                <p class="text-xs text-muted-foreground leading-relaxed">Your contact details on shared estimates</p>
               </div>
             </div>
 
             <div class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default">
               <div class="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20">
-                <Icon name="lucide:life-buoy" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+                <Icon name="lucide:headphones" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
-                <p class="text-sm font-semibold">Quick recovery</p>
-                <p class="text-xs text-muted-foreground leading-relaxed">Fast account assistance when needed</p>
+                <p class="text-sm font-semibold">Direct support</p>
+                <p class="text-xs text-muted-foreground leading-relaxed">Our team can call you if you need help</p>
               </div>
             </div>
           </div>

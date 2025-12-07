@@ -5,6 +5,7 @@ export interface WizardData {
 
   // Step 2: Company
   companyName?: string
+  abn?: string
   role?: string
   teamSize?: string
 

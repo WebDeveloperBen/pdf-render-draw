@@ -21,7 +21,7 @@ const currentYear = computed(() => new Date().getFullYear())
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+  <div class="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
     <!-- Background pattern -->
     <div class="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
 
@@ -34,12 +34,12 @@ const currentYear = computed(() => new Date().getFullYear())
             <!-- Logo (left) -->
             <div class="flex items-center gap-3 shrink-0">
               <div
-                class="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
+                class="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
               >
                 <Icon name="lucide:ruler" class="size-5" />
               </div>
               <div>
-                <h1 class="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                <h1 class="text-xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
                   MetreMate
                 </h1>
                 <p class="text-xs text-muted-foreground">Setup your account</p>
