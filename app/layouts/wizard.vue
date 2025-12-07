@@ -21,11 +21,11 @@ const currentYear = computed(() => new Date().getFullYear())
 </script>
 
 <template>
-  <div class="min-h-screen bg-linear-to-br from-background via-background to-muted/20">
+  <div class="min-h-screen flex flex-col bg-linear-to-br from-background via-background to-muted/20">
     <!-- Background pattern -->
     <div class="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
 
-    <div class="relative">
+    <div class="relative flex flex-col flex-1">
       <!-- Header -->
       <header class="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div class="container max-w-7xl mx-auto px-6 sm:px-8 pt-6 pb-12">
@@ -128,14 +128,14 @@ const currentYear = computed(() => new Date().getFullYear())
       </header>
 
       <!-- Main Content -->
-      <main class="container max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main class="container max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1">
         <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <slot />
         </div>
       </main>
 
       <!-- Footer -->
-      <footer class="border-t mt-auto">
+      <footer class="border-t">
         <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p>© {{ currentYear }} MetreMate. All rights reserved.</p>

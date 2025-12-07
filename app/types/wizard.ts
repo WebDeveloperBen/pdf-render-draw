@@ -1,7 +1,6 @@
 export interface WizardData {
   // Step 1: Personal
   phone?: string
-  avatar?: string
 
   // Step 2: Company
   companyName?: string
@@ -10,9 +9,8 @@ export interface WizardData {
   teamSize?: string
 
   // Step 3: Use Case
-  industry?: string
-  primaryUseCase?: string
-  goals?: string[]
+  useCases?: string[]
+  referralSource?: string
 
   // Step 4: Plan
   selectedPlan?: "starter" | "professional" | "enterprise"
