@@ -128,7 +128,7 @@ const currentYear = computed(() => new Date().getFullYear())
       </header>
 
       <!-- Main Content -->
-      <main class="container max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1">
+      <main class="container max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1">
         <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <slot />
         </div>

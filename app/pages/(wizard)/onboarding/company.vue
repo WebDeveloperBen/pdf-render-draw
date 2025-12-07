@@ -79,13 +79,13 @@ const handleBack = () => {
     <!-- Header -->
     <div class="text-center space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
       <div class="relative inline-flex items-center justify-center">
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl blur-2xl scale-150" />
-        <div class="relative flex items-center justify-center p-4 rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25">
+        <div class="absolute inset-0 bg-linear-to-br from-primary/20 to-primary/5 rounded-3xl blur-2xl scale-150" />
+        <div class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25">
           <Icon name="lucide:building" class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
-        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text">
+        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground via-foreground to-foreground/70 bg-clip-text">
           Your workspace
         </h2>
         <p class="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
@@ -95,7 +95,7 @@ const handleBack = () => {
     </div>
 
     <!-- Main Card -->
-    <UiCard class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-gradient-to-br from-background via-background to-muted/5">
+    <UiCard class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-linear-to-br from-background via-background to-muted/5">
       <UiCardContent class="p-6 sm:p-10 space-y-10">
         <!-- Company Name -->
         <div class="space-y-3">
