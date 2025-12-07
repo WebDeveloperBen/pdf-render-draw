@@ -7,6 +7,10 @@
  * as part of a WYSIWYG-style tool configuration system.
  */
 
+</script>
+
+<script setup lang="ts">
+import { useLineToolState } from "@/composables/editor/tools/useLineTool"
 export const LINE_TOOL_DEFAULTS = {
   // Tool styling
   strokeColor: "blue",
@@ -43,10 +47,6 @@ export const LINE_TOOL_DEFAULTS = {
 } as const
 
 export type LineToolConfig = typeof LINE_TOOL_DEFAULTS
-</script>
-
-<script setup lang="ts">
-import { useLineToolState } from "@/composables/editor/tools/useLineTool"
 
 // Inject the tool state (which extends BaseTool)
 const tool = useLineToolState()

@@ -34,7 +34,7 @@ watch(inputFile, (value) => {
               }
             "
           />
-          <BaseInputFileHeadless accept="image/*" v-model="inputFile" id="avatar" v-slot="{ open, remove, files }">
+          <BaseInputFileHeadless id="avatar" v-slot="{ open, remove, files }" v-model="inputFile" accept="image/*">
             <div class="relative h-20 w-20">
               <img
                 v-if="avatarPreview"
@@ -49,7 +49,7 @@ watch(inputFile, (value) => {
                 class="bg-muted-200 h-20 w-20 rounded-full object-cover object-center"
               />
               <div v-if="files?.length && files.item(0)" class="absolute bottom-0 end-0 z-20">
-                <BaseButtonIcon condensed shape="full" @click="remove(files.item(0)!)" tooltip="Remove image">
+                <BaseButtonIcon condensed shape="full" tooltip="Remove image" @click="remove(files.item(0)!)">
                   <Icon name="lucide:x" class="h-4 w-4" />
                 </BaseButtonIcon>
               </div>
@@ -70,22 +70,22 @@ watch(inputFile, (value) => {
         </div>
         <div class="mx-auto flex w-full max-w-sm flex-col gap-3 mt-3">
           <UiFormInput
+            id="name"
             type="text"
-            @update:modelValue="profile.name = $event"
-            @focused="(e) => (errors.name = '')"
             :error="errors.name"
             label="Your name"
-            id="name"
             placeholder="Enter your name"
+            @update:model-value="profile.name = $event"
+            @focused="(e) => (errors.name = '')"
             ><span class="text-red-500">*</span></UiFormInput
           >
           <UiFormTextarea
-            type="text"
-            @update:modelValue="profile.bio = $event"
-            label="Describe yourself"
             id="bio"
+            type="text"
+            label="Describe yourself"
             :rows="4"
             placeholder="Create a bio for your profile..."
+            @update:model-value="profile.bio = $event"
           />
         </div>
       </div>

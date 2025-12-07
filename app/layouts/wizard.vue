@@ -16,6 +16,8 @@ const progress = computed(() => {
   if (currentStepIndex.value === -1) return 0
   return ((currentStepIndex.value + 1) / steps.length) * 100
 })
+
+const currentYear = computed(() => new Date().getFullYear())
 </script>
 
 <template>
@@ -26,9 +28,11 @@ const progress = computed(() => {
     <div class="relative">
       <!-- Header -->
       <header class="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
+        <div class="container max-w-7xl mx-auto px-6 sm:px-8 pt-6 pb-12">
+          <!-- Single row: Logo, Steps, Secure setup -->
+          <div class="hidden md:flex items-center justify-between gap-8">
+            <!-- Logo (left) -->
+            <div class="flex items-center gap-3 shrink-0">
               <div
                 class="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
               >
@@ -42,71 +46,86 @@ const progress = computed(() => {
               </div>
             </div>
 
-            <div class="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+            <!-- Step indicators (center) -->
+            <div class="flex items-center justify-center gap-0">
+              <div v-for="(step, index) in steps" :key="step.path" class="flex items-center">
+                <!-- Step bubble -->
+                <div class="flex flex-col items-center gap-2 relative px-2">
+                  <div
+                    class="flex size-10 items-center justify-center rounded-full font-semibold text-sm transition-all duration-300 relative z-10"
+                    :class="
+                      index < currentStepIndex
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                        : index === currentStepIndex
+                          ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/40 ring-4 ring-primary/20 scale-110'
+                          : 'bg-muted text-muted-foreground'
+                    "
+                  >
+                    <Icon v-if="index < currentStepIndex" name="lucide:check" class="size-5" />
+                    <span v-else>{{ step.step }}</span>
+                  </div>
+                  <span
+                    class="text-xs font-medium transition-colors absolute top-12 whitespace-nowrap"
+                    :class="index <= currentStepIndex ? 'text-foreground' : 'text-muted-foreground'"
+                  >
+                    {{ step.label }}
+                  </span>
+                </div>
+
+                <!-- Connector line -->
+                <div
+                  v-if="index < steps.length - 1"
+                  class="h-0.5 w-24 transition-all duration-500 rounded-full"
+                  :class="index < currentStepIndex ? 'bg-primary shadow-sm' : 'bg-muted'"
+                />
+              </div>
+            </div>
+
+            <!-- Secure setup (right) -->
+            <div class="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
               <Icon name="lucide:shield-check" class="size-4 text-primary" />
               <span>Secure setup</span>
             </div>
           </div>
-        </div>
-      </header>
 
-      <!-- Progress Section -->
-      <div class="border-b bg-background/50 backdrop-blur-sm">
-        <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <!-- Step indicators (desktop) -->
-          <div class="hidden md:flex items-center justify-between mb-8">
-            <div v-for="(step, index) in steps" :key="step.path" class="flex items-center flex-1">
-              <!-- Step bubble -->
-              <div class="flex flex-col items-center gap-2 relative">
+          <!-- Mobile header -->
+          <div class="md:hidden space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
                 <div
-                  class="flex size-10 items-center justify-center rounded-full font-semibold text-sm transition-all duration-300 relative z-10"
-                  :class="
-                    index < currentStepIndex
-                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
-                      : index === currentStepIndex
-                        ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/40 ring-4 ring-primary/20 scale-110'
-                        : 'bg-muted text-muted-foreground'
-                  "
+                  class="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
                 >
-                  <Icon
-                    v-if="index < currentStepIndex"
-                    name="lucide:check"
-                    class="size-5"
-                  />
-                  <span v-else>{{ step.step }}</span>
+                  <Icon name="lucide:ruler" class="size-5" />
                 </div>
-                <span
-                  class="text-sm font-medium transition-colors absolute top-12 whitespace-nowrap"
-                  :class="index <= currentStepIndex ? 'text-foreground' : 'text-muted-foreground'"
-                >
-                  {{ step.label }}
-                </span>
+                <div>
+                  <h1 class="text-xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
+                    MetreMate
+                  </h1>
+                  <p class="text-xs text-muted-foreground">Setup your account</p>
+                </div>
               </div>
 
-              <!-- Connector line -->
-              <div
-                v-if="index < steps.length - 1"
-                class="flex-1 h-0.5 mx-4 transition-all duration-500 rounded-full"
-                :class="index < currentStepIndex ? 'bg-primary shadow-sm' : 'bg-muted'"
-              />
+              <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                <Icon name="lucide:shield-check" class="size-4 text-primary" />
+              </div>
             </div>
-          </div>
 
-          <!-- Mobile progress -->
-          <div class="md:hidden space-y-3">
-            <div class="flex items-center justify-between text-sm">
-              <span class="font-medium">Step {{ currentStepIndex + 1 }} of {{ steps.length }}</span>
-              <span class="text-muted-foreground">{{ steps[currentStepIndex]?.label }}</span>
-            </div>
-            <div class="relative h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                class="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out shadow-lg shadow-primary/50"
-                :style="{ width: `${progress}%` }"
-              />
+            <!-- Mobile progress -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between text-sm">
+                <span class="font-medium">Step {{ currentStepIndex + 1 }} of {{ steps.length }}</span>
+                <span class="text-muted-foreground">{{ steps[currentStepIndex]?.label }}</span>
+              </div>
+              <div class="relative h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  class="absolute top-0 left-0 h-full bg-linear-to-r from-primary to-primary/80 transition-all duration-500 ease-out shadow-lg shadow-primary/50"
+                  :style="{ width: `${progress}%` }"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       <!-- Main Content -->
       <main class="container max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -119,7 +138,7 @@ const progress = computed(() => {
       <footer class="border-t mt-auto">
         <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© 2024 MetreMate. All rights reserved.</p>
+            <p>© {{ currentYear }} MetreMate. All rights reserved.</p>
             <div class="flex items-center gap-4">
               <a href="/support" class="hover:text-foreground transition-colors">Support</a>
               <span class="text-border">•</span>
@@ -134,7 +153,8 @@ const progress = computed(() => {
 
 <style scoped>
 .bg-grid-pattern {
-  background-image: linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+  background-image:
+    linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
     linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
   background-size: 24px 24px;
 }
