@@ -7,10 +7,6 @@
  * as part of a WYSIWYG-style tool configuration system.
  */
 
-</script>
-
-<script setup lang="ts">
-import { useAreaToolState } from "@/composables/editor/tools/useAreaTool"
 export const AREA_TOOL_DEFAULTS = {
   // Tool styling
   fillColor: "#f05a24",
@@ -87,7 +83,9 @@ export const AREA_TOOL_DEFAULTS = {
 } as const
 
 export type AreaToolConfig = typeof AREA_TOOL_DEFAULTS
+</script>
 
+<script setup lang="ts">
 // Inject the tool state (which extends BaseTool)
 const tool = useAreaToolState()
 const config = AREA_TOOL_DEFAULTS
