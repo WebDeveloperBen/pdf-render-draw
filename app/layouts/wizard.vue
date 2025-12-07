@@ -1,0 +1,175 @@
+<script setup lang="ts">
+const route = useRoute()
+
+const steps = [
+  { path: "/onboarding/personal", label: "Personal", step: 1 },
+  { path: "/onboarding/company", label: "Company", step: 2 },
+  { path: "/onboarding/usecase", label: "Use Case", step: 3 },
+  { path: "/onboarding/plan", label: "Plan", step: 4 }
+]
+
+const currentStepIndex = computed(() => {
+  return steps.findIndex((s) => s.path === route.path)
+})
+
+const progress = computed(() => {
+  if (currentStepIndex.value === -1) return 0
+  return ((currentStepIndex.value + 1) / steps.length) * 100
+})
+</script>
+
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <!-- Background pattern -->
+    <div class="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
+
+    <div class="relative">
+      <!-- Header -->
+      <header class="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div
+                class="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
+              >
+                <Icon name="lucide:ruler" class="size-5" />
+              </div>
+              <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                  MetreMate
+                </h1>
+                <p class="text-xs text-muted-foreground">Setup your account</p>
+              </div>
+            </div>
+
+            <div class="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+              <Icon name="lucide:shield-check" class="size-4 text-primary" />
+              <span>Secure setup</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Progress Section -->
+      <div class="border-b bg-background/50 backdrop-blur-sm">
+        <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <!-- Step indicators (desktop) -->
+          <div class="hidden md:flex items-center justify-between mb-8">
+            <div v-for="(step, index) in steps" :key="step.path" class="flex items-center flex-1">
+              <!-- Step bubble -->
+              <div class="flex flex-col items-center gap-2 relative">
+                <div
+                  class="flex size-10 items-center justify-center rounded-full font-semibold text-sm transition-all duration-300 relative z-10"
+                  :class="
+                    index < currentStepIndex
+                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                      : index === currentStepIndex
+                        ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/40 ring-4 ring-primary/20 scale-110'
+                        : 'bg-muted text-muted-foreground'
+                  "
+                >
+                  <Icon
+                    v-if="index < currentStepIndex"
+                    name="lucide:check"
+                    class="size-5"
+                  />
+                  <span v-else>{{ step.step }}</span>
+                </div>
+                <span
+                  class="text-sm font-medium transition-colors absolute top-12 whitespace-nowrap"
+                  :class="index <= currentStepIndex ? 'text-foreground' : 'text-muted-foreground'"
+                >
+                  {{ step.label }}
+                </span>
+              </div>
+
+              <!-- Connector line -->
+              <div
+                v-if="index < steps.length - 1"
+                class="flex-1 h-0.5 mx-4 transition-all duration-500 rounded-full"
+                :class="index < currentStepIndex ? 'bg-primary shadow-sm' : 'bg-muted'"
+              />
+            </div>
+          </div>
+
+          <!-- Mobile progress -->
+          <div class="md:hidden space-y-3">
+            <div class="flex items-center justify-between text-sm">
+              <span class="font-medium">Step {{ currentStepIndex + 1 }} of {{ steps.length }}</span>
+              <span class="text-muted-foreground">{{ steps[currentStepIndex]?.label }}</span>
+            </div>
+            <div class="relative h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                class="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out shadow-lg shadow-primary/50"
+                :style="{ width: `${progress}%` }"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <main class="container max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <slot />
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="border-t mt-auto">
+        <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <p>© 2024 MetreMate. All rights reserved.</p>
+            <div class="flex items-center gap-4">
+              <a href="/support" class="hover:text-foreground transition-colors">Support</a>
+              <span class="text-border">•</span>
+              <a href="/privacy" class="hover:text-foreground transition-colors">Privacy</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@keyframes slide-in-from-bottom-4 {
+  from {
+    transform: translateY(1rem);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fade-in;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-in-from-bottom-4 {
+  animation-name: slide-in-from-bottom-4;
+}
+
+.duration-500 {
+  animation-duration: 500ms;
+}
+</style>
