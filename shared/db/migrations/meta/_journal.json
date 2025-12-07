@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1764935693760,
+      "tag": "0000_stormy_ares",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765024075500,
+      "tag": "0001_nebulous_triathlon",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765024737929,
+      "tag": "0002_supreme_overlord",
+      "breakpoints": true
+    }
+  ]
+}

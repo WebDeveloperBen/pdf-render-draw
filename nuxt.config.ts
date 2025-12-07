@@ -1,4 +1,5 @@
 import tailwindcss from "@tailwindcss/vite"
+import { fileURLToPath } from "node:url"
 
 const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUILD_TARGET === "tauri"
 
@@ -18,6 +19,10 @@ export default defineNuxtConfig({
   typescript: {
     typeCheck: true,
     strict: true
+  },
+
+  alias: {
+    '@auth': fileURLToPath(new URL('./auth.ts', import.meta.url))
   },
 
   // Runtime configuration
@@ -73,7 +78,7 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: ["./types"],
+    dirs: ["./types", "./shared/db/schema/"],
     imports: [
       {
         from: "tailwind-variants",
@@ -158,13 +163,23 @@ export default defineNuxtConfig({
       ]
     }
   },
-
   nitro: {
+    imports: { dirs: ["./shared/db/schema/"] },
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,
+
       meta: { title: "MetreMate API Documentation" },
-      ui: { scalar: { theme: "purple", route: "/docs" } }
+      ui: {
+        scalar: {
+          theme: "purple",
+          route: "/docs",
+          sources: [
+            { url: "/_docs/openapi.json", title: "API" },
+            { url: "/api/auth/open-api/generate-schema", title: "Auth" }
+          ]
+        }
+      }
     },
     experimental: {
       openAPI: true
