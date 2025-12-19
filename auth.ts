@@ -2,8 +2,11 @@ import { betterAuth } from "better-auth"
 import { admin, openAPI, apiKey, organization } from "better-auth/plugins"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "./server/utils/drizzle"
+import * as schema from "./shared/db/schema"
+import { ac, roles } from "./shared/auth/access-control"
 
 export const auth = betterAuth({
+  experimental: { joins: true },
   plugins: [
     admin({
       defaultRole: "user",
@@ -13,6 +16,8 @@ export const auth = betterAuth({
     }),
     apiKey(),
     organization({
+      ac,
+      roles,
       teams: { enabled: true },
       async sendInvitationEmail({ email, organization, inviter, invitation }) {
         // TODO: Integrate with Resend for production
@@ -27,7 +32,8 @@ export const auth = betterAuth({
     openAPI()
   ],
   database: drizzleAdapter(db, {
-    provider: "pg"
+    provider: "pg",
+    schema
   }),
   databaseHooks: {
     user: {

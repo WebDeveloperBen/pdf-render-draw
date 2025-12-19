@@ -8,7 +8,7 @@ const paramsSchema = z.object({
 })
 
 const bodySchema = z.object({
-  password: z.string().min(4, "Password must be at least 4 characters").optional(),
+  password: z.string().min(4, "Password must be at least 4 characters").nullable().optional(),
   expiresAt: z.coerce.date().nullable().optional(),
   allowDownload: z.boolean().default(true),
   allowAnnotations: z.boolean().default(false)
@@ -24,6 +24,9 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Unauthorized"
     })
   }
+
+  // Check permission to share projects
+  await requirePermission(event, { project: ["share"] })
 
   // Validate route params and body
   const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
@@ -56,14 +59,6 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"
-    })
-  }
-
-  // Only creator can create shares
-  if (projectData.createdBy !== session.user.id) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: "Access denied. Only project creator can create shares."
     })
   }
 

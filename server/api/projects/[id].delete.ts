@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { eq, and } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { auth } from "@auth"
 
 const paramsSchema = z.object({
@@ -16,6 +16,9 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Unauthorized"
     })
   }
+
+  // Check permission to delete projects
+  await requirePermission(event, { project: ["delete"] })
 
   // Validate route params
   const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
@@ -47,30 +50,6 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"
-    })
-  }
-
-  // Check if user has permission to delete (creator or owner)
-  let hasAccess = existingProject.createdBy === session.user.id
-
-  if (!hasAccess) {
-    const membership = await db
-      .select()
-      .from(member)
-      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, activeOrgId)))
-      .limit(1)
-
-    const userMembership = membership[0]
-    if (userMembership) {
-      // Only owner can delete projects (not just admins)
-      hasAccess = userMembership.role === "owner"
-    }
-  }
-
-  if (!hasAccess) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: "Access denied. Only project creator or organization owner can delete projects."
     })
   }
 

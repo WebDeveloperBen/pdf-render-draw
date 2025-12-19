@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { eq, and } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { auth } from "@auth"
 
 const paramsSchema = z.object({
@@ -23,6 +23,9 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Unauthorized"
     })
   }
+
+  // Check permission to update projects
+  await requirePermission(event, { project: ["update"] })
 
   // Validate route params and body
   const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
@@ -55,29 +58,6 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"
-    })
-  }
-
-  // Check if user has permission to update (creator or admin/owner)
-  let hasAccess = existingProject.createdBy === session.user.id
-
-  if (!hasAccess) {
-    const membership = await db
-      .select()
-      .from(member)
-      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, activeOrgId)))
-      .limit(1)
-
-    const userMembership = membership[0]
-    if (userMembership) {
-      hasAccess = userMembership.role === "owner" || userMembership.role === "admin"
-    }
-  }
-
-  if (!hasAccess) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: "Access denied. Only project creator or organization admins can update projects."
     })
   }
 
