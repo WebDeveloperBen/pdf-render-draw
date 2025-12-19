@@ -1,42 +1,11 @@
+import { z } from "zod"
 import { eq, and } from "drizzle-orm"
 import { auth } from "@auth"
 
-/**
- * @openapi
- * /api/projects/{id}:
- *   delete:
- *     summary: Delete a project
- *     description: Delete a project and its associated files (requires creator or organization owner role)
- *     tags:
- *       - Projects
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: Project ID
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Project deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Access denied
- *       404:
- *         description: Project not found
- */
+const paramsSchema = z.object({
+  id: z.uuid({ message: "Invalid project ID" })
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })
@@ -48,15 +17,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = useDrizzle()
-  const projectId = getRouterParam(event, "id")
+  // Validate route params
+  const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
 
-  if (!projectId) {
+  // Get active organization
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Project ID is required"
+      statusMessage: "No active organization. Please select an organization."
     })
   }
+
+  const db = useDrizzle()
 
   // Fetch the project
   const [existingProject] = await db.select().from(project).where(eq(project.id, projectId))
@@ -68,19 +42,27 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check access: user must be creator OR organization owner
+  // Check access: project must belong to active organization
+  if (existingProject.organizationId !== activeOrgId) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Access denied"
+    })
+  }
+
+  // Check if user has permission to delete (creator or owner)
   let hasAccess = existingProject.createdBy === session.user.id
 
-  if (!hasAccess && existingProject.organizationId) {
+  if (!hasAccess) {
     const membership = await db
       .select()
       .from(member)
-      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, existingProject.organizationId)))
+      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, activeOrgId)))
       .limit(1)
 
     const userMembership = membership[0]
     if (userMembership) {
-      // Only owner can delete projects
+      // Only owner can delete projects (not just admins)
       hasAccess = userMembership.role === "owner"
     }
   }

@@ -1,6 +1,17 @@
+import { z } from "zod"
 import { randomUUID } from "crypto"
-import { eq, and } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { auth } from "@auth"
+
+const bodySchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters"),
+  description: z.string().max(500).optional(),
+  pdfUrl: z.url({ message: "Invalid PDF URL" }),
+  pdfFileName: z.string().min(1, "File name is required"),
+  pdfFileSize: z.number().positive("File size must be positive"),
+  thumbnailUrl: z.url().optional(),
+  pageCount: z.number().int().min(1).default(1)
+})
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -13,61 +24,38 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Validate body
+  const body = await readValidatedBody(event, bodySchema.parse)
+
+  // Get active organization - all projects belong to an organization
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "No active organization. Please select an organization."
+    })
+  }
+
   const db = useDrizzle()
-  const body = await readBody(event)
-
-  // Validate required fields
-  if (!body.name || !body.pdfUrl || !body.pdfFileName || !body.pdfFileSize) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Missing required fields"
-    })
-  }
-
-  // Validate name length
-  if (body.name.length < 3 || body.name.length > 100) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Project name must be between 3 and 100 characters"
-    })
-  }
-
-  // If organizationId is provided, check if user is a member
-  if (body.organizationId) {
-    const membership = await db
-      .select()
-      .from(member)
-      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, body.organizationId)))
-      .limit(1)
-
-    if (membership.length === 0) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: "You are not a member of this organization"
-      })
-    }
-  }
 
   // Create the project
   const projectId = randomUUID()
 
-  await db
-    .insert(project)
-    .values({
-      id: projectId,
-      name: body.name,
-      description: body.description || null,
-      pdfUrl: body.pdfUrl,
-      pdfFileName: body.pdfFileName,
-      pdfFileSize: body.pdfFileSize,
-      thumbnailUrl: body.thumbnailUrl || null,
-      pageCount: body.pageCount,
-      annotationCount: 0,
-      createdBy: session.user.id,
-      organizationId: body.organizationId || null,
-      lastViewedAt: null
-    })
-    .returning()
+  await db.insert(project).values({
+    id: projectId,
+    name: body.name,
+    description: body.description ?? null,
+    pdfUrl: body.pdfUrl,
+    pdfFileName: body.pdfFileName,
+    pdfFileSize: body.pdfFileSize,
+    thumbnailUrl: body.thumbnailUrl ?? null,
+    pageCount: body.pageCount,
+    annotationCount: 0,
+    createdBy: session.user.id,
+    organizationId: activeOrgId,
+    lastViewedAt: null
+  })
 
   // Fetch the project with relations
   const [projectWithRelations] = await db

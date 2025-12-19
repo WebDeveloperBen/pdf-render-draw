@@ -1,6 +1,18 @@
+import { z } from "zod"
 import { randomUUID } from "crypto"
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
+
+const paramsSchema = z.object({
+  id: z.uuid({ message: "Invalid project ID" })
+})
+
+const bodySchema = z.object({
+  password: z.string().min(4, "Password must be at least 4 characters").optional(),
+  expiresAt: z.coerce.date().nullable().optional(),
+  allowDownload: z.boolean().default(true),
+  allowAnnotations: z.boolean().default(false)
+})
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -13,23 +25,37 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = useDrizzle()
-  const projectId = getRouterParam(event, "id")
+  // Validate route params and body
+  const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
+  const body = await readValidatedBody(event, bodySchema.parse)
 
-  if (!projectId) {
+  // Get active organization
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Project ID is required"
+      statusMessage: "No active organization. Please select an organization."
     })
   }
 
-  // Check if project exists and user has access
+  const db = useDrizzle()
+
+  // Check if project exists
   const [projectData] = await db.select().from(project).where(eq(project.id, projectId))
 
   if (!projectData) {
     throw createError({
       statusCode: 404,
       statusMessage: "Project not found"
+    })
+  }
+
+  // Check access: project must belong to active organization
+  if (projectData.organizationId !== activeOrgId) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Access denied"
     })
   }
 
@@ -40,8 +66,6 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Access denied. Only project creator can create shares."
     })
   }
-
-  const body = await readBody(event)
 
   // Hash password if provided
   let hashedPassword: string | null = null
@@ -63,10 +87,10 @@ export default defineEventHandler(async (event) => {
       projectId,
       token,
       createdBy: session.user.id,
-      expiresAt: body.expiresAt || null,
+      expiresAt: body.expiresAt ?? null,
       password: hashedPassword,
-      allowDownload: body.allowDownload ?? true,
-      allowAnnotations: body.allowAnnotations ?? false,
+      allowDownload: body.allowDownload,
+      allowAnnotations: body.allowAnnotations,
       viewCount: 0,
       lastViewedAt: null
     })

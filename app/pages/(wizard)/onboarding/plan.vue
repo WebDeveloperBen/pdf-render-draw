@@ -99,12 +99,16 @@ const handleBack = () => {
     <div class="text-center space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
       <div class="relative inline-flex items-center justify-center">
         <div class="absolute inset-0 bg-linear-to-br from-primary/20 to-primary/5 rounded-3xl blur-2xl scale-150" />
-        <div class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25">
+        <div
+          class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25"
+        >
           <Icon name="lucide:crown" class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
-        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground via-foreground to-foreground/70 bg-clip-text">
+        <h2
+          class="text-4xl sm:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground via-foreground to-foreground/70 bg-clip-text"
+        >
           Choose your plan
         </h2>
         <p class="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
@@ -119,16 +123,14 @@ const handleBack = () => {
 
     <!-- Plans Grid -->
     <div class="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 mt-4">
-      <div
-        v-for="plan in plans"
-        :key="plan.id"
-        class="relative"
-      >
+      <div v-for="plan in plans" :key="plan.id" class="relative">
         <!-- Popular Badge (overlaps card from above) -->
         <div v-if="plan.popular" class="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
           <div class="relative">
             <div class="absolute inset-0 bg-primary blur-md opacity-50" />
-            <UiBadge class="relative bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground shadow-lg border-2 border-background px-4 py-1.5 font-semibold">
+            <UiBadge
+              class="relative bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground shadow-lg border-2 border-background px-4 py-1.5 font-semibold"
+            >
               <Icon name="lucide:star" class="size-3 mr-1.5 fill-current" />
               Most Popular
             </UiBadge>
@@ -165,10 +167,7 @@ const handleBack = () => {
                     : 'border-muted-foreground group-hover:border-primary/50 group-hover:scale-105'
                 "
               >
-                <div
-                  v-if="selectedPlan === plan.id"
-                  class="size-3.5 rounded-full bg-primary-foreground"
-                />
+                <div v-if="selectedPlan === plan.id" class="size-3.5 rounded-full bg-primary-foreground" />
               </div>
             </div>
 
@@ -197,7 +196,9 @@ const handleBack = () => {
             <!-- Features -->
             <ul class="space-y-3 flex-1">
               <li v-for="feature in plan.features" :key="feature" class="flex items-start gap-3 text-sm group/feature">
-                <div class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 mt-0.5 group-hover/feature:bg-primary/20 transition-colors">
+                <div
+                  class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 mt-0.5 group-hover/feature:bg-primary/20 transition-colors"
+                >
                   <Icon name="lucide:check" class="size-3.5 text-primary" />
                 </div>
                 <span class="leading-relaxed font-medium">{{ feature }}</span>
@@ -209,16 +210,18 @@ const handleBack = () => {
               <UiButton
                 :variant="selectedPlan === plan.id ? 'default' : 'outline'"
                 class="w-full h-11 font-semibold transition-all"
-                :class="selectedPlan === plan.id ? 'bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/30' : 'hover:border-primary/50'"
+                :class="
+                  selectedPlan === plan.id
+                    ? 'bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/30'
+                    : 'hover:border-primary/50'
+                "
                 @click.stop="selectedPlan = plan.id as any"
               >
                 <template v-if="selectedPlan === plan.id">
                   <Icon name="lucide:check-circle" class="size-4 mr-2" />
                   Selected
                 </template>
-                <template v-else>
-                  Select {{ plan.name }}
-                </template>
+                <template v-else> Select {{ plan.name }} </template>
               </UiButton>
             </div>
           </UiCardContent>
@@ -242,9 +245,7 @@ const handleBack = () => {
               <Icon name="lucide:check-circle" class="size-4 text-primary" />
               You've selected
             </p>
-            <p class="text-2xl sm:text-3xl font-bold">
-              {{ plans.find((p) => p.id === selectedPlan)?.name }} Plan
-            </p>
+            <p class="text-2xl sm:text-3xl font-bold">{{ plans.find((p) => p.id === selectedPlan)?.name }} Plan</p>
             <p class="text-sm text-muted-foreground flex items-center gap-2">
               <Icon name="lucide:users" class="size-4" />
               {{ plans.find((p) => p.id === selectedPlan)?.seats }}
@@ -256,13 +257,16 @@ const handleBack = () => {
 
           <div class="flex flex-col items-start sm:items-end gap-0.5">
             <p class="text-sm font-medium text-muted-foreground">
-              {{ selectedPlan === 'enterprise' ? 'Pricing' : 'Starting at' }}
+              {{ selectedPlan === "enterprise" ? "Pricing" : "Starting at" }}
             </p>
             <div class="flex items-baseline gap-2">
               <span class="text-4xl font-bold">
                 {{ plans.find((p) => p.id === selectedPlan)?.price }}
               </span>
-              <span v-if="plans.find((p) => p.id === selectedPlan)?.period" class="text-base font-medium text-muted-foreground">
+              <span
+                v-if="plans.find((p) => p.id === selectedPlan)?.period"
+                class="text-base font-medium text-muted-foreground"
+              >
                 {{ plans.find((p) => p.id === selectedPlan)?.period }}
               </span>
             </div>
@@ -307,8 +311,16 @@ const handleBack = () => {
     </UiCard>
 
     <!-- Actions -->
-    <div class="flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
-      <UiButton variant="outline" size="lg" class="group h-12 px-6 text-base border-2 hover:bg-accent" :disabled="isSubmitting" @click="handleBack">
+    <div
+      class="flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500"
+    >
+      <UiButton
+        variant="outline"
+        size="lg"
+        class="group h-12 px-6 text-base border-2 hover:bg-accent"
+        :disabled="isSubmitting"
+        @click="handleBack"
+      >
         <Icon name="lucide:arrow-left" class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
         <span class="font-medium">Back</span>
       </UiButton>
@@ -318,7 +330,10 @@ const handleBack = () => {
         :disabled="isSubmitting"
         @click="handleComplete"
       >
-        <div v-if="!isSubmitting" class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+        <div
+          v-if="!isSubmitting"
+          class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+        />
         <Icon v-if="isSubmitting" name="svg-spinners:90-ring-with-bg" class="size-5 mr-2" />
         <template v-else>
           <span class="font-bold text-lg">

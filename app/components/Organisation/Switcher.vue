@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 
-const { activeOrg, organizations, isSwitching, switchOrganization, workspaceName, isPersonalWorkspace } = useActiveOrganization()
+const { activeOrg, organizations, isSwitching, switchOrganization, workspaceName, isPersonalWorkspace } =
+  useActiveOrganization()
 
 const isOpen = ref(false)
 const showCreateDialog = ref(false)
@@ -57,10 +58,7 @@ const handleCreateOrg = async () => {
         class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
       >
         <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10">
-          <Icon
-            :name="isPersonalWorkspace ? 'lucide:user' : 'lucide:building-2'"
-            class="size-4 text-primary"
-          />
+          <Icon :name="isPersonalWorkspace ? 'lucide:user' : 'lucide:building-2'" class="size-4 text-primary" />
         </div>
         <div class="grid flex-1 text-left text-sm leading-tight">
           <span class="truncate font-semibold">{{ workspaceName }}</span>
@@ -68,16 +66,8 @@ const handleCreateOrg = async () => {
             {{ isPersonalWorkspace ? "Personal" : "Organization" }}
           </span>
         </div>
-        <Icon
-          v-if="!isSwitching"
-          name="lucide:chevrons-up-down"
-          class="ml-auto size-4 text-muted-foreground"
-        />
-        <Icon
-          v-else
-          name="svg-spinners:ring-resize"
-          class="ml-auto size-4 text-muted-foreground"
-        />
+        <Icon v-if="!isSwitching" name="lucide:chevrons-up-down" class="ml-auto size-4 text-muted-foreground" />
+        <Icon v-else name="svg-spinners:ring-resize" class="ml-auto size-4 text-muted-foreground" />
       </UiSidebarMenuButton>
     </UiDropdownMenuTrigger>
 
@@ -87,25 +77,15 @@ const handleCreateOrg = async () => {
       align="start"
       :side-offset="4"
     >
-      <UiDropdownMenuLabel class="text-xs text-muted-foreground">
-        Workspaces
-      </UiDropdownMenuLabel>
+      <UiDropdownMenuLabel class="text-xs text-muted-foreground"> Workspaces </UiDropdownMenuLabel>
 
       <!-- Personal Workspace -->
-      <UiDropdownMenuItem
-        class="gap-2 p-2"
-        :class="{ 'bg-accent': isPersonalWorkspace }"
-        @click="handleSwitch(null)"
-      >
+      <UiDropdownMenuItem class="gap-2 p-2" :class="{ 'bg-accent': isPersonalWorkspace }" @click="handleSwitch(null)">
         <div class="flex size-6 items-center justify-center rounded-sm border bg-background">
           <Icon name="lucide:user" class="size-4" />
         </div>
         <span class="flex-1 truncate">Personal Workspace</span>
-        <Icon
-          v-if="isPersonalWorkspace"
-          name="lucide:check"
-          class="size-4 text-primary"
-        />
+        <Icon v-if="isPersonalWorkspace" name="lucide:check" class="size-4 text-primary" />
       </UiDropdownMenuItem>
 
       <UiDropdownMenuSeparator v-if="organizations?.data?.length" />
@@ -127,11 +107,7 @@ const handleCreateOrg = async () => {
           </template>
         </div>
         <span class="flex-1 truncate">{{ org.name }}</span>
-        <Icon
-          v-if="activeOrg?.data?.id === org.id"
-          name="lucide:check"
-          class="size-4 text-primary"
-        />
+        <Icon v-if="activeOrg?.data?.id === org.id" name="lucide:check" class="size-4 text-primary" />
       </UiDropdownMenuItem>
 
       <UiDropdownMenuSeparator />
@@ -151,9 +127,7 @@ const handleCreateOrg = async () => {
     <UiDialogContent>
       <UiDialogHeader>
         <UiDialogTitle>Create Organization</UiDialogTitle>
-        <UiDialogDescription>
-          Create a new organization to collaborate with your team.
-        </UiDialogDescription>
+        <UiDialogDescription> Create a new organization to collaborate with your team. </UiDialogDescription>
       </UiDialogHeader>
 
       <div class="space-y-4 py-4">
@@ -170,9 +144,7 @@ const handleCreateOrg = async () => {
       </div>
 
       <UiDialogFooter>
-        <UiButton variant="outline" :disabled="isCreating" @click="showCreateDialog = false">
-          Cancel
-        </UiButton>
+        <UiButton variant="outline" :disabled="isCreating" @click="showCreateDialog = false"> Cancel </UiButton>
         <UiButton :disabled="isCreating || !newOrgName.trim()" @click="handleCreateOrg">
           <Icon v-if="isCreating" name="svg-spinners:ring-resize" class="mr-2 size-4" />
           Create

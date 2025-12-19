@@ -1,5 +1,11 @@
+import { z } from "zod"
 import { eq, and } from "drizzle-orm"
 import { auth } from "@auth"
+
+const paramsSchema = z.object({
+  id: z.uuid({ message: "Invalid project ID" }),
+  shareId: z.uuid({ message: "Invalid share ID" })
+})
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -12,14 +18,36 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = useDrizzle()
-  const projectId = getRouterParam(event, "id")
-  const shareId = getRouterParam(event, "shareId")
+  // Validate route params
+  const { id: projectId, shareId } = await getValidatedRouterParams(event, paramsSchema.parse)
 
-  if (!projectId || !shareId) {
+  // Get active organization
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Project ID and Share ID are required"
+      statusMessage: "No active organization. Please select an organization."
+    })
+  }
+
+  const db = useDrizzle()
+
+  // Check if project exists
+  const [projectData] = await db.select().from(project).where(eq(project.id, projectId))
+
+  if (!projectData) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Project not found"
+    })
+  }
+
+  // Check access: project must belong to active organization
+  if (projectData.organizationId !== activeOrgId) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Access denied"
     })
   }
 
@@ -36,16 +64,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check if user is the creator of the share
-  const [projectData] = await db.select().from(project).where(eq(project.id, projectId))
-
-  if (!projectData) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Project not found"
-    })
-  }
-
+  // Only share creator or project owner can revoke shares
   if (share.createdBy !== session.user.id && projectData.createdBy !== session.user.id) {
     throw createError({
       statusCode: 403,

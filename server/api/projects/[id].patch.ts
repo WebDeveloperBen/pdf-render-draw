@@ -1,5 +1,18 @@
+import { z } from "zod"
 import { eq, and } from "drizzle-orm"
 import { auth } from "@auth"
+
+const paramsSchema = z.object({
+  id: z.uuid({ message: "Invalid project ID" })
+})
+
+const bodySchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters").optional(),
+  description: z.string().max(500).nullable().optional(),
+  annotationCount: z.number().int().min(0).optional(),
+  lastViewedAt: z.coerce.date().nullable().optional()
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })
@@ -11,17 +24,21 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = useDrizzle()
-  const projectId = getRouterParam(event, "id")
+  // Validate route params and body
+  const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
+  const body = await readValidatedBody(event, bodySchema.parse)
 
-  if (!projectId) {
+  // Get active organization
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Project ID is required"
+      statusMessage: "No active organization. Please select an organization."
     })
   }
 
-  const body = await readBody(event)
+  const db = useDrizzle()
 
   // Fetch the project
   const [existingProject] = await db.select().from(project).where(eq(project.id, projectId))
@@ -33,21 +50,27 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check access: user must be creator OR organization admin/owner
+  // Check access: project must belong to active organization
+  if (existingProject.organizationId !== activeOrgId) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Access denied"
+    })
+  }
+
+  // Check if user has permission to update (creator or admin/owner)
   let hasAccess = existingProject.createdBy === session.user.id
 
-  if (!hasAccess && existingProject.organizationId) {
+  if (!hasAccess) {
     const membership = await db
       .select()
       .from(member)
-      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, existingProject.organizationId)))
+      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, activeOrgId)))
       .limit(1)
 
     const userMembership = membership[0]
     if (userMembership) {
-      // Check if user has admin or owner role
-      const userRole = userMembership.role
-      hasAccess = userRole === "owner" || userRole === "admin"
+      hasAccess = userMembership.role === "owner" || userMembership.role === "admin"
     }
   }
 
@@ -58,15 +81,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Validate name if provided
-  if (body.name !== undefined && (body.name.length < 3 || body.name.length > 100)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Project name must be between 3 and 100 characters"
-    })
-  }
-
-  // Update the project
+  // Build update data from validated body
   const updateData: Partial<typeof project.$inferInsert> = {}
 
   if (body.name !== undefined) updateData.name = body.name

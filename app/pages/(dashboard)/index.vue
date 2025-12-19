@@ -195,7 +195,9 @@ onMounted(() => {
       </UiCardHeader>
       <UiCardContent class="space-y-4">
         <div class="flex items-start gap-3">
-          <div class="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+          <div
+            class="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold"
+          >
             1
           </div>
           <div class="flex-1">
@@ -207,7 +209,9 @@ onMounted(() => {
         </div>
 
         <div class="flex items-start gap-3">
-          <div class="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+          <div
+            class="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold"
+          >
             2
           </div>
           <div class="flex-1">
@@ -219,7 +223,9 @@ onMounted(() => {
         </div>
 
         <div class="flex items-start gap-3">
-          <div class="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+          <div
+            class="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold"
+          >
             3
           </div>
           <div class="flex-1">

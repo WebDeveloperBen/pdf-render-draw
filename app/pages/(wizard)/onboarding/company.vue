@@ -80,12 +80,16 @@ const handleBack = () => {
     <div class="text-center space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
       <div class="relative inline-flex items-center justify-center">
         <div class="absolute inset-0 bg-linear-to-br from-primary/20 to-primary/5 rounded-3xl blur-2xl scale-150" />
-        <div class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25">
+        <div
+          class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25"
+        >
           <Icon name="lucide:building" class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
-        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground via-foreground to-foreground/70 bg-clip-text">
+        <h2
+          class="text-4xl sm:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground via-foreground to-foreground/70 bg-clip-text"
+        >
           Your workspace
         </h2>
         <p class="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
@@ -95,7 +99,9 @@ const handleBack = () => {
     </div>
 
     <!-- Main Card -->
-    <UiCard class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-linear-to-br from-background via-background to-muted/5">
+    <UiCard
+      class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-linear-to-br from-background via-background to-muted/5"
+    >
       <UiCardContent class="p-6 sm:p-10 space-y-10">
         <!-- Company Name -->
         <div class="space-y-3">
@@ -105,9 +111,7 @@ const handleBack = () => {
               Company Name
               <span class="text-destructive">*</span>
             </UiLabel>
-            <p class="text-sm text-muted-foreground mt-1">
-              This will appear on your quotes and invoices
-            </p>
+            <p class="text-sm text-muted-foreground mt-1">This will appear on your quotes and invoices</p>
           </div>
           <div class="relative group/input">
             <UiInput
@@ -127,9 +131,7 @@ const handleBack = () => {
               ABN
               <UiBadge variant="secondary" class="ml-auto text-xs font-normal">Optional</UiBadge>
             </UiLabel>
-            <p class="text-sm text-muted-foreground mt-1">
-              Australian Business Number for invoicing
-            </p>
+            <p class="text-sm text-muted-foreground mt-1">Australian Business Number for invoicing</p>
           </div>
           <div class="relative group/input">
             <UiInput
@@ -150,9 +152,7 @@ const handleBack = () => {
               Team size?
               <span class="text-destructive">*</span>
             </UiLabel>
-            <p class="text-sm text-muted-foreground mt-1">
-              Helps us recommend the right plan
-            </p>
+            <p class="text-sm text-muted-foreground mt-1">Helps us recommend the right plan</p>
           </div>
 
           <div class="flex flex-wrap gap-2">
@@ -182,9 +182,7 @@ const handleBack = () => {
               What's your role?
               <span class="text-destructive">*</span>
             </UiLabel>
-            <p class="text-sm text-muted-foreground mt-1">
-              We'll customize your experience
-            </p>
+            <p class="text-sm text-muted-foreground mt-1">We'll customize your experience</p>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -193,11 +191,7 @@ const handleBack = () => {
               :key="r.value"
               type="button"
               class="group relative flex flex-col items-center gap-3 p-4 border-2 rounded-xl transition-all hover:border-primary/40 hover:bg-primary/5"
-              :class="
-                role === r.value
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border'
-              "
+              :class="role === r.value ? 'border-primary bg-primary/5' : 'border-border'"
               @click="role = r.value"
             >
               <div
@@ -226,13 +220,25 @@ const handleBack = () => {
     </UiCard>
 
     <!-- Actions -->
-    <div class="flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-      <UiButton variant="outline" size="lg" class="group h-12 px-6 text-base border-2 hover:bg-accent" @click="handleBack">
+    <div
+      class="flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300"
+    >
+      <UiButton
+        variant="outline"
+        size="lg"
+        class="group h-12 px-6 text-base border-2 hover:bg-accent"
+        @click="handleBack"
+      >
         <Icon name="lucide:arrow-left" class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
         <span class="font-medium">Back</span>
       </UiButton>
 
-      <UiButton size="lg" class="h-12 px-10 text-base shadow-xl shadow-primary/25 bg-gradient-to-r from-primary to-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" :disabled="!companyName.trim() || !role || !teamSize" @click="handleNext">
+      <UiButton
+        size="lg"
+        class="h-12 px-10 text-base shadow-xl shadow-primary/25 bg-gradient-to-r from-primary to-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+        :disabled="!companyName.trim() || !role || !teamSize"
+        @click="handleNext"
+      >
         <span class="font-semibold">Continue</span>
         <Icon name="lucide:arrow-right" class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>

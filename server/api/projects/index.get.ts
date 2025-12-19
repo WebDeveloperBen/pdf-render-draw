@@ -1,5 +1,14 @@
-import { and, desc, asc, eq, like, or, sql } from "drizzle-orm"
+import { z } from "zod"
+import { and, desc, asc, eq, like, or, sql, inArray } from "drizzle-orm"
 import { auth } from "@auth"
+
+const querySchema = z.object({
+  search: z.string().optional(),
+  sortBy: z.enum(["name", "createdAt", "updatedAt", "lastViewedAt"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  limit: z.coerce.number().min(1).max(100).default(50),
+  offset: z.coerce.number().min(0).default(0)
+})
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -12,61 +21,43 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = useDrizzle()
-  const query = getQuery(event)
+  // Validate query params
+  const query = await getValidatedQuery(event, querySchema.parse)
 
-  const organizationFilter = query.organizationId as string | undefined
-  const searchTerm = query.search as string | undefined
-  const sortBy = (query.sortBy as string) || "createdAt"
-  const sortOrder = (query.sortOrder as string) || "desc"
-  const limit = Number(query.limit) || 50
-  const offset = Number(query.offset) || 0
+  // Get active organization from session
+  // Every user has a home org created on signup, so this should always be set
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "No active organization. Please select an organization."
+    })
+  }
+
+  const db = useDrizzle()
 
   // Build where conditions
   const conditions = []
 
-  // User can see:
-  // 1. Projects they created
-  // 2. Projects in organizations they're a member of
-  const userOrganizations = await db
-    .select({ organizationId: member.organizationId })
-    .from(member)
-    .where(eq(member.userId, session.user.id))
-
-  const orgIds = userOrganizations.map((m) => m.organizationId)
-
-  conditions.push(
-    or(
-      eq(project.createdBy, session.user.id),
-      orgIds.length > 0 ? sql`${project.organizationId} IN ${orgIds}` : sql`false`
-    )
-  )
-
-  // Organization filter
-  if (organizationFilter) {
-    if (organizationFilter === "personal") {
-      conditions.push(sql`${project.organizationId} IS NULL`)
-    } else {
-      conditions.push(eq(project.organizationId, organizationFilter))
-    }
-  }
+  // Filter by active organization - all projects flow through organizations
+  conditions.push(eq(project.organizationId, activeOrgId))
 
   // Search filter
-  if (searchTerm) {
-    conditions.push(or(like(project.name, `%${searchTerm}%`), like(project.description, `%${searchTerm}%`)))
+  if (query.search) {
+    conditions.push(or(like(project.name, `%${query.search}%`), like(project.description, `%${query.search}%`)))
   }
 
   // Determine sort column and order
-  const sortColumn =
-    sortBy === "name"
-      ? project.name
-      : sortBy === "updatedAt"
-        ? project.updatedAt
-        : sortBy === "lastViewedAt"
-          ? project.lastViewedAt
-          : project.createdAt
+  const sortColumnMap = {
+    name: project.name,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+    lastViewedAt: project.lastViewedAt
+  } as const
 
-  const orderFn = sortOrder === "asc" ? asc : desc
+  const sortColumn = sortColumnMap[query.sortBy]
+  const orderFn = query.sortOrder === "asc" ? asc : desc
 
   // Query projects with relations
   const projects = await db
@@ -103,8 +94,8 @@ export default defineEventHandler(async (event) => {
     .leftJoin(organization, eq(project.organizationId, organization.id))
     .where(and(...conditions))
     .orderBy(orderFn(sortColumn))
-    .limit(limit)
-    .offset(offset)
+    .limit(query.limit)
+    .offset(query.offset)
 
   // Get share counts for each project
   const projectIds = projects.map((p) => p.id)
@@ -117,7 +108,7 @@ export default defineEventHandler(async (event) => {
             count: sql<number>`count(*)::int`
           })
           .from(projectShare)
-          .where(sql`${projectShare.projectId} IN ${projectIds}`)
+          .where(inArray(projectShare.projectId, projectIds))
           .groupBy(projectShare.projectId)
       : []
 

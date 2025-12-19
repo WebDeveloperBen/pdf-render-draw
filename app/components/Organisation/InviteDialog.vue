@@ -113,9 +113,7 @@ const handleClose = () => {
       </div>
 
       <UiDialogFooter>
-        <UiButton variant="outline" :disabled="isInviting" @click="handleClose">
-          Cancel
-        </UiButton>
+        <UiButton variant="outline" :disabled="isInviting" @click="handleClose"> Cancel </UiButton>
         <UiButton :disabled="isInviting || !email.trim()" @click="handleInvite">
           <Icon v-if="isInviting" name="svg-spinners:ring-resize" class="size-4" />
           <Icon v-else name="lucide:send" class="size-4" />

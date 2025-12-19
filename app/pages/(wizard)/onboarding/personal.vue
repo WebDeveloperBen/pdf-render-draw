@@ -49,12 +49,16 @@ const handleSkip = () => {
     <div class="text-center space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
       <div class="relative inline-flex items-center justify-center">
         <div class="absolute inset-0 bg-linear-to-br from-primary/20 to-primary/5 rounded-3xl blur-2xl scale-150" />
-        <div class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25">
+        <div
+          class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25"
+        >
           <Icon name="lucide:user-circle" class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
-        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground via-foreground to-foreground/70 bg-clip-text">
+        <h2
+          class="text-4xl sm:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground via-foreground to-foreground/70 bg-clip-text"
+        >
           Welcome aboard!
         </h2>
         <p class="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
@@ -64,17 +68,19 @@ const handleSkip = () => {
     </div>
 
     <!-- Main Card -->
-    <UiCard class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-linear-to-br from-background via-background to-muted/5">
+    <UiCard
+      class="border-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 overflow-hidden bg-linear-to-br from-background via-background to-muted/5"
+    >
       <UiCardContent class="p-6 sm:p-10 space-y-8">
         <!-- User Greeting -->
         <div class="flex items-center gap-4">
-          <div class="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10">
+          <div
+            class="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10"
+          >
             <Icon name="lucide:hand-metal" class="size-6 text-primary" />
           </div>
           <div>
-            <p class="text-2xl font-bold">
-              Hey{{ userFirstName ? ` ${userFirstName}` : ' there' }}!
-            </p>
+            <p class="text-2xl font-bold">Hey{{ userFirstName ? ` ${userFirstName}` : " there" }}!</p>
             <p class="text-sm text-muted-foreground flex items-center gap-1.5">
               <Icon name="lucide:mail" class="size-3.5" />
               Signed in as {{ session.data?.user.email }}
@@ -90,14 +96,15 @@ const handleSkip = () => {
               Phone Number
               <UiBadge variant="secondary" class="ml-auto text-xs font-normal">Optional</UiBadge>
             </UiLabel>
-            <p class="text-sm text-muted-foreground mt-1.5">
-              Stay connected with instant project notifications
-            </p>
+            <p class="text-sm text-muted-foreground mt-1.5">Stay connected with instant project notifications</p>
           </div>
 
           <div class="relative group/input">
             <div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
-              <Icon name="lucide:smartphone" class="size-5 text-muted-foreground group-focus-within/input:text-primary transition-all duration-300" />
+              <Icon
+                name="lucide:smartphone"
+                class="size-5 text-muted-foreground group-focus-within/input:text-primary transition-all duration-300"
+              />
             </div>
             <UiInput
               id="phone"
@@ -134,19 +141,35 @@ const handleSkip = () => {
           </div>
 
           <div class="grid sm:grid-cols-3 gap-4">
-            <div class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default">
-              <div class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20">
-                <Icon name="lucide:users" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+            <div
+              class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default"
+            >
+              <div
+                class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
+              >
+                <Icon
+                  name="lucide:users"
+                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors"
+                />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Team coordination</p>
-                <p class="text-xs text-muted-foreground leading-relaxed">Easy for collaborators to reach you on projects</p>
+                <p class="text-xs text-muted-foreground leading-relaxed">
+                  Easy for collaborators to reach you on projects
+                </p>
               </div>
             </div>
 
-            <div class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default">
-              <div class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20">
-                <Icon name="lucide:file-text" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+            <div
+              class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default"
+            >
+              <div
+                class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
+              >
+                <Icon
+                  name="lucide:file-text"
+                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors"
+                />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Professional quotes</p>
@@ -154,9 +177,16 @@ const handleSkip = () => {
               </div>
             </div>
 
-            <div class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default">
-              <div class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20">
-                <Icon name="lucide:headphones" class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+            <div
+              class="group/benefit flex flex-col items-start gap-3 p-5 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-default"
+            >
+              <div
+                class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
+              >
+                <Icon
+                  name="lucide:headphones"
+                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors"
+                />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Direct support</p>
@@ -169,13 +199,19 @@ const handleSkip = () => {
     </UiCard>
 
     <!-- Actions -->
-    <div class="flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+    <div
+      class="flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300"
+    >
       <UiButton variant="ghost" size="lg" class="group h-12 px-6 text-base" @click="handleSkip">
         <span>Skip for now</span>
         <Icon name="lucide:chevron-right" class="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>
 
-      <UiButton size="lg" class="h-12 px-10 text-base shadow-xl shadow-primary/25 bg-gradient-to-r from-primary to-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group" @click="handleNext">
+      <UiButton
+        size="lg"
+        class="h-12 px-10 text-base shadow-xl shadow-primary/25 bg-gradient-to-r from-primary to-primary/90 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group"
+        @click="handleNext"
+      >
         <span class="font-semibold">Continue</span>
         <Icon name="lucide:arrow-right" class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>

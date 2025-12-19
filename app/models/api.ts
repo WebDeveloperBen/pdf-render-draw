@@ -804,6 +804,61 @@ export const usePostApiUploadPdf = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient)
 }
 
+export type postApiUserOnboardingResponse200 = {
+  data: void
+  status: 200
+}
+
+export type postApiUserOnboardingResponseSuccess = postApiUserOnboardingResponse200 & {
+  headers: Headers
+}
+export type postApiUserOnboardingResponse = postApiUserOnboardingResponseSuccess
+
+export const getPostApiUserOnboardingUrl = () => {
+  return `/api/user/onboarding`
+}
+
+export const postApiUserOnboarding = async (options?: RequestInit): Promise<postApiUserOnboardingResponse> => {
+  return customFetch<postApiUserOnboardingResponse>(getPostApiUserOnboardingUrl(), {
+    ...options,
+    method: "POST"
+  })
+}
+
+export const getPostApiUserOnboardingMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof postApiUserOnboarding>>, TError, void, TContext>
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<Awaited<ReturnType<typeof postApiUserOnboarding>>, TError, void, TContext> => {
+  const mutationKey = ["postApiUserOnboarding"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiUserOnboarding>>, void> = () => {
+    return postApiUserOnboarding(requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiUserOnboardingMutationResult = NonNullable<Awaited<ReturnType<typeof postApiUserOnboarding>>>
+
+export type PostApiUserOnboardingMutationError = unknown
+
+export const usePostApiUserOnboarding = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof postApiUserOnboarding>>, TError, void, TContext>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<Awaited<ReturnType<typeof postApiUserOnboarding>>, TError, void, TContext> => {
+  const mutationOptions = getPostApiUserOnboardingMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
 export type getNuxtErrorResponse200 = {
   data: void
   status: 200

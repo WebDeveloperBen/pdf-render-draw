@@ -167,9 +167,7 @@ const acceptInvitationHandler = async () => {
         </UiCardDescription>
       </UiCardHeader>
       <UiCardFooter>
-        <UiButton variant="outline" class="w-full" @click="navigateTo('/login')">
-          Go to Login
-        </UiButton>
+        <UiButton variant="outline" class="w-full" @click="navigateTo('/login')"> Go to Login </UiButton>
       </UiCardFooter>
     </UiCard>
 
@@ -206,8 +204,9 @@ const acceptInvitationHandler = async () => {
           <div class="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
             <p class="text-sm text-destructive">
               This invitation was sent to
-              <span class="font-medium">{{ invitation.email }}</span>, but you're signed in as
-              <span class="font-medium">{{ session.data.user.email }}</span>.
+              <span class="font-medium">{{ invitation.email }}</span
+              >, but you're signed in as <span class="font-medium">{{ session.data.user.email }}</span
+              >.
             </p>
           </div>
           <UiButton variant="outline" class="w-full" @click="handleSignOutAndReload">
@@ -276,23 +275,11 @@ const acceptInvitationHandler = async () => {
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="space-y-2">
                 <UiLabel for="firstName">First Name</UiLabel>
-                <UiInput
-                  id="firstName"
-                  v-model="firstName"
-                  type="text"
-                  placeholder="John"
-                  :disabled="isLoading"
-                />
+                <UiInput id="firstName" v-model="firstName" type="text" placeholder="John" :disabled="isLoading" />
               </div>
               <div class="space-y-2">
                 <UiLabel for="lastName">Last Name</UiLabel>
-                <UiInput
-                  id="lastName"
-                  v-model="lastName"
-                  type="text"
-                  placeholder="Doe"
-                  :disabled="isLoading"
-                />
+                <UiInput id="lastName" v-model="lastName" type="text" placeholder="Doe" :disabled="isLoading" />
               </div>
             </div>
             <div class="space-y-2">

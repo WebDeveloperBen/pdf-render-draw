@@ -1,5 +1,10 @@
+import { z } from "zod"
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
+
+const paramsSchema = z.object({
+  id: z.uuid({ message: "Invalid project ID" })
+})
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -12,23 +17,36 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = useDrizzle()
-  const projectId = getRouterParam(event, "id")
+  // Validate route params
+  const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
 
-  if (!projectId) {
+  // Get active organization
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Project ID is required"
+      statusMessage: "No active organization. Please select an organization."
     })
   }
 
-  // Check if project exists and user has access
+  const db = useDrizzle()
+
+  // Check if project exists
   const [projectData] = await db.select().from(project).where(eq(project.id, projectId))
 
   if (!projectData) {
     throw createError({
       statusCode: 404,
       statusMessage: "Project not found"
+    })
+  }
+
+  // Check access: project must belong to active organization
+  if (projectData.organizationId !== activeOrgId) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Access denied"
     })
   }
 

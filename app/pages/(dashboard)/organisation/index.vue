@@ -93,17 +93,11 @@ useSeoMeta({
       <UiCard>
         <UiCardHeader>
           <UiCardTitle>Team Members</UiCardTitle>
-          <UiCardDescription>
-            Manage your organization's team members and their roles.
-          </UiCardDescription>
+          <UiCardDescription> Manage your organization's team members and their roles. </UiCardDescription>
         </UiCardHeader>
         <UiCardContent>
           <div v-if="orgData?.members?.length" class="space-y-3">
-            <div
-              v-for="member in orgData.members.slice(0, 5)"
-              :key="member.id"
-              class="flex items-center gap-3"
-            >
+            <div v-for="member in orgData.members.slice(0, 5)" :key="member.id" class="flex items-center gap-3">
               <UiAvatar class="size-8">
                 <UiAvatarImage v-if="member.user?.image" :src="member.user.image" />
                 <UiAvatarFallback>
@@ -132,9 +126,7 @@ useSeoMeta({
       <UiCard>
         <UiCardHeader>
           <UiCardTitle>Organization Details</UiCardTitle>
-          <UiCardDescription>
-            Basic information about your organization.
-          </UiCardDescription>
+          <UiCardDescription> Basic information about your organization. </UiCardDescription>
         </UiCardHeader>
         <UiCardContent class="space-y-4">
           <div class="flex items-center gap-4">

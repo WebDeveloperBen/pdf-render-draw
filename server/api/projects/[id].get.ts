@@ -1,5 +1,10 @@
-import { eq, and } from "drizzle-orm"
+import { z } from "zod"
+import { eq } from "drizzle-orm"
 import { auth } from "@auth"
+
+const paramsSchema = z.object({
+  id: z.uuid({ message: "Invalid project ID" })
+})
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -12,15 +17,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = useDrizzle()
-  const projectId = getRouterParam(event, "id")
+  // Validate route params
+  const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
 
-  if (!projectId) {
+  // Get active organization
+  const activeOrgId = session.session.activeOrganizationId
+
+  if (!activeOrgId) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Project ID is required"
+      statusMessage: "No active organization. Please select an organization."
     })
   }
+
+  const db = useDrizzle()
 
   // Fetch the project
   const [projectData] = await db
@@ -64,20 +74,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check access: user must be creator OR member of the organization
-  let hasAccess = projectData.createdBy === session.user.id
-
-  if (!hasAccess && projectData.organizationId) {
-    const membership = await db
-      .select()
-      .from(member)
-      .where(and(eq(member.userId, session.user.id), eq(member.organizationId, projectData.organizationId)))
-      .limit(1)
-
-    hasAccess = membership.length > 0
-  }
-
-  if (!hasAccess) {
+  // Check access: project must belong to active organization
+  if (projectData.organizationId !== activeOrgId) {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"

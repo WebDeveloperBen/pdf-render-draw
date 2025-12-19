@@ -110,32 +110,18 @@ useSeoMeta({
     <UiCard>
       <UiCardHeader>
         <UiCardTitle>General</UiCardTitle>
-        <UiCardDescription>
-          Basic information about your organization
-        </UiCardDescription>
+        <UiCardDescription> Basic information about your organization </UiCardDescription>
       </UiCardHeader>
       <UiCardContent class="space-y-4">
         <div class="space-y-2">
           <UiLabel for="orgName">Organization Name</UiLabel>
-          <UiInput
-            id="orgName"
-            v-model="orgName"
-            placeholder="Acme Construction Co."
-            :disabled="isUpdating"
-          />
+          <UiInput id="orgName" v-model="orgName" placeholder="Acme Construction Co." :disabled="isUpdating" />
         </div>
 
         <div class="space-y-2">
           <UiLabel for="orgSlug">Organization Slug</UiLabel>
-          <UiInput
-            id="orgSlug"
-            v-model="orgSlug"
-            placeholder="acme-construction"
-            disabled
-          />
-          <p class="text-xs text-muted-foreground">
-            The slug cannot be changed after creation
-          </p>
+          <UiInput id="orgSlug" v-model="orgSlug" placeholder="acme-construction" disabled />
+          <p class="text-xs text-muted-foreground">The slug cannot be changed after creation</p>
         </div>
       </UiCardContent>
       <UiCardFooter>
@@ -150,9 +136,7 @@ useSeoMeta({
     <UiCard>
       <UiCardHeader>
         <UiCardTitle>Organization Logo</UiCardTitle>
-        <UiCardDescription>
-          Upload a logo for your organization
-        </UiCardDescription>
+        <UiCardDescription> Upload a logo for your organization </UiCardDescription>
       </UiCardHeader>
       <UiCardContent>
         <div class="flex items-center gap-6">
@@ -165,9 +149,7 @@ useSeoMeta({
               <Icon name="lucide:upload" class="size-4" />
               Upload Logo
             </UiButton>
-            <p class="text-xs text-muted-foreground">
-              PNG, JPG up to 2MB. Coming soon.
-            </p>
+            <p class="text-xs text-muted-foreground">PNG, JPG up to 2MB. Coming soon.</p>
           </div>
         </div>
       </UiCardContent>
@@ -177,21 +159,15 @@ useSeoMeta({
     <UiCard v-if="isOrgOwner" class="border-destructive">
       <UiCardHeader>
         <UiCardTitle class="text-destructive">Danger Zone</UiCardTitle>
-        <UiCardDescription>
-          Irreversible actions that will permanently affect your organization
-        </UiCardDescription>
+        <UiCardDescription> Irreversible actions that will permanently affect your organization </UiCardDescription>
       </UiCardHeader>
       <UiCardContent>
         <div class="flex items-center justify-between rounded-lg border border-destructive/50 bg-destructive/5 p-4">
           <div>
             <h4 class="font-medium">Delete Organization</h4>
-            <p class="text-sm text-muted-foreground">
-              Permanently delete this organization and all its data
-            </p>
+            <p class="text-sm text-muted-foreground">Permanently delete this organization and all its data</p>
           </div>
-          <UiButton variant="destructive" @click="showDeleteDialog = true">
-            Delete Organization
-          </UiButton>
+          <UiButton variant="destructive" @click="showDeleteDialog = true"> Delete Organization </UiButton>
         </div>
       </UiCardContent>
     </UiCard>
@@ -231,9 +207,7 @@ useSeoMeta({
         </div>
 
         <UiDialogFooter>
-          <UiButton variant="outline" :disabled="isDeleting" @click="showDeleteDialog = false">
-            Cancel
-          </UiButton>
+          <UiButton variant="outline" :disabled="isDeleting" @click="showDeleteDialog = false"> Cancel </UiButton>
           <UiButton
             variant="destructive"
             :disabled="isDeleting || deleteConfirmation !== orgData?.name"
