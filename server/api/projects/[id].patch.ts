@@ -43,9 +43,10 @@ export default defineEventHandler(async (event) => {
       .where(and(eq(member.userId, session.user.id), eq(member.organizationId, existingProject.organizationId)))
       .limit(1)
 
-    if (membership.length > 0) {
+    const userMembership = membership[0]
+    if (userMembership) {
       // Check if user has admin or owner role
-      const userRole = membership[0].role
+      const userRole = userMembership.role
       hasAccess = userRole === "owner" || userRole === "admin"
     }
   }

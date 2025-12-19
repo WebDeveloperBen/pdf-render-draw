@@ -78,9 +78,10 @@ export default defineEventHandler(async (event) => {
       .where(and(eq(member.userId, session.user.id), eq(member.organizationId, existingProject.organizationId)))
       .limit(1)
 
-    if (membership.length > 0) {
+    const userMembership = membership[0]
+    if (userMembership) {
       // Only owner can delete projects
-      hasAccess = membership[0].role === "owner"
+      hasAccess = userMembership.role === "owner"
     }
   }
 

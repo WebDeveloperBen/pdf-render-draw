@@ -4,8 +4,16 @@ const name = appConfig.app?.name ?? "MetreMate"
 
 const route = useRoute()
 
-// TODO: Replace with actual auth check
-const isAdmin = ref(true)
+// Auth session
+const session = authClient.useSession()
+
+// Organization state
+const { activeOrg, isOrgAdmin, isOrgOwner, isPersonalWorkspace } = useActiveOrganization()
+
+// Check if user is super admin (for admin panel)
+const isSuperAdmin = computed(() => {
+  return session.value?.data?.user?.role === "admin"
+})
 
 // Navigation structure
 const navMain = [
@@ -20,6 +28,28 @@ const navMain = [
     icon: "lucide:folder-open"
   }
 ]
+
+// Organization navigation (shown when in an org context)
+const navOrg = computed(() => {
+  if (isPersonalWorkspace.value) return []
+  return [
+    {
+      title: "Organization",
+      url: "/organisation",
+      icon: "lucide:building-2",
+      items: [
+        { title: "Overview", url: "/organisation" },
+        ...(isOrgAdmin.value
+          ? [
+              { title: "Members", url: "/organisation/members" },
+              { title: "Invitations", url: "/organisation/invitations" },
+              { title: "Settings", url: "/organisation/settings" }
+            ]
+          : [])
+      ]
+    }
+  ]
+})
 
 const navSupport = [
   {
@@ -41,25 +71,28 @@ const navAdmin = [
   }
 ]
 
-// Mock user - replace with your auth composable
-const currentUser = {
-  name: "Demo User",
-  email: "demo@metremate.com",
-  initials: "DU"
-}
+// Current user from session
+const currentUser = computed(() => {
+  const user = session.value?.data?.user
+  if (!user) {
+    return { name: "Guest", email: "", initials: "?" }
+  }
+  const initials =
+    `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || user.name?.[0]?.toUpperCase() || "?"
+  return {
+    name: user.name || `${user.firstName} ${user.lastName}`,
+    email: user.email,
+    initials
+  }
+})
 
-const signOut = () => {
+const handleSignOut = async () => {
+  await authClient.signOut()
   navigateTo("/login")
 }
 
-// Breadcrumb generation from route
-const breadcrumbItems = computed(() => {
-  const paths = route.path.split("/").filter(Boolean)
-  return paths.map((segment, index) => ({
-    label: segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
-    link: "/" + paths.slice(0, index + 1).join("/")
-  }))
-})
+// Breadcrumbs
+const { items: breadcrumbItems } = useBreadcrumbs()
 
 useSeoMeta({ title: `${name} - Measure with precision` })
 </script>
@@ -77,7 +110,9 @@ useSeoMeta({ title: `${name} - Measure with precision` })
               class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <NuxtLink to="/">
-                <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div
+                  class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                >
                   <Icon name="lucide:ruler" class="size-4" />
                 </div>
                 <div class="grid flex-1 text-left text-sm leading-tight">
@@ -86,6 +121,13 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                 </div>
               </NuxtLink>
             </UiSidebarMenuButton>
+          </UiSidebarMenuItem>
+        </UiSidebarMenu>
+
+        <!-- Organization Switcher -->
+        <UiSidebarMenu>
+          <UiSidebarMenuItem>
+            <OrganisationSwitcher />
           </UiSidebarMenuItem>
         </UiSidebarMenu>
       </UiSidebarHeader>
@@ -106,8 +148,43 @@ useSeoMeta({ title: `${name} - Measure with precision` })
           </UiSidebarMenu>
         </UiSidebarGroup>
 
-        <!-- Admin Section (conditional) -->
-        <UiSidebarGroup v-if="isAdmin">
+        <!-- Organization Section (shown when in an org) -->
+        <UiSidebarGroup v-if="navOrg.length > 0">
+          <UiSidebarGroupLabel label="Organization" />
+          <UiSidebarMenu>
+            <template v-for="item in navOrg" :key="item.url">
+              <UiCollapsible v-if="item.items" v-slot="{ open }" as-child>
+                <UiSidebarMenuItem>
+                  <UiCollapsibleTrigger as-child>
+                    <UiSidebarMenuButton :tooltip="item.title">
+                      <Icon :name="item.icon" class="size-4" />
+                      <span>{{ item.title }}</span>
+                      <Icon
+                        name="lucide:chevron-right"
+                        class="ml-auto size-4 transition-transform duration-200"
+                        :class="[open && 'rotate-90']"
+                      />
+                    </UiSidebarMenuButton>
+                  </UiCollapsibleTrigger>
+                  <UiCollapsibleContent>
+                    <UiSidebarMenuSub>
+                      <UiSidebarMenuSubItem v-for="subItem in item.items" :key="subItem.url">
+                        <UiSidebarMenuSubButton as-child>
+                          <NuxtLink :to="subItem.url">
+                            <span>{{ subItem.title }}</span>
+                          </NuxtLink>
+                        </UiSidebarMenuSubButton>
+                      </UiSidebarMenuSubItem>
+                    </UiSidebarMenuSub>
+                  </UiCollapsibleContent>
+                </UiSidebarMenuItem>
+              </UiCollapsible>
+            </template>
+          </UiSidebarMenu>
+        </UiSidebarGroup>
+
+        <!-- Admin Section (super admin only) -->
+        <UiSidebarGroup v-if="isSuperAdmin">
           <UiSidebarGroupLabel label="Admin" />
           <UiSidebarMenu>
             <template v-for="item in navAdmin" :key="item.url">
@@ -207,7 +284,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                   </NuxtLink>
                 </UiDropdownMenuGroup>
                 <UiDropdownMenuSeparator />
-                <UiDropdownMenuItem title="Log out" @click="signOut">
+                <UiDropdownMenuItem title="Log out" @click="handleSignOut">
                   <template #icon>
                     <Icon name="lucide:log-out" class="size-4" />
                   </template>

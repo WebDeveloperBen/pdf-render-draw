@@ -5,6 +5,9 @@ import { toast } from "vue-sonner"
 const route = useRoute("projects-id")
 const projectId = route.params.id
 
+// Breadcrumb management
+const { setLabel, clearLabel } = useBreadcrumbs()
+
 useSeoMeta({ title: "Project Details" })
 
 const isLoading = ref(true)
@@ -28,6 +31,10 @@ const fetchProject = async () => {
   try {
     const data = await $fetch<ProjectWithRelations>(`/api/projects/${projectId}`)
     project.value = data
+    // Set breadcrumb label to project name
+    if (data.name) {
+      setLabel(projectId, data.name)
+    }
   } catch (error: any) {
     toast.error(error.data?.statusMessage || "Failed to load project")
     navigateTo("/projects")
@@ -35,6 +42,11 @@ const fetchProject = async () => {
     isLoading.value = false
   }
 }
+
+// Clean up breadcrumb label on unmount
+onUnmounted(() => {
+  clearLabel(projectId)
+})
 
 // Fetch shares
 const fetchShares = async () => {

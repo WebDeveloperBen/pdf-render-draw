@@ -6,4 +6,12 @@ export const authClient = createAuthClient({
   plugins: [inferAdditionalFields<typeof auth>(), adminClient(), organizationClient()]
 })
 
+// Auth methods
 export const { signIn, signOut, signUp, useSession, requestPasswordReset, resetPassword, deleteUser } = authClient
+
+// Organization client - renamed to avoid conflict with database table
+// Use authClient.organization directly in components for full access to all methods
+export const orgClient = authClient.organization
+
+// Admin client - for super admin panel
+export const adminClient$ = authClient.admin

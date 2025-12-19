@@ -12,7 +12,18 @@ export const auth = betterAuth({
       impersonationSessionDuration: 1 * 24 * 60 * 60
     }),
     apiKey(),
-    organization(),
+    organization({
+      teams: { enabled: true },
+      async sendInvitationEmail({ email, organization, inviter, invitation }) {
+        // TODO: Integrate with Resend for production
+        const invitationUrl = `${process.env.BETTER_AUTH_URL}/invite/${invitation.id}`
+        console.log(`[Organization Invite] Sending invitation email:`)
+        console.log(`  To: ${email}`)
+        console.log(`  Organization: ${organization.name}`)
+        console.log(`  Invited by: ${inviter.user.name} (${inviter.user.email})`)
+        console.log(`  Invitation URL: ${invitationUrl}`)
+      }
+    }),
     openAPI()
   ],
   database: drizzleAdapter(db, {

@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm"
 import { auth } from "@auth"
 
 export default defineEventHandler(async (event) => {

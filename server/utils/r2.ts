@@ -83,12 +83,12 @@ export async function generatePdfThumbnail(pdfBuffer: Buffer): Promise<Buffer> {
   const context = canvas.getContext("2d")
 
   // Render PDF page to canvas
-  const renderContext = {
-    canvasContext: context,
-    viewport: scaledViewport
-  }
-
-  await page.render(renderContext).promise
+  // Using 'as any' because node-canvas types don't match browser types that pdfjs expects
+  await page.render({
+    canvasContext: context as any,
+    viewport: scaledViewport,
+    canvas: canvas as any
+  }).promise
 
   // Convert canvas to PNG buffer
   return canvas.toBuffer("image/png")

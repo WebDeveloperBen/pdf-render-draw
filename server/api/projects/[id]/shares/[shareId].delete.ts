@@ -39,6 +39,13 @@ export default defineEventHandler(async (event) => {
   // Check if user is the creator of the share
   const [projectData] = await db.select().from(project).where(eq(project.id, projectId))
 
+  if (!projectData) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Project not found"
+    })
+  }
+
   if (share.createdBy !== session.user.id && projectData.createdBy !== session.user.id) {
     throw createError({
       statusCode: 403,
