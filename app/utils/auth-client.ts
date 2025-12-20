@@ -2,9 +2,16 @@ import { inferAdditionalFields, adminClient, organizationClient, apiKeyClient } 
 import { createAuthClient } from "better-auth/vue"
 import type { auth } from "../../auth"
 import { ac, roles } from "../../shared/auth/access-control"
+import { platformAdminClient } from "../../shared/auth/plugins/platform-admin.client"
 
 export const authClient = createAuthClient({
-  plugins: [inferAdditionalFields<typeof auth>(), adminClient(), organizationClient({ ac, roles }), apiKeyClient()]
+  plugins: [
+    inferAdditionalFields<typeof auth>(),
+    adminClient(),
+    organizationClient({ ac, roles }),
+    apiKeyClient(),
+    platformAdminClient()
+  ]
 })
 
 // Auth methods
@@ -14,5 +21,8 @@ export const { signIn, signOut, signUp, useSession, requestPasswordReset, resetP
 // Use authClient.organization directly in components for full access to all methods
 export const orgClient = authClient.organization
 
-// Admin client - for super admin panel
+// Admin client - for better-auth admin plugin (ban, impersonate, etc.)
 export const adminClient$ = authClient.admin
+
+// Platform Admin client - for tiered platform admin management
+export const platformAdmin$ = authClient.platformAdmin

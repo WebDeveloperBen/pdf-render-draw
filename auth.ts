@@ -4,12 +4,15 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "./server/utils/drizzle"
 import * as schema from "./shared/db/schema"
 import { ac, roles } from "./shared/auth/access-control"
+import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
 
 export const auth = betterAuth({
   experimental: { joins: true },
   plugins: [
     admin({
       defaultRole: "user",
+      // Use "platform_admin" to distinguish from organization "admin" role
+      adminRoles: ["platform_admin"],
       defaultBanExpiresIn: 7 * 24 * 60 * 60,
       defaultBanReason: "Spamming",
       impersonationSessionDuration: 1 * 24 * 60 * 60
@@ -29,6 +32,7 @@ export const auth = betterAuth({
         console.log(`  Invitation URL: ${invitationUrl}`)
       }
     }),
+    platformAdminPlugin(),
     openAPI()
   ],
   database: drizzleAdapter(db, {

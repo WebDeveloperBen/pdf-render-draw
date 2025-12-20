@@ -10,10 +10,8 @@ const session = authClient.useSession()
 // Organization state
 const { activeOrg, isOrgAdmin, isOrgOwner, isPersonalWorkspace } = useActiveOrganization()
 
-// Check if user is super admin (for admin panel)
-const isSuperAdmin = computed(() => {
-  return session.value?.data?.user?.role === "admin"
-})
+// Permission checks (including platform admin for admin panel)
+const { isPlatformAdmin } = usePermissions()
 
 // Navigation structure
 const navMain = [
@@ -59,14 +57,16 @@ const navSupport = [
   }
 ]
 
+// Admin navigation (Phase 4 - to be implemented)
 const navAdmin = [
   {
-    title: "Users",
-    url: "/users",
-    icon: "lucide:users",
+    title: "Admin",
+    url: "/admin",
+    icon: "lucide:shield",
     items: [
-      { title: "Overview", url: "/users" },
-      { title: "Roles", url: "/users/roles" }
+      { title: "Dashboard", url: "/admin" },
+      { title: "Users", url: "/admin/users" },
+      { title: "Organizations", url: "/admin/organizations" }
     ]
   }
 ]
@@ -183,8 +183,8 @@ useSeoMeta({ title: `${name} - Measure with precision` })
           </UiSidebarMenu>
         </UiSidebarGroup>
 
-        <!-- Admin Section (super admin only) -->
-        <UiSidebarGroup v-if="isSuperAdmin">
+        <!-- Admin Section (platform admin only) -->
+        <UiSidebarGroup v-if="isPlatformAdmin">
           <UiSidebarGroupLabel label="Admin" />
           <UiSidebarMenu>
             <template v-for="item in navAdmin" :key="item.url">
