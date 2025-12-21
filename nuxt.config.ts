@@ -17,12 +17,13 @@ export default defineNuxtConfig({
     enforceModuleCompatibility: true
   },
   typescript: {
-    typeCheck: true,
+    typeCheck: "build",
     strict: true
   },
 
   alias: {
-    "@auth": fileURLToPath(new URL("./auth.ts", import.meta.url))
+    "@auth": fileURLToPath(new URL("./auth.ts", import.meta.url)),
+    "@shared": fileURLToPath(new URL("./shared", import.meta.url))
   },
 
   // Runtime configuration
@@ -171,7 +172,7 @@ export default defineNuxtConfig({
       route: "/_docs/openapi.json",
       production: false,
 
-      meta: { title: "MetreMate API Documentation" },
+      meta: { title: "API Documentation" },
       ui: {
         scalar: {
           theme: "purple",

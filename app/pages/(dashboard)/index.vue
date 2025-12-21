@@ -73,6 +73,9 @@ onMounted(() => {
       <UiButton variant="outline" @click="handleSignOut"> Sign Out </UiButton>
     </div>
 
+    <!-- Pending Invitations -->
+    <PendingInvitations />
+
     <!-- Quick Actions -->
     <div class="grid gap-4 md:grid-cols-3">
       <UiCard class="hover:shadow-md transition-shadow cursor-pointer" @click="navigateTo('/projects')">
@@ -190,7 +193,7 @@ onMounted(() => {
     <!-- Getting Started Guide -->
     <UiCard>
       <UiCardHeader>
-        <UiCardTitle>Getting Started with MetreMate</UiCardTitle>
+        <UiCardTitle>Getting Started</UiCardTitle>
         <UiCardDescription>Quick guide to help you get the most out of the app</UiCardDescription>
       </UiCardHeader>
       <UiCardContent class="space-y-4">

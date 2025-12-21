@@ -84,7 +84,7 @@ const handleBack = () => {
           <div>
             <UiLabel class="text-base font-semibold justify-start">
               <Icon name="lucide:layers" class="size-4 text-primary" />
-              What will you use MetreMate for?
+              What will you use this app for?
               <span class="text-destructive">*</span>
             </UiLabel>
             <p class="text-sm text-muted-foreground mt-1">Select all that apply</p>

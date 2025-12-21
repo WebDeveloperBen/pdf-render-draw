@@ -204,9 +204,7 @@ onMounted(() => {
             <UiCardTitle>Active Sessions</UiCardTitle>
             <UiCardDescription>Manage your active sessions across devices</UiCardDescription>
           </div>
-          <UiButton variant="outline" size="sm" @click="handleRevokeAllSessions">
-            Revoke All Others
-          </UiButton>
+          <UiButton variant="outline" size="sm" @click="handleRevokeAllSessions"> Revoke All Others </UiButton>
         </div>
       </UiCardHeader>
       <UiCardContent>
@@ -238,9 +236,7 @@ onMounted(() => {
                   <p class="text-sm font-medium">
                     {{ parseUserAgent(sess.userAgent).browser }} on {{ parseUserAgent(sess.userAgent).os }}
                   </p>
-                  <UiBadge v-if="isCurrentSession(sess.token)" variant="default" class="text-xs">
-                    Current
-                  </UiBadge>
+                  <UiBadge v-if="isCurrentSession(sess.token)" variant="default" class="text-xs"> Current </UiBadge>
                 </div>
                 <p class="text-xs text-muted-foreground">
                   {{ sess.ipAddress || "Unknown IP" }} • Last active {{ formatDate(sess.updatedAt || sess.createdAt) }}
@@ -256,11 +252,7 @@ onMounted(() => {
               :disabled="isRevokingSession === sess.token"
               @click="handleRevokeSession(sess.token)"
             >
-              <Icon
-                v-if="isRevokingSession === sess.token"
-                name="svg-spinners:ring-resize"
-                class="size-4"
-              />
+              <Icon v-if="isRevokingSession === sess.token" name="svg-spinners:ring-resize" class="size-4" />
               <Icon v-else name="lucide:x" class="size-4" />
             </UiButton>
           </div>

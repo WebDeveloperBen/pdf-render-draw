@@ -1,6 +1,8 @@
 /**
  * Composable for managing the active organization context
  * Uses better-auth's organization plugin under the hood
+ *
+ * Every user has at least one organization (their home org created on signup)
  */
 export function useActiveOrganization() {
   // Get the active organization from better-auth
@@ -15,20 +17,61 @@ export function useActiveOrganization() {
   // Loading state for switching
   const isSwitching = ref(false)
 
+  /**
+   * Refresh the organizations list
+   * Call this after accepting invitations, creating orgs, or leaving orgs
+   */
+  const refreshOrganizations = async () => {
+    // The useListOrganizations hook is reactive - calling list() updates it
+    await authClient.organization.list()
+  }
+
+  /**
+   * Refresh the active organization data (including members)
+   * Call this after member changes, role updates, etc.
+   */
+  const refreshActiveOrganization = async () => {
+    if (activeOrg.value?.data?.id) {
+      await authClient.organization.getFullOrganization({
+        query: { organizationId: activeOrg.value.data.id }
+      })
+    }
+  }
+
+  /**
+   * Refresh all organization-related data
+   * Convenience method to invalidate everything
+   */
+  const refreshAll = async () => {
+    await Promise.all([refreshOrganizations(), refreshActiveOrganization()])
+  }
+
   // Switch to a different organization
-  const switchOrganization = async (organizationId: string | null) => {
+  const switchOrganization = async (organizationId: string) => {
     isSwitching.value = true
     try {
-      if (organizationId) {
-        await authClient.organization.setActive({
-          organizationId
-        })
-      } else {
-        // Clear active organization (switch to personal workspace)
-        await authClient.organization.setActive({})
-      }
+      await authClient.organization.setActive({
+        organizationId
+      })
     } finally {
       isSwitching.value = false
+    }
+  }
+
+  // Auto-select first organization if none is active
+  const ensureActiveOrganization = async () => {
+    // First ensure we have the organizations list loaded
+    if (!organizations.value?.data) {
+      await refreshOrganizations()
+    }
+
+    // If still no active org and we have organizations, select the first one
+    const orgList = organizations.value?.data
+    if (!activeOrg.value?.data && orgList?.length) {
+      const firstOrg = orgList[0]
+      if (firstOrg) {
+        await switchOrganization(firstOrg.id)
+      }
     }
   }
 
@@ -63,15 +106,15 @@ export function useActiveOrganization() {
     return member.role === "owner"
   })
 
-  // Get a display-friendly name for the current workspace
+  // Get a display-friendly name for the current organization
   const workspaceName = computed(() => {
-    if (!activeOrg.value?.data) return "Personal Workspace"
+    if (!activeOrg.value?.data) return "Select Organization"
     return activeOrg.value.data.name
   })
 
-  // Check if currently in personal workspace (no active org)
-  const isPersonalWorkspace = computed(() => {
-    return !activeOrg.value?.data
+  // Check if an organization is currently active
+  const hasActiveOrganization = computed(() => {
+    return !!activeOrg.value?.data
   })
 
   return {
@@ -85,10 +128,16 @@ export function useActiveOrganization() {
     isOrgAdmin,
     isOrgOwner,
     workspaceName,
-    isPersonalWorkspace,
+    hasActiveOrganization,
 
     // Methods
     switchOrganization,
-    createOrganization
+    createOrganization,
+    ensureActiveOrganization,
+
+    // Cache invalidation
+    refreshOrganizations,
+    refreshActiveOrganization,
+    refreshAll
   }
 }

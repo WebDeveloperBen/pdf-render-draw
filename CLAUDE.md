@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**MetreMate** - A PDF annotation editor for tradespeople to draw and measure building plans. Built with Nuxt 4, PDF.js, and a comprehensive UI component system.
+**PDF Annotator** - A PDF annotation editor for tradespeople to draw and measure building plans. Built with Nuxt 4, PDF.js, and a comprehensive UI component system.
 
 **Key constraint:** SSR disabled for editor - PDF.js requires browser APIs.
 

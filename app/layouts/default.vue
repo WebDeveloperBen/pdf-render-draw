@@ -1,17 +1,27 @@
 <script lang="ts" setup>
 const appConfig = useAppConfig() as { app?: { name?: string } }
-const name = appConfig.app?.name ?? "MetreMate"
-
-const route = useRoute()
+const name = appConfig.app?.name ?? "App"
 
 // Auth session
 const session = authClient.useSession()
 
 // Organization state
-const { activeOrg, isOrgAdmin, isOrgOwner, isPersonalWorkspace } = useActiveOrganization()
+const { isOrgAdmin, hasActiveOrganization, ensureActiveOrganization } = useActiveOrganization()
 
 // Permission checks (including platform admin for admin panel)
+// vue-query handles fetching automatically when session is ready
 const { isPlatformAdmin } = usePermissions()
+
+// Ensure organization is active when session is ready
+watch(
+  () => session.value?.data?.user,
+  async (user) => {
+    if (user) {
+      await ensureActiveOrganization()
+    }
+  },
+  { immediate: true }
+)
 
 // Navigation structure
 const navMain = [
@@ -27,9 +37,9 @@ const navMain = [
   }
 ]
 
-// Organization navigation (shown when in an org context)
+// Organization navigation (shown when an org is active)
 const navOrg = computed(() => {
-  if (isPersonalWorkspace.value) return []
+  if (!hasActiveOrganization.value) return []
   return [
     {
       title: "Organization",

@@ -5,7 +5,7 @@ import { user } from "./user"
 /**
  * Admin Audit Log table - tracks all platform admin actions
  */
-export const adminAuditLog = pgTable("admin_audit_log", {
+export const admin_audit_log = pgTable("admin_audit_log", {
   id: text("id").primaryKey(),
   adminId: text("admin_id")
     .notNull()
@@ -13,21 +13,19 @@ export const adminAuditLog = pgTable("admin_audit_log", {
   actionType: text("action_type").notNull(),
   targetUserId: text("target_user_id"),
   targetOrgId: text("target_org_id"),
-  metadata: text("metadata"), // JSON stringified
+  metadata: text("metadata"),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow().notNull()
 })
 
-export const adminAuditLogRelations = relations(adminAuditLog, ({ one }) => ({
+export const admin_audit_logRelations = relations(admin_audit_log, ({ one }) => ({
   admin: one(user, {
-    fields: [adminAuditLog.adminId],
+    fields: [admin_audit_log.adminId],
     references: [user.id],
-    relationName: "adminAuditLogs"
-  }),
-  targetUser: one(user, {
-    fields: [adminAuditLog.targetUserId],
-    references: [user.id],
-    relationName: "targetedAuditLogs"
+    relationName: "auditLogAdmin"
   })
 }))
+
+// Alias for backwards compatibility with existing code
+export { admin_audit_log as adminAuditLog }

@@ -1,4 +1,4 @@
-# MetreMate PDF + SVG Annotation Engine
+# PDF + SVG Annotation Engine
 
 **Clean extraction of the core rendering engine - no auth, no DB, pure PDF + SVG magic.**
 
@@ -230,5 +230,3 @@ See `docs/plan.md` for full migration history and architectural decisions.
 ## Support
 
 This extraction was done on 2025-01-13 as part of the Konva → SVG migration.
-
-For questions, see the original project at `/Users/bensutherland/projects/metremate/web-app`

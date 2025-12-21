@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from "@tanstack/vue-query"
 import { authClient } from "~/utils/auth-client"
 import type { statements } from "../../shared/auth/access-control"
 import type { PlatformAdminTier } from "../../shared/auth/plugins/platform-admin"
@@ -25,6 +26,8 @@ interface PlatformAdminStatus {
   notes?: string
 }
 
+const PLATFORM_ADMIN_QUERY_KEY = ["platform-admin-status"] as const
+
 /**
  * Composable for checking user permissions in the frontend
  * Uses better-auth's organization access control system
@@ -32,51 +35,49 @@ interface PlatformAdminStatus {
 export function usePermissions() {
   const sessionRef = authClient.useSession()
   const session = computed(() => sessionRef.value?.data)
+  const queryClient = useQueryClient()
 
-  // Platform admin status - fetched and cached
-  const platformAdminStatus = useState<PlatformAdminStatus | null>("platformAdminStatus", () => null)
-  const platformAdminLoading = useState("platformAdminLoading", () => false)
-  const platformAdminError = useState<string | null>("platformAdminError", () => null)
-
-  /**
-   * Fetch platform admin status from the server
-   * Called once when needed and cached
-   */
-  const fetchPlatformAdminStatus = async (): Promise<PlatformAdminStatus> => {
-    // Return cached value if available
-    if (platformAdminStatus.value !== null) {
-      return platformAdminStatus.value
-    }
-
-    // Don't fetch if not authenticated
-    if (!session.value?.user) {
-      return { isPlatformAdmin: false, tier: null }
-    }
-
-    platformAdminLoading.value = true
-    platformAdminError.value = null
-
-    try {
+  // Platform admin status using vue-query
+  const {
+    data: platformAdminData,
+    isPending: platformAdminLoading,
+    error: platformAdminQueryError
+  } = useQuery({
+    queryKey: PLATFORM_ADMIN_QUERY_KEY,
+    queryFn: async (): Promise<PlatformAdminStatus> => {
       const result = await authClient.platformAdmin.getStatus()
       if (result.error) {
         throw new Error(result.error.message || "Failed to fetch platform admin status")
       }
+      return result.data as PlatformAdminStatus
+    },
+    // Only fetch when user is authenticated
+    enabled: computed(() => !!session.value?.user),
+    // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000
+  })
 
-      platformAdminStatus.value = result.data as PlatformAdminStatus
-      return platformAdminStatus.value
-    } catch (e) {
-      platformAdminError.value = e instanceof Error ? e.message : "Unknown error"
-      return { isPlatformAdmin: false, tier: null }
-    } finally {
-      platformAdminLoading.value = false
-    }
+  // Computed status with default fallback
+  const platformAdminStatus = computed<PlatformAdminStatus>(
+    () => platformAdminData.value ?? { isPlatformAdmin: false, tier: null }
+  )
+
+  const platformAdminError = computed(() =>
+    platformAdminQueryError.value ? platformAdminQueryError.value.message : null
+  )
+
+  /**
+   * Refresh platform admin status (invalidate cache)
+   */
+  const refreshPlatformAdminStatus = () => {
+    queryClient.invalidateQueries({ queryKey: PLATFORM_ADMIN_QUERY_KEY })
   }
 
   /**
    * Clear the platform admin cache (e.g., on logout)
    */
   const clearPlatformAdminCache = () => {
-    platformAdminStatus.value = null
+    queryClient.removeQueries({ queryKey: PLATFORM_ADMIN_QUERY_KEY })
   }
 
   /**
@@ -143,17 +144,16 @@ export function usePermissions() {
 
   /**
    * Check if the current user is a platform admin (any tier)
-   * Note: This is reactive but requires fetchPlatformAdminStatus to be called first
    */
   const isPlatformAdmin = computed(() => {
-    return platformAdminStatus.value?.isPlatformAdmin ?? false
+    return platformAdminStatus.value.isPlatformAdmin
   })
 
   /**
    * Get the current user's platform admin tier
    */
   const platformAdminTier = computed(() => {
-    return platformAdminStatus.value?.tier ?? null
+    return platformAdminStatus.value.tier
   })
 
   /**
@@ -161,7 +161,7 @@ export function usePermissions() {
    * @param minimumTier - The minimum tier required (viewer < support < admin < owner)
    */
   const hasPlatformAdminTier = (minimumTier: PlatformAdminTier): boolean => {
-    const currentTier = platformAdminStatus.value?.tier
+    const currentTier = platformAdminStatus.value.tier
     if (!currentTier) return false
     return TIER_LEVELS[currentTier] >= TIER_LEVELS[minimumTier]
   }
@@ -169,7 +169,7 @@ export function usePermissions() {
   // Convenience computed properties for tier checks
   const isPlatformViewer = computed(() => hasPlatformAdminTier("viewer"))
   const isPlatformSupport = computed(() => hasPlatformAdminTier("support"))
-  const isPlatformAdminTier = computed(() => hasPlatformAdminTier("admin"))
+  const isPlatformAdminTierCheck = computed(() => hasPlatformAdminTier("admin"))
   const isPlatformOwner = computed(() => hasPlatformAdminTier("owner"))
 
   return {
@@ -186,14 +186,14 @@ export function usePermissions() {
     platformAdminStatus,
     platformAdminLoading,
     platformAdminError,
-    fetchPlatformAdminStatus,
+    refreshPlatformAdminStatus,
     clearPlatformAdminCache,
     hasPlatformAdminTier,
 
     // Tier convenience computed
     isPlatformViewer,
     isPlatformSupport,
-    isPlatformAdminTier,
+    isPlatformAdminTier: isPlatformAdminTierCheck,
     isPlatformOwner
   }
 }

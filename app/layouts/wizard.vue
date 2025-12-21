@@ -40,7 +40,7 @@ const currentYear = computed(() => new Date().getFullYear())
               </div>
               <div>
                 <h1 class="text-xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
-                  MetreMate
+                  PDF Annotator
                 </h1>
                 <p class="text-xs text-muted-foreground">Setup your account</p>
               </div>
@@ -99,7 +99,7 @@ const currentYear = computed(() => new Date().getFullYear())
                 </div>
                 <div>
                   <h1 class="text-xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
-                    MetreMate
+                    PDF Annotator
                   </h1>
                   <p class="text-xs text-muted-foreground">Setup your account</p>
                 </div>
@@ -138,7 +138,7 @@ const currentYear = computed(() => new Date().getFullYear())
       <footer class="border-t">
         <div class="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© {{ currentYear }} MetreMate. All rights reserved.</p>
+            <p>© {{ currentYear }} All rights reserved.</p>
             <div class="flex items-center gap-4">
               <a href="/support" class="hover:text-foreground transition-colors">Support</a>
               <span class="text-border">•</span>

@@ -7,7 +7,11 @@ const paramsSchema = z.object({
 })
 
 const bodySchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters").optional(),
+  name: z
+    .string()
+    .min(3, "Name must be at least 3 characters")
+    .max(100, "Name must be at most 100 characters")
+    .optional(),
   description: z.string().max(500).nullable().optional(),
   annotationCount: z.number().int().min(0).optional(),
   lastViewedAt: z.coerce.date().nullable().optional()

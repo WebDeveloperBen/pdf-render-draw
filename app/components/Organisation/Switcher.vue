@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 
-const { activeOrg, organizations, isSwitching, switchOrganization, workspaceName, isPersonalWorkspace } =
-  useActiveOrganization()
+const { activeOrg, organizations, isSwitching, switchOrganization, workspaceName } = useActiveOrganization()
 
 const isOpen = ref(false)
 const showCreateDialog = ref(false)
@@ -10,7 +9,7 @@ const newOrgName = ref("")
 const isCreating = ref(false)
 
 // Handle org switch
-const handleSwitch = async (orgId: string | null) => {
+const handleSwitch = async (orgId: string) => {
   isOpen.value = false
   await switchOrganization(orgId)
 }
@@ -58,13 +57,11 @@ const handleCreateOrg = async () => {
         class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
       >
         <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10">
-          <Icon :name="isPersonalWorkspace ? 'lucide:user' : 'lucide:building-2'" class="size-4 text-primary" />
+          <Icon name="lucide:building-2" class="size-4 text-primary" />
         </div>
         <div class="grid flex-1 text-left text-sm leading-tight">
           <span class="truncate font-semibold">{{ workspaceName }}</span>
-          <span class="truncate text-xs text-muted-foreground">
-            {{ isPersonalWorkspace ? "Personal" : "Organization" }}
-          </span>
+          <span class="truncate text-xs text-muted-foreground">Organization</span>
         </div>
         <Icon v-if="!isSwitching" name="lucide:chevrons-up-down" class="ml-auto size-4 text-muted-foreground" />
         <Icon v-else name="svg-spinners:ring-resize" class="ml-auto size-4 text-muted-foreground" />
@@ -77,18 +74,7 @@ const handleCreateOrg = async () => {
       align="start"
       :side-offset="4"
     >
-      <UiDropdownMenuLabel class="text-xs text-muted-foreground"> Workspaces </UiDropdownMenuLabel>
-
-      <!-- Personal Workspace -->
-      <UiDropdownMenuItem class="gap-2 p-2" :class="{ 'bg-accent': isPersonalWorkspace }" @click="handleSwitch(null)">
-        <div class="flex size-6 items-center justify-center rounded-sm border bg-background">
-          <Icon name="lucide:user" class="size-4" />
-        </div>
-        <span class="flex-1 truncate">Personal Workspace</span>
-        <Icon v-if="isPersonalWorkspace" name="lucide:check" class="size-4 text-primary" />
-      </UiDropdownMenuItem>
-
-      <UiDropdownMenuSeparator v-if="organizations?.data?.length" />
+      <UiDropdownMenuLabel class="text-xs text-muted-foreground"> Organizations </UiDropdownMenuLabel>
 
       <!-- Organization list -->
       <UiDropdownMenuItem

@@ -43,6 +43,13 @@
       "when": 1766189248761,
       "tag": "0005_blue_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766300210274,
+      "tag": "0006_awesome_night_thrasher",
+      "breakpoints": true
     }
   ]
 }

@@ -89,21 +89,11 @@ const handleUpdateProfile = async () => {
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <UiLabel for="firstName">First Name</UiLabel>
-            <UiInput
-              id="firstName"
-              v-model="firstName"
-              placeholder="John"
-              :disabled="isLoading"
-            />
+            <UiInput id="firstName" v-model="firstName" placeholder="John" :disabled="isLoading" />
           </div>
           <div class="space-y-2">
             <UiLabel for="lastName">Last Name</UiLabel>
-            <UiInput
-              id="lastName"
-              v-model="lastName"
-              placeholder="Doe"
-              :disabled="isLoading"
-            />
+            <UiInput id="lastName" v-model="lastName" placeholder="Doe" :disabled="isLoading" />
           </div>
         </div>
 
@@ -117,9 +107,7 @@ const handleUpdateProfile = async () => {
         </div>
       </UiCardContent>
       <UiCardFooter class="flex justify-end gap-2">
-        <UiButton variant="outline" to="/settings" :disabled="isLoading">
-          Cancel
-        </UiButton>
+        <UiButton variant="outline" to="/settings" :disabled="isLoading"> Cancel </UiButton>
         <UiButton :disabled="isLoading" @click="handleUpdateProfile">
           <Icon v-if="isLoading" name="svg-spinners:ring-resize" class="size-4" />
           Save Changes

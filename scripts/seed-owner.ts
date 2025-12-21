@@ -53,11 +53,7 @@ async function seedOwner() {
     console.log(`Found user: ${foundUser.name} (${foundUser.id})`)
 
     // Check if already a platform admin
-    const [existing] = await db
-      .select()
-      .from(platformAdmin)
-      .where(eq(platformAdmin.userId, foundUser.id))
-      .limit(1)
+    const [existing] = await db.select().from(platformAdmin).where(eq(platformAdmin.userId, foundUser.id)).limit(1)
 
     if (existing) {
       if (existing.tier === "owner") {
@@ -77,11 +73,7 @@ async function seedOwner() {
     }
 
     // Check if there's already an owner
-    const [existingOwner] = await db
-      .select()
-      .from(platformAdmin)
-      .where(eq(platformAdmin.tier, "owner"))
-      .limit(1)
+    const [existingOwner] = await db.select().from(platformAdmin).where(eq(platformAdmin.tier, "owner")).limit(1)
 
     if (existingOwner) {
       console.error("Error: A platform owner already exists")

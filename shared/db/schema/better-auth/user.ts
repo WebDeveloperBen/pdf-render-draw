@@ -6,6 +6,8 @@ import { member } from "./member"
 import { teamMember } from "./team-member"
 import { apiKey } from "./api-key"
 import { invitation } from "./invitation"
+import { platform_admin } from "./platform-admin"
+import { admin_audit_log } from "./admin-audit-log"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -32,5 +34,8 @@ export const userRelations = relations(user, ({ many }) => ({
   members: many(member),
   teamMembers: many(teamMember),
   apiKeys: many(apiKey),
-  invitations: many(invitation)
+  invitations: many(invitation),
+  platformAdmins: many(platform_admin, { relationName: "platformAdminUser" }),
+  platformAdminsGranted: many(platform_admin, { relationName: "platformAdminGrantedBy" }),
+  adminAuditLogs: many(admin_audit_log, { relationName: "auditLogAdmin" })
 }))

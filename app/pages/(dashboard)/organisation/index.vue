@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, isPersonalWorkspace } = useActiveOrganization()
+const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization } = useActiveOrganization()
 
-// Redirect to dashboard if no active org (personal workspace)
+// Redirect to dashboard if no active org
 watch(
-  isPersonalWorkspace,
-  (personal) => {
-    if (personal) {
+  hasActiveOrganization,
+  (hasOrg) => {
+    if (!hasOrg) {
       navigateTo("/")
     }
   },

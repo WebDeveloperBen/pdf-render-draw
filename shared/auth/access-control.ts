@@ -2,7 +2,7 @@ import { createAccessControl } from "better-auth/plugins/access"
 import { defaultStatements, adminAc, ownerAc, memberAc } from "better-auth/plugins/organization/access"
 
 /**
- * Custom permission statements for MetreMate
+ * Custom permission statements
  * Extends better-auth defaults with project-specific permissions
  */
 export const statements = {

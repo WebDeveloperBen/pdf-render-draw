@@ -93,7 +93,7 @@ const handleBack = () => {
           Your workspace
         </h2>
         <p class="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
-          Help us tailor MetreMate to your workflow
+          Help us tailor the app to your workflow
         </p>
       </div>
     </div>

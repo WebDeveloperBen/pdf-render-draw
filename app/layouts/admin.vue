@@ -1,17 +1,15 @@
 <script lang="ts" setup>
+definePageMeta({
+  layout: "admin"
+})
 const appConfig = useAppConfig() as { app?: { name?: string } }
-const name = appConfig.app?.name ?? "MetreMate"
+const name = appConfig.app?.name ?? "App"
 
 // Auth session
 const session = authClient.useSession()
 
-// Platform admin permissions
-const { platformAdminTier, isPlatformOwner, fetchPlatformAdminStatus } = usePermissions()
-
-// Fetch platform admin status on mount
-onMounted(async () => {
-  await fetchPlatformAdminStatus()
-})
+// Platform admin permissions - vue-query handles fetching automatically
+const { platformAdminTier, isPlatformOwner } = usePermissions()
 
 // Current user from session
 const currentUser = computed(() => {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+definePageMeta({ layout: false })
 
 const email = ref("")
 const password = ref("")
@@ -44,7 +45,7 @@ const handleSignUp = async () => {
     }
 
     toast.success("Account created successfully")
-    navigateTo("/")
+    await navigateTo("/")
   } catch (error: any) {
     toast.error(error.message || "Failed to create account")
   } finally {

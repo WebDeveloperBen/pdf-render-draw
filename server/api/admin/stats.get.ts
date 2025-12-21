@@ -7,17 +7,11 @@ export default defineEventHandler(async (event) => {
   const db = useDrizzle()
 
   // Get counts from various tables
-  const [userCount] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(user)
+  const [userCount] = await db.select({ count: sql<number>`count(*)::int` }).from(user)
 
-  const [orgCount] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(organization)
+  const [orgCount] = await db.select({ count: sql<number>`count(*)::int` }).from(organization)
 
-  const [projectCount] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(project)
+  const [projectCount] = await db.select({ count: sql<number>`count(*)::int` }).from(project)
 
   const [activeSessionCount] = await db
     .select({ count: sql<number>`count(*)::int` })

@@ -1,5 +1,9 @@
 import type { BetterAuthClientPlugin } from "better-auth"
+import type { Ref } from "vue"
 import type { PlatformAdminTier } from "./platform-admin"
+
+// Re-export the tier type for client-side use
+export type { PlatformAdminTier } from "./platform-admin"
 
 /**
  * Platform Admin Client Plugin for better-auth
@@ -11,6 +15,13 @@ export interface PlatformAdminStatus {
   tier: PlatformAdminTier | null
   grantedAt?: Date
   notes?: string
+}
+
+// Type for useFetch-style return
+export interface UseFetchReturn<T> {
+  data: Ref<T | null>
+  error: Ref<Error | null>
+  isPending: false
 }
 
 export interface PlatformAdminUser {
@@ -48,11 +59,27 @@ export const platformAdminClient = () => {
       platformAdmin: {
         /**
          * Get the current user's platform admin status
+         * @param fetchFn - Optional Nuxt useFetch for SSR support (same pattern as useSession)
          */
-        getStatus: async () => {
-          return await $fetch<PlatformAdminStatus>("/platform-admin/me", {
+        getStatus: async <F extends ((...args: any) => any) | undefined = undefined>(
+          fetchFn?: F
+        ): Promise<
+          F extends undefined
+            ? Awaited<ReturnType<typeof $fetch<PlatformAdminStatus>>>
+            : UseFetchReturn<PlatformAdminStatus>
+        > => {
+          if (fetchFn) {
+            // Use provided fetch (e.g., useFetch for SSR) - same pattern as useSession
+            const result = await fetchFn<PlatformAdminStatus>("/api/auth/platform-admin/me")
+            return {
+              data: result.data,
+              error: result.error,
+              isPending: false
+            } as any
+          }
+          return $fetch<PlatformAdminStatus>("/platform-admin/me", {
             method: "GET"
-          })
+          }) as any
         },
 
         /**
@@ -67,11 +94,7 @@ export const platformAdminClient = () => {
         /**
          * Grant platform admin access to a user (requires owner tier)
          */
-        grant: async (data: {
-          userId: string
-          tier: Exclude<PlatformAdminTier, "owner">
-          notes?: string
-        }) => {
+        grant: async (data: { userId: string; tier: Exclude<PlatformAdminTier, "owner">; notes?: string }) => {
           return await $fetch<{
             success: boolean
             admin: { id: string; userId: string; tier: PlatformAdminTier; grantedAt: Date }
@@ -84,10 +107,7 @@ export const platformAdminClient = () => {
         /**
          * Update a platform admin's tier (requires owner tier)
          */
-        updateTier: async (data: {
-          userId: string
-          tier: Exclude<PlatformAdminTier, "owner">
-        }) => {
+        updateTier: async (data: { userId: string; tier: Exclude<PlatformAdminTier, "owner"> }) => {
           return await $fetch<{ success: boolean; tier: PlatformAdminTier }>("/platform-admin/update-tier", {
             method: "POST",
             body: data
@@ -113,10 +133,9 @@ export const platformAdminClient = () => {
           if (params?.offset) searchParams.set("offset", String(params.offset))
 
           const query = searchParams.toString()
-          return await $fetch<{ logs: AuditLogEntry[] }>(
-            `/platform-admin/audit-log${query ? `?${query}` : ""}`,
-            { method: "GET" }
-          )
+          return await $fetch<{ logs: AuditLogEntry[] }>(`/platform-admin/audit-log${query ? `?${query}` : ""}`, {
+            method: "GET"
+          })
         }
       }
     })

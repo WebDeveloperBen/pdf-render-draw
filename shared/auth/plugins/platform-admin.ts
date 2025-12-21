@@ -67,8 +67,9 @@ export const platformAdminPlugin = () => {
     id: "platform-admin",
 
     // Database schema
+    // Use snake_case model names to match Drizzle's casing convention
     schema: {
-      platformAdmin: {
+      platform_admin: {
         fields: {
           userId: {
             type: "string",
@@ -93,7 +94,7 @@ export const platformAdminPlugin = () => {
           }
         }
       },
-      adminAuditLog: {
+      admin_audit_log: {
         fields: {
           adminId: {
             type: "string",
@@ -134,25 +135,30 @@ export const platformAdminPlugin = () => {
         },
         async (ctx) => {
           const session = ctx.context.session
+
           if (!session) {
             return ctx.json({ isPlatformAdmin: false, tier: null })
           }
 
-          const admin = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
-            where: [{ field: "userId", value: session.user.id }]
-          })) as PlatformAdminRecord | null
+          try {
+            const admin = (await ctx.context.adapter.findOne({
+              model: "platform_admin",
+              where: [{ field: "userId", value: session.user.id }]
+            })) as PlatformAdminRecord | null
 
-          if (!admin) {
+            if (!admin) {
+              return ctx.json({ isPlatformAdmin: false, tier: null })
+            }
+
+            return ctx.json({
+              isPlatformAdmin: true,
+              tier: admin.tier as PlatformAdminTier,
+              grantedAt: admin.grantedAt,
+              notes: admin.notes
+            })
+          } catch {
             return ctx.json({ isPlatformAdmin: false, tier: null })
           }
-
-          return ctx.json({
-            isPlatformAdmin: true,
-            tier: admin.tier as PlatformAdminTier,
-            grantedAt: admin.grantedAt,
-            notes: admin.notes
-          })
         }
       ),
 
@@ -171,7 +177,7 @@ export const platformAdminPlugin = () => {
 
           // Check if requester is a platform admin
           const requester = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: session.user.id }]
           })) as PlatformAdminRecord | null
 
@@ -181,7 +187,7 @@ export const platformAdminPlugin = () => {
 
           // Get all platform admins with user info
           const admins = (await ctx.context.adapter.findMany({
-            model: "platformAdmin"
+            model: "platform_admin"
           })) as PlatformAdminRecord[]
 
           // Fetch user details for each admin
@@ -248,7 +254,7 @@ export const platformAdminPlugin = () => {
 
           // Check if requester is the owner
           const requester = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: session.user.id }]
           })) as PlatformAdminRecord | null
 
@@ -270,7 +276,7 @@ export const platformAdminPlugin = () => {
 
           // Check if already a platform admin
           const existing = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: userId }]
           })) as PlatformAdminRecord | null
 
@@ -280,7 +286,7 @@ export const platformAdminPlugin = () => {
 
           // Create platform admin
           const admin = (await ctx.context.adapter.create({
-            model: "platformAdmin",
+            model: "platform_admin",
             data: {
               id: crypto.randomUUID(),
               userId,
@@ -293,7 +299,7 @@ export const platformAdminPlugin = () => {
 
           // Log the action
           await ctx.context.adapter.create({
-            model: "adminAuditLog",
+            model: "admin_audit_log",
             data: {
               id: crypto.randomUUID(),
               adminId: session.user.id,
@@ -336,7 +342,7 @@ export const platformAdminPlugin = () => {
 
           // Check if requester is the owner
           const requester = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: session.user.id }]
           })) as PlatformAdminRecord | null
 
@@ -348,7 +354,7 @@ export const platformAdminPlugin = () => {
 
           // Find the target admin
           const targetAdmin = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: userId }]
           })) as PlatformAdminRecord | null
 
@@ -365,14 +371,14 @@ export const platformAdminPlugin = () => {
 
           // Update tier
           await ctx.context.adapter.update({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: userId }],
             update: { tier }
           })
 
           // Log the action
           await ctx.context.adapter.create({
-            model: "adminAuditLog",
+            model: "admin_audit_log",
             data: {
               id: crypto.randomUUID(),
               adminId: session.user.id,
@@ -406,7 +412,7 @@ export const platformAdminPlugin = () => {
 
           // Check if requester is the owner
           const requester = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: session.user.id }]
           })) as PlatformAdminRecord | null
 
@@ -418,7 +424,7 @@ export const platformAdminPlugin = () => {
 
           // Find the target admin
           const targetAdmin = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: userId }]
           })) as PlatformAdminRecord | null
 
@@ -433,13 +439,13 @@ export const platformAdminPlugin = () => {
 
           // Delete platform admin
           await ctx.context.adapter.delete({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: userId }]
           })
 
           // Log the action
           await ctx.context.adapter.create({
-            model: "adminAuditLog",
+            model: "admin_audit_log",
             data: {
               id: crypto.randomUUID(),
               adminId: session.user.id,
@@ -474,7 +480,7 @@ export const platformAdminPlugin = () => {
 
           // Check if requester is a platform admin
           const requester = (await ctx.context.adapter.findOne({
-            model: "platformAdmin",
+            model: "platform_admin",
             where: [{ field: "userId", value: session.user.id }]
           })) as PlatformAdminRecord | null
 
@@ -486,7 +492,7 @@ export const platformAdminPlugin = () => {
 
           // Get audit logs
           const logs = (await ctx.context.adapter.findMany({
-            model: "adminAuditLog",
+            model: "admin_audit_log",
             limit,
             offset,
             sortBy: { field: "createdAt", direction: "desc" }

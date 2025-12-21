@@ -121,8 +121,8 @@ onMounted(() => {
         <div class="text-sm">
           <p class="font-medium">About API Keys</p>
           <p class="text-muted-foreground">
-            API keys allow you to authenticate with the MetreMate API programmatically. Keep your keys secure and never
-            share them publicly. You can create multiple keys for different integrations.
+            API keys allow you to authenticate with the API programmatically. Keep your keys secure and never share them
+            publicly. You can create multiple keys for different integrations.
           </p>
         </div>
       </UiCardContent>
@@ -146,11 +146,7 @@ onMounted(() => {
         </div>
 
         <div v-else class="space-y-3">
-          <div
-            v-for="key in apiKeys"
-            :key="key.id"
-            class="flex items-center justify-between p-4 border rounded-lg"
-          >
+          <div v-for="key in apiKeys" :key="key.id" class="flex items-center justify-between p-4 border rounded-lg">
             <div class="flex items-center gap-3 flex-1 min-w-0">
               <div class="flex size-10 items-center justify-center rounded-lg bg-muted">
                 <Icon name="lucide:key" class="size-5 text-muted-foreground" />
@@ -174,11 +170,7 @@ onMounted(() => {
                 :disabled="isDeleting === key.id"
                 @click="handleDeleteKey(key.id)"
               >
-                <Icon
-                  v-if="isDeleting === key.id"
-                  name="svg-spinners:ring-resize"
-                  class="size-4"
-                />
+                <Icon v-if="isDeleting === key.id" name="svg-spinners:ring-resize" class="size-4" />
                 <Icon v-else name="lucide:trash" class="size-4" />
               </UiButton>
             </div>
@@ -239,13 +231,9 @@ onMounted(() => {
         </div>
 
         <UiDialogFooter>
-          <UiButton v-if="newKeyCreated" @click="closeCreateDialog">
-            Done
-          </UiButton>
+          <UiButton v-if="newKeyCreated" @click="closeCreateDialog"> Done </UiButton>
           <template v-else>
-            <UiButton variant="outline" :disabled="isCreating" @click="closeCreateDialog">
-              Cancel
-            </UiButton>
+            <UiButton variant="outline" :disabled="isCreating" @click="closeCreateDialog"> Cancel </UiButton>
             <UiButton :disabled="isCreating || !newKeyName.trim()" @click="handleCreateKey">
               <Icon v-if="isCreating" name="svg-spinners:ring-resize" class="size-4" />
               Create Key

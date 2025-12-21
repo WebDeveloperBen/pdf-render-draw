@@ -5,7 +5,7 @@ const querySchema = z.object({
   search: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  sortBy: z.enum(["createdAt", "name", "email"]).default("createdAt"),
+  sortBy: z.enum(["createdAt", "name"]).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc")
 })
 
@@ -20,14 +20,13 @@ export default defineEventHandler(async (event) => {
 
   // Build search condition
   const searchCondition = query.search
-    ? or(ilike(user.name, `%${query.search}%`), ilike(user.email, `%${query.search}%`))
+    ? or(ilike(organization.name, `%${query.search}%`), ilike(organization.slug, `%${query.search}%`))
     : undefined
 
   // Build sort
   const sortColumn = {
-    createdAt: user.createdAt,
-    name: user.name,
-    email: user.email
+    createdAt: organization.createdAt,
+    name: organization.name
   }[query.sortBy]
 
   const orderBy = query.sortOrder === "asc" ? asc(sortColumn) : desc(sortColumn)
@@ -35,33 +34,30 @@ export default defineEventHandler(async (event) => {
   // Get total count
   const [countResult] = await db
     .select({ count: sql<number>`count(*)::int` })
-    .from(user)
+    .from(organization)
     .where(searchCondition)
   const total = countResult?.count ?? 0
 
-  // Get users
-  const users = await db
+  // Get organizations with member count
+  const organizations = await db
     .select({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      image: user.image,
-      role: user.role,
-      banned: user.banned,
-      banReason: user.banReason,
-      banExpires: user.banExpires,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      id: organization.id,
+      name: organization.name,
+      slug: organization.slug,
+      logo: organization.logo,
+      createdAt: organization.createdAt,
+      memberCount: sql<number>`(
+        SELECT COUNT(*)::int FROM member WHERE member.organization_id = ${organization.id}
+      )`
     })
-    .from(user)
+    .from(organization)
     .where(searchCondition)
     .orderBy(orderBy)
     .limit(query.limit)
     .offset(offset)
 
   return {
-    users,
+    organizations,
     pagination: {
       page: query.page,
       limit: query.limit,
