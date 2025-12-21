@@ -108,8 +108,9 @@ useSeoMeta({ title: `${name} - Measure with precision` })
 </script>
 
 <template>
-  <ImpersonationBanner />
-  <UiSidebarProvider v-slot="{ isMobile }">
+  <div class="min-h-screen">
+    <ImpersonationBanner />
+    <UiSidebarProvider v-slot="{ isMobile }">
     <UiSidebar collapsible="icon">
       <!-- Header -->
       <UiSidebarHeader>
@@ -196,7 +197,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
 
         <!-- Admin Section (platform admin only) -->
         <UiSidebarGroup v-if="isPlatformAdmin">
-          <UiSidebarGroupLabel label="Admin" />
+          <UiSidebarGroupLabel label="Platform Admin" />
           <UiSidebarMenu>
             <template v-for="item in navAdmin" :key="item.url">
               <UiCollapsible v-if="item.items" v-slot="{ open }" as-child>
@@ -324,4 +325,5 @@ useSeoMeta({ title: `${name} - Measure with precision` })
       </UiContainer>
     </UiSidebarInset>
   </UiSidebarProvider>
+  </div>
 </template>

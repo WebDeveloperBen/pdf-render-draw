@@ -14,6 +14,9 @@ definePageMeta({
 const route = useRoute("admin-users-id")
 const userId = computed(() => route.params.id)
 
+// Breadcrumb label
+const { setLabel, clearLabel } = useBreadcrumbs()
+
 // Permissions
 const { hasPlatformAdminTier } = usePermissions()
 const canBan = computed(() => hasPlatformAdminTier("support"))
@@ -130,8 +133,23 @@ const formatDate = (date: Date | string | null) => {
   })
 }
 
+// Update breadcrumb label when user data loads
+watch(
+  user,
+  (userData) => {
+    if (userData) {
+      setLabel(userId.value, userData.name || userData.email)
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
   fetchUser()
+})
+
+onUnmounted(() => {
+  clearLabel(userId.value)
 })
 </script>
 
