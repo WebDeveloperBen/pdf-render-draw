@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth"
+import { betterAuth } from "better-auth/minimal"
 import { createAuthMiddleware } from "better-auth/api"
 import { admin, openAPI, apiKey, organization } from "better-auth/plugins"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
@@ -37,6 +37,12 @@ async function logAdminAction(params: {
 
 export const auth = betterAuth({
   experimental: { joins: true },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60 // Cache duration in seconds
+    }
+  },
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
       const session = ctx.context.session
@@ -99,9 +105,11 @@ export const auth = betterAuth({
   },
   plugins: [
     admin({
+      ac,
+      roles: {
+        platform_admin: roles.platform_admin
+      },
       defaultRole: "user",
-      // Use "platform_admin" to distinguish from organization "admin" role
-      adminRoles: ["platform_admin"],
       defaultBanExpiresIn: 7 * 24 * 60 * 60,
       defaultBanReason: "Spamming",
       impersonationSessionDuration: 1 * 24 * 60 * 60

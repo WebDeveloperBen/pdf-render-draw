@@ -40,37 +40,32 @@ const handleStopImpersonating = async () => {
 <template>
   <Teleport to="body">
     <Transition
-      enter-active-class="transition-all duration-300 ease-out"
-      leave-active-class="transition-all duration-200 ease-in"
-      enter-from-class="opacity-0 -translate-y-full"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-full"
+      enter-active-class="transition-all duration-200 ease-out"
+      leave-active-class="transition-all duration-150 ease-in"
+      enter-from-class="opacity-0 scale-95 translate-y-2"
+      enter-to-class="opacity-100 scale-100 translate-y-0"
+      leave-from-class="opacity-100 scale-100 translate-y-0"
+      leave-to-class="opacity-0 scale-95 translate-y-2"
     >
       <div
         v-if="isImpersonating"
-        class="fixed top-0 left-0 right-0 z-[100] bg-yellow-500 text-yellow-950 shadow-md"
+        class="fixed top-4 right-4 z-[100] flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full pl-3.5 pr-1 py-1 shadow-lg"
       >
-        <div class="container mx-auto px-4 py-2 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <Icon name="lucide:user-check" class="size-5" />
-            <span class="font-medium">
-              You are impersonating
-              <strong>{{ impersonatedUser?.name || impersonatedUser?.email }}</strong>
-            </span>
-          </div>
-          <UiButton
-            variant="outline"
-            size="sm"
-            class="bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-600 hover:border-yellow-700"
-            :disabled="isLoading"
-            @click="handleStopImpersonating"
-          >
-            <Icon v-if="isLoading" name="lucide:loader-2" class="size-4 mr-2 animate-spin" />
-            <Icon v-else name="lucide:log-out" class="size-4 mr-2" />
-            Stop Impersonating
-          </UiButton>
+        <div class="flex items-center gap-2">
+          <Icon name="lucide:eye" class="size-4" />
+          <span class="text-sm font-medium">
+            Viewing as <span class="font-semibold">{{ impersonatedUser?.name || impersonatedUser?.email }}</span>
+          </span>
         </div>
+        <button
+          class="inline-flex items-center justify-center size-7 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+          :disabled="isLoading"
+          title="Stop impersonating"
+          @click="handleStopImpersonating"
+        >
+          <Icon v-if="isLoading" name="lucide:loader-2" class="size-3.5 animate-spin" />
+          <Icon v-else name="lucide:x" class="size-3.5" />
+        </button>
       </div>
     </Transition>
   </Teleport>

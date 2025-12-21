@@ -4,24 +4,21 @@
 
 ### General
 
-- [x] Clean up how personal organisations works. The user on signup will get an organisation created for them, their home organisation and if they have
-      pending invites they will have the option to accept them. this is cleaned up in the api layer but not the frontend yet.
-- [x] Add pending invites display for users (show invitations they've received)
-- [x] clean up references to metremate throughout the project
 - [ ] first read, update and then complete the outstanding items from ADMIN_AUDIT_REPORT.md
 
 ### Platform Admins
 
-- [x] Add way for a platform admin to navigate to the platform admin pages via a navigatation menu item conditionally rendered for only platform admins
-- [x] Add way for platform admin to navigate back to primary application from their platform admin panel
+- [ ] Fix impersonation users to be able to act, see, load exactly what that user will. with a banner on the top of the page allowing to stop impersonating that
+      user and return to the admin account
 
 ### Organisation Admins
-
--[ ] organisations need an admin function for them to be able to manage their own organisation. This is a different concept to the platform admin. The platform
-admin acts on behalf of my business to manage, support and report on the business as a whole.
-
-- [x] add menu item conditionally rendered for organisation admins to be able to route to their org admin panel
 
 ### Errors
 
 - [ ] ERROR [Better Auth]: BetterAuthError Field createdAt not found in model admin_audit_log
+
+### Developer Experience
+
+- [ ] Enhance the seeds so that we get a fully seeded database to develop the solution with and enable it to run when the server starts in dev mode so its easy
+      for my developers to get up and running. Look in the compose.yml file. and then package.json. Seeds should be idempotent and build upon the
+      initial_setup_db.sql file but be a different file thats optional and only run during pnpm dev

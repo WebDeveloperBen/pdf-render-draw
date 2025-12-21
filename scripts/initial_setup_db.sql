@@ -52,6 +52,8 @@ BEGIN
 
   IF v_existing_tier IS NOT NULL THEN
     IF v_existing_tier = 'owner' THEN
+      -- Ensure user.role is set even if already owner (in case of previous incomplete setup)
+      UPDATE "user" SET role = 'platform_admin' WHERE id = v_user_id AND (role IS NULL OR role != 'platform_admin');
       RAISE NOTICE 'User is already the platform owner - no changes needed';
       RETURN;
     ELSE
@@ -59,6 +61,8 @@ BEGIN
       UPDATE platform_admin
       SET tier = 'owner', notes = 'Upgraded to owner via SQL script', updated_at = NOW()
       WHERE user_id = v_user_id;
+      -- Ensure user.role is set for better-auth compatibility
+      UPDATE "user" SET role = 'platform_admin' WHERE id = v_user_id;
       RAISE NOTICE 'Successfully upgraded to platform owner!';
       RETURN;
     END IF;
@@ -81,6 +85,11 @@ BEGIN
     NOW(),
     NOW()
   );
+
+  -- Also set user.role for better-auth admin plugin compatibility
+  -- This enables impersonation, ban/unban, and other admin features
+  -- See docs/architecture/role-systems.md for details
+  UPDATE "user" SET role = 'platform_admin' WHERE id = v_user_id;
 
   RAISE NOTICE 'Successfully created platform owner!';
   RAISE NOTICE '  User: %', v_user_name;

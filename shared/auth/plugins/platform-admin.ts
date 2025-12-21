@@ -297,6 +297,14 @@ export const platformAdminPlugin = () => {
             }
           })) as PlatformAdminRecord
 
+          // Also set user role to "platform_admin" for better-auth admin plugin compatibility
+          // This enables impersonation and other admin features
+          await ctx.context.adapter.update({
+            model: "user",
+            where: [{ field: "id", value: userId }],
+            update: { role: "platform_admin" }
+          })
+
           // Log the action
           await ctx.context.adapter.create({
             model: "admin_audit_log",
@@ -441,6 +449,13 @@ export const platformAdminPlugin = () => {
           await ctx.context.adapter.delete({
             model: "platform_admin",
             where: [{ field: "userId", value: userId }]
+          })
+
+          // Clear user role since they're no longer a platform admin
+          await ctx.context.adapter.update({
+            model: "user",
+            where: [{ field: "id", value: userId }],
+            update: { role: "user" }
           })
 
           // Log the action

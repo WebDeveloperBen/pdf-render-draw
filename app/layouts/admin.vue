@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-definePageMeta({
-  layout: "admin"
-})
 const appConfig = useAppConfig() as { app?: { name?: string } }
 const name = appConfig.app?.name ?? "App"
 
@@ -95,8 +92,9 @@ useSeoMeta({ title: `Admin - ${name}` })
 </script>
 
 <template>
-  <ImpersonationBanner />
-  <UiSidebarProvider v-slot="{ isMobile }">
+  <div class="min-h-screen">
+    <ImpersonationBanner />
+    <UiSidebarProvider v-slot="{ isMobile }">
     <UiSidebar collapsible="icon">
       <!-- Header -->
       <UiSidebarHeader>
@@ -238,4 +236,5 @@ useSeoMeta({ title: `Admin - ${name}` })
       </UiContainer>
     </UiSidebarInset>
   </UiSidebarProvider>
+  </div>
 </template>

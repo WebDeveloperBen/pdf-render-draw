@@ -7,6 +7,15 @@ const session = authClient.useSession()
 const isLoading = ref(true)
 const recentProjects = ref<ProjectWithRelations[]>([])
 
+// Debug: Log session data to understand impersonation state
+watchEffect(() => {
+  console.log("Session data:", {
+    user: session.value?.data?.user,
+    session: session.value?.data?.session,
+    impersonatedBy: session.value?.data?.session?.impersonatedBy
+  })
+})
+
 // Fetch recent projects
 const fetchRecentProjects = async () => {
   isLoading.value = true

@@ -111,12 +111,23 @@ const handleUnban = async () => {
 const handleImpersonate = async () => {
   if (!user.value) return
   try {
-    await authClient.admin.impersonateUser({
+    const result = await authClient.admin.impersonateUser({
       userId: user.value.id
     })
+
+    // Check for errors from better-auth
+    if (result.error) {
+      console.error("Impersonation error:", result.error)
+      toast.error(result.error.message || "Failed to impersonate user")
+      return
+    }
+
+    console.log("Impersonation result:", result.data)
     toast.success("Impersonating user - redirecting...")
-    navigateTo("/")
+    // Full page reload to clear all cached data (session, orgs, permissions)
+    window.location.href = "/"
   } catch (e: any) {
+    console.error("Impersonation exception:", e)
     toast.error(e.message || "Failed to impersonate user")
   }
 }
