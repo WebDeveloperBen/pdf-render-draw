@@ -61,7 +61,7 @@ export const platformAdminClient = () => {
          * Get the current user's platform admin status
          * @param fetchFn - Optional Nuxt useFetch for SSR support (same pattern as useSession)
          */
-        getStatus: async <F extends ((...args: any) => any) | undefined = undefined>(
+        getStatus: async <F extends ((...args: any[]) => any) | undefined = undefined>(
           fetchFn?: F
         ): Promise<
           F extends undefined
@@ -70,7 +70,10 @@ export const platformAdminClient = () => {
         > => {
           if (fetchFn) {
             // Use provided fetch (e.g., useFetch for SSR) - same pattern as useSession
-            const result = await fetchFn<PlatformAdminStatus>("/api/auth/platform-admin/me")
+            const result = (await fetchFn("/api/auth/platform-admin/me")) as {
+              data: Ref<PlatformAdminStatus | null>
+              error: Ref<Error | null>
+            }
             return {
               data: result.data,
               error: result.error,

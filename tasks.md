@@ -21,3 +21,7 @@
 admin acts on behalf of my business to manage, support and report on the business as a whole.
 
 - [x] add menu item conditionally rendered for organisation admins to be able to route to their org admin panel
+
+### Errors
+
+- [ ] ERROR [Better Auth]: BetterAuthError Field createdAt not found in model admin_audit_log

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 import { useDebounceFn } from "@vueuse/core"
+import type { AdminUser, AdminUsersResponse } from "@shared/types/admin.types"
 
 definePageMeta({
   layout: "admin",
@@ -8,30 +9,6 @@ definePageMeta({
 })
 
 useSeoMeta({ title: "Users - Admin" })
-
-interface AdminUser {
-  id: string
-  name: string | null
-  email: string
-  emailVerified: boolean
-  image: string | null
-  role: string | null
-  banned: boolean | null
-  banReason: string | null
-  banExpires: Date | null
-  createdAt: Date
-  updatedAt: Date
-}
-
-interface UsersResponse {
-  users: AdminUser[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
 
 // State
 const users = ref<AdminUser[]>([])
@@ -45,7 +22,7 @@ const sortOrder = ref<"asc" | "desc">("desc")
 const fetchUsers = async () => {
   isLoading.value = true
   try {
-    const response = await $fetch<UsersResponse>("/api/admin/users", {
+    const response = await $fetch<AdminUsersResponse>("/api/admin/users", {
       query: {
         search: search.value || undefined,
         page: pagination.value.page,
@@ -192,8 +169,14 @@ onMounted(() => {
               </td>
             </tr>
 
-            <!-- User rows -->
-            <tr v-for="user in users" v-else :key="user.id" class="border-b hover:bg-muted/50 transition-colors">
+            <!-- User rows with staggered fade-in -->
+            <tr
+              v-for="(user, index) in users"
+              v-else
+              :key="user.id"
+              class="border-b hover:bg-muted/50 transition-colors animate-in fade-in duration-300 fill-mode-backwards"
+              :style="{ animationDelay: `${index * 50}ms` }"
+            >
               <td class="p-4">
                 <div class="flex items-center gap-3">
                   <UiAvatar class="size-10">

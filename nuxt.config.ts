@@ -55,7 +55,17 @@ export default defineNuxtConfig({
     // Public (exposed to client)
     public: {
       betterAuthUrl: process.env.BETTER_AUTH_URL,
-      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+      logger: {
+        client: {
+          level: "info"
+        }
+      }
+    },
+    logger: {
+      server: {
+        level: "info"
+      }
     }
   },
 

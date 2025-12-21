@@ -1,13 +1,102 @@
 import { betterAuth } from "better-auth"
+import { createAuthMiddleware } from "better-auth/api"
 import { admin, openAPI, apiKey, organization } from "better-auth/plugins"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { nanoid } from "nanoid"
 import { db } from "./server/utils/drizzle"
 import * as schema from "./shared/db/schema"
 import { ac, roles } from "./shared/auth/access-control"
 import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
 
+// Helper to log admin actions to audit log
+async function logAdminAction(params: {
+  adminId: string
+  actionType: string
+  targetUserId?: string | null
+  targetOrgId?: string | null
+  metadata?: Record<string, unknown>
+  ipAddress?: string | null
+  userAgent?: string | null
+}) {
+  try {
+    await db.insert(schema.adminAuditLog).values({
+      id: nanoid(),
+      adminId: params.adminId,
+      actionType: params.actionType,
+      targetUserId: params.targetUserId ?? null,
+      targetOrgId: params.targetOrgId ?? null,
+      metadata: params.metadata ? JSON.stringify(params.metadata) : null,
+      ipAddress: params.ipAddress ?? null,
+      userAgent: params.userAgent ?? null,
+      createdAt: new Date()
+    })
+  } catch (error) {
+    console.error("[Audit Log] Failed to log admin action:", error)
+  }
+}
+
 export const auth = betterAuth({
   experimental: { joins: true },
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      const session = ctx.context.session
+      if (!session?.user?.id) return
+
+      const adminId = session.user.id
+      const ipAddress = ctx.request?.headers.get("x-forwarded-for") || null
+      const userAgent = ctx.request?.headers.get("user-agent") || null
+
+      // Ban user
+      if (ctx.path === "/admin/ban-user") {
+        const body = ctx.body as { userId?: string; banReason?: string; banExpiresIn?: number }
+        await logAdminAction({
+          adminId,
+          actionType: "user_banned",
+          targetUserId: body?.userId,
+          metadata: { banReason: body?.banReason, banExpiresIn: body?.banExpiresIn },
+          ipAddress,
+          userAgent
+        })
+      }
+
+      // Unban user
+      if (ctx.path === "/admin/unban-user") {
+        const body = ctx.body as { userId?: string }
+        await logAdminAction({
+          adminId,
+          actionType: "user_unbanned",
+          targetUserId: body?.userId,
+          ipAddress,
+          userAgent
+        })
+      }
+
+      // Impersonate user
+      if (ctx.path === "/admin/impersonate-user") {
+        const body = ctx.body as { userId?: string }
+        await logAdminAction({
+          adminId,
+          actionType: "impersonation_started",
+          targetUserId: body?.userId,
+          ipAddress,
+          userAgent
+        })
+      }
+
+      // Stop impersonating
+      if (ctx.path === "/admin/stop-impersonating") {
+        // The impersonatedBy field tells us who the original admin was
+        const impersonatedBy = (session as { impersonatedBy?: string }).impersonatedBy
+        await logAdminAction({
+          adminId: impersonatedBy || adminId,
+          actionType: "impersonation_stopped",
+          targetUserId: adminId, // The user being impersonated
+          ipAddress,
+          userAgent
+        })
+      }
+    })
+  },
   plugins: [
     admin({
       defaultRole: "user",

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { useForm } from "vee-validate"
+import { toTypedSchema } from "@vee-validate/zod"
+import { z } from "zod"
 import type { PlatformAdminTier, PlatformAdminListItem } from "@shared/auth/plugins/platform-admin.client"
+import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
 
 definePageMeta({
   layout: "admin",
@@ -19,16 +23,80 @@ const error = ref<string | null>(null)
 
 // Grant dialog state
 const showGrantDialog = ref(false)
-const grantUserId = ref("")
-const grantTier = ref<Exclude<PlatformAdminTier, "owner">>("viewer")
-const grantNotes = ref("")
 const isGranting = ref(false)
+
+// Grant form schema and configuration
+const grantFormSchema = toTypedSchema(
+  z.object({
+    tier: z.enum(["viewer", "support", "admin"]),
+    notes: z.string().optional()
+  })
+)
+
+const grantForm = useForm({
+  validationSchema: grantFormSchema,
+  initialValues: {
+    tier: "viewer" as const,
+    notes: ""
+  }
+})
+
+const grantFormFields: FormBuilder[] = [
+  {
+    variant: "Select",
+    name: "tier",
+    label: "Tier",
+    options: [
+      { value: "viewer", label: "Viewer - Read-only access" },
+      { value: "support", label: "Support - Ban, impersonate, view data" },
+      { value: "admin", label: "Admin - Full access, delete users/orgs" }
+    ],
+    wrapperClass: "space-y-2"
+  },
+  {
+    variant: "Textarea",
+    name: "notes",
+    label: "Notes (optional)",
+    placeholder: "Reason for granting access...",
+    wrapperClass: "space-y-2"
+  }
+]
+
+// Selected user for grant dialog
+const selectedUserId = ref("")
 
 // Update tier dialog state
 const showUpdateDialog = ref(false)
 const updateAdmin = ref<PlatformAdminListItem | null>(null)
-const updateTier = ref<Exclude<PlatformAdminTier, "owner">>("viewer")
 const isUpdating = ref(false)
+
+// Update tier form schema and configuration
+const updateFormSchema = toTypedSchema(
+  z.object({
+    tier: z.enum(["viewer", "support", "admin"])
+  })
+)
+
+const updateForm = useForm({
+  validationSchema: updateFormSchema,
+  initialValues: {
+    tier: "viewer" as const
+  }
+})
+
+const updateFormFields: FormBuilder[] = [
+  {
+    variant: "Select",
+    name: "tier",
+    label: "New Tier",
+    options: [
+      { value: "viewer", label: "Viewer - Read-only access" },
+      { value: "support", label: "Support - Ban, impersonate, view data" },
+      { value: "admin", label: "Admin - Full access, delete users/orgs" }
+    ],
+    wrapperClass: "space-y-2"
+  }
+]
 
 // Revoke dialog state
 const showRevokeDialog = ref(false)
@@ -50,58 +118,59 @@ const fetchAdmins = async () => {
 }
 
 // Grant platform admin access
-const handleGrant = async () => {
-  if (!grantUserId.value) {
-    toast.error("Please enter a user ID")
+const handleGrant = grantForm.handleSubmit(async (values) => {
+  if (!selectedUserId.value) {
+    toast.error("Please select a user")
     return
   }
 
   isGranting.value = true
   try {
     await authClient.platformAdmin.grant({
-      userId: grantUserId.value,
-      tier: grantTier.value,
-      notes: grantNotes.value || undefined
+      userId: selectedUserId.value,
+      tier: values.tier,
+      notes: values.notes || undefined
     })
     toast.success("Platform admin access granted")
     showGrantDialog.value = false
-    grantUserId.value = ""
-    grantTier.value = "viewer"
-    grantNotes.value = ""
+    grantForm.resetForm()
+    selectedUserId.value = ""
     await fetchAdmins()
   } catch (e: any) {
     toast.error(e.message || "Failed to grant access")
   } finally {
     isGranting.value = false
   }
-}
+})
 
 // Update tier
 const openUpdateDialog = (admin: PlatformAdminListItem) => {
   updateAdmin.value = admin
-  updateTier.value = admin.tier === "owner" ? "admin" : (admin.tier as Exclude<PlatformAdminTier, "owner">)
+  const tier = admin.tier === "owner" ? "admin" : (admin.tier as Exclude<PlatformAdminTier, "owner">)
+  updateForm.setFieldValue("tier", tier)
   showUpdateDialog.value = true
 }
 
-const handleUpdateTier = async () => {
+const handleUpdateTier = updateForm.handleSubmit(async (values) => {
   if (!updateAdmin.value) return
 
   isUpdating.value = true
   try {
     await authClient.platformAdmin.updateTier({
       userId: updateAdmin.value.user?.id ?? "",
-      tier: updateTier.value
+      tier: values.tier
     })
     toast.success("Tier updated successfully")
     showUpdateDialog.value = false
     updateAdmin.value = null
+    updateForm.resetForm()
     await fetchAdmins()
   } catch (e: any) {
     toast.error(e.message || "Failed to update tier")
   } finally {
     isUpdating.value = false
   }
-}
+})
 
 // Revoke access
 const openRevokeDialog = (admin: PlatformAdminListItem) => {
@@ -293,35 +362,18 @@ onMounted(() => {
       <UiDialogContent>
         <UiDialogHeader>
           <UiDialogTitle>Grant Platform Admin Access</UiDialogTitle>
-          <UiDialogDescription>Add a new platform admin by entering their user ID.</UiDialogDescription>
+          <UiDialogDescription>Search for a user and select their access tier.</UiDialogDescription>
         </UiDialogHeader>
-        <div class="space-y-4 py-4">
+        <form class="space-y-4 py-4" @submit="handleGrant">
           <div class="space-y-2">
-            <UiLabel for="userId">User ID</UiLabel>
-            <UiInput id="userId" v-model="grantUserId" placeholder="Enter user ID..." />
-            <p class="text-xs text-muted-foreground">Find the user ID from the Users page</p>
+            <UiLabel>User</UiLabel>
+            <AdminUserSearch v-model="selectedUserId" placeholder="Search for a user..." />
           </div>
-          <div class="space-y-2">
-            <UiLabel for="tier">Tier</UiLabel>
-            <UiSelect v-model="grantTier">
-              <UiSelectTrigger>
-                <UiSelectValue />
-              </UiSelectTrigger>
-              <UiSelectContent>
-                <UiSelectItem value="viewer">Viewer - Read-only access</UiSelectItem>
-                <UiSelectItem value="support">Support - Ban, impersonate, view data</UiSelectItem>
-                <UiSelectItem value="admin">Admin - Full access, delete users/orgs</UiSelectItem>
-              </UiSelectContent>
-            </UiSelect>
-          </div>
-          <div class="space-y-2">
-            <UiLabel for="notes">Notes (optional)</UiLabel>
-            <UiTextarea id="notes" v-model="grantNotes" placeholder="Reason for granting access..." />
-          </div>
-        </div>
+          <UiFormBuilder :fields="grantFormFields" />
+        </form>
         <UiDialogFooter>
           <UiButton variant="outline" @click="showGrantDialog = false">Cancel</UiButton>
-          <UiButton :disabled="isGranting || !grantUserId" @click="handleGrant">
+          <UiButton :disabled="isGranting || !selectedUserId" @click="handleGrant">
             <Icon v-if="isGranting" name="lucide:loader-2" class="size-4 mr-2 animate-spin" />
             Grant Access
           </UiButton>
@@ -338,21 +390,9 @@ onMounted(() => {
             Change the tier for {{ updateAdmin?.user?.name || updateAdmin?.user?.email }}
           </UiDialogDescription>
         </UiDialogHeader>
-        <div class="space-y-4 py-4">
-          <div class="space-y-2">
-            <UiLabel for="updateTier">New Tier</UiLabel>
-            <UiSelect v-model="updateTier">
-              <UiSelectTrigger>
-                <UiSelectValue />
-              </UiSelectTrigger>
-              <UiSelectContent>
-                <UiSelectItem value="viewer">Viewer - Read-only access</UiSelectItem>
-                <UiSelectItem value="support">Support - Ban, impersonate, view data</UiSelectItem>
-                <UiSelectItem value="admin">Admin - Full access, delete users/orgs</UiSelectItem>
-              </UiSelectContent>
-            </UiSelect>
-          </div>
-        </div>
+        <form class="space-y-4 py-4" @submit="handleUpdateTier">
+          <UiFormBuilder :fields="updateFormFields" />
+        </form>
         <UiDialogFooter>
           <UiButton variant="outline" @click="showUpdateDialog = false">Cancel</UiButton>
           <UiButton :disabled="isUpdating" @click="handleUpdateTier">

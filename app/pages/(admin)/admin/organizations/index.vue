@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 import { useDebounceFn } from "@vueuse/core"
+import type { AdminOrganization, AdminOrganizationsResponse } from "@shared/types/admin.types"
 
 definePageMeta({
   layout: "admin",
@@ -8,25 +9,6 @@ definePageMeta({
 })
 
 useSeoMeta({ title: "Organizations - Admin" })
-
-interface AdminOrganization {
-  id: string
-  name: string
-  slug: string
-  logo: string | null
-  createdAt: Date
-  memberCount: number
-}
-
-interface OrganizationsResponse {
-  organizations: AdminOrganization[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
 
 // State
 const organizations = ref<AdminOrganization[]>([])
@@ -40,7 +22,7 @@ const sortOrder = ref<"asc" | "desc">("desc")
 const fetchOrganizations = async () => {
   isLoading.value = true
   try {
-    const response = await $fetch<OrganizationsResponse>("/api/admin/organizations", {
+    const response = await $fetch<AdminOrganizationsResponse>("/api/admin/organizations", {
       query: {
         search: search.value || undefined,
         page: pagination.value.page,

@@ -1,17 +1,12 @@
 <script setup lang="ts">
+import type { AdminStats } from "@shared/types/admin.types"
+
 definePageMeta({
   layout: "admin",
   middleware: ["admin"]
 })
 
 useSeoMeta({ title: "Admin Dashboard" })
-
-interface AdminStats {
-  users: { total: number; recentSignups: number; banned: number }
-  organizations: { total: number }
-  projects: { total: number }
-  sessions: { active: number }
-}
 
 const stats = ref<AdminStats | null>(null)
 const isLoading = ref(true)
@@ -87,7 +82,7 @@ const quickActions = [
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+      <h1 class="text-3xl font-bold">Platform Admin Dashboard</h1>
       <p class="text-muted-foreground mt-1">Platform overview and quick actions</p>
     </div>
 

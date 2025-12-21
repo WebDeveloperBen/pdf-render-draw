@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { AdminOrganizationDetail } from "@shared/types/admin.types"
+
 definePageMeta({
   layout: "admin",
   middleware: ["admin"]
@@ -7,36 +9,8 @@ definePageMeta({
 const route = useRoute("admin-organizations-id")
 const orgId = computed(() => route.params.id)
 
-interface OrgMember {
-  id: string
-  role: string
-  createdAt: Date
-  user: {
-    id: string
-    name: string | null
-    email: string
-    image: string | null
-    banned: boolean | null
-  } | null
-}
-
-interface OrgDetail {
-  id: string
-  name: string
-  slug: string
-  logo: string | null
-  metadata: string | null
-  createdAt: Date
-  members: OrgMember[]
-  _count: {
-    members: number
-    projects: number
-    pendingInvitations: number
-  }
-}
-
 // State
-const org = ref<OrgDetail | null>(null)
+const org = ref<AdminOrganizationDetail | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 
@@ -45,7 +19,7 @@ const fetchOrg = async () => {
   isLoading.value = true
   error.value = null
   try {
-    org.value = await $fetch<OrgDetail>(`/api/admin/organizations/${orgId.value}`)
+    org.value = await $fetch<AdminOrganizationDetail>(`/api/admin/organizations/${orgId.value}`)
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load organization"
   } finally {

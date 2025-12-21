@@ -95,6 +95,7 @@ useSeoMeta({ title: `Admin - ${name}` })
 </script>
 
 <template>
+  <ImpersonationBanner />
   <UiSidebarProvider v-slot="{ isMobile }">
     <UiSidebar collapsible="icon">
       <!-- Header -->

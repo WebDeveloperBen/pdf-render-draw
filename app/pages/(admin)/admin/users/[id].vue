@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { useForm } from "vee-validate"
+import { toTypedSchema } from "@vee-validate/zod"
+import { z } from "zod"
+import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
+import type { AdminUserDetail } from "@shared/types/admin.types"
 
 definePageMeta({
   layout: "admin",
@@ -14,51 +19,44 @@ const { hasPlatformAdminTier } = usePermissions()
 const canBan = computed(() => hasPlatformAdminTier("support"))
 const canImpersonate = computed(() => hasPlatformAdminTier("support"))
 
-interface UserDetail {
-  id: string
-  name: string | null
-  email: string
-  emailVerified: boolean
-  image: string | null
-  role: string | null
-  banned: boolean | null
-  banReason: string | null
-  banExpires: Date | null
-  firstName: string | null
-  lastName: string | null
-  createdAt: Date
-  updatedAt: Date
-  memberships: Array<{
-    id: string
-    role: string
-    createdAt: Date
-    organization: {
-      id: string
-      name: string
-      slug: string | null
-      logo: string | null
-    } | null
-  }>
-  _count: {
-    projects: number
-    activeSessions: number
-  }
-}
-
 // State
-const user = ref<UserDetail | null>(null)
+const user = ref<AdminUserDetail | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const showBanDialog = ref(false)
-const banReason = ref("")
 const isBanning = ref(false)
+
+// Ban form schema and configuration
+const banFormSchema = toTypedSchema(
+  z.object({
+    banReason: z.string().optional()
+  })
+)
+
+const banForm = useForm({
+  validationSchema: banFormSchema,
+  initialValues: {
+    banReason: ""
+  }
+})
+
+// FormBuilder fields for ban dialog
+const banFormFields: FormBuilder[] = [
+  {
+    variant: "Textarea",
+    name: "banReason",
+    label: "Reason (optional)",
+    placeholder: "Enter a reason for the ban...",
+    wrapperClass: "space-y-2"
+  }
+]
 
 // Fetch user
 const fetchUser = async () => {
   isLoading.value = true
   error.value = null
   try {
-    user.value = await $fetch<UserDetail>(`/api/admin/users/${userId.value}`)
+    user.value = await $fetch<AdminUserDetail>(`/api/admin/users/${userId.value}`)
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load user"
   } finally {
@@ -71,24 +69,24 @@ useSeoMeta({
 })
 
 // Ban/unban user
-const handleBan = async () => {
+const handleBan = banForm.handleSubmit(async (values) => {
   if (!user.value) return
   isBanning.value = true
   try {
     await authClient.admin.banUser({
       userId: user.value.id,
-      banReason: banReason.value || undefined
+      banReason: values.banReason || undefined
     })
     toast.success("User banned successfully")
     showBanDialog.value = false
-    banReason.value = ""
+    banForm.resetForm()
     await fetchUser()
   } catch (e: any) {
     toast.error(e.message || "Failed to ban user")
   } finally {
     isBanning.value = false
   }
-}
+})
 
 const handleUnban = async () => {
   if (!user.value) return
@@ -336,10 +334,9 @@ onMounted(() => {
             Are you sure you want to ban this user? They will be logged out and unable to access the platform.
           </UiAlertDialogDescription>
         </UiAlertDialogHeader>
-        <div class="py-4">
-          <UiLabel for="ban-reason">Reason (optional)</UiLabel>
-          <UiTextarea id="ban-reason" v-model="banReason" placeholder="Enter a reason for the ban..." class="mt-2" />
-        </div>
+        <form class="py-4" @submit="handleBan">
+          <UiFormBuilder :fields="banFormFields" />
+        </form>
         <UiAlertDialogFooter>
           <UiAlertDialogCancel :disabled="isBanning">Cancel</UiAlertDialogCancel>
           <UiButton variant="destructive" :disabled="isBanning" @click="handleBan">
