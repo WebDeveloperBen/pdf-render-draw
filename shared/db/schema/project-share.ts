@@ -14,12 +14,23 @@ export const projectShare = pgTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+
+    // Share metadata
+    name: text("name"),
+    shareType: text("share_type").notNull().default("public"), // 'public' | 'private'
+    message: text("message"),
+
+    // Access settings
     expiresAt: timestamp("expires_at"),
     password: text("password"),
     allowDownload: boolean("allow_download").default(true).notNull(),
-    allowAnnotations: boolean("allow_annotations").default(false).notNull(),
+    allowNotes: boolean("allow_notes").default(false).notNull(),
+
+    // Analytics
     viewCount: integer("view_count").default(0).notNull(),
     lastViewedAt: timestamp("last_viewed_at"),
+
+    // Timestamps
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -42,4 +53,5 @@ export const projectShareRelations = relations(projectShare, ({ one }) => ({
     fields: [projectShare.createdBy],
     references: [user.id]
   })
+  // Note: recipients relation defined in project-share-recipient.ts to avoid circular import
 }))

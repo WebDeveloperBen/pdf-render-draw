@@ -8,6 +8,7 @@ import { apikey } from "./api-key"
 import { invitation } from "./invitation"
 import { platform_admin } from "./platform-admin"
 import { admin_audit_log } from "./admin-audit-log"
+import { organization } from "./organisation"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -25,7 +26,11 @@ export const user = pgTable("user", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
   firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull()
+  lastName: text("last_name").notNull(),
+
+  // Guest user fields
+  isGuest: boolean("is_guest").default(false).notNull(),
+  guestOrganizationId: text("guest_organization_id").references(() => organization.id)
 })
 
 export const userRelations = relations(user, ({ many }) => ({

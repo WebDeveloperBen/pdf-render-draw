@@ -7,12 +7,27 @@ const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
 })
 
-const bodySchema = z.object({
-  password: z.string().min(4, "Password must be at least 4 characters").nullable().optional(),
-  expiresAt: z.coerce.date().nullable().optional(),
-  allowDownload: z.boolean().default(true),
-  allowAnnotations: z.boolean().default(false)
-})
+const bodySchema = z
+  .object({
+    name: z.string().max(100).optional(),
+    shareType: z.enum(["public", "private"]).default("public"),
+    message: z.string().max(500).optional(),
+    recipients: z.array(z.string().email()).optional(),
+    password: z.string().min(4, "Password must be at least 4 characters").nullable().optional(),
+    expiresAt: z.coerce.date().nullable().optional(),
+    allowDownload: z.boolean().default(true),
+    allowNotes: z.boolean().default(false)
+  })
+  .refine(
+    (data) => {
+      // Private shares must have at least one recipient
+      if (data.shareType === "private") {
+        return data.recipients && data.recipients.length > 0
+      }
+      return true
+    },
+    { message: "Private shares require at least one recipient", path: ["recipients"] }
+  )
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -82,14 +97,64 @@ export default defineEventHandler(async (event) => {
       projectId,
       token,
       createdBy: session.user.id,
+      name: body.name ?? null,
+      shareType: body.shareType,
+      message: body.message ?? null,
       expiresAt: body.expiresAt ?? null,
       password: hashedPassword,
       allowDownload: body.allowDownload,
-      allowAnnotations: body.allowAnnotations,
+      allowNotes: body.allowNotes,
       viewCount: 0,
       lastViewedAt: null
     })
     .returning()
+
+  // For private shares, create recipient records and send magic links
+  const createdRecipients: Array<{
+    id: string
+    email: string
+    status: string
+  }> = []
+
+  if (body.shareType === "private" && body.recipients && body.recipients.length > 0) {
+    const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
+
+    for (const email of body.recipients) {
+      const recipientId = randomUUID()
+
+      // Create recipient record
+      await db.insert(projectShareRecipient).values({
+        id: recipientId,
+        shareId,
+        email,
+        status: "pending",
+        invitedAt: new Date(),
+        viewCount: 0
+      })
+
+      createdRecipients.push({
+        id: recipientId,
+        email,
+        status: "pending"
+      })
+
+      // Send magic link via better-auth
+      // The callbackURL includes share context so we can associate the user on login
+      try {
+        await auth.api.signInMagicLink({
+          body: {
+            email,
+            callbackURL: `${baseUrl}/guest?share=${shareId}`
+          },
+          headers: event.headers
+        })
+        console.log(`[Share Invite] Magic link sent to ${email} for share ${shareId}`)
+      } catch (error) {
+        console.error(`[Share Invite] Failed to send magic link to ${email}:`, error)
+        // Continue with other recipients even if one fails
+      }
+    }
+  }
 
   // Fetch share with creator info
   const [shareWithCreator] = await db
@@ -98,10 +163,13 @@ export default defineEventHandler(async (event) => {
       projectId: projectShare.projectId,
       token: projectShare.token,
       createdBy: projectShare.createdBy,
+      name: projectShare.name,
+      shareType: projectShare.shareType,
+      message: projectShare.message,
       expiresAt: projectShare.expiresAt,
       password: projectShare.password,
       allowDownload: projectShare.allowDownload,
-      allowAnnotations: projectShare.allowAnnotations,
+      allowNotes: projectShare.allowNotes,
       viewCount: projectShare.viewCount,
       lastViewedAt: projectShare.lastViewedAt,
       createdAt: projectShare.createdAt,
@@ -123,6 +191,7 @@ export default defineEventHandler(async (event) => {
   setResponseStatus(event, 201)
   return {
     ...shareWithCreator,
-    shareUrl
+    shareUrl,
+    recipients: createdRecipients
   }
 })

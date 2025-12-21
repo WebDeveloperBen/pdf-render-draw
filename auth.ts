@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth/minimal"
 import { createAuthMiddleware } from "better-auth/api"
-import { admin, openAPI, apiKey, organization } from "better-auth/plugins"
+import { admin, openAPI, apiKey, organization, magicLink } from "better-auth/plugins"
+import { eq } from "drizzle-orm"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nanoid } from "nanoid"
 import { db } from "./server/utils/drizzle"
@@ -130,6 +131,14 @@ export const auth = betterAuth({
       }
     }),
     platformAdminPlugin(),
+    magicLink({
+      sendMagicLink: async ({ email, url }) => {
+        // Console log for now - Resend integration later
+        console.log(`[Magic Link] Sending to ${email}`)
+        console.log(`  URL: ${url}`)
+      },
+      expiresIn: 60 * 60 * 24 * 7 // 7 days for guest links
+    }),
     openAPI()
   ],
   database: drizzleAdapter(db, {
@@ -140,7 +149,56 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          // Auto-create home organization for new users
+          // Check if this user has any pending share invitations
+          const pendingRecipient = await db.query.projectShareRecipient.findFirst({
+            where: eq(schema.projectShareRecipient.email, user.email),
+            with: { share: { with: { project: true } } }
+          })
+
+          // Determine if this is a magic link signup vs normal registration
+          // Magic link signups don't have firstName/lastName (only email)
+          // Normal registration requires firstName/lastName
+          const isMagicLinkSignup = !user.firstName && !user.lastName
+
+          if (pendingRecipient && isMagicLinkSignup) {
+            // Magic link signup from share invite → create as guest
+            await db
+              .update(schema.user)
+              .set({
+                isGuest: true,
+                guestOrganizationId: pendingRecipient.share.project.organizationId
+              })
+              .where(eq(schema.user.id, user.id))
+
+            // Link recipient to user and mark as viewed
+            await db
+              .update(schema.projectShareRecipient)
+              .set({
+                userId: user.id,
+                status: "viewed",
+                firstViewedAt: new Date()
+              })
+              .where(eq(schema.projectShareRecipient.id, pendingRecipient.id))
+
+            // Skip auto-org creation for guests
+            return
+          }
+
+          if (pendingRecipient && !isMagicLinkSignup) {
+            // Normal registration but user has pending share invitations
+            // Link them to the share recipient record (so they can see shared content)
+            // but create them as a full user with their own organization
+            await db
+              .update(schema.projectShareRecipient)
+              .set({
+                userId: user.id,
+                status: "viewed",
+                firstViewedAt: new Date()
+              })
+              .where(eq(schema.projectShareRecipient.id, pendingRecipient.id))
+          }
+
+          // Regular user (or normal registration with pending invite) - create home organization
           await auth.api.createOrganization({
             body: {
               name: `${user.firstName}'s Organization`,
@@ -168,6 +226,20 @@ export const auth = betterAuth({
         returned: true,
         input: true,
         required: true
+      },
+      isGuest: {
+        type: "boolean",
+        fieldName: "isGuest",
+        defaultValue: false,
+        returned: true,
+        input: false // Set by system only
+      },
+      guestOrganizationId: {
+        type: "string",
+        fieldName: "guestOrganizationId",
+        returned: true,
+        input: false,
+        required: false
       }
     },
     deleteUser: {

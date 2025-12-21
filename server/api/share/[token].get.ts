@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
+import { auth } from "@auth"
 
 export default defineEventHandler(async (event) => {
   const db = useDrizzle()
@@ -29,8 +30,49 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check password if required
-  if (share.password) {
+  // Handle private shares - require authentication and valid recipient
+  if (share.shareType === "private") {
+    const session = await auth.api.getSession({ headers: event.headers })
+
+    if (!session) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: "This is a private share. Please check your email for the access link.",
+        data: { requiresAuth: true }
+      })
+    }
+
+    // Check if user is a valid recipient for this share
+    const [recipient] = await db
+      .select()
+      .from(projectShareRecipient)
+      .where(
+        and(eq(projectShareRecipient.shareId, share.id), eq(projectShareRecipient.email, session.user.email))
+      )
+
+    if (!recipient) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: "You do not have access to this share"
+      })
+    }
+
+    // Update recipient tracking
+    const now = new Date()
+    await db
+      .update(projectShareRecipient)
+      .set({
+        status: "viewed",
+        firstViewedAt: recipient.firstViewedAt ?? now,
+        lastViewedAt: now,
+        viewCount: recipient.viewCount + 1,
+        userId: session.user.id
+      })
+      .where(eq(projectShareRecipient.id, recipient.id))
+  }
+
+  // Check password if required (for public shares only - private shares use magic link)
+  if (share.shareType === "public" && share.password) {
     const query = getQuery(event)
     const providedPassword = query.password as string | undefined
 
@@ -104,11 +146,17 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // For notes, user must be authenticated (private share) and notes must be allowed
+  const session = await auth.api.getSession({ headers: event.headers })
+  const canAddNotes = share.allowNotes && share.shareType === "private" && !!session
+
   return {
     ...projectData,
     share: {
+      shareType: share.shareType,
       allowDownload: share.allowDownload,
-      allowAnnotations: share.allowAnnotations,
+      allowNotes: share.allowNotes,
+      canAddNotes, // Computed: whether this user can actually add notes
       viewCount: share.viewCount + 1
     }
   }

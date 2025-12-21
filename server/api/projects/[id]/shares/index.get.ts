@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import { auth } from "@auth"
 
 const paramsSchema = z.object({
@@ -65,10 +65,13 @@ export default defineEventHandler(async (event) => {
       projectId: projectShare.projectId,
       token: projectShare.token,
       createdBy: projectShare.createdBy,
+      name: projectShare.name,
+      shareType: projectShare.shareType,
+      message: projectShare.message,
       expiresAt: projectShare.expiresAt,
       password: projectShare.password,
       allowDownload: projectShare.allowDownload,
-      allowAnnotations: projectShare.allowAnnotations,
+      allowNotes: projectShare.allowNotes,
       viewCount: projectShare.viewCount,
       lastViewedAt: projectShare.lastViewedAt,
       createdAt: projectShare.createdAt,
@@ -83,5 +86,68 @@ export default defineEventHandler(async (event) => {
     .leftJoin(user, eq(projectShare.createdBy, user.id))
     .where(eq(projectShare.projectId, projectId))
 
-  return shares
+  // Get recipients for all shares
+  const shareIds = shares.map((s) => s.id)
+  let recipientsByShareId: Record<
+    string,
+    Array<{
+      id: string
+      email: string
+      status: string
+      invitedAt: Date
+      firstViewedAt: Date | null
+      lastViewedAt: Date | null
+      viewCount: number
+      user: { id: string; name: string; image: string | null } | null
+    }>
+  > = {}
+
+  if (shareIds.length > 0) {
+    const recipients = await db
+      .select({
+        id: projectShareRecipient.id,
+        shareId: projectShareRecipient.shareId,
+        email: projectShareRecipient.email,
+        status: projectShareRecipient.status,
+        invitedAt: projectShareRecipient.invitedAt,
+        firstViewedAt: projectShareRecipient.firstViewedAt,
+        lastViewedAt: projectShareRecipient.lastViewedAt,
+        viewCount: projectShareRecipient.viewCount,
+        user: {
+          id: user.id,
+          name: user.name,
+          image: user.image
+        }
+      })
+      .from(projectShareRecipient)
+      .leftJoin(user, eq(projectShareRecipient.userId, user.id))
+      .where(inArray(projectShareRecipient.shareId, shareIds))
+
+    // Group recipients by shareId
+    recipientsByShareId = recipients.reduce(
+      (acc, r) => {
+        if (!acc[r.shareId]) {
+          acc[r.shareId] = []
+        }
+        acc[r.shareId]!.push({
+          id: r.id,
+          email: r.email,
+          status: r.status,
+          invitedAt: r.invitedAt,
+          firstViewedAt: r.firstViewedAt,
+          lastViewedAt: r.lastViewedAt,
+          viewCount: r.viewCount,
+          user: r.user?.id ? r.user : null
+        })
+        return acc
+      },
+      {} as typeof recipientsByShareId
+    )
+  }
+
+  // Combine shares with their recipients
+  return shares.map((share) => ({
+    ...share,
+    recipients: recipientsByShareId[share.id] || []
+  }))
 })

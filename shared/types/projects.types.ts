@@ -1,5 +1,9 @@
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm"
-import type { project, projectShare } from "../db/schema"
+import type { project, projectShare, projectShareRecipient } from "../db/schema"
+
+// Share types
+export type ShareType = "public" | "private"
+export type RecipientStatus = "pending" | "viewed" | "expired"
 
 // Base types inferred from Drizzle schema
 export type Project = InferSelectModel<typeof project>
@@ -7,6 +11,9 @@ export type ProjectInsert = InferInsertModel<typeof project>
 
 export type ProjectShare = InferSelectModel<typeof projectShare>
 export type ProjectShareInsert = InferInsertModel<typeof projectShare>
+
+export type ProjectShareRecipient = InferSelectModel<typeof projectShareRecipient>
+export type ProjectShareRecipientInsert = InferInsertModel<typeof projectShareRecipient>
 
 // Extended types with relations
 export interface ProjectWithRelations extends Project {
@@ -28,6 +35,14 @@ export interface ProjectWithRelations extends Project {
   }
 }
 
+export interface ProjectShareRecipientWithUser extends ProjectShareRecipient {
+  user?: {
+    id: string
+    name: string
+    image: string | null
+  }
+}
+
 export interface ProjectShareWithRelations extends ProjectShare {
   project: Project
   creator: {
@@ -35,6 +50,7 @@ export interface ProjectShareWithRelations extends ProjectShare {
     name: string
     email: string
   }
+  recipients?: ProjectShareRecipientWithUser[]
 }
 
 // Dashboard statistics
@@ -89,10 +105,14 @@ export interface UpdateProjectInput {
 
 export interface CreateProjectShareInput {
   projectId: string
+  name?: string
+  shareType?: ShareType
+  message?: string
+  recipients?: string[]
   expiresAt?: Date | null
   password?: string | null
   allowDownload?: boolean
-  allowAnnotations?: boolean
+  allowNotes?: boolean
 }
 
 export interface PDFUploadResult {

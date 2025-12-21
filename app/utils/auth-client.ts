@@ -1,4 +1,4 @@
-import { inferAdditionalFields, adminClient, organizationClient, apiKeyClient } from "better-auth/client/plugins"
+import { inferAdditionalFields, adminClient, organizationClient, apiKeyClient, magicLinkClient } from "better-auth/client/plugins"
 import { createAuthClient } from "better-auth/vue"
 import type { auth } from "../../auth"
 import { ac, roles } from "../../shared/auth/access-control"
@@ -11,7 +11,8 @@ export const authClient = createAuthClient({
     adminClient(),
     organizationClient({ ac, roles }),
     apiKeyClient(),
-    platformAdminClient()
+    platformAdminClient(),
+    magicLinkClient()
   ]
 })
 
