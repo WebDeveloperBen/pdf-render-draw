@@ -254,25 +254,19 @@ onMounted(() => {
     </div>
 
     <!-- Info Alert -->
-    <UiAlert>
-      <Icon name="lucide:info" class="size-4" />
-      <UiAlertTitle>Platform Admin Tiers</UiAlertTitle>
-      <UiAlertDescription>
-        <ul class="list-disc list-inside mt-2 space-y-1 text-sm">
+    <UiAlert variant="info" icon="lucide:info" title="Platform Admin Tiers">
+      <template #description>
+        <ul class="list-disc list-inside space-y-1 text-sm">
           <li><strong>Owner:</strong> Full control, only one exists, can manage all platform admins</li>
           <li><strong>Admin:</strong> Full platform access, can delete users and organizations</li>
           <li><strong>Support:</strong> Can view data, ban/unban users, and impersonate users</li>
           <li><strong>Viewer:</strong> Read-only access to dashboards and reports</li>
         </ul>
-      </UiAlertDescription>
+      </template>
     </UiAlert>
 
     <!-- Error state -->
-    <UiAlert v-if="error" variant="destructive">
-      <Icon name="lucide:alert-circle" class="size-4" />
-      <UiAlertTitle>Error</UiAlertTitle>
-      <UiAlertDescription>{{ error }}</UiAlertDescription>
-    </UiAlert>
+    <UiAlert v-if="error" variant="destructive" icon="lucide:alert-circle" title="Error" :description="error" />
 
     <!-- Admins Table -->
     <UiCard>

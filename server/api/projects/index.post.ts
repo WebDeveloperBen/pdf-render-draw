@@ -5,11 +5,11 @@ import { auth } from "@auth"
 
 const bodySchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters"),
-  description: z.string().max(500).optional(),
+  description: z.string().max(500).nullish(),
   pdfUrl: z.url({ message: "Invalid PDF URL" }),
   pdfFileName: z.string().min(1, "File name is required"),
   pdfFileSize: z.number().positive("File size must be positive"),
-  thumbnailUrl: z.url().optional(),
+  thumbnailUrl: z.url().nullish(),
   pageCount: z.number().int().min(1).default(1)
 })
 

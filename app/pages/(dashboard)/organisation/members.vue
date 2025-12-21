@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 
-const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization, currentMember } =
+const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization, currentMember, isLoading } =
   useActiveOrganization()
 
-// Redirect if no org or not admin
+// Redirect if no org or not admin (only after loading completes)
 watch(
-  [hasActiveOrganization, isOrgAdmin],
-  ([hasOrg, admin]) => {
+  [hasActiveOrganization, isOrgAdmin, isLoading],
+  ([hasOrg, admin, loading]) => {
+    if (loading) return
     if (!hasOrg) {
       navigateTo("/")
     } else if (!admin) {

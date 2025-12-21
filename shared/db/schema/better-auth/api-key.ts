@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm"
 import { pgTable, text, timestamp, boolean, index, integer, jsonb } from "drizzle-orm/pg-core"
 import { user } from "./user"
 
-export const apiKey = pgTable(
+export const apikey = pgTable(
   "api_key",
   {
     id: text("id").primaryKey(),
@@ -32,12 +32,12 @@ export const apiKey = pgTable(
     permissions: text("permissions"),
     metadata: jsonb("metadata")
   },
-  (table) => [index("apiKey_userId_idx").on(table.userId)]
+  (table) => [index("apikey_userId_idx").on(table.userId)]
 )
 
-export const apiKeyRelations = relations(apiKey, ({ one }) => ({
+export const apikeyRelations = relations(apikey, ({ one }) => ({
   user: one(user, {
-    fields: [apiKey.userId],
+    fields: [apikey.userId],
     references: [user.id]
   })
 }))

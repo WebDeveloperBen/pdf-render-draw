@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { useForm } from "vee-validate"
+import { toTypedSchema } from "@vee-validate/zod"
+import { z } from "zod"
+import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
 
 const props = defineProps<{
   open: boolean
@@ -12,16 +16,56 @@ const emit = defineEmits<{
 
 const { activeOrg } = useActiveOrganization()
 
-const email = ref("")
-const role = ref<"member" | "admin">("member")
 const isInviting = ref(false)
 
-const handleInvite = async () => {
-  if (!email.value.trim()) {
-    toast.error("Please enter an email address")
-    return
-  }
+const inviteSchema = toTypedSchema(
+  z.object({
+    email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
+    role: z.enum(["member", "admin"])
+  })
+)
 
+const { handleSubmit, resetForm, values } = useForm({
+  validationSchema: inviteSchema,
+  initialValues: {
+    email: "",
+    role: "member" as const
+  }
+})
+
+const formFields = computed<FormBuilder[]>(() => [
+  {
+    variant: "Input",
+    name: "email",
+    label: "Email Address",
+    type: "email",
+    placeholder: "colleague@company.com",
+    disabled: isInviting.value,
+    wrapperClass: "space-y-2"
+  },
+  {
+    variant: "RadioCards",
+    name: "role",
+    label: "Select Role",
+    disabled: isInviting.value,
+    options: [
+      {
+        value: "member",
+        label: "Member",
+        description: "Can view and edit projects, upload files, and collaborate with the team.",
+        icon: "lucide:user"
+      },
+      {
+        value: "admin",
+        label: "Admin",
+        description: "Full access to manage members, settings, billing, and organization details.",
+        icon: "lucide:shield"
+      }
+    ]
+  }
+])
+
+const handleInvite = handleSubmit(async (formValues) => {
   if (!activeOrg.value?.data?.id) {
     toast.error("No active organization")
     return
@@ -30,8 +74,8 @@ const handleInvite = async () => {
   isInviting.value = true
   try {
     const result = await authClient.organization.inviteMember({
-      email: email.value.trim(),
-      role: role.value,
+      email: formValues.email,
+      role: formValues.role,
       organizationId: activeOrg.value.data.id
     })
 
@@ -40,9 +84,8 @@ const handleInvite = async () => {
       return
     }
 
-    toast.success(`Invitation sent to ${email.value}`)
-    email.value = ""
-    role.value = "member"
+    toast.success(`Invitation sent to ${formValues.email}`)
+    resetForm()
     emit("update:open", false)
     emit("invited")
   } catch (error: any) {
@@ -50,71 +93,38 @@ const handleInvite = async () => {
   } finally {
     isInviting.value = false
   }
-}
+})
 
 const handleClose = () => {
-  email.value = ""
-  role.value = "member"
+  resetForm()
   emit("update:open", false)
 }
 </script>
 
 <template>
   <UiDialog :open="open" @update:open="emit('update:open', $event)">
-    <UiDialogContent>
-      <UiDialogHeader>
-        <UiDialogTitle>Invite Team Member</UiDialogTitle>
-        <UiDialogDescription>
-          Send an invitation to join {{ activeOrg?.data?.name || "this organization" }}.
-        </UiDialogDescription>
-      </UiDialogHeader>
-
-      <div class="space-y-4 py-4">
-        <div class="space-y-2">
-          <UiLabel for="inviteEmail">Email Address</UiLabel>
-          <UiInput
-            id="inviteEmail"
-            v-model="email"
-            type="email"
-            placeholder="colleague@company.com"
-            :disabled="isInviting"
-            @keyup.enter="handleInvite"
-          />
+    <UiDialogContent class="sm:max-w-md">
+      <!-- Header with icon -->
+      <div class="flex flex-col items-start pb-2">
+        <div class="flex size-14 items-center justify-center rounded-full bg-primary/10 mb-4">
+          <Icon name="lucide:user-plus" class="size-7 text-primary" />
         </div>
-
-        <div class="space-y-2">
-          <UiLabel for="inviteRole">Role</UiLabel>
-          <UiSelect v-model="role" :disabled="isInviting">
-            <UiSelectTrigger id="inviteRole">
-              <UiSelectValue placeholder="Select a role" />
-            </UiSelectTrigger>
-            <UiSelectContent>
-              <UiSelectItem value="member">
-                <div class="flex items-center gap-2">
-                  <Icon name="lucide:user" class="size-4" />
-                  <div>
-                    <span class="font-medium">Member</span>
-                    <p class="text-xs text-muted-foreground">Can view and edit projects</p>
-                  </div>
-                </div>
-              </UiSelectItem>
-              <UiSelectItem value="admin">
-                <div class="flex items-center gap-2">
-                  <Icon name="lucide:shield" class="size-4" />
-                  <div>
-                    <span class="font-medium">Admin</span>
-                    <p class="text-xs text-muted-foreground">Can manage members and settings</p>
-                  </div>
-                </div>
-              </UiSelectItem>
-            </UiSelectContent>
-          </UiSelect>
-        </div>
+        <UiDialogHeader class="space-y-1">
+          <UiDialogTitle class="text-xl">Invite Team Member</UiDialogTitle>
+          <UiDialogDescription>
+            Invite someone to collaborate in
+            <span class="font-medium text-foreground">{{ activeOrg?.data?.name || "your organization" }}</span>
+          </UiDialogDescription>
+        </UiDialogHeader>
       </div>
 
-      <UiDialogFooter>
+      <form class="space-y-5 py-4" @submit="handleInvite">
+        <UiFormBuilder :fields="formFields" />
+      </form>
+
+      <UiDialogFooter class="gap-3">
         <UiButton variant="outline" :disabled="isInviting" @click="handleClose"> Cancel </UiButton>
-        <UiButton :disabled="isInviting || !email.trim()" @click="handleInvite">
+        <UiButton :disabled="isInviting || !values.email" @click="handleInvite">
           <Icon v-if="isInviting" name="svg-spinners:ring-resize" class="size-4" />
           <Icon v-else name="lucide:send" class="size-4" />
           Send Invitation

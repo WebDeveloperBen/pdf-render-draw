@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
       await tx.delete(account).where(eq(account.userId, targetUserId))
 
       // Delete user's API keys
-      await tx.delete(apiKey).where(eq(apiKey.userId, targetUserId))
+      await tx.delete(apikey).where(eq(apikey.userId, targetUserId))
 
       // Delete user's organization memberships
       await tx.delete(member).where(eq(member.userId, targetUserId))
@@ -138,7 +138,7 @@ export default defineEventHandler(async (event) => {
       await tx.delete(session).where(eq(session.userId, targetUserId))
 
       // Revoke all API keys
-      await tx.delete(apiKey).where(eq(apiKey.userId, targetUserId))
+      await tx.delete(apikey).where(eq(apikey.userId, targetUserId))
     }
 
     // Create audit log entry

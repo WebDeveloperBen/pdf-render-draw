@@ -339,46 +339,119 @@ onMounted(() => {
 
     <!-- Create Share Dialog -->
     <UiDialog v-model:open="showShareDialog">
-      <UiDialogContent>
-        <UiDialogHeader>
-          <UiDialogTitle>Create Share Link</UiDialogTitle>
-          <UiDialogDescription>Generate a shareable link for this project</UiDialogDescription>
-        </UiDialogHeader>
+      <UiDialogContent class="sm:max-w-xl">
+        <!-- Header with icon -->
+        <div class="flex flex-col items-start pb-2">
+          <div class="flex size-14 items-center justify-center rounded-full bg-primary/10 mb-4">
+            <Icon name="lucide:link" class="size-7 text-primary" />
+          </div>
+          <UiDialogHeader class="space-y-1">
+            <UiDialogTitle class="text-xl">Create Share Link</UiDialogTitle>
+            <UiDialogDescription>
+              Generate a shareable link for
+              <span class="font-medium text-foreground">{{ project?.name }}</span>
+            </UiDialogDescription>
+          </UiDialogHeader>
+        </div>
 
-        <div class="space-y-4 py-4">
-          <div class="space-y-2">
-            <UiLabel for="share-password">Password (Optional)</UiLabel>
+        <div class="space-y-5 py-4">
+          <!-- Password Protection -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <Icon name="lucide:lock" class="size-4 text-muted-foreground" />
+              <UiLabel for="share-password">Password Protection</UiLabel>
+              <UiBadge variant="outline" class="text-xs">Optional</UiBadge>
+            </div>
             <UiInput
               id="share-password"
               v-model="newShare.password"
               type="password"
-              placeholder="Leave empty for no password"
+              placeholder="Leave empty for public access"
               :disabled="isCreatingShare"
             />
           </div>
 
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <UiLabel>Allow Download</UiLabel>
-              <p class="text-xs text-muted-foreground">Users can download the PDF</p>
-            </div>
-            <UiSwitch v-model:checked="newShare.allowDownload" :disabled="isCreatingShare" />
-          </div>
+          <UiDivider />
 
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <UiLabel>Allow Annotations</UiLabel>
-              <p class="text-xs text-muted-foreground">Users can add annotations</p>
+          <!-- Permissions Section -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <Icon name="lucide:shield-check" class="size-4 text-muted-foreground" />
+              <span class="text-sm font-medium">Permissions</span>
             </div>
-            <UiSwitch v-model:checked="newShare.allowAnnotations" :disabled="isCreatingShare" />
+
+            <div class="grid gap-3">
+              <!-- Allow Download -->
+              <div
+                :class="[
+                  'group flex items-center gap-4 rounded-lg border p-4 transition-all duration-200 ease-out',
+                  newShare.allowDownload
+                    ? 'border-primary/50 bg-primary/5'
+                    : 'border-border hover:border-muted-foreground/25',
+                  isCreatingShare && 'opacity-50 cursor-not-allowed'
+                ]"
+              >
+                <div
+                  :class="[
+                    'flex size-10 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ease-out',
+                    newShare.allowDownload
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  ]"
+                >
+                  <Icon name="lucide:download" class="size-5" />
+                </div>
+                <div class="flex-1 space-y-1">
+                  <p class="font-medium leading-none">Allow Download</p>
+                  <p class="text-sm text-muted-foreground">Users can download the original PDF file</p>
+                </div>
+                <UiSwitch
+                  :checked="newShare.allowDownload"
+                  :disabled="isCreatingShare"
+                  @update:checked="newShare.allowDownload = $event"
+                />
+              </div>
+
+              <!-- Allow Annotations -->
+              <div
+                :class="[
+                  'group flex items-center gap-4 rounded-lg border p-4 transition-all duration-200 ease-out',
+                  newShare.allowAnnotations
+                    ? 'border-primary/50 bg-primary/5'
+                    : 'border-border hover:border-muted-foreground/25',
+                  isCreatingShare && 'opacity-50 cursor-not-allowed'
+                ]"
+              >
+                <div
+                  :class="[
+                    'flex size-10 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ease-out',
+                    newShare.allowAnnotations
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  ]"
+                >
+                  <Icon name="lucide:pencil" class="size-5" />
+                </div>
+                <div class="flex-1 space-y-1">
+                  <p class="font-medium leading-none">Allow Annotations</p>
+                  <p class="text-sm text-muted-foreground">Users can add measurements and notes to the PDF</p>
+                </div>
+                <UiSwitch
+                  :checked="newShare.allowAnnotations"
+                  :disabled="isCreatingShare"
+                  @update:checked="newShare.allowAnnotations = $event"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <UiDialogFooter>
+        <UiDialogFooter class="gap-3">
           <UiButton variant="outline" :disabled="isCreatingShare" @click="showShareDialog = false"> Cancel </UiButton>
           <UiButton :disabled="isCreatingShare" @click="handleCreateShare">
-            <Icon v-if="isCreatingShare" name="svg-spinners:90-ring-with-bg" class="size-4 mr-2" />
-            Create Share Link
+            <Icon v-if="isCreatingShare" name="svg-spinners:ring-resize" class="size-4" />
+            <Icon v-else name="lucide:link" class="size-4" />
+            Create Link
           </UiButton>
         </UiDialogFooter>
       </UiDialogContent>

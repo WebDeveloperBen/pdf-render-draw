@@ -55,8 +55,8 @@ export const alertStyles = tv({
   variants: {
     variant: {
       default: {
-        base: "bg-background text-foreground shadow-xs",
-        icon: "text-foreground"
+        base: "border-primary/50 text-primary",
+        icon: "text-primary"
       },
       destructive: {
         base: "border-destructive/50 text-destructive dark:border-destructive",
@@ -87,7 +87,7 @@ export const alertStyles = tv({
     {
       filled: true,
       variant: "default",
-      class: { base: "bg-muted/50 text-foreground", icon: "text-foreground" }
+      class: { base: "bg-primary text-primary-foreground shadow-xs", icon: "text-primary-foreground" }
     },
     {
       filled: true,

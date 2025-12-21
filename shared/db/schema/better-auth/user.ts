@@ -4,7 +4,7 @@ import { session } from "./session"
 import { account } from "./account"
 import { member } from "./member"
 import { teamMember } from "./team-member"
-import { apiKey } from "./api-key"
+import { apikey } from "./api-key"
 import { invitation } from "./invitation"
 import { platform_admin } from "./platform-admin"
 import { admin_audit_log } from "./admin-audit-log"
@@ -33,7 +33,7 @@ export const userRelations = relations(user, ({ many }) => ({
   accounts: many(account),
   members: many(member),
   teamMembers: many(teamMember),
-  apiKeys: many(apiKey),
+  apiKeys: many(apikey),
   invitations: many(invitation),
   platformAdmins: many(platform_admin, { relationName: "platformAdminUser" }),
   platformAdminsGranted: many(platform_admin, { relationName: "platformAdminGrantedBy" }),

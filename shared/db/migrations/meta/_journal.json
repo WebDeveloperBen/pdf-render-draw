@@ -50,6 +50,13 @@
       "when": 1766300210274,
       "tag": "0006_awesome_night_thrasher",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1766321673873,
+      "tag": "0007_spooky_shocker",
+      "breakpoints": true
     }
   ]
 }

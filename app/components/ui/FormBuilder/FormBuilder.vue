@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="space-y-5">
     <template v-for="(field, index) in fields" :key="index">
       <template v-if="field.variant === 'Checkbox'">
         <slot
@@ -166,6 +166,17 @@
           </div>
         </slot>
       </template>
+      <template v-if="field.variant === 'RadioCards'">
+        <slot
+          v-if="field.renderIf ? field.renderIf() : true"
+          :name="field.slot ? field.slot : field.name"
+          v-bind="field"
+        >
+          <div :class="field.wrapperClass ?? 'space-y-2'">
+            <UiVeeRadioCards :name="field.name" :options="field.options ?? []" v-bind="removeFields(field)" />
+          </div>
+        </slot>
+      </template>
     </template>
   </div>
 </template>
@@ -203,6 +214,7 @@ export type FormBuilder = {
     | "PinInput"
     | "TagsInput"
     | "RadioGroup"
+    | "RadioCards"
     | "VueformSlider"
   [key: string]: any
 }

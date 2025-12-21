@@ -59,25 +59,16 @@ const navOrg = computed(() => {
   ]
 })
 
-const navSupport = [
+const navAccount = [
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: "lucide:settings"
+  },
   {
     title: "Help & Support",
     url: "/support",
     icon: "lucide:help-circle"
-  }
-]
-
-// Admin navigation (Phase 4 - to be implemented)
-const navAdmin = [
-  {
-    title: "Admin",
-    url: "/admin",
-    icon: "lucide:shield",
-    items: [
-      { title: "Dashboard", url: "/admin" },
-      { title: "Users", url: "/admin/users" },
-      { title: "Organizations", url: "/admin/organizations" }
-    ]
   }
 ]
 
@@ -195,45 +186,11 @@ useSeoMeta({ title: `${name} - Measure with precision` })
           </UiSidebarMenu>
         </UiSidebarGroup>
 
-        <!-- Admin Section (platform admin only) -->
-        <UiSidebarGroup v-if="isPlatformAdmin">
-          <UiSidebarGroupLabel label="Platform Admin" />
-          <UiSidebarMenu>
-            <template v-for="item in navAdmin" :key="item.url">
-              <UiCollapsible v-if="item.items" v-slot="{ open }" as-child>
-                <UiSidebarMenuItem>
-                  <UiCollapsibleTrigger as-child>
-                    <UiSidebarMenuButton :tooltip="item.title">
-                      <Icon :name="item.icon" class="size-4" />
-                      <span>{{ item.title }}</span>
-                      <Icon
-                        name="lucide:chevron-right"
-                        class="ml-auto size-4 transition-transform duration-200"
-                        :class="[open && 'rotate-90']"
-                      />
-                    </UiSidebarMenuButton>
-                  </UiCollapsibleTrigger>
-                  <UiCollapsibleContent>
-                    <UiSidebarMenuSub>
-                      <UiSidebarMenuSubItem v-for="subItem in item.items" :key="subItem.url">
-                        <UiSidebarMenuSubButton as-child>
-                          <NuxtLink :to="subItem.url">
-                            <span>{{ subItem.title }}</span>
-                          </NuxtLink>
-                        </UiSidebarMenuSubButton>
-                      </UiSidebarMenuSubItem>
-                    </UiSidebarMenuSub>
-                  </UiCollapsibleContent>
-                </UiSidebarMenuItem>
-              </UiCollapsible>
-            </template>
-          </UiSidebarMenu>
-        </UiSidebarGroup>
-
-        <!-- Support (pushed to bottom) -->
+        <!-- Account (pushed to bottom) -->
         <UiSidebarGroup class="mt-auto">
+          <UiSidebarGroupLabel label="Account" />
           <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="item in navSupport" :key="item.url">
+            <UiSidebarMenuItem v-for="item in navAccount" :key="item.url">
               <UiSidebarMenuButton as-child :tooltip="item.title">
                 <NuxtLink :to="item.url">
                   <Icon :name="item.icon" class="size-4" />
@@ -295,6 +252,19 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                     </UiDropdownMenuItem>
                   </NuxtLink>
                 </UiDropdownMenuGroup>
+                <!-- Admin Panel (platform admin only) -->
+                <template v-if="isPlatformAdmin">
+                  <UiDropdownMenuSeparator />
+                  <UiDropdownMenuGroup>
+                    <NuxtLink to="/admin">
+                      <UiDropdownMenuItem title="Admin Panel">
+                        <template #icon>
+                          <Icon name="lucide:shield" class="size-4" />
+                        </template>
+                      </UiDropdownMenuItem>
+                    </NuxtLink>
+                  </UiDropdownMenuGroup>
+                </template>
                 <UiDropdownMenuSeparator />
                 <UiDropdownMenuItem title="Log out" @click="handleSignOut">
                   <template #icon>

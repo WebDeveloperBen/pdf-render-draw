@@ -9,7 +9,8 @@ export default withNuxt(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "vue/html-self-closing": "off",
-      "import/first": "off"
+      "import/first": "off",
+      "vue/require-default-prop": "off"
     }
   }
 )

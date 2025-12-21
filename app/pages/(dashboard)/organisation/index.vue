@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization } = useActiveOrganization()
+const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization, isLoading } = useActiveOrganization()
 
-// Redirect to dashboard if no active org
+// Redirect to dashboard if no active org (only after loading completes)
 watch(
-  hasActiveOrganization,
-  (hasOrg) => {
-    if (!hasOrg) {
+  [hasActiveOrganization, isLoading],
+  ([hasOrg, loading]) => {
+    if (!loading && !hasOrg) {
       navigateTo("/")
     }
   },
@@ -90,14 +90,14 @@ useSeoMeta({
 
     <!-- Quick Actions -->
     <div class="grid gap-4 md:grid-cols-2">
-      <UiCard>
+      <UiCard class="flex flex-col">
         <UiCardHeader>
           <UiCardTitle>Team Members</UiCardTitle>
           <UiCardDescription> Manage your organization's team members and their roles. </UiCardDescription>
         </UiCardHeader>
-        <UiCardContent>
+        <UiCardContent class="flex-1">
           <div v-if="orgData?.members?.length" class="space-y-3">
-            <div v-for="member in orgData.members.slice(0, 5)" :key="member.id" class="flex items-center gap-3">
+            <div v-for="member in orgData.members.slice(0, 2)" :key="member.id" class="flex items-center gap-3">
               <UiAvatar class="size-8">
                 <UiAvatarImage v-if="member.user?.image" :src="member.user.image" />
                 <UiAvatarFallback>
@@ -123,12 +123,12 @@ useSeoMeta({
         </UiCardFooter>
       </UiCard>
 
-      <UiCard>
+      <UiCard class="flex flex-col">
         <UiCardHeader>
           <UiCardTitle>Organization Details</UiCardTitle>
           <UiCardDescription> Basic information about your organization. </UiCardDescription>
         </UiCardHeader>
-        <UiCardContent class="space-y-4">
+        <UiCardContent class="flex-1 space-y-4">
           <div class="flex items-center gap-4">
             <div class="flex size-16 items-center justify-center rounded-lg bg-primary/10">
               <img v-if="orgData?.logo" :src="orgData.logo" :alt="orgData.name" class="size-10 rounded object-cover" />

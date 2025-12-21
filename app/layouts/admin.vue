@@ -28,13 +28,16 @@ const handleSignOut = async () => {
   navigateTo("/login")
 }
 
-// Admin navigation - base items
-const navAdminBase = [
+// Navigation grouped by function
+const navOverview = [
   {
     title: "Dashboard",
     url: "/admin",
     icon: "lucide:layout-dashboard"
-  },
+  }
+]
+
+const navManagement = [
   {
     title: "Users",
     url: "/admin/users",
@@ -44,31 +47,34 @@ const navAdminBase = [
     title: "Organizations",
     url: "/admin/organizations",
     icon: "lucide:building-2"
-  },
-  {
+  }
+]
+
+// Security section - includes owner-only items
+const navSecurity = computed(() => {
+  const items = []
+  if (isPlatformOwner.value) {
+    items.push({
+      title: "Platform Admins",
+      url: "/admin/platform-admins",
+      icon: "lucide:shield-check"
+    })
+  }
+  items.push({
     title: "Audit Log",
     url: "/admin/audit-log",
     icon: "lucide:scroll-text"
-  }
-]
-
-// Owner-only navigation items
-const navAdminOwnerOnly = [
-  {
-    title: "Platform Admins",
-    url: "/admin/platform-admins",
-    icon: "lucide:shield-check"
-  }
-]
-
-// Combined navigation based on tier
-const navAdmin = computed(() => {
-  const items = [...navAdminBase]
-  if (isPlatformOwner.value) {
-    items.push(...navAdminOwnerOnly)
-  }
+  })
   return items
 })
+
+const navReports = [
+  {
+    title: "Reports",
+    url: "/admin/reports",
+    icon: "lucide:bar-chart-3"
+  }
+]
 
 const navQuickLinks = [
   {
@@ -122,11 +128,56 @@ useSeoMeta({ title: `Admin - ${name}` })
       </UiSidebarHeader>
 
       <UiSidebarContent>
-        <!-- Admin Navigation -->
+        <!-- Overview -->
         <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Administration" />
+          <UiSidebarGroupLabel label="Overview" />
           <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="item in navAdmin" :key="item.url">
+            <UiSidebarMenuItem v-for="item in navOverview" :key="item.url">
+              <UiSidebarMenuButton as-child :tooltip="item.title">
+                <NuxtLink :to="item.url">
+                  <Icon :name="item.icon" class="size-4" />
+                  <span>{{ item.title }}</span>
+                </NuxtLink>
+              </UiSidebarMenuButton>
+            </UiSidebarMenuItem>
+          </UiSidebarMenu>
+        </UiSidebarGroup>
+
+        <!-- Management -->
+        <UiSidebarGroup>
+          <UiSidebarGroupLabel label="Management" />
+          <UiSidebarMenu>
+            <UiSidebarMenuItem v-for="item in navManagement" :key="item.url">
+              <UiSidebarMenuButton as-child :tooltip="item.title">
+                <NuxtLink :to="item.url">
+                  <Icon :name="item.icon" class="size-4" />
+                  <span>{{ item.title }}</span>
+                </NuxtLink>
+              </UiSidebarMenuButton>
+            </UiSidebarMenuItem>
+          </UiSidebarMenu>
+        </UiSidebarGroup>
+
+        <!-- Security -->
+        <UiSidebarGroup>
+          <UiSidebarGroupLabel label="Security" />
+          <UiSidebarMenu>
+            <UiSidebarMenuItem v-for="item in navSecurity" :key="item.url">
+              <UiSidebarMenuButton as-child :tooltip="item.title">
+                <NuxtLink :to="item.url">
+                  <Icon :name="item.icon" class="size-4" />
+                  <span>{{ item.title }}</span>
+                </NuxtLink>
+              </UiSidebarMenuButton>
+            </UiSidebarMenuItem>
+          </UiSidebarMenu>
+        </UiSidebarGroup>
+
+        <!-- Reports -->
+        <UiSidebarGroup>
+          <UiSidebarGroupLabel label="Reports" />
+          <UiSidebarMenu>
+            <UiSidebarMenuItem v-for="item in navReports" :key="item.url">
               <UiSidebarMenuButton as-child :tooltip="item.title">
                 <NuxtLink :to="item.url">
                   <Icon :name="item.icon" class="size-4" />

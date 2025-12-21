@@ -60,18 +60,33 @@ export function useActiveOrganization() {
 
   // Auto-select first organization if none is active
   const ensureActiveOrganization = async () => {
-    // First ensure we have the organizations list loaded
-    if (!organizations.value?.data) {
-      await refreshOrganizations()
+    // Fetch organizations list directly to avoid reactivity timing issues
+    const orgListResponse = await authClient.organization.list()
+    const orgList = orgListResponse.data
+
+    if (!orgList?.length) {
+      return // No organizations available
     }
 
-    // If still no active org and we have organizations, select the first one
-    const orgList = organizations.value?.data
-    if (!activeOrg.value?.data && orgList?.length) {
-      const firstOrg = orgList[0]
-      if (firstOrg) {
-        await switchOrganization(firstOrg.id)
+    // Check if we have a valid active organization
+    const currentActiveOrg = activeOrg.value?.data
+    if (currentActiveOrg?.id) {
+      // Verify the active org is still valid (user is still a member)
+      const isValidOrg = orgList.some((org) => org.id === currentActiveOrg.id)
+      if (isValidOrg) {
+        // Re-sync with server to ensure session state is correct
+        // This handles cases where client has cached data but server session is stale
+        await authClient.organization.setActive({
+          organizationId: currentActiveOrg.id
+        })
+        return
       }
+    }
+
+    // No valid active org - select the first one
+    const firstOrg = orgList[0]
+    if (firstOrg) {
+      await switchOrganization(firstOrg.id)
     }
   }
 
@@ -117,6 +132,11 @@ export function useActiveOrganization() {
     return !!activeOrg.value?.data
   })
 
+  // Check if organization data is still loading
+  const isLoading = computed(() => {
+    return activeOrg.value?.isPending ?? true
+  })
+
   return {
     // State
     activeOrg,
@@ -129,6 +149,7 @@ export function useActiveOrganization() {
     isOrgOwner,
     workspaceName,
     hasActiveOrganization,
+    isLoading,
 
     // Methods
     switchOrganization,
