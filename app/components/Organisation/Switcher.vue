@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 
+const runtimeConfig = useRuntimeConfig()
+const appName = runtimeConfig.public.app.name
+
 const { activeOrg, organizations, isSwitching, switchOrganization, workspaceName } = useActiveOrganization()
 
 const isOpen = ref(false)
@@ -56,12 +59,12 @@ const handleCreateOrg = async () => {
         size="lg"
         class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
       >
-        <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10">
-          <Icon name="lucide:building-2" class="size-4 text-primary" />
+        <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Icon name="lucide:ruler" class="size-4" />
         </div>
         <div class="grid flex-1 text-left text-sm leading-tight">
-          <span class="truncate font-semibold">{{ workspaceName }}</span>
-          <span class="truncate text-xs text-muted-foreground">Workplace</span>
+          <span class="truncate font-semibold">{{ appName }}</span>
+          <span class="truncate text-xs text-muted-foreground">{{ workspaceName }}</span>
         </div>
         <Icon v-if="!isSwitching" name="lucide:chevrons-up-down" class="ml-auto size-4 text-muted-foreground" />
         <Icon v-else name="svg-spinners:ring-resize" class="ml-auto size-4 text-muted-foreground" />

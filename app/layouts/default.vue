@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-const appConfig = useAppConfig() as { app?: { name?: string } }
-const name = appConfig.app?.name ?? "App"
+const runtimeConfig = useRuntimeConfig()
+const name = runtimeConfig.public.app.name
 
 // Auth session
 const session = authClient.useSession()
@@ -100,31 +100,8 @@ useSeoMeta({ title: `${name} - Measure with precision` })
     <ImpersonationBanner />
     <UiSidebarProvider v-slot="{ isMobile }">
       <UiSidebar collapsible="icon">
-        <!-- Header -->
+        <!-- Header with Workplace Switcher -->
         <UiSidebarHeader>
-          <UiSidebarMenu>
-            <UiSidebarMenuItem>
-              <UiSidebarMenuButton
-                as-child
-                size="lg"
-                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              >
-                <NuxtLink to="/">
-                  <div
-                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
-                  >
-                    <Icon name="lucide:ruler" class="size-4" />
-                  </div>
-                  <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="truncate font-semibold">{{ name }}</span>
-                    <span class="truncate text-xs text-muted-foreground">Measure with precision</span>
-                  </div>
-                </NuxtLink>
-              </UiSidebarMenuButton>
-            </UiSidebarMenuItem>
-          </UiSidebarMenu>
-
-          <!-- Organization Switcher -->
           <UiSidebarMenu>
             <UiSidebarMenuItem>
               <OrganisationSwitcher />

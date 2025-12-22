@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-const appConfig = useAppConfig() as { app?: { name?: string } }
-const name = appConfig.app?.name ?? "App"
+const runtimeConfig = useRuntimeConfig()
+const name = runtimeConfig.public.app.name
 
 // Auth session
 const session = authClient.useSession()

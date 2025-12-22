@@ -47,20 +47,19 @@ export default defineNuxtConfig({
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     resendApiKey: process.env.RESEND_API_KEY,
     emailFrom: process.env.EMAIL_FROM || "PDF Annotator <noreply@resend.dev>",
-    // App branding (server-side)
-    app: {
-      name: "PDF Annotator",
-      domain: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-      shortName: "PDF",
-      description: "Draw and measure PDF documents with precision",
-      tagline: "Annotate with precision",
-      brandColor: "#f97316",
-      footerText: "Professional PDF annotation tools"
-    },
-
     // Public (exposed to client)
     public: {
       betterAuthUrl: process.env.BETTER_AUTH_URL,
+      // App branding (accessible on both client and server)
+      app: {
+        name: "PDF Annotator",
+        domain: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+        shortName: "PDF",
+        description: "Draw and measure PDF documents with precision",
+        tagline: "Annotate with precision",
+        brandColor: "#f97316",
+        footerText: "Professional PDF annotation tools"
+      },
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
       logger: {
         client: {
