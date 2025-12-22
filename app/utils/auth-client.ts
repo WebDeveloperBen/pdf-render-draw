@@ -6,9 +6,9 @@ import {
   magicLinkClient
 } from "better-auth/client/plugins"
 import { createAuthClient } from "better-auth/vue"
-import type { auth } from "../../auth"
-import { ac, roles } from "../../shared/auth/access-control"
-import { platformAdminClient } from "../../shared/auth/plugins/platform-admin.client"
+import type { auth } from "@auth"
+import { ac, roles } from "@shared/auth/access-control"
+import { platformAdminClient } from "@shared/auth/plugins/platform-admin.client"
 
 export const authClient = createAuthClient({
   // No baseURL needed - use useFetch for SSR support (e.g., authClient.useSession(useFetch))

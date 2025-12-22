@@ -1,153 +1,214 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3"
-import { randomUUID } from "crypto"
+import type { H3Event } from "h3"
 
-const r2Client = new S3Client({
-  region: "auto",
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!
+/**
+ * Cloudflare R2 Storage Utilities
+ *
+ * Uses Cloudflare's native R2 bindings for better performance on Pages/Workers.
+ * Thumbnail generation is handled client-side using PDF.js canvas rendering.
+ */
+
+// Type for Cloudflare R2 binding
+interface R2Bucket {
+  put(key: string, value: ArrayBuffer | ReadableStream | string, options?: R2PutOptions): Promise<R2Object>
+  get(key: string): Promise<R2ObjectBody | null>
+  delete(key: string | string[]): Promise<void>
+  head(key: string): Promise<R2Object | null>
+  list(options?: R2ListOptions): Promise<R2Objects>
+}
+
+interface R2PutOptions {
+  httpMetadata?: {
+    contentType?: string
+    cacheControl?: string
   }
-})
+  customMetadata?: Record<string, string>
+}
 
-const bucketName = process.env.R2_BUCKET_NAME!
-const publicUrl = process.env.R2_PUBLIC_URL!
+interface R2Object {
+  key: string
+  size: number
+  etag: string
+  httpMetadata?: {
+    contentType?: string
+  }
+}
+
+interface R2ObjectBody extends R2Object {
+  body: ReadableStream
+  arrayBuffer(): Promise<ArrayBuffer>
+  text(): Promise<string>
+}
+
+interface R2ListOptions {
+  prefix?: string
+  limit?: number
+  cursor?: string
+}
+
+interface R2Objects {
+  objects: R2Object[]
+  truncated: boolean
+  cursor?: string
+}
+
+// Environment with R2 binding
+interface CloudflareEnv {
+  R2_BUCKET: R2Bucket
+}
+
+/**
+ * Get the R2 bucket binding from the event context
+ * In Cloudflare Pages, bindings are available via event.context.cloudflare.env
+ */
+export function getR2Bucket(event: H3Event): R2Bucket {
+  const env = event.context.cloudflare?.env as CloudflareEnv | undefined
+
+  if (!env?.R2_BUCKET) {
+    throw new Error("R2_BUCKET binding not found. Ensure R2 is configured in wrangler.toml")
+  }
+
+  return env.R2_BUCKET
+}
+
+/**
+ * Get the public URL for R2 assets
+ * This should be configured as an environment variable pointing to your R2 public domain
+ */
+export function getR2PublicUrl(): string {
+  const publicUrl = process.env.R2_PUBLIC_URL
+  if (!publicUrl) {
+    throw new Error("R2_PUBLIC_URL environment variable not set")
+  }
+  return publicUrl.replace(/\/$/, "") // Remove trailing slash
+}
+
+/**
+ * Generate a unique file ID
+ */
+function generateFileId(): string {
+  return crypto.randomUUID()
+}
 
 /**
  * Upload a file to Cloudflare R2
- * @param file - File buffer to upload
+ * @param event - H3 event for accessing R2 binding
+ * @param file - File data as ArrayBuffer or Uint8Array
  * @param path - Path in the bucket (e.g., 'pdfs/filename.pdf')
  * @param contentType - MIME type of the file
  * @returns Public URL of the uploaded file
  */
-export async function uploadToR2(file: Buffer, path: string, contentType: string): Promise<string> {
-  const command = new PutObjectCommand({
-    Bucket: bucketName,
-    Key: path,
-    Body: file,
-    ContentType: contentType
+export async function uploadToR2(
+  event: H3Event,
+  file: ArrayBuffer | Uint8Array,
+  path: string,
+  contentType: string
+): Promise<string> {
+  const bucket = getR2Bucket(event)
+  const publicUrl = getR2PublicUrl()
+
+  const data = file instanceof Uint8Array ? new Uint8Array(file).buffer : file
+  await bucket.put(path, data as ArrayBuffer, {
+    httpMetadata: {
+      contentType,
+      cacheControl: "public, max-age=31536000" // 1 year cache for immutable assets
+    }
   })
 
-  await r2Client.send(command)
-
-  // Return public URL
   return `${publicUrl}/${path}`
 }
 
 /**
  * Delete a file from Cloudflare R2
+ * @param event - H3 event for accessing R2 binding
  * @param url - Public URL of the file to delete
  */
-export async function deleteFromR2(url: string): Promise<void> {
+export async function deleteFromR2(event: H3Event, url: string): Promise<void> {
+  const bucket = getR2Bucket(event)
+  const publicUrl = getR2PublicUrl()
+
   // Extract the path from the URL
   const path = url.replace(`${publicUrl}/`, "")
 
-  const command = new DeleteObjectCommand({
-    Bucket: bucketName,
-    Key: path
-  })
-
-  await r2Client.send(command)
+  await bucket.delete(path)
 }
 
 /**
- * Generate a thumbnail from a PDF buffer
- * @param pdfBuffer - PDF file buffer
- * @returns Thumbnail image buffer (PNG)
+ * Delete multiple files from R2
+ * @param event - H3 event for accessing R2 binding
+ * @param urls - Array of public URLs to delete
  */
-export async function generatePdfThumbnail(pdfBuffer: Buffer): Promise<Buffer> {
-  // Dynamic import of PDF.js to avoid ESM issues
-  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs")
+export async function deleteMultipleFromR2(event: H3Event, urls: string[]): Promise<void> {
+  const bucket = getR2Bucket(event)
+  const publicUrl = getR2PublicUrl()
 
-  // Load the PDF document
-  const loadingTask = pdfjsLib.getDocument({
-    data: new Uint8Array(pdfBuffer),
-    useSystemFonts: true,
-    standardFontDataUrl: "node_modules/pdfjs-dist/standard_fonts/"
-  })
+  const paths = urls.map((url) => url.replace(`${publicUrl}/`, ""))
 
-  const pdf = await loadingTask.promise
-  const page = await pdf.getPage(1)
-
-  // Set up viewport for thumbnail (max width 400px)
-  const viewport = page.getViewport({ scale: 1.0 })
-  const scale = 400 / viewport.width
-  const scaledViewport = page.getViewport({ scale })
-
-  // Create canvas
-  // Note: This requires canvas to be installed
-  // For Node.js environment, we'll use a simple approach
-  // In production, you might want to use sharp or another image processing library
-  const { createCanvas } = await import("canvas")
-  const canvas = createCanvas(scaledViewport.width, scaledViewport.height)
-  const context = canvas.getContext("2d")
-
-  // Render PDF page to canvas
-  // Using 'as any' because node-canvas types don't match browser types that pdfjs expects
-  await page.render({
-    canvasContext: context as any,
-    viewport: scaledViewport,
-    canvas: canvas as any
-  }).promise
-
-  // Convert canvas to PNG buffer
-  return canvas.toBuffer("image/png")
+  await bucket.delete(paths)
 }
 
 /**
- * Get the page count from a PDF buffer
- * @param pdfBuffer - PDF file buffer
- * @returns Number of pages in the PDF
- */
-export async function getPdfPageCount(pdfBuffer: Buffer): Promise<number> {
-  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs")
-
-  const loadingTask = pdfjsLib.getDocument({
-    data: new Uint8Array(pdfBuffer),
-    useSystemFonts: true
-  })
-
-  const pdf = await loadingTask.promise
-  return pdf.numPages
-}
-
-/**
- * Upload a PDF file and its thumbnail to R2
- * @param pdfBuffer - PDF file buffer
+ * Upload a PDF file to R2
+ * Thumbnail generation is handled client-side.
+ *
+ * @param event - H3 event for accessing R2 binding
+ * @param pdfBuffer - PDF file as ArrayBuffer or Uint8Array
  * @param fileName - Original file name
- * @returns Upload result with URLs and metadata
+ * @returns Upload result with URL and metadata
  */
-export async function uploadPdfWithThumbnail(pdfBuffer: Buffer, fileName: string): Promise<PDFUploadResult> {
-  const fileId = randomUUID()
+export async function uploadPdf(
+  event: H3Event,
+  pdfBuffer: ArrayBuffer | Uint8Array,
+  fileName: string
+): Promise<PDFUploadResult> {
+  const fileId = generateFileId()
   const fileExt = fileName.split(".").pop() || "pdf"
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_").substring(0, 100)
 
-  // Generate paths
+  // Generate path
   const pdfPath = `pdfs/${fileId}.${fileExt}`
-  const thumbnailPath = `thumbnails/${fileId}.png`
 
   // Upload PDF
-  const pdfUrl = await uploadToR2(pdfBuffer, pdfPath, "application/pdf")
+  const pdfUrl = await uploadToR2(event, pdfBuffer, pdfPath, "application/pdf")
 
-  // Generate and upload thumbnail
-  let thumbnailUrl: string
-  try {
-    const thumbnailBuffer = await generatePdfThumbnail(pdfBuffer)
-    thumbnailUrl = await uploadToR2(thumbnailBuffer, thumbnailPath, "image/png")
-  } catch (error) {
-    console.error("Failed to generate thumbnail:", error)
-    // If thumbnail generation fails, return without thumbnail
-    thumbnailUrl = ""
-  }
-
-  // Get page count
-  const pageCount = await getPdfPageCount(pdfBuffer)
+  // Get file size
+  const fileSize = pdfBuffer instanceof Uint8Array ? pdfBuffer.length : pdfBuffer.byteLength
 
   return {
     pdfUrl,
-    thumbnailUrl,
+    thumbnailUrl: "", // Thumbnail generated client-side
     fileName: sanitizedName,
-    fileSize: pdfBuffer.length,
-    pageCount
+    fileSize,
+    pageCount: 0 // Can be determined client-side with PDF.js
   }
+}
+
+/**
+ * Upload a thumbnail image to R2
+ * Called from client after generating thumbnail with PDF.js
+ *
+ * @param event - H3 event for accessing R2 binding
+ * @param imageData - PNG image data as ArrayBuffer or Uint8Array
+ * @param projectId - Project ID to associate thumbnail with
+ * @returns Public URL of the uploaded thumbnail
+ */
+export async function uploadThumbnail(
+  event: H3Event,
+  imageData: ArrayBuffer | Uint8Array,
+  projectId: string
+): Promise<string> {
+  const thumbnailPath = `thumbnails/${projectId}.png`
+
+  return uploadToR2(event, imageData, thumbnailPath, "image/png")
+}
+
+/**
+ * Check if a file exists in R2
+ * @param event - H3 event for accessing R2 binding
+ * @param path - Path in the bucket
+ * @returns True if file exists
+ */
+export async function existsInR2(event: H3Event, path: string): Promise<boolean> {
+  const bucket = getR2Bucket(event)
+  const object = await bucket.head(path)
+  return object !== null
 }

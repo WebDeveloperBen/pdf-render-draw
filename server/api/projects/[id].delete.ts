@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
+import { deleteFromR2 } from "../../utils/r2"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
@@ -94,10 +95,10 @@ export default defineEventHandler(async (event) => {
 
   // Delete files from R2
   try {
-    await deleteFromR2(existingProject.pdfUrl)
+    await deleteFromR2(event, existingProject.pdfUrl)
 
     if (existingProject.thumbnailUrl) {
-      await deleteFromR2(existingProject.thumbnailUrl)
+      await deleteFromR2(event, existingProject.thumbnailUrl)
     }
   } catch (error) {
     console.error("Failed to delete files from R2:", error)

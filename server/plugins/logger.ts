@@ -2,30 +2,41 @@ import type { NitroApp } from "nitropack"
 import type { H3Event } from "h3"
 import pino from "pino"
 
-// Create server-side logger instance
-const createLogger = (level: string) => {
-  const transport = pino.transport({
-    targets: [
-      {
-        target: "pino-pretty",
-        level: "trace",
-        options: {}
-      },
-      {
-        target: "pino/file",
-        options: { destination: `./app.log` },
-        level: "trace"
-      }
-    ]
-  })
+/**
+ * Server-side logger plugin
+ *
+ * Uses pino for structured logging. In development, logs are prettified.
+ * In production on Cloudflare, logs go to stdout and can be collected
+ * via Cloudflare Logpush or Workers Tail.
+ */
 
-  return pino(
-    {
-      level: level || "info",
-      timestamp: pino.stdTimeFunctions.isoTime
-    },
-    transport
-  )
+const createLogger = (level: string) => {
+  // In development, use pino-pretty for readable logs
+  // In production, use standard JSON output for log aggregation
+  const isDev = import.meta.dev
+
+  if (isDev) {
+    const transport = pino.transport({
+      target: "pino-pretty",
+      options: {
+        colorize: true
+      }
+    })
+
+    return pino(
+      {
+        level: level || "info",
+        timestamp: pino.stdTimeFunctions.isoTime
+      },
+      transport
+    )
+  }
+
+  // Production: JSON logs to stdout (Cloudflare compatible)
+  return pino({
+    level: level || "info",
+    timestamp: pino.stdTimeFunctions.isoTime
+  })
 }
 
 // Nitro server plugin

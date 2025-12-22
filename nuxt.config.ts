@@ -45,12 +45,6 @@ export default defineNuxtConfig({
     },
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     resendApiKey: process.env.RESEND_API_KEY,
-    aws: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION,
-      s3Bucket: process.env.AWS_S3_BUCKET
-    },
 
     // Public (exposed to client)
     public: {
@@ -177,6 +171,7 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
+    preset: "cloudflare-pages",
     imports: { dirs: ["./shared/db/schema/"] },
     openAPI: {
       route: "/_docs/openapi.json",

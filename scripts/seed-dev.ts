@@ -16,7 +16,8 @@
  */
 
 import "dotenv/config"
-import { drizzle } from "drizzle-orm/node-postgres"
+import { neon } from "@neondatabase/serverless"
+import { drizzle } from "drizzle-orm/neon-http"
 import { eq, and } from "drizzle-orm"
 import * as schema from "../shared/db/schema"
 import { hashPassword } from "better-auth/crypto"
@@ -50,26 +51,26 @@ interface SeedOrg {
   logo?: string
 }
 
-// Predefined IDs for consistent seeding
+// Predefined UUIDs for consistent seeding (valid UUID v4 format)
 const SEED_IDS = {
   users: {
-    admin: "seed-user-admin-001",
-    user: "seed-user-regular-001",
-    team: "seed-user-team-001",
-    guest: "seed-user-guest-001"
+    admin: "00000000-0000-4000-8000-000000000001",
+    user: "00000000-0000-4000-8000-000000000002",
+    team: "00000000-0000-4000-8000-000000000003",
+    guest: "00000000-0000-4000-8000-000000000004"
   },
   orgs: {
-    acme: "seed-org-acme-001",
-    demo: "seed-org-demo-001"
+    acme: "00000000-0000-4000-8000-000000000010",
+    demo: "00000000-0000-4000-8000-000000000011"
   },
   projects: {
-    floorPlan: "seed-project-floor-001",
-    sitePlan: "seed-project-site-001",
-    electrical: "seed-project-electrical-001"
+    floorPlan: "00000000-0000-4000-8000-000000000020",
+    sitePlan: "00000000-0000-4000-8000-000000000021",
+    electrical: "00000000-0000-4000-8000-000000000022"
   },
   shares: {
-    publicShare: "seed-share-public-001",
-    privateShare: "seed-share-private-001"
+    publicShare: "00000000-0000-4000-8000-000000000030",
+    privateShare: "00000000-0000-4000-8000-000000000031"
   }
 }
 
@@ -134,10 +135,8 @@ async function seedDev() {
   console.log("🌱 Starting development seed...")
   console.log("")
 
-  const db = drizzle({
-    connection: { connectionString: databaseUrl },
-    schema
-  })
+  const sql = neon(databaseUrl)
+  const db = drizzle(sql, { schema })
 
   try {
     // ==========================================
@@ -420,14 +419,14 @@ async function seedDev() {
 
     const recipients = [
       {
-        id: "seed-recipient-001",
+        id: "00000000-0000-4000-8000-000000000040",
         shareId: SEED_IDS.shares.privateShare,
         email: "guest@example.com",
         status: "pending",
         userId: SEED_IDS.users.guest
       },
       {
-        id: "seed-recipient-002",
+        id: "00000000-0000-4000-8000-000000000041",
         shareId: SEED_IDS.shares.privateShare,
         email: "external@contractor.com",
         status: "pending",

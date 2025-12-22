@@ -1,8 +1,8 @@
 import type { H3Event } from "h3"
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
-import type { statements } from "../../shared/auth/access-control"
-import { type PlatformAdminTier, TIER_LEVELS, hasTier } from "../../shared/auth/plugins/platform-admin"
+import type { statements } from "@shared/auth/access-control"
+import { type PlatformAdminTier, TIER_LEVELS, hasTier } from "@shared/auth/plugins/platform-admin"
 
 type Statements = typeof statements
 type Resource = keyof Statements

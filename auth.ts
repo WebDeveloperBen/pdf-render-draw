@@ -5,9 +5,9 @@ import { eq } from "drizzle-orm"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nanoid } from "nanoid"
 import { db } from "./server/utils/drizzle"
-import * as schema from "./shared/db/schema"
-import { ac, roles } from "./shared/auth/access-control"
-import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
+import * as schema from "@shared/db/schema"
+import { ac, roles } from "@shared/auth/access-control"
+import { platformAdminPlugin } from "@shared/auth/plugins/platform-admin"
 
 // Helper to log admin actions to audit log
 async function logAdminAction(params: {

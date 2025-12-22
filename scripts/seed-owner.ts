@@ -11,7 +11,8 @@
  */
 
 import "dotenv/config"
-import { drizzle } from "drizzle-orm/node-postgres"
+import { neon } from "@neondatabase/serverless"
+import { drizzle } from "drizzle-orm/neon-http"
 import { eq } from "drizzle-orm"
 import * as schema from "../shared/db/schema"
 
@@ -35,10 +36,8 @@ async function seedOwner() {
 
   console.log(`Seeding platform owner with email: ${ownerEmail}`)
 
-  const db = drizzle({
-    connection: { connectionString: databaseUrl },
-    schema
-  })
+  const sql = neon(databaseUrl)
+  const db = drizzle(sql, { schema })
 
   try {
     // Find the user by email

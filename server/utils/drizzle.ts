@@ -1,13 +1,17 @@
-import * as schema from "../../shared/db/schema"
-import { drizzle } from "drizzle-orm/node-postgres"
+import * as schema from "@shared/db/schema"
+import { neon } from "@neondatabase/serverless"
+import { drizzle } from "drizzle-orm/neon-http"
 
-export const db = drizzle({
-  connection: {
-    connectionString: process.env.DATABASE_URL!,
-    ssl: !import.meta.dev
-  },
-  schema
-})
+/**
+ * Database connection using Neon Serverless Driver
+ *
+ * Works in both local development and Cloudflare edge environment.
+ * For Cloudflare with Hyperdrive, set DATABASE_URL to Hyperdrive connection string.
+ */
+
+const sql = neon(process.env.DATABASE_URL!)
+
+export const db = drizzle(sql, { schema })
 
 export const useDrizzle = () => db
 

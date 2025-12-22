@@ -1,11 +1,12 @@
 import { auth } from "@auth"
+import { uploadPdf } from "../../utils/r2"
 
 // OpenAPI metadata for Orval type generation
 defineRouteMeta({
   openAPI: {
     tags: ["Upload"],
     summary: "Upload PDF",
-    description: "Upload a PDF file and generate thumbnail",
+    description: "Upload a PDF file. Thumbnail is generated client-side.",
     requestBody: {
       required: true,
       content: {
@@ -102,8 +103,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Upload PDF and generate thumbnail
-    const result = await uploadPdfWithThumbnail(Buffer.from(pdfFile.data), pdfFile.filename || "document.pdf")
+    // Upload PDF (thumbnail generated client-side)
+    const result = await uploadPdf(event, pdfFile.data, pdfFile.filename || "document.pdf")
 
     return result
   } catch (error) {
