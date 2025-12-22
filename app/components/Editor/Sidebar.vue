@@ -247,7 +247,9 @@ watch(
     <!-- Sidebar Header -->
     <div class="sidebar-header">
       <h3>Pages</h3>
-      <button class="close-btn" title="Close sidebar" @click="emit('close')">×</button>
+      <button class="close-btn" title="Close sidebar" @click="emit('close')">
+        <Icon name="lucide:x" class="size-5" />
+      </button>
     </div>
 
     <!-- Pages List with Bespoke Virtual Scrolling -->
@@ -320,19 +322,19 @@ watch(
   background: none;
   border: none;
   color: var(--muted-foreground);
-  font-size: 28px;
-  line-height: 1;
   cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
+  padding: 4px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s;
 }
 
 .close-btn:hover {
+  background: var(--accent);
   color: var(--foreground);
 }
 
@@ -361,30 +363,25 @@ watch(
 }
 
 .page-item.active {
-  background: var(--primary);
+  background: var(--accent);
 }
 
 .page-item.active:hover {
-  background: var(--primary);
-  opacity: 0.9;
+  background: var(--muted);
 }
 
 .page-thumbnail {
   position: relative;
   width: 140px;
-  min-height: 140px;
   background: white;
   border: 2px solid transparent;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .page-item.active .page-thumbnail {
-  border-color: var(--ring);
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 30%, transparent);
 }
 
@@ -415,7 +412,7 @@ watch(
 }
 
 .page-item.active .page-label {
-  color: var(--primary-foreground);
+  color: var(--foreground);
   font-weight: 600;
 }
 

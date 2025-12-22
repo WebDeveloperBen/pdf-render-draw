@@ -140,13 +140,20 @@ if (typeof window !== "undefined") {
         <div class="toolbar">
           <!-- Left side - Navigation -->
           <div class="toolbar-section">
+            <NuxtLink to="/" class="toolbar-btn" title="Back to dashboard">
+              <Icon name="lucide:arrow-left" class="size-4" />
+              <span>Back</span>
+            </NuxtLink>
+
+            <div class="divider" />
+
             <button
               class="toolbar-btn"
               :class="{ active: isSidebarOpen }"
               title="Toggle pages sidebar"
               @click="toggleSidebar"
             >
-              <span class="icon">☰</span>
+              <Icon name="lucide:panel-left" class="size-4" />
               Pages
             </button>
 
@@ -155,22 +162,24 @@ if (typeof window !== "undefined") {
             <div class="page-nav">
               <button
                 class="toolbar-btn-icon"
+                title="Previous page"
                 :disabled="viewportStore.getCurrentPage <= 1"
                 @click="viewportStore.setCurrentPage(Math.max(1, viewportStore.getCurrentPage - 1))"
               >
-                ‹
+                <Icon name="lucide:chevron-left" class="size-4" />
               </button>
               <span class="page-indicator">
                 {{ viewportStore.getCurrentPage }} / {{ viewportStore.getTotalPages }}
               </span>
               <button
                 class="toolbar-btn-icon"
+                title="Next page"
                 :disabled="viewportStore.getCurrentPage >= viewportStore.getTotalPages"
                 @click="
                   viewportStore.setCurrentPage(Math.min(viewportStore.getTotalPages, viewportStore.getCurrentPage + 1))
                 "
               >
-                ›
+                <Icon name="lucide:chevron-right" class="size-4" />
               </button>
             </div>
           </div>
@@ -179,11 +188,15 @@ if (typeof window !== "undefined") {
           <div class="toolbar-section">
             <div class="control-group">
               <span class="control-label">Zoom</span>
-              <button class="toolbar-btn-icon" title="Zoom out" @click="zoomOut">−</button>
+              <button class="toolbar-btn-icon" title="Zoom out" @click="zoomOut">
+                <Icon name="lucide:minus" class="size-4" />
+              </button>
               <button class="toolbar-btn-sm" title="Reset zoom" @click="resetZoom">
                 {{ Math.round(viewportStore.getScale * 100) }}%
               </button>
-              <button class="toolbar-btn-icon" title="Zoom in" @click="zoomIn">+</button>
+              <button class="toolbar-btn-icon" title="Zoom in" @click="zoomIn">
+                <Icon name="lucide:plus" class="size-4" />
+              </button>
             </div>
 
             <div class="divider" />
@@ -191,18 +204,22 @@ if (typeof window !== "undefined") {
             <div class="control-group">
               <span class="control-label">Rotate</span>
               <button class="toolbar-btn-icon" title="Rotate counter-clockwise" @click="rotateCounterClockwise">
-                ↺
+                <Icon name="lucide:rotate-ccw" class="size-4" />
               </button>
               <button class="toolbar-btn-sm" title="Reset rotation" @click="resetRotation">
                 {{ viewportStore.rotation }}°
               </button>
-              <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">↻</button>
+              <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">
+                <Icon name="lucide:rotate-cw" class="size-4" />
+              </button>
             </div>
           </div>
 
-          <!-- Right side - Info -->
+          <!-- Right side - Info & Theme -->
           <div class="toolbar-section">
-            <span class="info-text">Annotations: {{ annotationStore.annotations.length }}</span>
+            <span class="info-text">Total Annotations: {{ annotationStore.annotations.length }}</span>
+            <div class="divider" />
+            <BackgroundThemeToggle />
           </div>
         </div>
 
