@@ -23,7 +23,7 @@ onMounted(() => {
   if (shareId && shares.value) {
     const matchingShare = shares.value.find((s) => s.shareId === shareId)
     if (matchingShare) {
-      navigateTo(`/guest/projects/${matchingShare.share.token}`)
+      navigateTo(`/g/projects/${matchingShare.share.token}`)
     }
   }
 })
@@ -80,7 +80,7 @@ useSeoMeta({
 
     <!-- Projects grid -->
     <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <NuxtLink v-for="item in shares" :key="item.id" :to="`/guest/projects/${item.share.token}`" class="group">
+      <NuxtLink v-for="item in shares" :key="item.id" :to="`/g/projects/${item.share.token}`" class="group">
         <UiCard class="overflow-hidden transition-all hover:shadow-md hover:border-primary/50">
           <!-- Thumbnail -->
           <div class="aspect-4/3 bg-muted relative overflow-hidden">

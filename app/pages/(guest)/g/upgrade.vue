@@ -123,7 +123,7 @@ useSeoMeta({
       </UiCardContent>
 
       <UiCardFooter class="justify-center">
-        <NuxtLink to="/guest" class="text-sm text-muted-foreground hover:text-foreground">Maybe later</NuxtLink>
+        <NuxtLink to="/g" class="text-sm text-muted-foreground hover:text-foreground">Maybe later</NuxtLink>
       </UiCardFooter>
     </UiCard>
   </div>

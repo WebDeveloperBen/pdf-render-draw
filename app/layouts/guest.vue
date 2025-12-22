@@ -41,7 +41,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
               <span class="font-medium text-foreground">Create your own projects with a free account.</span>
             </span>
           </div>
-          <NuxtLink to="/guest/upgrade">
+          <NuxtLink to="/g/upgrade">
             <UiButton size="sm" variant="outline" class="h-7 text-xs">
               Create Free Account
               <Icon name="lucide:arrow-right" class="ml-1 size-3" />
@@ -56,7 +56,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-14 items-center justify-between">
           <!-- Logo -->
-          <NuxtLink to="/guest" class="flex items-center gap-2">
+          <NuxtLink to="/g" class="flex items-center gap-2">
             <div class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Icon name="lucide:ruler" class="size-4" />
             </div>
@@ -86,7 +86,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
                   </div>
                 </UiDropdownMenuLabel>
                 <UiDropdownMenuSeparator />
-                <NuxtLink to="/guest">
+                <NuxtLink to="/g">
                   <UiDropdownMenuItem title="Shared Projects">
                     <template #icon>
                       <Icon name="lucide:folder-open" class="size-4" />

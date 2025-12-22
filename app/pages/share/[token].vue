@@ -9,7 +9,6 @@ import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
-import { useGetApiShareToken, type GetApiShareToken200 } from "@/models/api"
 
 definePageMeta({
   layout: false // No layout for public page
@@ -25,8 +24,7 @@ const urlPassword = computed(() => (route.query.password as string) || undefined
 const {
   data: shareResponse,
   error,
-  status,
-  refetch
+  status
 } = useGetApiShareToken(token, urlPassword.value ? { password: urlPassword.value } : undefined)
 
 // Extract data from response
@@ -91,7 +89,7 @@ useSeoMeta({
 <template>
   <div class="min-h-screen bg-background">
     <!-- Simple header -->
-    <header class="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header class="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div class="container flex h-14 items-center justify-between">
         <NuxtLink to="/" class="flex items-center gap-2 font-semibold">
           <Icon name="lucide:file-text" class="size-5 text-primary" />
@@ -204,7 +202,7 @@ useSeoMeta({
         <!-- PDF viewer placeholder -->
         <UiCard>
           <UiCardContent class="p-0">
-            <div class="aspect-[4/3] bg-muted flex items-center justify-center">
+            <div class="aspect-4/3 bg-muted flex items-center justify-center">
               <div class="text-center space-y-4">
                 <Icon name="lucide:file-text" class="size-16 text-muted-foreground mx-auto" />
                 <div>

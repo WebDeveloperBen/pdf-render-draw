@@ -136,7 +136,7 @@ useSeoMeta({
             <h3 class="font-semibold">Unable to load project</h3>
             <p class="text-sm text-muted-foreground mt-1">{{ errorMessage }}</p>
           </div>
-          <NuxtLink to="/guest">
+          <NuxtLink to="/g">
             <UiButton variant="outline">
               <Icon name="lucide:arrow-left" class="size-4" />
               Back to Shared Projects
@@ -152,7 +152,7 @@ useSeoMeta({
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="space-y-1">
           <div class="flex items-center gap-2">
-            <NuxtLink to="/guest" class="text-muted-foreground hover:text-foreground transition-colors">
+            <NuxtLink to="/g" class="text-muted-foreground hover:text-foreground transition-colors">
               <Icon name="lucide:arrow-left" class="size-4" />
             </NuxtLink>
             <h1 class="text-2xl font-bold tracking-tight">{{ shareData.name }}</h1>

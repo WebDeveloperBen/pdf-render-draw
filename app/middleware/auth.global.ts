@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const publicRoutes = ["/login", "/share/"]
 
   // Guest routes - require authentication but accessible to guest users
-  const guestRoutes = ["/guest"]
+  const guestRoutes = ["/g"]
 
   // Check route types
   const isPublicRoute = publicRoutes.some((route) => to.path.startsWith(route))
@@ -15,7 +15,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (session.value && to.path.startsWith("/login")) {
     // Guest users go to guest dashboard, regular users go to main dashboard
     if (session.value.user.isGuest) {
-      return navigateTo("/guest")
+      return navigateTo("/g")
     }
     return navigateTo("/")
   }
@@ -27,7 +27,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // Guest users can only access guest routes and public routes
   if (session.value?.user.isGuest && !isGuestRoute && !isPublicRoute) {
-    return navigateTo("/guest")
+    return navigateTo("/g")
   }
 
   // If user is not authenticated and trying to access protected routes, redirect to login

@@ -89,7 +89,7 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: ["./types", "./shared/db/schema/"],
+    dirs: ["./types", "./shared/db/schema/", "./models"],
     imports: [
       {
         from: "tailwind-variants",
