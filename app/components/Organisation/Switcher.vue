@@ -14,10 +14,10 @@ const handleSwitch = async (orgId: string) => {
   await switchOrganization(orgId)
 }
 
-// Handle create new organization
+// Handle create new workplace
 const handleCreateOrg = async () => {
   if (!newOrgName.value.trim()) {
-    toast.error("Please enter an organization name")
+    toast.error("Please enter a workplace name")
     return
   }
 
@@ -29,11 +29,11 @@ const handleCreateOrg = async () => {
     })
 
     if (result.error) {
-      toast.error(result.error.message || "Failed to create organization")
+      toast.error(result.error.message || "Failed to create workplace")
       return
     }
 
-    toast.success("Organization created successfully")
+    toast.success("Workplace created successfully")
     showCreateDialog.value = false
     newOrgName.value = ""
 
@@ -42,7 +42,7 @@ const handleCreateOrg = async () => {
       await switchOrganization(result.data.id)
     }
   } catch (error: any) {
-    toast.error(error.message || "Failed to create organization")
+    toast.error(error.message || "Failed to create workplace")
   } finally {
     isCreating.value = false
   }
@@ -61,7 +61,7 @@ const handleCreateOrg = async () => {
         </div>
         <div class="grid flex-1 text-left text-sm leading-tight">
           <span class="truncate font-semibold">{{ workspaceName }}</span>
-          <span class="truncate text-xs text-muted-foreground">Organization</span>
+          <span class="truncate text-xs text-muted-foreground">Workplace</span>
         </div>
         <Icon v-if="!isSwitching" name="lucide:chevrons-up-down" class="ml-auto size-4 text-muted-foreground" />
         <Icon v-else name="svg-spinners:ring-resize" class="ml-auto size-4 text-muted-foreground" />
@@ -74,9 +74,9 @@ const handleCreateOrg = async () => {
       align="start"
       :side-offset="4"
     >
-      <UiDropdownMenuLabel class="text-xs text-muted-foreground"> Organizations </UiDropdownMenuLabel>
+      <UiDropdownMenuLabel class="text-xs text-muted-foreground"> Workplaces </UiDropdownMenuLabel>
 
-      <!-- Organization list -->
+      <!-- Workplace list -->
       <UiDropdownMenuItem
         v-for="org in organizations?.data"
         :key="org.id"
@@ -98,27 +98,27 @@ const handleCreateOrg = async () => {
 
       <UiDropdownMenuSeparator />
 
-      <!-- Create new organization -->
+      <!-- Create new workplace -->
       <UiDropdownMenuItem class="gap-2 p-2" @click="showCreateDialog = true">
         <div class="flex size-6 items-center justify-center rounded-md border border-dashed bg-background">
           <Icon name="lucide:plus" class="size-4" />
         </div>
-        <span class="font-medium text-muted-foreground">Create Organization</span>
+        <span class="font-medium text-muted-foreground">Create Workplace</span>
       </UiDropdownMenuItem>
     </UiDropdownMenuContent>
   </UiDropdownMenu>
 
-  <!-- Create Organization Dialog -->
+  <!-- Create Workplace Dialog -->
   <UiDialog v-model:open="showCreateDialog">
     <UiDialogContent>
       <UiDialogHeader>
-        <UiDialogTitle>Create Organization</UiDialogTitle>
-        <UiDialogDescription> Create a new organization to collaborate with your team. </UiDialogDescription>
+        <UiDialogTitle>Create Workplace</UiDialogTitle>
+        <UiDialogDescription> Create a new workplace to collaborate with your team. </UiDialogDescription>
       </UiDialogHeader>
 
       <div class="space-y-4 py-4">
         <div class="space-y-2">
-          <UiLabel for="orgName">Organization Name</UiLabel>
+          <UiLabel for="orgName">Workplace Name</UiLabel>
           <UiInput
             id="orgName"
             v-model="newOrgName"

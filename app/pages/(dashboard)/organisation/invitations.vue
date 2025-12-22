@@ -93,7 +93,7 @@ useSeoMeta({
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Invitations</h1>
-        <p class="text-muted-foreground">Manage pending invitations to your organization</p>
+        <p class="text-muted-foreground">Manage pending invitations to your workplace</p>
       </div>
       <UiButton @click="showInviteDialog = true">
         <Icon name="lucide:user-plus" class="size-4" />

@@ -49,7 +49,7 @@ const handleUpdateRole = async (memberId: string, newRole: "member" | "admin") =
 
 // Remove member
 const handleRemoveMember = async (memberId: string, memberEmail: string) => {
-  if (!confirm(`Are you sure you want to remove ${memberEmail} from the organization?`)) {
+  if (!confirm(`Are you sure you want to remove ${memberEmail} from the workplace?`)) {
     return
   }
 
@@ -64,7 +64,7 @@ const handleRemoveMember = async (memberId: string, memberEmail: string) => {
       return
     }
 
-    toast.success("Member removed from organization")
+    toast.success("Member removed from workplace")
   } catch (error: any) {
     toast.error(error.message || "Failed to remove member")
   } finally {
@@ -94,7 +94,7 @@ useSeoMeta({
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Team Members</h1>
-        <p class="text-muted-foreground">Manage your organization's team members</p>
+        <p class="text-muted-foreground">Manage your workplace's team members</p>
       </div>
       <UiButton @click="showInviteDialog = true">
         <Icon name="lucide:user-plus" class="size-4" />
@@ -184,7 +184,7 @@ useSeoMeta({
                         @click="handleRemoveMember(member.id, member.user?.email || '')"
                       >
                         <Icon name="lucide:user-minus" class="mr-2 size-4" />
-                        Remove from Organization
+                        Remove from Workplace
                       </UiDropdownMenuItem>
                     </UiDropdownMenuContent>
                   </UiDropdownMenu>

@@ -58,7 +58,7 @@ const formFields = computed<FormBuilder[]>(() => [
       {
         value: "admin",
         label: "Admin",
-        description: "Full access to manage members, settings, billing, and organization details.",
+        description: "Full access to manage members, settings, billing, and workplace details.",
         icon: "lucide:shield"
       }
     ]
@@ -67,7 +67,7 @@ const formFields = computed<FormBuilder[]>(() => [
 
 const handleInvite = handleSubmit(async (formValues) => {
   if (!activeOrg.value?.data?.id) {
-    toast.error("No active organization")
+    toast.error("No active workplace")
     return
   }
 
@@ -113,7 +113,7 @@ const handleClose = () => {
           <UiDialogTitle class="text-xl">Invite Team Member</UiDialogTitle>
           <UiDialogDescription>
             Invite someone to collaborate in
-            <span class="font-medium text-foreground">{{ activeOrg?.data?.name || "your organization" }}</span>
+            <span class="font-medium text-foreground">{{ activeOrg?.data?.name || "your workplace" }}</span>
           </UiDialogDescription>
         </UiDialogHeader>
       </div>

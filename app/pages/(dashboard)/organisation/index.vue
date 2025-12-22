@@ -17,7 +17,7 @@ const orgData = computed(() => activeOrg.value?.data)
 const membersCount = computed(() => orgData.value?.members?.length || 0)
 
 useSeoMeta({
-  title: computed(() => `${workspaceName.value} - Organization`)
+  title: computed(() => `${workspaceName.value} - Workplace`)
 })
 </script>
 
@@ -27,7 +27,7 @@ useSeoMeta({
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold tracking-tight">{{ workspaceName }}</h1>
-        <p class="text-muted-foreground">Organization overview and management</p>
+        <p class="text-muted-foreground">Workplace overview and management</p>
       </div>
       <div v-if="isOrgAdmin" class="flex gap-2">
         <UiButton variant="outline" to="/organisation/settings">
@@ -93,7 +93,7 @@ useSeoMeta({
       <UiCard class="flex flex-col">
         <UiCardHeader>
           <UiCardTitle>Team Members</UiCardTitle>
-          <UiCardDescription> Manage your organization's team members and their roles. </UiCardDescription>
+          <UiCardDescription> Manage your workplace's team members and their roles. </UiCardDescription>
         </UiCardHeader>
         <UiCardContent class="flex-1">
           <div v-if="orgData?.members?.length" class="space-y-3">
@@ -125,8 +125,8 @@ useSeoMeta({
 
       <UiCard class="flex flex-col">
         <UiCardHeader>
-          <UiCardTitle>Organization Details</UiCardTitle>
-          <UiCardDescription> Basic information about your organization. </UiCardDescription>
+          <UiCardTitle>Workplace Details</UiCardTitle>
+          <UiCardDescription> Basic information about your workplace. </UiCardDescription>
         </UiCardHeader>
         <UiCardContent class="flex-1 space-y-4">
           <div class="flex items-center gap-4">
@@ -157,7 +157,7 @@ useSeoMeta({
         </UiCardContent>
         <UiCardFooter v-if="isOrgAdmin">
           <UiButton variant="outline" class="w-full" to="/organisation/settings">
-            Edit Organization
+            Edit Workplace
             <Icon name="lucide:pencil" class="size-4" />
           </UiButton>
         </UiCardFooter>

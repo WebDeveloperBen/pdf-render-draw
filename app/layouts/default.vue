@@ -37,12 +37,12 @@ const navMain = [
   }
 ]
 
-// Organization navigation (shown when an org is active)
+// Workplace navigation (shown when a workplace is active)
 const navOrg = computed(() => {
   if (!hasActiveOrganization.value) return []
   return [
     {
-      title: "Organization",
+      title: "Workplace",
       url: "/organisation",
       icon: "lucide:building-2",
       items: [
@@ -148,9 +148,9 @@ useSeoMeta({ title: `${name} - Measure with precision` })
             </UiSidebarMenu>
           </UiSidebarGroup>
 
-          <!-- Organization Section (shown when in an org) -->
+          <!-- Workplace Section (shown when in a workplace) -->
           <UiSidebarGroup v-if="navOrg.length > 0">
-            <UiSidebarGroupLabel label="Organization" />
+            <UiSidebarGroupLabel label="Workplace" />
             <UiSidebarMenu>
               <template v-for="item in navOrg" :key="item.url">
                 <UiCollapsible v-if="item.items" v-slot="{ open }" as-child>

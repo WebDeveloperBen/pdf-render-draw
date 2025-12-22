@@ -41,7 +41,7 @@ watch(
 // Update organization
 const handleUpdateOrg = async () => {
   if (!orgName.value.trim()) {
-    toast.error("Organization name is required")
+    toast.error("Workplace name is required")
     return
   }
 
@@ -54,13 +54,13 @@ const handleUpdateOrg = async () => {
     })
 
     if (result.error) {
-      toast.error(result.error.message || "Failed to update organization")
+      toast.error(result.error.message || "Failed to update workplace")
       return
     }
 
-    toast.success("Organization updated successfully")
+    toast.success("Workplace updated successfully")
   } catch (error: any) {
-    toast.error(error.message || "Failed to update organization")
+    toast.error(error.message || "Failed to update workplace")
   } finally {
     isUpdating.value = false
   }
@@ -69,7 +69,7 @@ const handleUpdateOrg = async () => {
 // Delete organization (owner only)
 const handleDeleteOrg = async () => {
   if (deleteConfirmation.value !== orgData.value?.name) {
-    toast.error("Please type the organization name to confirm deletion")
+    toast.error("Please type the workplace name to confirm deletion")
     return
   }
 
@@ -80,15 +80,15 @@ const handleDeleteOrg = async () => {
     })
 
     if (result.error) {
-      toast.error(result.error.message || "Failed to delete organization")
+      toast.error(result.error.message || "Failed to delete workplace")
       return
     }
 
-    toast.success("Organization deleted successfully")
+    toast.success("Workplace deleted successfully")
     showDeleteDialog.value = false
     await navigateTo("/")
   } catch (error: any) {
-    toast.error(error.message || "Failed to delete organization")
+    toast.error(error.message || "Failed to delete workplace")
   } finally {
     isDeleting.value = false
   }
@@ -103,24 +103,24 @@ useSeoMeta({
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-bold tracking-tight">Organization Settings</h1>
-      <p class="text-muted-foreground">Manage your organization's settings and preferences</p>
+      <h1 class="text-2xl font-bold tracking-tight">Workplace Settings</h1>
+      <p class="text-muted-foreground">Manage your workplace's settings and preferences</p>
     </div>
 
     <!-- General Settings -->
     <UiCard>
       <UiCardHeader>
         <UiCardTitle>General</UiCardTitle>
-        <UiCardDescription> Basic information about your organization </UiCardDescription>
+        <UiCardDescription> Basic information about your workplace </UiCardDescription>
       </UiCardHeader>
       <UiCardContent class="space-y-4">
         <div class="space-y-2">
-          <UiLabel for="orgName">Organization Name</UiLabel>
+          <UiLabel for="orgName">Workplace Name</UiLabel>
           <UiInput id="orgName" v-model="orgName" placeholder="Acme Construction Co." :disabled="isUpdating" />
         </div>
 
         <div class="space-y-2">
-          <UiLabel for="orgSlug">Organization Slug</UiLabel>
+          <UiLabel for="orgSlug">Workplace Slug</UiLabel>
           <UiInput id="orgSlug" v-model="orgSlug" placeholder="acme-construction" disabled />
           <p class="text-xs text-muted-foreground">The slug cannot be changed after creation</p>
         </div>
@@ -136,8 +136,8 @@ useSeoMeta({
     <!-- Logo Settings -->
     <UiCard>
       <UiCardHeader>
-        <UiCardTitle>Organization Logo</UiCardTitle>
-        <UiCardDescription> Upload a logo for your organization </UiCardDescription>
+        <UiCardTitle>Workplace Logo</UiCardTitle>
+        <UiCardDescription> Upload a logo for your workplace </UiCardDescription>
       </UiCardHeader>
       <UiCardContent>
         <div class="flex items-center gap-6">
@@ -160,15 +160,15 @@ useSeoMeta({
     <UiCard v-if="isOrgOwner" class="border-destructive">
       <UiCardHeader>
         <UiCardTitle class="text-destructive">Danger Zone</UiCardTitle>
-        <UiCardDescription> Irreversible actions that will permanently affect your organization </UiCardDescription>
+        <UiCardDescription> Irreversible actions that will permanently affect your workplace </UiCardDescription>
       </UiCardHeader>
       <UiCardContent>
         <div class="flex items-center justify-between rounded-lg border border-destructive/50 bg-destructive/5 p-4">
           <div>
-            <h4 class="font-medium">Delete Organization</h4>
-            <p class="text-sm text-muted-foreground">Permanently delete this organization and all its data</p>
+            <h4 class="font-medium">Delete Workplace</h4>
+            <p class="text-sm text-muted-foreground">Permanently delete this workplace and all its data</p>
           </div>
-          <UiButton variant="destructive" @click="showDeleteDialog = true"> Delete Organization </UiButton>
+          <UiButton variant="destructive" @click="showDeleteDialog = true"> Delete Workplace </UiButton>
         </div>
       </UiCardContent>
     </UiCard>
@@ -177,9 +177,9 @@ useSeoMeta({
     <UiDialog v-model:open="showDeleteDialog">
       <UiDialogContent>
         <UiDialogHeader>
-          <UiDialogTitle class="text-destructive">Delete Organization</UiDialogTitle>
+          <UiDialogTitle class="text-destructive">Delete Workplace</UiDialogTitle>
           <UiDialogDescription>
-            This action cannot be undone. This will permanently delete the organization
+            This action cannot be undone. This will permanently delete the workplace
             <span class="font-semibold">{{ orgData?.name }}</span> and remove all associated data.
           </UiDialogDescription>
         </UiDialogHeader>
@@ -187,7 +187,7 @@ useSeoMeta({
         <div class="space-y-4 py-4">
           <div class="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
             <ul class="list-inside list-disc space-y-1 text-sm text-destructive">
-              <li>All organization members will lose access</li>
+              <li>All workplace members will lose access</li>
               <li>All shared projects will be deleted</li>
               <li>All pending invitations will be cancelled</li>
               <li>This action is irreversible</li>
@@ -215,7 +215,7 @@ useSeoMeta({
             @click="handleDeleteOrg"
           >
             <Icon v-if="isDeleting" name="svg-spinners:ring-resize" class="size-4" />
-            Delete Organization
+            Delete Workplace
           </UiButton>
         </UiDialogFooter>
       </UiDialogContent>
