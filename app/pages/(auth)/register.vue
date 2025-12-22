@@ -6,45 +6,50 @@ import { z } from "zod"
 definePageMeta({ layout: false })
 
 useSeoMeta({
-  title: "Welcome back - Log in",
-  description: "Log in to your account to continue."
+  title: "Get started for free",
+  description: "No credit card required. Start measuring immediately."
 })
 
 const { redirectAfterAuth } = useAuth()
 
 const schema = toTypedSchema(
   z.object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
     email: z.email("Please enter a valid email"),
-    password: z.string().min(1, "Password is required"),
-    remember: z.boolean().optional()
+    password: z.string().min(8, "Password must be at least 8 characters")
   })
 )
 
 const { handleSubmit, isSubmitting } = useForm({
   validationSchema: schema,
   initialValues: {
+    firstName: "",
+    lastName: "",
     email: "",
-    password: "",
-    remember: false
+    password: ""
   }
 })
 
 const submit = handleSubmit(async (values) => {
   try {
-    const result = await authClient.signIn.email({
+    const result = await authClient.signUp.email({
       email: values.email,
-      password: values.password
+      password: values.password,
+      name: `${values.firstName} ${values.lastName}`,
+      firstName: values.firstName,
+      lastName: values.lastName
     })
 
     if (result.error) {
-      toast.error(result.error.message || "Failed to sign in")
+      toast.error(result.error.message || "Failed to create account")
       return
     }
 
-    toast.success("Signed in successfully")
+    toast.success("Account created successfully!")
     await redirectAfterAuth()
   } catch (error: any) {
-    toast.error(error.message || "Failed to sign in")
+    toast.error(error.message || "Failed to create account")
   }
 })
 </script>
@@ -52,33 +57,41 @@ const submit = handleSubmit(async (values) => {
   <div class="grid h-screen lg:grid-cols-2">
     <div class="flex items-center justify-center px-5">
       <div class="w-full max-w-100">
-        <h1 class="text-2xl font-bold tracking-tight lg:text-3xl">Welcome back</h1>
-        <p class="mt-1 text-muted-foreground">Log in to your account to continue.</p>
+        <h1 class="text-2xl font-bold tracking-tight lg:text-3xl">Get started for free</h1>
+        <p class="mt-1 text-muted-foreground">No credit card required. Start building immediately.</p>
 
         <ClientOnly>
           <form class="mt-8" @submit="submit">
             <fieldset :disabled="isSubmitting" class="grid gap-5">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <UiVeeInput label="First name" name="firstName" placeholder="John" />
+                <UiVeeInput label="Last name" name="lastName" placeholder="Doe" />
+              </div>
               <UiVeeInput label="Email" type="email" name="email" placeholder="you@example.com" />
               <UiVeeInput label="Password" type="password" name="password" placeholder="••••••••" />
-              <div class="flex items-center justify-between">
-                <UiVeeCheckbox label="Remember me" name="remember" />
-                <NuxtLink class="text-sm font-medium text-primary underline-offset-2 hover:underline" to="#">
-                  Forgot password?
-                </NuxtLink>
-              </div>
               <UiButton class="w-full" type="submit">
                 <Icon v-if="isSubmitting" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
-                Log in
+                Create account
               </UiButton>
             </fieldset>
           </form>
 
           <UiDivider class="my-6" label="OR" />
 
-          <GoogleAuthButton mode="signin" :disabled="isSubmitting" />
+          <GoogleAuthButton mode="signup" :disabled="isSubmitting" />
 
           <template #fallback>
             <div class="mt-8 grid gap-5">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="space-y-2">
+                  <UiSkeleton class="h-4 w-20" />
+                  <UiSkeleton class="h-10 w-full" />
+                </div>
+                <div class="space-y-2">
+                  <UiSkeleton class="h-4 w-20" />
+                  <UiSkeleton class="h-10 w-full" />
+                </div>
+              </div>
               <div class="space-y-2">
                 <UiSkeleton class="h-4 w-12" />
                 <UiSkeleton class="h-10 w-full" />
@@ -86,10 +99,6 @@ const submit = handleSubmit(async (values) => {
               <div class="space-y-2">
                 <UiSkeleton class="h-4 w-16" />
                 <UiSkeleton class="h-10 w-full" />
-              </div>
-              <div class="flex items-center justify-between">
-                <UiSkeleton class="h-5 w-28" />
-                <UiSkeleton class="h-4 w-24" />
               </div>
               <UiSkeleton class="h-10 w-full" />
             </div>
@@ -103,9 +112,9 @@ const submit = handleSubmit(async (values) => {
         </ClientOnly>
 
         <p class="mt-6 text-sm text-muted-foreground">
-          Don't have an account?
-          <NuxtLink class="font-semibold text-primary underline-offset-2 hover:underline" to="/register">
-            Create account
+          Already have an account?
+          <NuxtLink class="font-semibold text-primary underline-offset-2 hover:underline" to="/login">
+            Sign in
           </NuxtLink>
         </p>
       </div>
@@ -113,10 +122,10 @@ const submit = handleSubmit(async (values) => {
     <div class="hidden bg-muted lg:block">
       <div class="flex h-full flex-col items-center justify-center p-8">
         <div class="max-w-md text-center">
-          <Icon name="lucide:lock-keyhole" class="mx-auto mb-6 size-16 text-primary" />
-          <h2 class="mb-4 text-2xl font-bold">Secure & Private</h2>
+          <Icon name="lucide:pencil-ruler" class="mx-auto mb-6 size-16 text-primary" />
+          <h2 class="mb-4 text-2xl font-bold">Annotate PDFs with Ease</h2>
           <p class="text-muted-foreground">
-            Your data is encrypted and secure. We never share your information with third parties.
+            Draw, measure, and annotate building plans directly on your PDFs. Perfect for tradespeople.
           </p>
         </div>
       </div>
