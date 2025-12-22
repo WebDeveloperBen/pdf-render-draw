@@ -104,7 +104,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Upload PDF (thumbnail generated client-side)
-    const result = await uploadPdf(event, pdfFile.data, pdfFile.filename || "document.pdf")
+    const result = await uploadPdf(pdfFile.data, pdfFile.filename || "document.pdf")
 
     return result
   } catch (error) {

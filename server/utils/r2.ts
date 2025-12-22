@@ -1,78 +1,54 @@
-import type { H3Event } from "h3"
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  HeadObjectCommand
+} from "@aws-sdk/client-s3"
 
 /**
  * Cloudflare R2 Storage Utilities
  *
- * Uses Cloudflare's native R2 bindings for better performance on Pages/Workers.
- * Thumbnail generation is handled client-side using PDF.js canvas rendering.
+ * Uses AWS S3 SDK to access R2 via S3-compatible API.
+ * Works from any hosting provider (Fly.io, Railway, etc.)
  */
 
-// Type for Cloudflare R2 binding
-interface R2Bucket {
-  put(key: string, value: ArrayBuffer | ReadableStream | string, options?: R2PutOptions): Promise<R2Object>
-  get(key: string): Promise<R2ObjectBody | null>
-  delete(key: string | string[]): Promise<void>
-  head(key: string): Promise<R2Object | null>
-  list(options?: R2ListOptions): Promise<R2Objects>
-}
+// Lazy-initialized S3 client
+let _s3Client: S3Client | null = null
 
-interface R2PutOptions {
-  httpMetadata?: {
-    contentType?: string
-    cacheControl?: string
-  }
-  customMetadata?: Record<string, string>
-}
+function getS3Client(): S3Client {
+  if (_s3Client) return _s3Client
 
-interface R2Object {
-  key: string
-  size: number
-  etag: string
-  httpMetadata?: {
-    contentType?: string
-  }
-}
+  const accountId = process.env.R2_ACCOUNT_ID
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY
 
-interface R2ObjectBody extends R2Object {
-  body: ReadableStream
-  arrayBuffer(): Promise<ArrayBuffer>
-  text(): Promise<string>
-}
-
-interface R2ListOptions {
-  prefix?: string
-  limit?: number
-  cursor?: string
-}
-
-interface R2Objects {
-  objects: R2Object[]
-  truncated: boolean
-  cursor?: string
-}
-
-// Environment with R2 binding
-interface CloudflareEnv {
-  R2_BUCKET: R2Bucket
-}
-
-/**
- * Get the R2 bucket binding from the event context
- * In Cloudflare Pages, bindings are available via event.context.cloudflare.env
- */
-export function getR2Bucket(event: H3Event): R2Bucket {
-  const env = event.context.cloudflare?.env as CloudflareEnv | undefined
-
-  if (!env?.R2_BUCKET) {
-    throw new Error("R2_BUCKET binding not found. Ensure R2 is configured in wrangler.toml")
+  if (!accountId || !accessKeyId || !secretAccessKey) {
+    throw new Error("R2 credentials not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY")
   }
 
-  return env.R2_BUCKET
+  _s3Client = new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId,
+      secretAccessKey
+    }
+  })
+
+  return _s3Client
+}
+
+function getBucketName(): string {
+  const bucketName = process.env.R2_BUCKET_NAME
+  if (!bucketName) {
+    throw new Error("R2_BUCKET_NAME environment variable not set")
+  }
+  return bucketName
 }
 
 /**
  * Get the public URL for R2 assets
- * This should be configured as an environment variable pointing to your R2 public domain
  */
 export function getR2PublicUrl(): string {
   const publicUrl = process.env.R2_PUBLIC_URL
@@ -91,72 +67,84 @@ function generateFileId(): string {
 
 /**
  * Upload a file to Cloudflare R2
- * @param event - H3 event for accessing R2 binding
  * @param file - File data as ArrayBuffer or Uint8Array
  * @param path - Path in the bucket (e.g., 'pdfs/filename.pdf')
  * @param contentType - MIME type of the file
  * @returns Public URL of the uploaded file
  */
 export async function uploadToR2(
-  event: H3Event,
   file: ArrayBuffer | Uint8Array,
   path: string,
   contentType: string
 ): Promise<string> {
-  const bucket = getR2Bucket(event)
+  const client = getS3Client()
+  const bucketName = getBucketName()
   const publicUrl = getR2PublicUrl()
 
-  const data = file instanceof Uint8Array ? new Uint8Array(file).buffer : file
-  await bucket.put(path, data as ArrayBuffer, {
-    httpMetadata: {
-      contentType,
-      cacheControl: "public, max-age=31536000" // 1 year cache for immutable assets
-    }
-  })
+  const body = file instanceof Uint8Array ? file : new Uint8Array(file)
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: path,
+      Body: body,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000" // 1 year cache for immutable assets
+    })
+  )
 
   return `${publicUrl}/${path}`
 }
 
 /**
  * Delete a file from Cloudflare R2
- * @param event - H3 event for accessing R2 binding
  * @param url - Public URL of the file to delete
  */
-export async function deleteFromR2(event: H3Event, url: string): Promise<void> {
-  const bucket = getR2Bucket(event)
+export async function deleteFromR2(url: string): Promise<void> {
+  const client = getS3Client()
+  const bucketName = getBucketName()
   const publicUrl = getR2PublicUrl()
 
-  // Extract the path from the URL
   const path = url.replace(`${publicUrl}/`, "")
 
-  await bucket.delete(path)
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: path
+    })
+  )
 }
 
 /**
  * Delete multiple files from R2
- * @param event - H3 event for accessing R2 binding
  * @param urls - Array of public URLs to delete
  */
-export async function deleteMultipleFromR2(event: H3Event, urls: string[]): Promise<void> {
-  const bucket = getR2Bucket(event)
+export async function deleteMultipleFromR2(urls: string[]): Promise<void> {
+  const client = getS3Client()
+  const bucketName = getBucketName()
   const publicUrl = getR2PublicUrl()
 
-  const paths = urls.map((url) => url.replace(`${publicUrl}/`, ""))
+  const objects = urls.map((url) => ({
+    Key: url.replace(`${publicUrl}/`, "")
+  }))
 
-  await bucket.delete(paths)
+  await client.send(
+    new DeleteObjectsCommand({
+      Bucket: bucketName,
+      Delete: { Objects: objects }
+    })
+  )
 }
 
 /**
  * Upload a PDF file to R2
  * Thumbnail generation is handled client-side.
  *
- * @param event - H3 event for accessing R2 binding
  * @param pdfBuffer - PDF file as ArrayBuffer or Uint8Array
  * @param fileName - Original file name
  * @returns Upload result with URL and metadata
  */
 export async function uploadPdf(
-  event: H3Event,
   pdfBuffer: ArrayBuffer | Uint8Array,
   fileName: string
 ): Promise<PDFUploadResult> {
@@ -168,7 +156,7 @@ export async function uploadPdf(
   const pdfPath = `pdfs/${fileId}.${fileExt}`
 
   // Upload PDF
-  const pdfUrl = await uploadToR2(event, pdfBuffer, pdfPath, "application/pdf")
+  const pdfUrl = await uploadToR2(pdfBuffer, pdfPath, "application/pdf")
 
   // Get file size
   const fileSize = pdfBuffer instanceof Uint8Array ? pdfBuffer.length : pdfBuffer.byteLength
@@ -186,29 +174,33 @@ export async function uploadPdf(
  * Upload a thumbnail image to R2
  * Called from client after generating thumbnail with PDF.js
  *
- * @param event - H3 event for accessing R2 binding
  * @param imageData - PNG image data as ArrayBuffer or Uint8Array
  * @param projectId - Project ID to associate thumbnail with
  * @returns Public URL of the uploaded thumbnail
  */
-export async function uploadThumbnail(
-  event: H3Event,
-  imageData: ArrayBuffer | Uint8Array,
-  projectId: string
-): Promise<string> {
+export async function uploadThumbnail(imageData: ArrayBuffer | Uint8Array, projectId: string): Promise<string> {
   const thumbnailPath = `thumbnails/${projectId}.png`
-
-  return uploadToR2(event, imageData, thumbnailPath, "image/png")
+  return uploadToR2(imageData, thumbnailPath, "image/png")
 }
 
 /**
  * Check if a file exists in R2
- * @param event - H3 event for accessing R2 binding
  * @param path - Path in the bucket
  * @returns True if file exists
  */
-export async function existsInR2(event: H3Event, path: string): Promise<boolean> {
-  const bucket = getR2Bucket(event)
-  const object = await bucket.head(path)
-  return object !== null
+export async function existsInR2(path: string): Promise<boolean> {
+  const client = getS3Client()
+  const bucketName = getBucketName()
+
+  try {
+    await client.send(
+      new HeadObjectCommand({
+        Bucket: bucketName,
+        Key: path
+      })
+    )
+    return true
+  } catch {
+    return false
+  }
 }

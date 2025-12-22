@@ -1,42 +1,30 @@
 import type { NitroApp } from "nitropack"
 import type { H3Event } from "h3"
-import pino from "pino"
 
 /**
  * Server-side logger plugin
  *
- * Uses pino for structured logging. In development, logs are prettified.
- * In production on Cloudflare, logs go to stdout and can be collected
- * via Cloudflare Logpush or Workers Tail.
+ * Uses console for Cloudflare Pages compatibility.
+ * Logs are collected via Cloudflare's built-in logging or Workers Tail.
  */
 
-const createLogger = (level: string) => {
-  // In development, use pino-pretty for readable logs
-  // In production, use standard JSON output for log aggregation
-  const isDev = import.meta.dev
+interface Logger {
+  info: (...args: unknown[]) => void
+  warn: (...args: unknown[]) => void
+  error: (...args: unknown[]) => void
+  debug: (...args: unknown[]) => void
+}
 
-  if (isDev) {
-    const transport = pino.transport({
-      target: "pino-pretty",
-      options: {
-        colorize: true
-      }
-    })
-
-    return pino(
-      {
-        level: level || "info",
-        timestamp: pino.stdTimeFunctions.isoTime
-      },
-      transport
-    )
+const createLogger = (_level: string): Logger => {
+  // Simple console-based logger for edge runtime compatibility
+  return {
+    info: (...args) => console.log("[INFO]", ...args),
+    warn: (...args) => console.warn("[WARN]", ...args),
+    error: (...args) => console.error("[ERROR]", ...args),
+    debug: (...args) => {
+      if (import.meta.dev) console.debug("[DEBUG]", ...args)
+    }
   }
-
-  // Production: JSON logs to stdout (Cloudflare compatible)
-  return pino({
-    level: level || "info",
-    timestamp: pino.stdTimeFunctions.isoTime
-  })
 }
 
 // Nitro server plugin

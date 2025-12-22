@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+
+# Build output
+.output
+.nuxt
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Cloudflare (removing)
+.wrangler
+wrangler.json
+wrangler.toml
+
+# Tauri (desktop app)
+src-tauri
+
+# Test & Coverage
+coverage
+*.spec.ts
+*.test.ts
+tests
+
+# Docs
+README.md
+LICENSE
+CLAUDE.md
+*.md
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Misc
+.DS_Store
+*.log

@@ -5,9 +5,9 @@ import { eq } from "drizzle-orm"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nanoid } from "nanoid"
 import { db } from "./server/utils/drizzle"
-import * as schema from "@shared/db/schema"
-import { ac, roles } from "@shared/auth/access-control"
-import { platformAdminPlugin } from "@shared/auth/plugins/platform-admin"
+import * as schema from "./shared/db/schema"
+import { ac, roles } from "./shared/auth/access-control"
+import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
 
 // Helper to log admin actions to audit log
 async function logAdminAction(params: {
@@ -210,7 +210,11 @@ export const auth = betterAuth({
       }
     }
   },
-  trustedOrigins: ["http://0.0.0.0:3000"],
+  trustedOrigins: [
+    "http://0.0.0.0:3000",
+    "http://localhost:3000",
+    process.env.BETTER_AUTH_URL || "https://pdf.bens.digital"
+  ],
   user: {
     additionalFields: {
       firstName: {
@@ -254,10 +258,10 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
-    async sendResetPassword(url) {
-      console.log("Reset password url:", url)
-    }
+    requireEmailVerification: false
+    // async sendResetPassword(url: string) {
+    //   console.log("Reset password url:", url)
+    // }
   },
   socialProviders: {
     // google: {

@@ -171,7 +171,7 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    preset: "cloudflare-pages",
+    preset: "node-server",
     imports: { dirs: ["./shared/db/schema/"] },
     openAPI: {
       route: "/_docs/openapi.json",

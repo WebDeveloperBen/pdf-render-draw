@@ -95,10 +95,10 @@ export default defineEventHandler(async (event) => {
 
   // Delete files from R2
   try {
-    await deleteFromR2(event, existingProject.pdfUrl)
+    await deleteFromR2(existingProject.pdfUrl)
 
     if (existingProject.thumbnailUrl) {
-      await deleteFromR2(event, existingProject.thumbnailUrl)
+      await deleteFromR2(existingProject.thumbnailUrl)
     }
   } catch (error) {
     console.error("Failed to delete files from R2:", error)
