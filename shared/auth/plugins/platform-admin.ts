@@ -119,6 +119,10 @@ export const platformAdminPlugin = () => {
           },
           userAgent: {
             type: "string"
+          },
+          createdAt: {
+            type: "date",
+            required: true
           }
         }
       }
