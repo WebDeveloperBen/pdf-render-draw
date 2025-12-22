@@ -1,4 +1,5 @@
 import tailwindcss from "@tailwindcss/vite"
+import vue from "@vitejs/plugin-vue"
 import { fileURLToPath } from "node:url"
 
 const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUILD_TARGET === "tauri"
@@ -45,6 +46,17 @@ export default defineNuxtConfig({
     },
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     resendApiKey: process.env.RESEND_API_KEY,
+    emailFrom: process.env.EMAIL_FROM || "PDF Annotator <noreply@resend.dev>",
+    // App branding (server-side)
+    app: {
+      name: "PDF Annotator",
+      domain: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+      shortName: "PDF",
+      description: "Draw and measure PDF documents with precision",
+      tagline: "Annotate with precision",
+      brandColor: "#f97316",
+      footerText: "Professional PDF annotation tools"
+    },
 
     // Public (exposed to client)
     public: {
@@ -173,6 +185,9 @@ export default defineNuxtConfig({
   nitro: {
     preset: "node-server",
     imports: { dirs: ["./shared/db/schema/"] },
+    rollupConfig: {
+      plugins: [vue()]
+    },
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,

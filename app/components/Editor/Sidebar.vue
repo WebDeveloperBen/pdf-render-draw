@@ -285,8 +285,8 @@ watch(
   top: 0;
   width: 280px;
   height: 100vh;
-  background: #2c2c2c;
-  border-right: 1px solid #444;
+  background: var(--card);
+  border-right: 1px solid var(--border);
   transition: left 0.3s ease;
   z-index: 1000;
   display: flex;
@@ -302,8 +302,8 @@ watch(
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: #1e1e1e;
-  border-bottom: 1px solid #444;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -311,7 +311,7 @@ watch(
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--foreground);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -319,7 +319,7 @@ watch(
 .close-btn {
   background: none;
   border: none;
-  color: #aaa;
+  color: var(--muted-foreground);
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
@@ -333,7 +333,7 @@ watch(
 }
 
 .close-btn:hover {
-  color: #fff;
+  color: var(--foreground);
 }
 
 .pages-container {
@@ -357,34 +357,35 @@ watch(
 }
 
 .page-item:hover {
-  background: #383838;
+  background: var(--accent);
 }
 
 .page-item.active {
-  background: #0066cc;
+  background: var(--primary);
 }
 
 .page-item.active:hover {
-  background: #0056b3;
+  background: var(--primary);
+  opacity: 0.9;
 }
 
 .page-thumbnail {
   position: relative;
   width: 140px;
   min-height: 140px;
-  background: #fff;
+  background: white;
   border: 2px solid transparent;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .page-item.active .page-thumbnail {
-  border-color: #4da6ff;
-  box-shadow: 0 0 0 2px rgba(77, 166, 255, 0.3);
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 30%, transparent);
 }
 
 .thumbnail-canvas {
@@ -404,17 +405,17 @@ watch(
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: #666;
+  color: var(--muted-foreground);
 }
 
 .page-label {
   font-size: 12px;
   font-weight: 500;
-  color: #ccc;
+  color: var(--muted-foreground);
 }
 
 .page-item.active .page-label {
-  color: #fff;
+  color: var(--primary-foreground);
   font-weight: 600;
 }
 
@@ -424,15 +425,15 @@ watch(
 }
 
 .pages-container::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--background);
 }
 
 .pages-container::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--border);
   border-radius: 4px;
 }
 
 .pages-container::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: var(--muted-foreground);
 }
 </style>

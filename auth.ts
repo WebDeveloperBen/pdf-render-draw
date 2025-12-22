@@ -8,6 +8,12 @@ import { db } from "./server/utils/drizzle"
 import * as schema from "./shared/db/schema"
 import { ac, roles } from "./shared/auth/access-control"
 import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
+import {
+  sendPasswordResetEmail,
+  sendMagicLinkEmail,
+  sendOrganizationInviteEmail,
+  sendVerificationEmail
+} from "./server/utils/email"
 
 // Helper to log admin actions to audit log
 async function logAdminAction(params: {
@@ -121,21 +127,19 @@ export const auth = betterAuth({
       roles,
       teams: { enabled: true },
       async sendInvitationEmail({ email, organization, inviter, invitation }) {
-        // TODO: Integrate with Resend for production
         const invitationUrl = `${process.env.BETTER_AUTH_URL}/invite/${invitation.id}`
-        console.log(`[Organization Invite] Sending invitation email:`)
-        console.log(`  To: ${email}`)
-        console.log(`  Organization: ${organization.name}`)
-        console.log(`  Invited by: ${inviter.user.name} (${inviter.user.email})`)
-        console.log(`  Invitation URL: ${invitationUrl}`)
+        await sendOrganizationInviteEmail(
+          email,
+          invitationUrl,
+          organization.name,
+          inviter.user.name || inviter.user.email
+        )
       }
     }),
     platformAdminPlugin(),
     magicLink({
       sendMagicLink: async ({ email, url }) => {
-        // Console log for now - Resend integration later
-        console.log(`[Magic Link] Sending to ${email}`)
-        console.log(`  URL: ${url}`)
+        await sendMagicLinkEmail(email, url)
       },
       expiresIn: 60 * 60 * 24 * 7 // 7 days for guest links
     }),
@@ -251,17 +255,17 @@ export const auth = betterAuth({
     }
   },
   emailVerification: {
-    // async sendVerificationEmail({ user, url }) {
-    //   await sendUserVerificationEmail(user, url)
-    // },
-    // sendOnSignUp: true
+    async sendVerificationEmail({ user, url }) {
+      await sendVerificationEmail(user.email, url)
+    },
+    sendOnSignUp: true
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false
-    // async sendResetPassword(url: string) {
-    //   console.log("Reset password url:", url)
-    // }
+    requireEmailVerification: false,
+    async sendResetPassword({ user, url }) {
+      await sendPasswordResetEmail(user.email, url)
+    }
   },
   socialProviders: {
     // google: {

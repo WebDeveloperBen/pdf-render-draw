@@ -2,7 +2,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const { data: session } = await authClient.useSession(useFetch)
 
   // Auth routes - public but redirect authenticated users away
-  const authRoutes = ["/login", "/register"]
+  const authRoutes = ["/login", "/register", "/forgot", "/reset"]
 
   // Public routes that don't require authentication
   const publicRoutes = [...authRoutes, "/share/"]

@@ -32,35 +32,35 @@ ENV=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
-  case $1 in
+    case $1 in
     --env)
-      ENV="$2"
-      shift 2
-      ;;
+        ENV="$2"
+        shift 2
+        ;;
     --project)
-      PROJECT_NAME="$2"
-      shift 2
-      ;;
+        PROJECT_NAME="$2"
+        shift 2
+        ;;
     --help)
-      echo "Usage: $0 [options]"
-      echo ""
-      echo "Options:"
-      echo "  --env <name>      Environment name (production, preview)"
-      echo "  --project <name>  Project name (default: pdf-annotator)"
-      echo "  --help            Show this help message"
-      exit 0
-      ;;
+        echo "Usage: $0 [options]"
+        echo ""
+        echo "Options:"
+        echo "  --env <name>      Environment name (production, preview)"
+        echo "  --project <name>  Project name (default: pdf-annotator)"
+        echo "  --help            Show this help message"
+        exit 0
+        ;;
     *)
-      echo "Unknown option: $1"
-      exit 1
-      ;;
-  esac
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
 done
 
 # Add environment suffix if specified
 if [ -n "$ENV" ]; then
-  R2_BUCKET_NAME="${R2_BUCKET_NAME}-${ENV}"
-  HYPERDRIVE_NAME="${HYPERDRIVE_NAME}-${ENV}"
+    R2_BUCKET_NAME="${R2_BUCKET_NAME}-${ENV}"
+    HYPERDRIVE_NAME="${HYPERDRIVE_NAME}-${ENV}"
 fi
 
 echo -e "${BLUE}============================================${NC}"
@@ -73,18 +73,18 @@ echo -e "Hyperdrive: ${GREEN}${HYPERDRIVE_NAME}${NC}"
 echo ""
 
 # Check if wrangler is installed
-if ! command -v wrangler &> /dev/null; then
-  echo -e "${RED}Error: wrangler CLI not found${NC}"
-  echo "Install with: npm install -g wrangler"
-  exit 1
+if ! command -v wrangler &>/dev/null; then
+    echo -e "${RED}Error: wrangler CLI not found${NC}"
+    echo "Install with: npm install -g wrangler"
+    exit 1
 fi
 
 # Check if logged in
 echo -e "${YELLOW}Checking Cloudflare authentication...${NC}"
-if ! wrangler whoami &> /dev/null; then
-  echo -e "${RED}Error: Not logged in to Cloudflare${NC}"
-  echo "Run: wrangler login"
-  exit 1
+if ! wrangler whoami &>/dev/null; then
+    echo -e "${RED}Error: Not logged in to Cloudflare${NC}"
+    echo "Run: wrangler login"
+    exit 1
 fi
 echo -e "${GREEN}✓ Authenticated${NC}"
 echo ""
@@ -95,10 +95,10 @@ echo ""
 echo -e "${YELLOW}Step 1: Creating R2 bucket...${NC}"
 
 if wrangler r2 bucket list | grep -q "$R2_BUCKET_NAME"; then
-  echo -e "${GREEN}✓ R2 bucket '$R2_BUCKET_NAME' already exists${NC}"
+    echo -e "${GREEN}✓ R2 bucket '$R2_BUCKET_NAME' already exists${NC}"
 else
-  wrangler r2 bucket create "$R2_BUCKET_NAME"
-  echo -e "${GREEN}✓ R2 bucket '$R2_BUCKET_NAME' created${NC}"
+    wrangler r2 bucket create "$R2_BUCKET_NAME"
+    echo -e "${GREEN}✓ R2 bucket '$R2_BUCKET_NAME' created${NC}"
 fi
 echo ""
 
@@ -111,24 +111,24 @@ echo -e "${YELLOW}Step 2: Setting up Hyperdrive...${NC}"
 EXISTING_HYPERDRIVE=$(wrangler hyperdrive list 2>/dev/null | grep "$HYPERDRIVE_NAME" || true)
 
 if [ -n "$EXISTING_HYPERDRIVE" ]; then
-  echo -e "${GREEN}✓ Hyperdrive '$HYPERDRIVE_NAME' already exists${NC}"
-  HYPERDRIVE_ID=$(echo "$EXISTING_HYPERDRIVE" | awk '{print $1}')
+    echo -e "${GREEN}✓ Hyperdrive '$HYPERDRIVE_NAME' already exists${NC}"
+    HYPERDRIVE_ID=$(echo "$EXISTING_HYPERDRIVE" | awk '{print $1}')
 else
-  # Prompt for database connection string
-  echo -e "${BLUE}Enter your Neon PostgreSQL connection string:${NC}"
-  echo "(format: postgres://user:password@host/database)"
-  read -r -s DATABASE_URL
-  echo ""
+    # Prompt for database connection string
+    echo -e "${BLUE}Enter your Neon PostgreSQL connection string:${NC}"
+    echo "(format: postgres://user:password@host/database)"
+    read -r -s DATABASE_URL
+    echo ""
 
-  if [ -z "$DATABASE_URL" ]; then
-    echo -e "${YELLOW}⚠ Skipping Hyperdrive setup (no connection string provided)${NC}"
-    echo "You can create it later with:"
-    echo "  wrangler hyperdrive create $HYPERDRIVE_NAME --connection-string=\"\$DATABASE_URL\""
-  else
-    RESULT=$(wrangler hyperdrive create "$HYPERDRIVE_NAME" --connection-string="$DATABASE_URL" 2>&1)
-    HYPERDRIVE_ID=$(echo "$RESULT" | grep -oP 'id: \K[a-f0-9-]+' || echo "")
-    echo -e "${GREEN}✓ Hyperdrive '$HYPERDRIVE_NAME' created${NC}"
-  fi
+    if [ -z "$DATABASE_URL" ]; then
+        echo -e "${YELLOW}⚠ Skipping Hyperdrive setup (no connection string provided)${NC}"
+        echo "You can create it later with:"
+        echo "  wrangler hyperdrive create $HYPERDRIVE_NAME --connection-string=\"\$DATABASE_URL\""
+    else
+        RESULT=$(wrangler hyperdrive create "$HYPERDRIVE_NAME" --connection-string="$DATABASE_URL" 2>&1)
+        HYPERDRIVE_ID=$(echo "$RESULT" | grep -oP 'id: \K[a-f0-9-]+' || echo "")
+        echo -e "${GREEN}✓ Hyperdrive '$HYPERDRIVE_NAME' created${NC}"
+    fi
 fi
 echo ""
 
@@ -141,20 +141,20 @@ echo "(Press Enter to skip a secret)"
 echo ""
 
 configure_secret() {
-  local secret_name=$1
-  local description=$2
+    local secret_name=$1
+    local description=$2
 
-  echo -e "${BLUE}$secret_name${NC} - $description"
-  read -r -s -p "Value (hidden): " secret_value
-  echo ""
+    echo -e "${BLUE}$secret_name${NC} - $description"
+    read -r -s -p "Value (hidden): " secret_value
+    echo ""
 
-  if [ -n "$secret_value" ]; then
-    echo "$secret_value" | wrangler pages secret put "$secret_name" --project-name="$PROJECT_NAME" 2>/dev/null || \
-    echo "$secret_value" | wrangler secret put "$secret_name" 2>/dev/null || true
-    echo -e "${GREEN}✓ Set $secret_name${NC}"
-  else
-    echo -e "${YELLOW}⚠ Skipped $secret_name${NC}"
-  fi
+    if [ -n "$secret_value" ]; then
+        echo "$secret_value" | wrangler pages secret put "$secret_name" --project-name="$PROJECT_NAME" 2>/dev/null ||
+            echo "$secret_value" | wrangler secret put "$secret_name" 2>/dev/null || true
+        echo -e "${GREEN}✓ Set $secret_name${NC}"
+    else
+        echo -e "${YELLOW}⚠ Skipped $secret_name${NC}"
+    fi
 }
 
 # Required secrets
@@ -167,7 +167,7 @@ echo ""
 echo -e "${BLUE}Optional secrets (press Enter to skip):${NC}"
 configure_secret "STRIPE_SECRET_KEY" "Stripe secret key"
 configure_secret "STRIPE_PUBLISHABLE_KEY" "Stripe publishable key"
-configure_secret "RESEND_API_KEY" "Resend email API key"
+configure_secret "NUXT_RESEND_API_KEY" "Resend email API key"
 configure_secret "ANTHROPIC_API_KEY" "Anthropic API key for AI features"
 
 echo ""
@@ -178,22 +178,22 @@ echo ""
 echo -e "${YELLOW}Step 4: Updating wrangler.toml...${NC}"
 
 if [ -n "$HYPERDRIVE_ID" ]; then
-  # Update the Hyperdrive ID in wrangler.toml
-  if grep -q 'id = ""' wrangler.toml; then
-    sed -i.bak "s/id = \"\"/id = \"$HYPERDRIVE_ID\"/" wrangler.toml
-    rm -f wrangler.toml.bak
-    echo -e "${GREEN}✓ Updated Hyperdrive ID in wrangler.toml${NC}"
-  else
-    echo -e "${YELLOW}⚠ Please manually update the Hyperdrive ID in wrangler.toml${NC}"
-    echo "  id = \"$HYPERDRIVE_ID\""
-  fi
+    # Update the Hyperdrive ID in wrangler.toml
+    if grep -q 'id = ""' wrangler.toml; then
+        sed -i.bak "s/id = \"\"/id = \"$HYPERDRIVE_ID\"/" wrangler.toml
+        rm -f wrangler.toml.bak
+        echo -e "${GREEN}✓ Updated Hyperdrive ID in wrangler.toml${NC}"
+    else
+        echo -e "${YELLOW}⚠ Please manually update the Hyperdrive ID in wrangler.toml${NC}"
+        echo "  id = \"$HYPERDRIVE_ID\""
+    fi
 fi
 
 # Update bucket name if using environment suffix
 if [ -n "$ENV" ]; then
-  sed -i.bak "s/bucket_name = \"pdf-annotator-assets\"/bucket_name = \"$R2_BUCKET_NAME\"/" wrangler.toml
-  rm -f wrangler.toml.bak
-  echo -e "${GREEN}✓ Updated R2 bucket name in wrangler.toml${NC}"
+    sed -i.bak "s/bucket_name = \"pdf-annotator-assets\"/bucket_name = \"$R2_BUCKET_NAME\"/" wrangler.toml
+    rm -f wrangler.toml.bak
+    echo -e "${GREEN}✓ Updated R2 bucket name in wrangler.toml${NC}"
 fi
 
 echo ""
@@ -208,7 +208,7 @@ echo ""
 echo "Resources created:"
 echo -e "  ${GREEN}✓${NC} R2 Bucket: $R2_BUCKET_NAME"
 if [ -n "$HYPERDRIVE_ID" ]; then
-  echo -e "  ${GREEN}✓${NC} Hyperdrive: $HYPERDRIVE_NAME (ID: $HYPERDRIVE_ID)"
+    echo -e "  ${GREEN}✓${NC} Hyperdrive: $HYPERDRIVE_NAME (ID: $HYPERDRIVE_ID)"
 fi
 echo ""
 echo "Next steps:"

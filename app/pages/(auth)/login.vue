@@ -62,7 +62,7 @@ const submit = handleSubmit(async (values) => {
               <UiVeeInput label="Password" type="password" name="password" placeholder="••••••••" />
               <div class="flex items-center justify-between">
                 <UiVeeCheckbox label="Remember me" name="remember" />
-                <NuxtLink class="text-sm font-medium text-primary underline-offset-2 hover:underline" to="#">
+                <NuxtLink class="text-sm font-medium text-primary underline-offset-2 hover:underline" to="/forgot">
                   Forgot password?
                 </NuxtLink>
               </div>

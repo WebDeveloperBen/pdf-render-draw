@@ -47,7 +47,7 @@ const containerStyle = computed(() => {
   <EditorPdfEditorProvider>
     <div ref="containerRef" class="pdf-editor" :style="containerStyle">
       <!-- Grid pattern background -->
-      <BackgroundGridPattern :width="32" :height="32" class="fill-neutral-700/20 stroke-neutral-700/30" />
+      <BackgroundGridPattern :width="32" :height="32" class="fill-muted/5 stroke-muted-foreground/10" />
 
       <!-- PDF Container - wraps both canvas and SVG -->
       <div class="pdf-container">
@@ -77,7 +77,7 @@ const containerStyle = computed(() => {
   position: relative;
   width: 100%;
   height: 100%;
-  background: #1a1a1a;
+  background: var(--background);
 }
 
 .pdf-container {
@@ -95,13 +95,13 @@ const containerStyle = computed(() => {
 }
 
 .debug-content {
-  background: rgba(44, 44, 44, 0.95);
+  background: color-mix(in srgb, var(--card) 95%, transparent);
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #444;
+  border: 1px solid var(--border);
   box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    0 4px 16px rgba(0, 0, 0, 0.2);
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.15);
   font-size: 13px;
   line-height: 1.6;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -109,11 +109,11 @@ const containerStyle = computed(() => {
 
 .debug-content p {
   margin: 0;
-  color: #ccc;
+  color: var(--muted-foreground);
 }
 
 .debug-content strong {
-  color: #fff;
+  color: var(--foreground);
   font-weight: 600;
   min-width: 90px;
   display: inline-block;

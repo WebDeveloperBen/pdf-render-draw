@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: "editor"
+})
+
 const viewportStore = useViewportStore()
 
 // Load PDF via store (lazy worker initialization)
@@ -251,7 +255,7 @@ if (typeof window !== "undefined") {
   display: flex;
   height: 100vh;
   width: 100vw;
-  background: #1e1e1e;
+  background: var(--background);
   position: relative;
   overflow: hidden;
 }
@@ -274,8 +278,8 @@ if (typeof window !== "undefined") {
   justify-content: space-between;
   padding: 0 16px;
   height: 56px;
-  background: #2c2c2c;
-  border-bottom: 1px solid #444;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   gap: 16px;
 }
@@ -289,7 +293,7 @@ if (typeof window !== "undefined") {
 .divider {
   width: 1px;
   height: 24px;
-  background: #444;
+  background: var(--border);
 }
 
 /* Buttons */
@@ -299,7 +303,7 @@ if (typeof window !== "undefined") {
   gap: 6px;
   padding: 8px 12px;
   background: transparent;
-  color: #ccc;
+  color: var(--muted-foreground);
   border: 1px solid transparent;
   border-radius: 4px;
   font-size: 13px;
@@ -309,14 +313,14 @@ if (typeof window !== "undefined") {
 }
 
 .toolbar-btn:hover {
-  background: #383838;
-  color: #fff;
+  background: var(--accent);
+  color: var(--foreground);
 }
 
 .toolbar-btn.active {
-  background: #0066cc;
-  color: #fff;
-  border-color: #0066cc;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
 }
 
 .toolbar-btn .icon {
@@ -331,8 +335,8 @@ if (typeof window !== "undefined") {
   height: 32px;
   padding: 0;
   background: transparent;
-  color: #ccc;
-  border: 1px solid #444;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 18px;
   cursor: pointer;
@@ -340,9 +344,9 @@ if (typeof window !== "undefined") {
 }
 
 .toolbar-btn-icon:hover:not(:disabled) {
-  background: #383838;
-  color: #fff;
-  border-color: #555;
+  background: var(--accent);
+  color: var(--foreground);
+  border-color: var(--accent);
 }
 
 .toolbar-btn-icon:disabled {
@@ -353,8 +357,8 @@ if (typeof window !== "undefined") {
 .toolbar-btn-sm {
   padding: 6px 12px;
   background: transparent;
-  color: #ccc;
-  border: 1px solid #444;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
@@ -365,9 +369,9 @@ if (typeof window !== "undefined") {
 }
 
 .toolbar-btn-sm:hover {
-  background: #383838;
-  color: #fff;
-  border-color: #555;
+  background: var(--accent);
+  color: var(--foreground);
+  border-color: var(--accent);
 }
 
 /* Page Navigation */
@@ -379,7 +383,7 @@ if (typeof window !== "undefined") {
 
 .page-indicator {
   font-size: 13px;
-  color: #ccc;
+  color: var(--muted-foreground);
   font-weight: 500;
   min-width: 60px;
   text-align: center;
@@ -395,7 +399,7 @@ if (typeof window !== "undefined") {
 
 .control-label {
   font-size: 12px;
-  color: #999;
+  color: var(--muted-foreground);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -404,7 +408,7 @@ if (typeof window !== "undefined") {
 /* Info Text */
 .info-text {
   font-size: 13px;
-  color: #999;
+  color: var(--muted-foreground);
   font-family: ui-monospace, monospace;
 }
 
@@ -413,8 +417,8 @@ if (typeof window !== "undefined") {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: #252525;
-  border-bottom: 1px solid #444;
+  background: var(--secondary);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -427,7 +431,7 @@ if (typeof window !== "undefined") {
 
 .tool-group-label {
   font-size: 12px;
-  color: #999;
+  color: var(--muted-foreground);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -439,9 +443,9 @@ if (typeof window !== "undefined") {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: #2c2c2c;
-  color: #ccc;
-  border: 1px solid #444;
+  background: var(--card);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
@@ -450,15 +454,15 @@ if (typeof window !== "undefined") {
 }
 
 .tool-palette .tool-btn:hover {
-  background: #383838;
-  color: #fff;
-  border-color: #555;
+  background: var(--accent);
+  color: var(--foreground);
+  border-color: var(--accent);
 }
 
 .tool-palette .tool-btn.active {
-  background: #0066cc;
-  color: #fff;
-  border-color: #0066cc;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
 }
 
 .tool-icon {
@@ -476,7 +480,7 @@ if (typeof window !== "undefined") {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: #1e1e1e;
+  background: var(--background);
   cursor: default;
 }
 
