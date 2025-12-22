@@ -71,7 +71,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
   registerTool({
     type: "area",
     name: "Area",
-    icon: "📐",
+    icon: "lucide:box-select",
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

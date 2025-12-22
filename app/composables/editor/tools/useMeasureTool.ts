@@ -60,7 +60,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
   registerTool({
     type: "measure",
     name: "Measure",
-    icon: "📏",
+    icon: "lucide:ruler",
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

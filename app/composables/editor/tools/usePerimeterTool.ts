@@ -93,7 +93,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   registerTool({
     type: "perimeter",
     name: "Perimeter",
-    icon: "⬡",
+    icon: "lucide:hexagon",
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

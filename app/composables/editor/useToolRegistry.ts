@@ -97,7 +97,7 @@ export function getToolbarTools() {
 export function getCompleteToolbarTools() {
   const registeredTools = getToolbarTools()
   const manualTools: Array<{ id: ToolType | "selection" | "rotate" | ""; name: string; icon: string }> = [
-    { id: "rotate", name: "Rotate", icon: "🔄" }
+    { id: "rotate", name: "Rotate", icon: "lucide:rotate-3d" }
   ]
   return [...registeredTools, ...manualTools]
 }

@@ -33,7 +33,7 @@ const [useLineTool, useLineToolState] = createInjectionState(() => {
   registerTool({
     type: "line",
     name: "Line",
-    icon: "—",
+    icon: "lucide:minus",
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

@@ -234,7 +234,7 @@ if (typeof window !== "undefined") {
               :title="tool.name"
               @click="annotationStore.setActiveTool(tool.id)"
             >
-              <span class="tool-icon">{{ tool.icon }}</span>
+              <Icon :name="tool.icon" class="size-4" />
               <span class="tool-name">{{ tool.name }}</span>
             </button>
 
@@ -243,7 +243,7 @@ if (typeof window !== "undefined") {
               title="Selection"
               @click="annotationStore.setActiveTool('selection')"
             >
-              <span class="tool-icon">🔍</span>
+              <Icon name="lucide:mouse-pointer-2" class="size-4" />
               <span class="tool-name">Select</span>
             </button>
           </div>
@@ -480,11 +480,6 @@ if (typeof window !== "undefined") {
   background: var(--primary);
   color: var(--primary-foreground);
   border-color: var(--primary);
-}
-
-.tool-icon {
-  font-size: 16px;
-  line-height: 1;
 }
 
 .tool-name {

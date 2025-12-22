@@ -89,7 +89,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
   registerTool({
     type: "count",
     name: "Count",
-    icon: "🔢",
+    icon: "lucide:hash",
     onClick: tool.handleClick,
     onKeyDown: tool.handleKeyDown
   })

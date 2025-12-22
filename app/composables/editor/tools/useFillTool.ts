@@ -112,7 +112,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
   registerTool({
     type: "fill",
     name: "Fill",
-    icon: "🎨",
+    icon: "lucide:paint-bucket",
     onMouseDown: tool.handleMouseDown,
     onMouseMove: tool.handleMouseMove,
     onMouseUp: tool.handleMouseUp

@@ -143,7 +143,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
   registerTool({
     type: "text",
     name: "Text",
-    icon: "T",
+    icon: "lucide:type",
     onClick: tool.handleClick,
     onDoubleClick: (id: string) => {
       // Use global text editing state (singleton composable, no injection needed)
