@@ -17,6 +17,135 @@ const bodySchema = z.object({
   lastViewedAt: z.coerce.date().nullable().optional()
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Projects"],
+    summary: "Update Project",
+    description: "Update a project's metadata",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "Project ID (UUID)"
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              name: {
+                type: "string",
+                minLength: 3,
+                maxLength: 100,
+                description: "Project name"
+              },
+              description: {
+                type: "string",
+                maxLength: 500,
+                nullable: true,
+                description: "Project description"
+              },
+              annotationCount: {
+                type: "integer",
+                minimum: 0,
+                description: "Number of annotations in the project"
+              },
+              lastViewedAt: {
+                type: "string",
+                format: "date-time",
+                nullable: true,
+                description: "When the project was last viewed"
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: "Project updated successfully",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                description: { type: "string", nullable: true },
+                pdfUrl: { type: "string" },
+                pdfFileName: { type: "string", nullable: true },
+                pdfFileSize: { type: "number", nullable: true },
+                thumbnailUrl: { type: "string", nullable: true },
+                pageCount: { type: "number" },
+                annotationCount: { type: "number" },
+                lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                createdBy: { type: "string" },
+                organizationId: { type: "string", nullable: true },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+                creator: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    email: { type: "string" },
+                    image: { type: "string", nullable: true }
+                  },
+                  required: ["id", "name", "email"]
+                },
+                organization: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    slug: { type: "string" },
+                    logo: { type: "string", nullable: true }
+                  }
+                },
+                shares: {
+                  type: "array",
+                  items: { type: "object" }
+                },
+                _count: {
+                  type: "object",
+                  properties: {
+                    shares: { type: "number" }
+                  },
+                  required: ["shares"]
+                }
+              },
+              required: [
+                "id",
+                "name",
+                "pdfUrl",
+                "pageCount",
+                "annotationCount",
+                "createdBy",
+                "createdAt",
+                "updatedAt",
+                "creator",
+                "shares",
+                "_count"
+              ]
+            }
+          }
+        }
+      },
+      400: { description: "Bad request - validation error or no active organization" },
+      401: { description: "Unauthorized - authentication required" },
+      403: { description: "Forbidden - insufficient permissions or access denied" },
+      404: { description: "Project not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })

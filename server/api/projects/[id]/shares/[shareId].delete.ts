@@ -7,6 +7,52 @@ const paramsSchema = z.object({
   shareId: z.uuid({ message: "Invalid share ID" })
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Project Shares"],
+    summary: "Delete Share",
+    description: "Revoke a share for a project",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "Project ID (UUID)"
+      },
+      {
+        name: "shareId",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "Share ID (UUID)"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Share revoked successfully",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" },
+                message: { type: "string" }
+              },
+              required: ["success", "message"]
+            }
+          }
+        }
+      },
+      400: { description: "Bad request - no active organization" },
+      401: { description: "Unauthorized - authentication required" },
+      403: { description: "Forbidden - insufficient permissions or access denied" },
+      404: { description: "Project or share not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })

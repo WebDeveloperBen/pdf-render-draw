@@ -1,6 +1,87 @@
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Guest"],
+    summary: "List Shares",
+    description: "Get list of shares the authenticated user has been invited to",
+    responses: {
+      200: {
+        description: "List of active share invitations",
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  shareId: { type: "string" },
+                  email: { type: "string" },
+                  status: { type: "string" },
+                  invitedAt: { type: "string", format: "date-time" },
+                  firstViewedAt: { type: "string", format: "date-time", nullable: true },
+                  lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                  viewCount: { type: "number" },
+                  share: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      token: { type: "string" },
+                      name: { type: "string", nullable: true },
+                      message: { type: "string", nullable: true },
+                      allowDownload: { type: "boolean" },
+                      allowNotes: { type: "boolean" },
+                      expiresAt: { type: "string", format: "date-time", nullable: true },
+                      createdAt: { type: "string", format: "date-time" }
+                    },
+                    required: ["id", "token", "allowDownload", "allowNotes", "createdAt"]
+                  },
+                  project: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      description: { type: "string", nullable: true },
+                      thumbnailUrl: { type: "string", nullable: true },
+                      pdfFileName: { type: "string", nullable: true },
+                      pageCount: { type: "number" }
+                    },
+                    required: ["id", "name", "pageCount"]
+                  },
+                  sharedBy: {
+                    type: "object",
+                    nullable: true,
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      email: { type: "string" },
+                      image: { type: "string", nullable: true }
+                    }
+                  },
+                  organization: {
+                    type: "object",
+                    nullable: true,
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      logo: { type: "string", nullable: true }
+                    }
+                  }
+                },
+                required: ["id", "shareId", "email", "status", "invitedAt", "viewCount", "share", "project"]
+              }
+            }
+          }
+        }
+      },
+      401: { description: "Unauthorized - authentication required" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require authenticated session
   const session = await auth.api.getSession({ headers: event.headers })

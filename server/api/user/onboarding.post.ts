@@ -1,6 +1,33 @@
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["User"],
+    summary: "Complete Onboarding",
+    description: "Complete user onboarding process",
+    responses: {
+      200: {
+        description: "Onboarding completed successfully",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" },
+                message: { type: "string" }
+              },
+              required: ["success", "message"]
+            }
+          }
+        }
+      },
+      401: { description: "Unauthorized - authentication required" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })

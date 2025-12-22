@@ -55,9 +55,7 @@ const { value, setValue, errorMessage } = useField<string>(() => props.name, pro
           v-if="option.icon"
           :class="[
             'flex size-10 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ease-out',
-            value === option.value
-              ? 'bg-primary text-primary-foreground scale-110'
-              : 'bg-muted group-hover:bg-muted/80'
+            value === option.value ? 'bg-primary text-primary-foreground scale-110' : 'bg-muted group-hover:bg-muted/80'
           ]"
         >
           <Icon :name="option.icon" class="size-5" />

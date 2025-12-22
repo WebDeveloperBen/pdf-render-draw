@@ -1,6 +1,61 @@
 import { eq, sql, desc, or } from "drizzle-orm"
 import { auth } from "@auth"
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Dashboard"],
+    summary: "Get Dashboard Stats",
+    description: "Get dashboard statistics for the authenticated user",
+    responses: {
+      200: {
+        description: "Dashboard statistics and recent activity",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                totalProjects: { type: "number" },
+                personalProjects: { type: "number" },
+                teamProjects: { type: "number" },
+                totalOrganizations: { type: "number" },
+                totalShares: { type: "number" },
+                recentActivity: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      type: { type: "string", enum: ["project_updated"] },
+                      projectId: { type: "string" },
+                      projectName: { type: "string" },
+                      organizationId: { type: "string", nullable: true },
+                      organizationName: { type: "string", nullable: true },
+                      createdAt: { type: "string", format: "date-time" },
+                      userId: { type: "string" },
+                      userName: { type: "string" }
+                    },
+                    required: ["id", "type", "projectId", "projectName", "createdAt", "userId"]
+                  }
+                }
+              },
+              required: [
+                "totalProjects",
+                "personalProjects",
+                "teamProjects",
+                "totalOrganizations",
+                "totalShares",
+                "recentActivity"
+              ]
+            }
+          }
+        }
+      },
+      401: { description: "Unauthorized - authentication required" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })

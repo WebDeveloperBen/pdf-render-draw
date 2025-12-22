@@ -101,139 +101,121 @@ useSeoMeta({ title: `Admin - ${name}` })
   <div class="min-h-screen">
     <ImpersonationBanner />
     <UiSidebarProvider v-slot="{ isMobile }">
-    <UiSidebar collapsible="icon">
-      <!-- Header -->
-      <UiSidebarHeader>
-        <UiSidebarMenu>
-          <UiSidebarMenuItem>
-            <UiSidebarMenuButton
-              as-child
-              size="lg"
-              class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <NuxtLink to="/admin">
-                <div
-                  class="flex aspect-square size-8 items-center justify-center rounded-lg bg-destructive text-destructive-foreground"
-                >
-                  <Icon name="lucide:shield" class="size-4" />
-                </div>
-                <div class="grid flex-1 text-left text-sm leading-tight">
-                  <span class="truncate font-semibold">{{ name }} Admin</span>
-                  <span class="truncate text-xs text-muted-foreground">Super Admin Panel</span>
-                </div>
-              </NuxtLink>
-            </UiSidebarMenuButton>
-          </UiSidebarMenuItem>
-        </UiSidebarMenu>
-      </UiSidebarHeader>
-
-      <UiSidebarContent>
-        <!-- Overview -->
-        <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Overview" />
+      <UiSidebar collapsible="icon">
+        <!-- Header -->
+        <UiSidebarHeader>
           <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="item in navOverview" :key="item.url">
-              <UiSidebarMenuButton as-child :tooltip="item.title">
-                <NuxtLink :to="item.url">
-                  <Icon :name="item.icon" class="size-4" />
-                  <span>{{ item.title }}</span>
-                </NuxtLink>
-              </UiSidebarMenuButton>
-            </UiSidebarMenuItem>
-          </UiSidebarMenu>
-        </UiSidebarGroup>
-
-        <!-- Management -->
-        <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Management" />
-          <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="item in navManagement" :key="item.url">
-              <UiSidebarMenuButton as-child :tooltip="item.title">
-                <NuxtLink :to="item.url">
-                  <Icon :name="item.icon" class="size-4" />
-                  <span>{{ item.title }}</span>
-                </NuxtLink>
-              </UiSidebarMenuButton>
-            </UiSidebarMenuItem>
-          </UiSidebarMenu>
-        </UiSidebarGroup>
-
-        <!-- Security -->
-        <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Security" />
-          <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="item in navSecurity" :key="item.url">
-              <UiSidebarMenuButton as-child :tooltip="item.title">
-                <NuxtLink :to="item.url">
-                  <Icon :name="item.icon" class="size-4" />
-                  <span>{{ item.title }}</span>
-                </NuxtLink>
-              </UiSidebarMenuButton>
-            </UiSidebarMenuItem>
-          </UiSidebarMenu>
-        </UiSidebarGroup>
-
-        <!-- Reports -->
-        <UiSidebarGroup>
-          <UiSidebarGroupLabel label="Reports" />
-          <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="item in navReports" :key="item.url">
-              <UiSidebarMenuButton as-child :tooltip="item.title">
-                <NuxtLink :to="item.url">
-                  <Icon :name="item.icon" class="size-4" />
-                  <span>{{ item.title }}</span>
-                </NuxtLink>
-              </UiSidebarMenuButton>
-            </UiSidebarMenuItem>
-          </UiSidebarMenu>
-        </UiSidebarGroup>
-
-        <!-- Quick Links (pushed to bottom) -->
-        <UiSidebarGroup class="mt-auto">
-          <UiSidebarMenu>
-            <UiSidebarMenuItem v-for="item in navQuickLinks" :key="item.url">
-              <UiSidebarMenuButton as-child :tooltip="item.title">
-                <NuxtLink :to="item.url">
-                  <Icon :name="item.icon" class="size-4" />
-                  <span>{{ item.title }}</span>
-                </NuxtLink>
-              </UiSidebarMenuButton>
-            </UiSidebarMenuItem>
-          </UiSidebarMenu>
-        </UiSidebarGroup>
-      </UiSidebarContent>
-
-      <UiSidebarRail />
-
-      <!-- Footer -->
-      <UiSidebarFooter>
-        <UiSidebarMenu>
-          <UiSidebarMenuItem>
-            <UiDropdownMenu>
-              <UiDropdownMenuTrigger as-child>
-                <UiSidebarMenuButton
-                  size="lg"
-                  variant="outline"
-                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <UiAvatar class="size-8 rounded-lg">
-                    <UiAvatarFallback class="rounded-lg">{{ currentUser.initials }}</UiAvatarFallback>
-                  </UiAvatar>
-                  <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="truncate font-semibold">{{ currentUser.name }}</span>
-                    <span class="truncate text-xs">{{ currentUser.email }}</span>
-                  </div>
-                  <Icon name="lucide:chevrons-up-down" class="ml-auto size-4" />
-                </UiSidebarMenuButton>
-              </UiDropdownMenuTrigger>
-              <UiDropdownMenuContent
-                class="w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-lg"
-                :side="isMobile ? 'bottom' : 'top'"
-                :side-offset="4"
-                align="end"
+            <UiSidebarMenuItem>
+              <UiSidebarMenuButton
+                as-child
+                size="lg"
+                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <UiDropdownMenuLabel class="p-0 font-normal">
-                  <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <NuxtLink to="/admin">
+                  <div
+                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-destructive text-destructive-foreground"
+                  >
+                    <Icon name="lucide:shield" class="size-4" />
+                  </div>
+                  <div class="grid flex-1 text-left text-sm leading-tight">
+                    <span class="truncate font-semibold">{{ name }} Admin</span>
+                    <span class="truncate text-xs text-muted-foreground">Super Admin Panel</span>
+                  </div>
+                </NuxtLink>
+              </UiSidebarMenuButton>
+            </UiSidebarMenuItem>
+          </UiSidebarMenu>
+        </UiSidebarHeader>
+
+        <UiSidebarContent>
+          <!-- Overview -->
+          <UiSidebarGroup>
+            <UiSidebarGroupLabel label="Overview" />
+            <UiSidebarMenu>
+              <UiSidebarMenuItem v-for="item in navOverview" :key="item.url">
+                <UiSidebarMenuButton as-child :tooltip="item.title">
+                  <NuxtLink :to="item.url">
+                    <Icon :name="item.icon" class="size-4" />
+                    <span>{{ item.title }}</span>
+                  </NuxtLink>
+                </UiSidebarMenuButton>
+              </UiSidebarMenuItem>
+            </UiSidebarMenu>
+          </UiSidebarGroup>
+
+          <!-- Management -->
+          <UiSidebarGroup>
+            <UiSidebarGroupLabel label="Management" />
+            <UiSidebarMenu>
+              <UiSidebarMenuItem v-for="item in navManagement" :key="item.url">
+                <UiSidebarMenuButton as-child :tooltip="item.title">
+                  <NuxtLink :to="item.url">
+                    <Icon :name="item.icon" class="size-4" />
+                    <span>{{ item.title }}</span>
+                  </NuxtLink>
+                </UiSidebarMenuButton>
+              </UiSidebarMenuItem>
+            </UiSidebarMenu>
+          </UiSidebarGroup>
+
+          <!-- Security -->
+          <UiSidebarGroup>
+            <UiSidebarGroupLabel label="Security" />
+            <UiSidebarMenu>
+              <UiSidebarMenuItem v-for="item in navSecurity" :key="item.url">
+                <UiSidebarMenuButton as-child :tooltip="item.title">
+                  <NuxtLink :to="item.url">
+                    <Icon :name="item.icon" class="size-4" />
+                    <span>{{ item.title }}</span>
+                  </NuxtLink>
+                </UiSidebarMenuButton>
+              </UiSidebarMenuItem>
+            </UiSidebarMenu>
+          </UiSidebarGroup>
+
+          <!-- Reports -->
+          <UiSidebarGroup>
+            <UiSidebarGroupLabel label="Reports" />
+            <UiSidebarMenu>
+              <UiSidebarMenuItem v-for="item in navReports" :key="item.url">
+                <UiSidebarMenuButton as-child :tooltip="item.title">
+                  <NuxtLink :to="item.url">
+                    <Icon :name="item.icon" class="size-4" />
+                    <span>{{ item.title }}</span>
+                  </NuxtLink>
+                </UiSidebarMenuButton>
+              </UiSidebarMenuItem>
+            </UiSidebarMenu>
+          </UiSidebarGroup>
+
+          <!-- Quick Links (pushed to bottom) -->
+          <UiSidebarGroup class="mt-auto">
+            <UiSidebarMenu>
+              <UiSidebarMenuItem v-for="item in navQuickLinks" :key="item.url">
+                <UiSidebarMenuButton as-child :tooltip="item.title">
+                  <NuxtLink :to="item.url">
+                    <Icon :name="item.icon" class="size-4" />
+                    <span>{{ item.title }}</span>
+                  </NuxtLink>
+                </UiSidebarMenuButton>
+              </UiSidebarMenuItem>
+            </UiSidebarMenu>
+          </UiSidebarGroup>
+        </UiSidebarContent>
+
+        <UiSidebarRail />
+
+        <!-- Footer -->
+        <UiSidebarFooter>
+          <UiSidebarMenu>
+            <UiSidebarMenuItem>
+              <UiDropdownMenu>
+                <UiDropdownMenuTrigger as-child>
+                  <UiSidebarMenuButton
+                    size="lg"
+                    variant="outline"
+                    class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  >
                     <UiAvatar class="size-8 rounded-lg">
                       <UiAvatarFallback class="rounded-lg">{{ currentUser.initials }}</UiAvatarFallback>
                     </UiAvatar>
@@ -241,51 +223,69 @@ useSeoMeta({ title: `Admin - ${name}` })
                       <span class="truncate font-semibold">{{ currentUser.name }}</span>
                       <span class="truncate text-xs">{{ currentUser.email }}</span>
                     </div>
-                  </div>
-                </UiDropdownMenuLabel>
-                <UiDropdownMenuSeparator />
-                <UiDropdownMenuGroup>
-                  <NuxtLink to="/">
-                    <UiDropdownMenuItem title="Back to App">
-                      <template #icon>
-                        <Icon name="lucide:arrow-left" class="size-4" />
-                      </template>
-                    </UiDropdownMenuItem>
-                  </NuxtLink>
-                </UiDropdownMenuGroup>
-                <UiDropdownMenuSeparator />
-                <UiDropdownMenuItem title="Log out" @click="handleSignOut">
-                  <template #icon>
-                    <Icon name="lucide:log-out" class="size-4" />
-                  </template>
-                </UiDropdownMenuItem>
-              </UiDropdownMenuContent>
-            </UiDropdownMenu>
-          </UiSidebarMenuItem>
-        </UiSidebarMenu>
-      </UiSidebarFooter>
-    </UiSidebar>
+                    <Icon name="lucide:chevrons-up-down" class="ml-auto size-4" />
+                  </UiSidebarMenuButton>
+                </UiDropdownMenuTrigger>
+                <UiDropdownMenuContent
+                  class="w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-lg"
+                  :side="isMobile ? 'bottom' : 'top'"
+                  :side-offset="4"
+                  align="end"
+                >
+                  <UiDropdownMenuLabel class="p-0 font-normal">
+                    <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                      <UiAvatar class="size-8 rounded-lg">
+                        <UiAvatarFallback class="rounded-lg">{{ currentUser.initials }}</UiAvatarFallback>
+                      </UiAvatar>
+                      <div class="grid flex-1 text-left text-sm leading-tight">
+                        <span class="truncate font-semibold">{{ currentUser.name }}</span>
+                        <span class="truncate text-xs">{{ currentUser.email }}</span>
+                      </div>
+                    </div>
+                  </UiDropdownMenuLabel>
+                  <UiDropdownMenuSeparator />
+                  <UiDropdownMenuGroup>
+                    <NuxtLink to="/">
+                      <UiDropdownMenuItem title="Back to App">
+                        <template #icon>
+                          <Icon name="lucide:arrow-left" class="size-4" />
+                        </template>
+                      </UiDropdownMenuItem>
+                    </NuxtLink>
+                  </UiDropdownMenuGroup>
+                  <UiDropdownMenuSeparator />
+                  <UiDropdownMenuItem title="Log out" @click="handleSignOut">
+                    <template #icon>
+                      <Icon name="lucide:log-out" class="size-4" />
+                    </template>
+                  </UiDropdownMenuItem>
+                </UiDropdownMenuContent>
+              </UiDropdownMenu>
+            </UiSidebarMenuItem>
+          </UiSidebarMenu>
+        </UiSidebarFooter>
+      </UiSidebar>
 
-    <!-- Main content -->
-    <UiSidebarInset>
-      <UiNavbar class="flex relative h-16 shrink-0 items-center gap-2 border-b px-4">
-        <UiSidebarTrigger class="-ml-1" />
-        <UiDivider orientation="vertical" class="mr-2 h-4 w-px" />
-        <UiBreadcrumbs :items="breadcrumbItems" />
-        <div class="ml-auto flex items-center gap-2">
-          <UiBadge variant="destructive" class="gap-1">
-            <Icon name="lucide:shield" class="size-3" />
-            {{ tierDisplay }}
-          </UiBadge>
-          <BackgroundThemeToggle />
-        </div>
-      </UiNavbar>
-      <UiContainer>
-        <div class="p-6 rounded-lg">
-          <slot />
-        </div>
-      </UiContainer>
-    </UiSidebarInset>
-  </UiSidebarProvider>
+      <!-- Main content -->
+      <UiSidebarInset>
+        <UiNavbar class="flex relative h-16 shrink-0 items-center gap-2 border-b px-4">
+          <UiSidebarTrigger class="-ml-1" />
+          <UiDivider orientation="vertical" class="mr-2 h-4 w-px" />
+          <UiBreadcrumbs :items="breadcrumbItems" />
+          <div class="ml-auto flex items-center gap-2">
+            <UiBadge variant="destructive" class="gap-1">
+              <Icon name="lucide:shield" class="size-3" />
+              {{ tierDisplay }}
+            </UiBadge>
+            <BackgroundThemeToggle />
+          </div>
+        </UiNavbar>
+        <UiContainer>
+          <div class="p-6 rounded-lg">
+            <slot />
+          </div>
+        </UiContainer>
+      </UiSidebarInset>
+    </UiSidebarProvider>
   </div>
 </template>

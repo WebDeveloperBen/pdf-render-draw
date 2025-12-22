@@ -5,6 +5,57 @@ import { auth } from "@auth"
  * Get pending invitations for the current user
  * Returns invitations sent to the user's email that are still pending
  */
+
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["User"],
+    summary: "List Invitations",
+    description: "Get pending organization invitations for the authenticated user",
+    responses: {
+      200: {
+        description: "List of pending invitations",
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  email: { type: "string" },
+                  role: { type: "string" },
+                  status: { type: "string" },
+                  createdAt: { type: "string", format: "date-time" },
+                  expiresAt: { type: "string", format: "date-time", nullable: true },
+                  organizationId: { type: "string" },
+                  organizationName: { type: "string" },
+                  organizationSlug: { type: "string" },
+                  inviterName: { type: "string" },
+                  inviterEmail: { type: "string" }
+                },
+                required: [
+                  "id",
+                  "email",
+                  "role",
+                  "status",
+                  "createdAt",
+                  "organizationId",
+                  "organizationName",
+                  "organizationSlug",
+                  "inviterName",
+                  "inviterEmail"
+                ]
+              }
+            }
+          }
+        }
+      },
+      401: { description: "Unauthorized - authentication required" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   const session = await auth.api.getSession({ headers: event.headers })
 

@@ -1,39 +1,63 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { useForm } from "vee-validate"
+import { toTypedSchema } from "@vee-validate/zod"
+import { z } from "zod"
+import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
+import { usePostApiGuestUpgrade } from "@/models/api"
 
 definePageMeta({
   layout: "guest",
   middleware: ["guest"]
 })
 
-const router = useRouter()
+// Form schema
+const upgradeSchema = toTypedSchema(
+  z.object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required")
+  })
+)
 
-const firstName = ref("")
-const lastName = ref("")
-const isUpgrading = ref(false)
-const error = ref("")
-
-const handleUpgrade = async () => {
-  error.value = ""
-
-  if (!firstName.value.trim()) {
-    error.value = "First name is required"
-    return
+// Form state
+const form = useForm({
+  validationSchema: upgradeSchema,
+  initialValues: {
+    firstName: "",
+    lastName: ""
   }
+})
 
-  if (!lastName.value.trim()) {
-    error.value = "Last name is required"
-    return
+// Use generated API mutation hook
+const { mutateAsync: upgradeAccount, isPending: isUpgrading } = usePostApiGuestUpgrade()
+
+// FormBuilder fields
+const formFields: FormBuilder[] = [
+  {
+    variant: "Input",
+    name: "firstName",
+    label: "First name",
+    placeholder: "John",
+    required: true,
+    wrapperClass: "space-y-2"
+  },
+  {
+    variant: "Input",
+    name: "lastName",
+    label: "Last name",
+    placeholder: "Doe",
+    required: true,
+    wrapperClass: "space-y-2"
   }
+]
 
-  isUpgrading.value = true
-
+// Handle form submission
+const handleUpgrade = form.handleSubmit(async (values) => {
   try {
-    await $fetch("/api/guest/upgrade", {
-      method: "POST",
-      body: {
-        firstName: firstName.value.trim(),
-        lastName: lastName.value.trim()
+    await upgradeAccount({
+      data: {
+        firstName: values.firstName,
+        lastName: values.lastName
       }
     })
 
@@ -42,11 +66,9 @@ const handleUpgrade = async () => {
     // Redirect to main dashboard - page reload will refresh session
     window.location.href = "/"
   } catch (e: any) {
-    error.value = e.data?.statusMessage || "Failed to upgrade account"
-  } finally {
-    isUpgrading.value = false
+    toast.error(e.data?.statusMessage || "Failed to upgrade account")
   }
-}
+})
 
 useSeoMeta({
   title: "Upgrade Your Account"
@@ -61,35 +83,14 @@ useSeoMeta({
           <Icon name="lucide:rocket" class="size-8 text-primary" />
         </div>
         <UiCardTitle class="text-2xl">Upgrade to Free Account</UiCardTitle>
-        <UiCardDescription>
-          Get your own workspace to create and manage projects
-        </UiCardDescription>
+        <UiCardDescription>Get your own workspace to create and manage projects</UiCardDescription>
       </UiCardHeader>
 
       <UiCardContent>
-        <form class="space-y-4" @submit.prevent="handleUpgrade">
+        <form class="space-y-4" @submit="handleUpgrade">
           <div class="grid gap-4 sm:grid-cols-2">
-            <div class="space-y-2">
-              <UiLabel for="firstName">First name</UiLabel>
-              <UiInput
-                id="firstName"
-                v-model="firstName"
-                placeholder="John"
-                :disabled="isUpgrading"
-              />
-            </div>
-            <div class="space-y-2">
-              <UiLabel for="lastName">Last name</UiLabel>
-              <UiInput
-                id="lastName"
-                v-model="lastName"
-                placeholder="Doe"
-                :disabled="isUpgrading"
-              />
-            </div>
+            <UiFormBuilder :fields="formFields" />
           </div>
-
-          <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
 
           <div class="rounded-lg border bg-muted/50 p-4 space-y-2">
             <p class="font-medium text-sm">What you'll get:</p>
@@ -122,9 +123,7 @@ useSeoMeta({
       </UiCardContent>
 
       <UiCardFooter class="justify-center">
-        <NuxtLink to="/guest" class="text-sm text-muted-foreground hover:text-foreground">
-          Maybe later
-        </NuxtLink>
+        <NuxtLink to="/guest" class="text-sm text-muted-foreground hover:text-foreground">Maybe later</NuxtLink>
       </UiCardFooter>
     </UiCard>
   </div>

@@ -66,12 +66,7 @@ const clearSelection = () => {
 <template>
   <UiPopover v-model:open="isOpen">
     <UiPopoverTrigger as-child>
-      <UiButton
-        variant="outline"
-        role="combobox"
-        :aria-expanded="isOpen"
-        class="w-full justify-between font-normal"
-      >
+      <UiButton variant="outline" role="combobox" :aria-expanded="isOpen" class="w-full justify-between font-normal">
         <div v-if="selectedUser" class="flex items-center gap-2 truncate">
           <UiAvatar class="size-6">
             <UiAvatarImage v-if="selectedUser.image" :src="selectedUser.image" :alt="selectedUser.name || 'User'" />
@@ -81,7 +76,7 @@ const clearSelection = () => {
           </UiAvatar>
           <span class="truncate">{{ selectedUser.name || selectedUser.email }}</span>
         </div>
-        <span v-else class="text-muted-foreground">{{ placeholder || 'Search users...' }}</span>
+        <span v-else class="text-muted-foreground">{{ placeholder || "Search users..." }}</span>
         <Icon name="lucide:chevrons-up-down" class="ml-2 size-4 shrink-0 opacity-50" />
       </UiButton>
     </UiPopoverTrigger>
@@ -120,14 +115,10 @@ const clearSelection = () => {
               <UiAvatarFallback>{{ (user.name || user.email)[0]?.toUpperCase() }}</UiAvatarFallback>
             </UiAvatar>
             <div class="flex-1 text-left">
-              <p class="font-medium">{{ user.name || 'No name' }}</p>
+              <p class="font-medium">{{ user.name || "No name" }}</p>
               <p class="text-xs text-muted-foreground">{{ user.email }}</p>
             </div>
-            <Icon
-              v-if="selectedUser?.id === user.id"
-              name="lucide:check"
-              class="size-4 text-primary"
-            />
+            <Icon v-if="selectedUser?.id === user.id" name="lucide:check" class="size-4 text-primary" />
           </button>
         </template>
       </div>

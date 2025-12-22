@@ -12,6 +12,74 @@ const bodySchema = z.object({
   confirmation: z.literal(true).describe("Deletion must be explicitly confirmed")
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Admin"],
+    summary: "Delete User",
+    description: "Delete or deactivate a user account",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
+        description: "User ID to delete"
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              hardDelete: {
+                type: "boolean",
+                default: false,
+                description: "Whether to perform a hard delete (permanent) or soft delete (deactivation)"
+              },
+              confirmation: {
+                type: "boolean",
+                enum: [true],
+                description: "Must be true to confirm deletion"
+              }
+            },
+            required: ["confirmation"]
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: "User deletion/deactivation successful",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                userId: { type: "string" },
+                hardDelete: { type: "boolean" }
+              },
+              required: ["success", "message", "userId", "hardDelete"]
+            }
+          }
+        }
+      },
+      400: {
+        description: "Bad request - validation error or attempting to delete self"
+      },
+      401: { description: "Unauthorized - authentication required" },
+      403: {
+        description: "Forbidden - insufficient permissions or attempting to delete platform owner"
+      },
+      404: { description: "User not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require admin tier (admin or owner) - support/viewer cannot delete
   await requirePlatformAdminTier(event, "admin")

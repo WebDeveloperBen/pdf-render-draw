@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useGetApiGuestShares, type GetApiGuestShares200Item } from "@/models/api"
+
 definePageMeta({
   layout: "guest",
   middleware: ["guest"]
@@ -8,13 +10,12 @@ definePageMeta({
 const route = useRoute()
 const shareId = route.query.share as string | undefined
 
-// Fetch shares accessible to this user
-const {
-  data: shares,
-  status,
-  error
-} = await useFetch("/api/guest/shares", {
-  key: "guest-shares"
+// Fetch shares accessible to this user using generated API hook
+const { data: response, status, error } = useGetApiGuestShares<{ data: GetApiGuestShares200Item[] }>()
+const shares = computed(() => response.value?.data ?? [])
+const errorMessage = computed(() => {
+  const err = error.value as { message?: string } | null
+  return err?.message || "Unknown error"
 })
 
 // If we came from a magic link with a share ID, redirect to that share
@@ -59,7 +60,7 @@ useSeoMeta({
         <Icon name="lucide:alert-circle" class="size-12 text-destructive" />
         <div class="text-center">
           <h3 class="font-semibold">Failed to load shares</h3>
-          <p class="text-sm text-muted-foreground">{{ error.message }}</p>
+          <p class="text-sm text-muted-foreground">{{ errorMessage }}</p>
         </div>
       </UiCardContent>
     </UiCard>
@@ -72,24 +73,17 @@ useSeoMeta({
         </div>
         <div class="text-center">
           <h3 class="font-semibold">No shared projects</h3>
-          <p class="text-sm text-muted-foreground">
-            When someone shares a project with you, it will appear here.
-          </p>
+          <p class="text-sm text-muted-foreground">When someone shares a project with you, it will appear here.</p>
         </div>
       </UiCardContent>
     </UiCard>
 
     <!-- Projects grid -->
     <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <NuxtLink
-        v-for="item in shares"
-        :key="item.id"
-        :to="`/guest/projects/${item.share.token}`"
-        class="group"
-      >
+      <NuxtLink v-for="item in shares" :key="item.id" :to="`/guest/projects/${item.share.token}`" class="group">
         <UiCard class="overflow-hidden transition-all hover:shadow-md hover:border-primary/50">
           <!-- Thumbnail -->
-          <div class="aspect-[4/3] bg-muted relative overflow-hidden">
+          <div class="aspect-4/3 bg-muted relative overflow-hidden">
             <img
               v-if="item.project.thumbnailUrl"
               :src="item.project.thumbnailUrl"
@@ -101,12 +95,9 @@ useSeoMeta({
             </div>
 
             <!-- Overlay with org info -->
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+            <div class="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent p-3">
               <div class="flex items-center gap-2">
-                <div
-                  v-if="item.organization?.logo"
-                  class="size-6 overflow-hidden rounded bg-white/90"
-                >
+                <div v-if="item.organization?.logo" class="size-6 overflow-hidden rounded bg-white/90">
                   <img :src="item.organization.logo" class="size-full object-contain" />
                 </div>
                 <div v-else class="flex size-6 items-center justify-center rounded bg-white/90">
@@ -125,9 +116,7 @@ useSeoMeta({
                 <h3 class="font-semibold leading-tight line-clamp-1 group-hover:text-primary transition-colors">
                   {{ item.project.name }}
                 </h3>
-                <UiBadge v-if="item.status === 'pending'" variant="secondary" class="shrink-0 text-xs">
-                  New
-                </UiBadge>
+                <UiBadge v-if="item.status === 'pending'" variant="secondary" class="shrink-0 text-xs"> New </UiBadge>
               </div>
 
               <p v-if="item.project.description" class="text-sm text-muted-foreground line-clamp-2">
@@ -153,9 +142,7 @@ useSeoMeta({
                     {{ item.sharedBy?.name?.[0]?.toUpperCase() || "?" }}
                   </UiAvatarFallback>
                 </UiAvatar>
-                <span class="text-xs text-muted-foreground">
-                  Shared by {{ item.sharedBy?.name || "Unknown" }}
-                </span>
+                <span class="text-xs text-muted-foreground"> Shared by {{ item.sharedBy?.name || "Unknown" }} </span>
               </div>
 
               <!-- Message preview -->

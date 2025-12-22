@@ -6,6 +6,125 @@ const paramsSchema = z.object({
   shareId: z.string().uuid({ message: "Invalid share ID" })
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Guest"],
+    summary: "Get Share",
+    description: "Get detailed information about a specific share invitation",
+    parameters: [
+      {
+        name: "shareId",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "Share ID (UUID)"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Detailed share information",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                shareId: { type: "string" },
+                email: { type: "string" },
+                status: { type: "string" },
+                invitedAt: { type: "string", format: "date-time" },
+                firstViewedAt: { type: "string", format: "date-time", nullable: true },
+                lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                viewCount: { type: "number" },
+                share: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    token: { type: "string" },
+                    name: { type: "string", nullable: true },
+                    message: { type: "string", nullable: true },
+                    allowDownload: { type: "boolean" },
+                    allowNotes: { type: "boolean" },
+                    expiresAt: { type: "string", format: "date-time", nullable: true },
+                    createdAt: { type: "string", format: "date-time" }
+                  },
+                  required: ["id", "token", "allowDownload", "allowNotes", "createdAt"]
+                },
+                project: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    description: { type: "string", nullable: true },
+                    pdfUrl: { type: "string" },
+                    pdfFileName: { type: "string", nullable: true },
+                    pdfFileSize: { type: "number", nullable: true },
+                    thumbnailUrl: { type: "string", nullable: true },
+                    pageCount: { type: "number" },
+                    annotationCount: { type: "number" }
+                  },
+                  required: ["id", "name", "pdfUrl", "pageCount", "annotationCount"]
+                },
+                sharedBy: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    email: { type: "string" },
+                    image: { type: "string", nullable: true }
+                  }
+                },
+                organization: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    logo: { type: "string", nullable: true }
+                  }
+                },
+                recipient: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    shareId: { type: "string" },
+                    email: { type: "string" },
+                    status: { type: "string" },
+                    invitedAt: { type: "string", format: "date-time" },
+                    firstViewedAt: { type: "string", format: "date-time", nullable: true },
+                    lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                    viewCount: { type: "number" }
+                  },
+                  required: ["id", "shareId", "email", "status", "invitedAt", "viewCount"]
+                },
+                canAddNotes: { type: "boolean" }
+              },
+              required: [
+                "id",
+                "shareId",
+                "email",
+                "status",
+                "invitedAt",
+                "viewCount",
+                "share",
+                "project",
+                "recipient",
+                "canAddNotes"
+              ]
+            }
+          }
+        }
+      },
+      401: { description: "Unauthorized - authentication required" },
+      403: { description: "Forbidden - user does not have access to this share" },
+      404: { description: "Share not found" },
+      410: { description: "Share has expired" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require authenticated session
   const session = await auth.api.getSession({ headers: event.headers })
@@ -33,9 +152,7 @@ export default defineEventHandler(async (event) => {
       viewCount: projectShareRecipient.viewCount
     })
     .from(projectShareRecipient)
-    .where(
-      and(eq(projectShareRecipient.shareId, shareId), eq(projectShareRecipient.email, session.user.email))
-    )
+    .where(and(eq(projectShareRecipient.shareId, shareId), eq(projectShareRecipient.email, session.user.email)))
 
   if (!recipient) {
     throw createError({

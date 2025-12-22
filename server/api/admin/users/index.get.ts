@@ -9,6 +9,98 @@ const querySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("desc")
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Admin"],
+    summary: "List Users",
+    description: "Get paginated list of users for admin management",
+    parameters: [
+      {
+        name: "search",
+        in: "query",
+        required: false,
+        schema: { type: "string" },
+        description: "Search users by name or email"
+      },
+      {
+        name: "page",
+        in: "query",
+        required: false,
+        schema: { type: "integer", minimum: 1, default: 1 },
+        description: "Page number for pagination"
+      },
+      {
+        name: "limit",
+        in: "query",
+        required: false,
+        schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+        description: "Number of users per page"
+      },
+      {
+        name: "sortBy",
+        in: "query",
+        required: false,
+        schema: { type: "string", enum: ["createdAt", "name", "email"], default: "createdAt" },
+        description: "Field to sort by"
+      },
+      {
+        name: "sortOrder",
+        in: "query",
+        required: false,
+        schema: { type: "string", enum: ["asc", "desc"], default: "desc" },
+        description: "Sort order"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Paginated list of users",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                users: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      email: { type: "string" },
+                      emailVerified: { type: "boolean", nullable: true },
+                      image: { type: "string", nullable: true },
+                      role: { type: "string" },
+                      banned: { type: "boolean" },
+                      banReason: { type: "string", nullable: true },
+                      banExpires: { type: "string", format: "date-time", nullable: true },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" }
+                    },
+                    required: ["id", "name", "email", "role", "banned", "createdAt", "updatedAt"]
+                  }
+                },
+                pagination: {
+                  type: "object",
+                  properties: {
+                    page: { type: "number" },
+                    limit: { type: "number" },
+                    total: { type: "number" },
+                    totalPages: { type: "number" }
+                  },
+                  required: ["page", "limit", "total", "totalPages"]
+                }
+              },
+              required: ["users", "pagination"]
+            }
+          }
+        }
+      },
+      403: { description: "Forbidden - requires platform admin access" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require platform admin access
   await requirePlatformAdmin(event)

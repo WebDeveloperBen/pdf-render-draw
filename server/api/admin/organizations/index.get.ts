@@ -9,6 +9,93 @@ const querySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("desc")
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Admin"],
+    summary: "List Organizations",
+    description: "Get paginated list of organizations for admin management",
+    parameters: [
+      {
+        name: "search",
+        in: "query",
+        required: false,
+        schema: { type: "string" },
+        description: "Search organizations by name or slug"
+      },
+      {
+        name: "page",
+        in: "query",
+        required: false,
+        schema: { type: "integer", minimum: 1, default: 1 },
+        description: "Page number for pagination"
+      },
+      {
+        name: "limit",
+        in: "query",
+        required: false,
+        schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+        description: "Number of organizations per page"
+      },
+      {
+        name: "sortBy",
+        in: "query",
+        required: false,
+        schema: { type: "string", enum: ["createdAt", "name"], default: "createdAt" },
+        description: "Field to sort by"
+      },
+      {
+        name: "sortOrder",
+        in: "query",
+        required: false,
+        schema: { type: "string", enum: ["asc", "desc"], default: "desc" },
+        description: "Sort order"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Paginated list of organizations",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                organizations: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      slug: { type: "string" },
+                      logo: { type: "string", nullable: true },
+                      createdAt: { type: "string", format: "date-time" },
+                      memberCount: { type: "number" }
+                    },
+                    required: ["id", "name", "slug", "createdAt", "memberCount"]
+                  }
+                },
+                pagination: {
+                  type: "object",
+                  properties: {
+                    page: { type: "number" },
+                    limit: { type: "number" },
+                    total: { type: "number" },
+                    totalPages: { type: "number" }
+                  },
+                  required: ["page", "limit", "total", "totalPages"]
+                }
+              },
+              required: ["organizations", "pagination"]
+            }
+          }
+        }
+      },
+      403: { description: "Forbidden - requires platform admin access" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require platform admin access
   await requirePlatformAdmin(event)

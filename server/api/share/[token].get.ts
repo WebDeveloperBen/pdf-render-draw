@@ -1,5 +1,109 @@
 import { eq, and } from "drizzle-orm"
 import { auth } from "@auth"
+import { z } from "zod"
+
+// Query schema for password-protected shares
+const querySchema = z.object({
+  password: z.string().optional()
+})
+
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Share"],
+    summary: "Get Shared Project",
+    description: "Get shared project by token",
+    parameters: [
+      {
+        name: "token",
+        in: "path",
+        required: true,
+        schema: { type: "string" }
+      },
+      {
+        name: "password",
+        in: "query",
+        required: false,
+        schema: { type: "string" },
+        description: "Password for password-protected shares"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Shared project data",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                description: { type: "string", nullable: true },
+                pdfUrl: { type: "string" },
+                pdfFileName: { type: "string", nullable: true },
+                pdfFileSize: { type: "number", nullable: true },
+                thumbnailUrl: { type: "string", nullable: true },
+                pageCount: { type: "number" },
+                annotationCount: { type: "number" },
+                lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                createdBy: { type: "string" },
+                organizationId: { type: "string" },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+                creator: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    email: { type: "string" },
+                    image: { type: "string", nullable: true }
+                  }
+                },
+                organization: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    slug: { type: "string" },
+                    logo: { type: "string", nullable: true }
+                  }
+                },
+                share: {
+                  type: "object",
+                  properties: {
+                    shareType: { type: "string", enum: ["public", "private"] },
+                    allowDownload: { type: "boolean" },
+                    allowNotes: { type: "boolean" },
+                    canAddNotes: { type: "boolean" },
+                    viewCount: { type: "number" }
+                  }
+                }
+              },
+              required: [
+                "id",
+                "name",
+                "pdfUrl",
+                "pageCount",
+                "annotationCount",
+                "createdBy",
+                "organizationId",
+                "createdAt",
+                "updatedAt",
+                "share"
+              ]
+            }
+          }
+        }
+      },
+      400: { description: "Password required or invalid password" },
+      403: { description: "Private share requires authentication" },
+      404: { description: "Share or project not found" },
+      410: { description: "Share link has expired" }
+    }
+  }
+})
 
 export default defineEventHandler(async (event) => {
   const db = useDrizzle()
@@ -46,9 +150,7 @@ export default defineEventHandler(async (event) => {
     const [recipient] = await db
       .select()
       .from(projectShareRecipient)
-      .where(
-        and(eq(projectShareRecipient.shareId, share.id), eq(projectShareRecipient.email, session.user.email))
-      )
+      .where(and(eq(projectShareRecipient.shareId, share.id), eq(projectShareRecipient.email, session.user.email)))
 
     if (!recipient) {
       throw createError({
@@ -73,8 +175,8 @@ export default defineEventHandler(async (event) => {
 
   // Check password if required (for public shares only - private shares use magic link)
   if (share.shareType === "public" && share.password) {
-    const query = getQuery(event)
-    const providedPassword = query.password as string | undefined
+    const query = querySchema.parse(getQuery(event))
+    const providedPassword = query.password
 
     if (!providedPassword) {
       throw createError({

@@ -181,8 +181,36 @@ export default defineNuxtConfig({
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,
+      meta: {
+        title: "PDF Annotator API",
+        description: `
+## Introduction
 
-      meta: { title: "API Documentation" },
+The PDF Annotator API powers a collaborative PDF annotation platform designed for tradespeople to draw, measure, and annotate building plans.
+
+### Authentication
+
+All authenticated endpoints require a valid session cookie. Authentication is handled via [Better Auth](https://better-auth.com) supporting:
+- Email/password login
+- OAuth providers (Google, GitHub)
+- Magic link authentication for share recipients
+
+### Organizations
+
+Users belong to organizations. Each user has a personal "home" organization created on signup. Projects are scoped to organizations, enabling team collaboration.
+
+### Sharing
+
+Projects can be shared via:
+- **Public links** - Anyone with the link can view (optionally password-protected)
+- **Private shares** - Specific recipients receive magic link access via email
+
+### Rate Limits
+
+API requests are subject to rate limiting. Contact support for higher limits.
+        `.trim(),
+        version: "1.0.0"
+      },
       ui: {
         scalar: {
           theme: "purple",

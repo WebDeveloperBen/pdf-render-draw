@@ -50,9 +50,7 @@ const columns: ColumnDef<AdminUser>[] = [
       const user = row.original
       return h("div", { class: "flex items-center gap-3" }, [
         h(resolveComponent("UiAvatar"), { class: "size-10" }, () => [
-          user.image
-            ? h(resolveComponent("UiAvatarImage"), { src: user.image, alt: user.name || "User" })
-            : null,
+          user.image ? h(resolveComponent("UiAvatarImage"), { src: user.image, alt: user.name || "User" }) : null,
           h(resolveComponent("UiAvatarFallback"), {}, () => (user.name || user.email)[0]?.toUpperCase())
         ]),
         h("div", {}, [
@@ -87,7 +85,11 @@ const columns: ColumnDef<AdminUser>[] = [
       const user = row.original
       return user.banned
         ? h(resolveComponent("UiBadge"), { variant: "destructive" }, () => "Banned")
-        : h(resolveComponent("UiBadge"), { variant: "outline", class: "text-green-600 border-green-600" }, () => "Active")
+        : h(
+            resolveComponent("UiBadge"),
+            { variant: "outline", class: "text-green-600 border-green-600" },
+            () => "Active"
+          )
     }
   },
   {

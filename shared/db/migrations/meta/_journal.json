@@ -64,6 +64,13 @@
       "when": 1766325758461,
       "tag": "0008_cold_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1766359183637,
+      "tag": "0009_even_fenris",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,84 @@ const paramsSchema = z.object({
   id: z.string().min(1, "User ID is required")
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Admin"],
+    summary: "Get User",
+    description: "Get detailed user information for admin management",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
+        description: "User ID"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Detailed user information",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                email: { type: "string" },
+                emailVerified: { type: "boolean", nullable: true },
+                image: { type: "string", nullable: true },
+                role: { type: "string" },
+                banned: { type: "boolean" },
+                banReason: { type: "string", nullable: true },
+                banExpires: { type: "string", format: "date-time", nullable: true },
+                firstName: { type: "string", nullable: true },
+                lastName: { type: "string", nullable: true },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+                memberships: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      role: { type: "string" },
+                      createdAt: { type: "string", format: "date-time" },
+                      organization: {
+                        type: "object",
+                        nullable: true,
+                        properties: {
+                          id: { type: "string" },
+                          name: { type: "string" },
+                          slug: { type: "string" },
+                          logo: { type: "string", nullable: true }
+                        }
+                      }
+                    },
+                    required: ["id", "role", "createdAt"]
+                  }
+                },
+                _count: {
+                  type: "object",
+                  properties: {
+                    projects: { type: "number" },
+                    activeSessions: { type: "number" }
+                  },
+                  required: ["projects", "activeSessions"]
+                }
+              },
+              required: ["id", "name", "email", "role", "banned", "createdAt", "updatedAt", "memberships", "_count"]
+            }
+          }
+        }
+      },
+      403: { description: "Forbidden - requires platform admin access" },
+      404: { description: "User not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require platform admin access
   await requirePlatformAdmin(event)

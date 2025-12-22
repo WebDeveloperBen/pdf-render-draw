@@ -6,6 +6,100 @@ const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Projects"],
+    summary: "Get Project",
+    description: "Get detailed information about a specific project",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "Project ID (UUID)"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Project details with shares",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                description: { type: "string", nullable: true },
+                pdfUrl: { type: "string" },
+                pdfFileName: { type: "string", nullable: true },
+                pdfFileSize: { type: "number", nullable: true },
+                thumbnailUrl: { type: "string", nullable: true },
+                pageCount: { type: "number" },
+                annotationCount: { type: "number" },
+                lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                createdBy: { type: "string" },
+                organizationId: { type: "string", nullable: true },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+                creator: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    email: { type: "string" },
+                    image: { type: "string", nullable: true }
+                  },
+                  required: ["id", "name", "email"]
+                },
+                organization: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    slug: { type: "string" },
+                    logo: { type: "string", nullable: true }
+                  }
+                },
+                shares: {
+                  type: "array",
+                  items: { type: "object" }
+                },
+                _count: {
+                  type: "object",
+                  properties: {
+                    shares: { type: "number" }
+                  },
+                  required: ["shares"]
+                }
+              },
+              required: [
+                "id",
+                "name",
+                "pdfUrl",
+                "pageCount",
+                "annotationCount",
+                "createdBy",
+                "createdAt",
+                "updatedAt",
+                "creator",
+                "shares",
+                "_count"
+              ]
+            }
+          }
+        }
+      },
+      400: { description: "Bad request - no active organization" },
+      401: { description: "Unauthorized - authentication required" },
+      403: { description: "Forbidden - access denied" },
+      404: { description: "Project not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })

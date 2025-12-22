@@ -1,5 +1,60 @@
 import { sql } from "drizzle-orm"
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Admin"],
+    summary: "Get Platform Stats",
+    description: "Get platform-wide statistics for admin dashboard",
+    responses: {
+      200: {
+        description: "Platform statistics",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                users: {
+                  type: "object",
+                  properties: {
+                    total: { type: "number" },
+                    recentSignups: { type: "number" },
+                    banned: { type: "number" }
+                  },
+                  required: ["total", "recentSignups", "banned"]
+                },
+                organizations: {
+                  type: "object",
+                  properties: {
+                    total: { type: "number" }
+                  },
+                  required: ["total"]
+                },
+                projects: {
+                  type: "object",
+                  properties: {
+                    total: { type: "number" }
+                  },
+                  required: ["total"]
+                },
+                sessions: {
+                  type: "object",
+                  properties: {
+                    active: { type: "number" }
+                  },
+                  required: ["active"]
+                }
+              },
+              required: ["users", "organizations", "projects", "sessions"]
+            }
+          }
+        }
+      },
+      403: { description: "Forbidden - requires platform admin access" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require platform admin access
   await requirePlatformAdmin(event)

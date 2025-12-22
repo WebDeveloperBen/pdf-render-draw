@@ -41,7 +41,10 @@ const addEmail = (email: string) => {
 }
 
 const removeEmail = (email: string) => {
-  emit("update:modelValue", props.modelValue.filter((e) => e !== email))
+  emit(
+    "update:modelValue",
+    props.modelValue.filter((e) => e !== email)
+  )
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -130,7 +133,7 @@ const focusInput = () => {
         type="email"
         class="flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
         :class="modelValue.length > 0 ? 'min-w-[150px]' : 'w-full'"
-        :placeholder="modelValue.length === 0 ? (placeholder || 'Enter email addresses...') : 'Add another...'"
+        :placeholder="modelValue.length === 0 ? placeholder || 'Enter email addresses...' : 'Add another...'"
         :disabled="disabled"
         @keydown="handleKeydown"
         @blur="handleBlur"

@@ -6,6 +6,107 @@ const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Project Shares"],
+    summary: "List Project Shares",
+    description: "Get all shares for a specific project",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "Project ID (UUID)"
+      }
+    ],
+    responses: {
+      200: {
+        description: "List of shares with recipients",
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  projectId: { type: "string" },
+                  token: { type: "string" },
+                  createdBy: { type: "string" },
+                  name: { type: "string", nullable: true },
+                  shareType: { type: "string", enum: ["public", "private"] },
+                  message: { type: "string", nullable: true },
+                  expiresAt: { type: "string", format: "date-time", nullable: true },
+                  password: { type: "string", nullable: true },
+                  allowDownload: { type: "boolean" },
+                  allowNotes: { type: "boolean" },
+                  viewCount: { type: "number" },
+                  lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                  createdAt: { type: "string", format: "date-time" },
+                  updatedAt: { type: "string", format: "date-time" },
+                  creator: {
+                    type: "object",
+                    nullable: true,
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      email: { type: "string" }
+                    }
+                  },
+                  recipients: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string" },
+                        email: { type: "string" },
+                        status: { type: "string" },
+                        invitedAt: { type: "string", format: "date-time" },
+                        firstViewedAt: { type: "string", format: "date-time", nullable: true },
+                        lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                        viewCount: { type: "number" },
+                        user: {
+                          type: "object",
+                          nullable: true,
+                          properties: {
+                            id: { type: "string" },
+                            name: { type: "string" },
+                            image: { type: "string", nullable: true }
+                          }
+                        }
+                      },
+                      required: ["id", "email", "status", "invitedAt", "viewCount"]
+                    }
+                  }
+                },
+                required: [
+                  "id",
+                  "projectId",
+                  "token",
+                  "createdBy",
+                  "shareType",
+                  "allowDownload",
+                  "allowNotes",
+                  "viewCount",
+                  "createdAt",
+                  "updatedAt",
+                  "recipients"
+                ]
+              }
+            }
+          }
+        }
+      },
+      400: { description: "Bad request - no active organization" },
+      401: { description: "Unauthorized - authentication required" },
+      403: { description: "Forbidden - access denied or not project creator" },
+      404: { description: "Project not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })

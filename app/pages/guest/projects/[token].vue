@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { useForm } from "vee-validate"
+import { toTypedSchema } from "@vee-validate/zod"
+import { z } from "zod"
+import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
+import { useGetApiShareToken, type GetApiShareToken200 } from "@/models/api"
+
 definePageMeta({
   layout: "guest",
   middleware: ["guest"]
@@ -10,54 +16,79 @@ const token = computed(() => {
   return params.token || ""
 })
 
-// Fetch the shared project data
+// Password state - starts from URL query param if present
+const passwordParam = ref((route.query.password as string) || undefined)
+
+// Fetch the shared project data using generated API hook
 const {
-  data: shareData,
+  data: response,
   status,
-  error
-} = await useFetch(() => `/api/share/${token.value}`, {
-  key: `share-${token.value}`
-})
+  error,
+  refetch
+} = useGetApiShareToken<{ data: GetApiShareToken200 }>(
+  token,
+  computed(() => ({ password: passwordParam.value }))
+)
+
+// Extract the actual share data
+const shareData = computed(() => response.value?.data)
 
 // Handle password-protected shares
-const password = ref("")
-const passwordError = ref("")
-const isSubmittingPassword = ref(false)
+const typedError = computed(
+  () => error.value as { statusCode?: number; statusMessage?: string; message?: string } | null
+)
 
 const requiresPassword = computed(() => {
-  return error.value?.statusCode === 400 && error.value?.statusMessage === "Password required for this share"
+  return typedError.value?.statusCode === 400 && typedError.value?.statusMessage === "Password required for this share"
 })
 
-const submitPassword = async () => {
-  if (!password.value) {
-    passwordError.value = "Please enter a password"
-    return
-  }
+const errorMessage = computed(() => typedError.value?.statusMessage || typedError.value?.message || "Unknown error")
 
+// Password form schema
+const passwordSchema = toTypedSchema(
+  z.object({
+    password: z.string().min(1, "Please enter a password")
+  })
+)
+
+const passwordForm = useForm({
+  validationSchema: passwordSchema,
+  initialValues: { password: "" }
+})
+
+const isSubmittingPassword = ref(false)
+
+// FormBuilder fields for password
+const passwordFields: FormBuilder[] = [
+  {
+    variant: "Input",
+    name: "password",
+    label: "Password",
+    placeholder: "Enter password",
+    type: "password",
+    required: true,
+    wrapperClass: "space-y-2"
+  }
+]
+
+const submitPassword = passwordForm.handleSubmit(async (values) => {
   isSubmittingPassword.value = true
-  passwordError.value = ""
 
   try {
-    await $fetch(`/api/share/${token.value}?password=${encodeURIComponent(password.value)}`)
-    // Refresh the page with the password in the URL
-    window.location.href = `/guest/projects/${token.value}?password=${encodeURIComponent(password.value)}`
-  } catch (e: any) {
-    passwordError.value = e.data?.statusMessage || "Invalid password"
+    passwordParam.value = values.password
+    await refetch()
+
+    // If still an error after refetch, it's an invalid password
+    if (error.value) {
+      passwordForm.setFieldError("password", typedError.value?.statusMessage || "Invalid password")
+    }
   } finally {
     isSubmittingPassword.value = false
   }
-}
-
-const formatDate = (date: string | Date) => {
-  return new Date(date).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  })
-}
+})
 
 useSeoMeta({
-  title: computed(() => shareData.value?.name ? `${shareData.value.name} - Shared Project` : "Shared Project")
+  title: computed(() => (shareData.value?.name ? `${shareData.value.name} - Shared Project` : "Shared Project"))
 })
 </script>
 
@@ -79,23 +110,11 @@ useSeoMeta({
             <Icon name="lucide:lock" class="size-8 text-muted-foreground" />
           </div>
           <UiCardTitle>Password Protected</UiCardTitle>
-          <UiCardDescription>
-            This project is password protected. Enter the password to continue.
-          </UiCardDescription>
+          <UiCardDescription> This project is password protected. Enter the password to continue. </UiCardDescription>
         </UiCardHeader>
         <UiCardContent>
-          <form class="space-y-4" @submit.prevent="submitPassword">
-            <div class="space-y-2">
-              <UiLabel for="password">Password</UiLabel>
-              <UiInput
-                id="password"
-                v-model="password"
-                type="password"
-                placeholder="Enter password"
-                :disabled="isSubmittingPassword"
-              />
-              <p v-if="passwordError" class="text-sm text-destructive">{{ passwordError }}</p>
-            </div>
+          <form class="space-y-4" @submit="submitPassword">
+            <UiFormBuilder :fields="passwordFields" />
             <UiButton type="submit" class="w-full" :disabled="isSubmittingPassword">
               <Icon v-if="isSubmittingPassword" name="svg-spinners:ring-resize" class="size-4" />
               <Icon v-else name="lucide:unlock" class="size-4" />
@@ -115,7 +134,7 @@ useSeoMeta({
           </div>
           <div class="text-center">
             <h3 class="font-semibold">Unable to load project</h3>
-            <p class="text-sm text-muted-foreground mt-1">{{ error.statusMessage || error.message }}</p>
+            <p class="text-sm text-muted-foreground mt-1">{{ errorMessage }}</p>
           </div>
           <NuxtLink to="/guest">
             <UiButton variant="outline">
@@ -143,12 +162,7 @@ useSeoMeta({
 
         <div class="flex items-center gap-2">
           <!-- Download button -->
-          <a
-            v-if="shareData.share.allowDownload"
-            :href="shareData.pdfUrl"
-            target="_blank"
-            download
-          >
+          <a v-if="shareData.share.allowDownload" :href="shareData.pdfUrl" target="_blank" download>
             <UiButton variant="outline">
               <Icon name="lucide:download" class="size-4" />
               Download PDF
@@ -229,7 +243,7 @@ useSeoMeta({
           </UiCardDescription>
         </UiCardHeader>
         <UiCardContent>
-          <div class="aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
+          <div class="aspect-4/3 overflow-hidden rounded-lg border bg-muted">
             <img
               v-if="shareData.thumbnailUrl"
               :src="shareData.thumbnailUrl"

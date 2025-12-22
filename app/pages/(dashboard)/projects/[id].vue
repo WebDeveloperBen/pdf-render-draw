@@ -335,15 +335,9 @@ onMounted(() => {
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2 min-w-0">
                 <!-- Share type badge -->
-                <UiBadge
-                  :variant="share.shareType === 'private' ? 'default' : 'secondary'"
-                  class="shrink-0"
-                >
-                  <Icon
-                    :name="share.shareType === 'private' ? 'lucide:users' : 'lucide:globe'"
-                    class="size-3 mr-1"
-                  />
-                  {{ share.shareType === 'private' ? 'Private' : 'Public' }}
+                <UiBadge :variant="share.shareType === 'private' ? 'default' : 'secondary'" class="shrink-0">
+                  <Icon :name="share.shareType === 'private' ? 'lucide:users' : 'lucide:globe'" class="size-3 mr-1" />
+                  {{ share.shareType === "private" ? "Private" : "Public" }}
                 </UiBadge>
 
                 <!-- Share name or token -->
@@ -380,7 +374,7 @@ onMounted(() => {
                 >
                   <UiAvatarImage v-if="recipient.user?.image" :src="recipient.user.image" />
                   <UiAvatarFallback class="text-[10px] bg-secondary">
-                    {{ recipient.email[0]?.toUpperCase() || '?' }}
+                    {{ recipient.email[0]?.toUpperCase() || "?" }}
                   </UiAvatarFallback>
                 </UiAvatar>
                 <div
@@ -393,13 +387,18 @@ onMounted(() => {
 
               <!-- Recipient names/emails -->
               <span class="text-xs text-muted-foreground truncate">
-                {{ share.recipients.slice(0, 2).map(r => r.user?.name || r.email.split('@')[0]).join(', ') }}
+                {{
+                  share.recipients
+                    .slice(0, 2)
+                    .map((r) => r.user?.name || r.email.split("@")[0])
+                    .join(", ")
+                }}
                 <span v-if="share.recipients.length > 2">, +{{ share.recipients.length - 2 }} more</span>
               </span>
 
               <!-- View stats for recipients -->
               <UiBadge variant="outline" class="text-xs ml-auto shrink-0">
-                {{ share.recipients.filter(r => r.status === 'viewed').length }}/{{ share.recipients.length }} viewed
+                {{ share.recipients.filter((r) => r.status === "viewed").length }}/{{ share.recipients.length }} viewed
               </UiBadge>
             </div>
 
@@ -572,11 +571,7 @@ onMounted(() => {
                   <UiSelectValue placeholder="Never" />
                 </UiSelectTrigger>
                 <UiSelectContent>
-                  <UiSelectItem
-                    v-for="option in expirationOptions"
-                    :key="option.label"
-                    :value="option.value"
-                  >
+                  <UiSelectItem v-for="option in expirationOptions" :key="option.label" :value="option.value">
                     {{ option.label }}
                   </UiSelectItem>
                 </UiSelectContent>
@@ -657,9 +652,7 @@ onMounted(() => {
         </div>
 
         <UiDialogFooter class="gap-3">
-          <UiButton variant="outline" :disabled="isCreatingShare" @click="showShareDialog = false">
-            Cancel
-          </UiButton>
+          <UiButton variant="outline" :disabled="isCreatingShare" @click="showShareDialog = false"> Cancel </UiButton>
           <UiButton :disabled="isCreatingShare" @click="handleCreateShare">
             <Icon v-if="isCreatingShare" name="svg-spinners:ring-resize" class="size-4" />
             <template v-else>

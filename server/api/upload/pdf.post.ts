@@ -1,5 +1,57 @@
 import { auth } from "@auth"
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Upload"],
+    summary: "Upload PDF",
+    description: "Upload a PDF file and generate thumbnail",
+    requestBody: {
+      required: true,
+      content: {
+        "multipart/form-data": {
+          schema: {
+            type: "object",
+            properties: {
+              pdf: {
+                type: "string",
+                format: "binary",
+                description: "PDF file to upload (max 50MB)"
+              }
+            },
+            required: ["pdf"]
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: "PDF uploaded successfully",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                pdfUrl: { type: "string" },
+                thumbnailUrl: { type: "string" },
+                pageCount: { type: "number" },
+                fileName: { type: "string" },
+                fileSize: { type: "number" }
+              },
+              required: ["pdfUrl", "thumbnailUrl", "pageCount", "fileName", "fileSize"]
+            }
+          }
+        }
+      },
+      400: {
+        description: "Bad request - invalid file type, size, or no file provided"
+      },
+      401: { description: "Unauthorized - authentication required" },
+      500: { description: "Internal server error - upload failed" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })

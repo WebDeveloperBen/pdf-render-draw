@@ -7,6 +7,59 @@ const bodySchema = z.object({
   lastName: z.string().min(1, "Last name is required")
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Guest"],
+    summary: "Upgrade Guest Account",
+    description: "Upgrade a guest user account to a full user account",
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              firstName: {
+                type: "string",
+                minLength: 1,
+                description: "User's first name"
+              },
+              lastName: {
+                type: "string",
+                minLength: 1,
+                description: "User's last name"
+              }
+            },
+            required: ["firstName", "lastName"]
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: "Account upgrade successful",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" },
+                message: { type: "string" }
+              },
+              required: ["success", "message"]
+            }
+          }
+        }
+      },
+      400: {
+        description: "Bad request - validation error or user is not a guest"
+      },
+      401: { description: "Unauthorized - authentication required" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   const db = useDrizzle()
 

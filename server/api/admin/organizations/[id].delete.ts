@@ -12,6 +12,77 @@ const bodySchema = z.object({
   deleteProjects: z.boolean().optional().default(false)
 })
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Admin"],
+    summary: "Delete Organization",
+    description: "Permanently delete an organization",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
+        description: "Organization ID to delete"
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              confirmation: {
+                type: "boolean",
+                enum: [true],
+                description: "Must be true to confirm deletion"
+              },
+              deleteProjects: {
+                type: "boolean",
+                default: false,
+                description: "Whether to also delete all projects in the organization"
+              }
+            },
+            required: ["confirmation"]
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: "Organization deletion successful",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                organizationId: { type: "string" },
+                deletedCounts: {
+                  type: "object",
+                  properties: {
+                    members: { type: "number" },
+                    projects: { type: "number" },
+                    invitations: { type: "number" }
+                  },
+                  required: ["members", "projects", "invitations"]
+                }
+              },
+              required: ["success", "message", "organizationId", "deletedCounts"]
+            }
+          }
+        }
+      },
+      401: { description: "Unauthorized - authentication required" },
+      403: { description: "Forbidden - insufficient permissions" },
+      404: { description: "Organization not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Require admin tier (admin or owner) - support/viewer cannot delete
   await requirePlatformAdminTier(event, "admin")
@@ -87,10 +158,7 @@ export default defineEventHandler(async (event) => {
       await tx.delete(project).where(eq(project.organizationId, targetOrgId))
     } else {
       // Just disassociate projects from the organization
-      await tx
-        .update(project)
-        .set({ organizationId: null })
-        .where(eq(project.organizationId, targetOrgId))
+      await tx.update(project).set({ organizationId: null }).where(eq(project.organizationId, targetOrgId))
     }
 
     // Cascades will handle:

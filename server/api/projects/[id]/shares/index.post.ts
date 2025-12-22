@@ -29,6 +29,149 @@ const bodySchema = z
     { message: "Private shares require at least one recipient", path: ["recipients"] }
   )
 
+// OpenAPI metadata for Orval type generation
+defineRouteMeta({
+  openAPI: {
+    tags: ["Project Shares"],
+    summary: "Create Share",
+    description: "Create a new share for a project",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "Project ID (UUID)"
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              name: {
+                type: "string",
+                maxLength: 100,
+                description: "Share name"
+              },
+              shareType: {
+                type: "string",
+                enum: ["public", "private"],
+                default: "public",
+                description: "Type of share"
+              },
+              message: {
+                type: "string",
+                maxLength: 500,
+                description: "Share message"
+              },
+              recipients: {
+                type: "array",
+                items: { type: "string", format: "email" },
+                description: "Email addresses for private shares"
+              },
+              password: {
+                type: "string",
+                minLength: 4,
+                nullable: true,
+                description: "Password for public shares"
+              },
+              expiresAt: {
+                type: "string",
+                format: "date-time",
+                nullable: true,
+                description: "Expiration date"
+              },
+              allowDownload: {
+                type: "boolean",
+                default: true,
+                description: "Whether to allow downloads"
+              },
+              allowNotes: {
+                type: "boolean",
+                default: false,
+                description: "Whether to allow notes"
+              }
+            },
+            required: []
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: "Share created successfully",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                projectId: { type: "string" },
+                token: { type: "string" },
+                createdBy: { type: "string" },
+                name: { type: "string", nullable: true },
+                shareType: { type: "string", enum: ["public", "private"] },
+                message: { type: "string", nullable: true },
+                expiresAt: { type: "string", format: "date-time", nullable: true },
+                password: { type: "string", nullable: true },
+                allowDownload: { type: "boolean" },
+                allowNotes: { type: "boolean" },
+                viewCount: { type: "number" },
+                lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+                creator: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    email: { type: "string" }
+                  }
+                },
+                shareUrl: { type: "string" },
+                recipients: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      email: { type: "string" },
+                      status: { type: "string" },
+                      invitedAt: { type: "string", format: "date-time" }
+                    }
+                  }
+                }
+              },
+              required: [
+                "id",
+                "projectId",
+                "token",
+                "createdBy",
+                "shareType",
+                "allowDownload",
+                "allowNotes",
+                "viewCount",
+                "createdAt",
+                "updatedAt",
+                "shareUrl",
+                "recipients"
+              ]
+            }
+          }
+        }
+      },
+      400: { description: "Bad request - validation error or no active organization" },
+      401: { description: "Unauthorized - authentication required" },
+      403: { description: "Forbidden - insufficient permissions or access denied" },
+      404: { description: "Project not found" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Check authentication
   const session = await auth.api.getSession({ headers: event.headers })
