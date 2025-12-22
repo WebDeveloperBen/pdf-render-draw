@@ -87,10 +87,7 @@ const currentUser = computed(() => {
   }
 })
 
-const handleSignOut = async () => {
-  await authClient.signOut()
-  navigateTo("/login")
-}
+const { signOut } = useAuth()
 
 // Breadcrumbs
 const { items: breadcrumbItems } = useBreadcrumbs()
@@ -266,7 +263,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                     </UiDropdownMenuGroup>
                   </template>
                   <UiDropdownMenuSeparator />
-                  <UiDropdownMenuItem title="Log out" @click="handleSignOut">
+                  <UiDropdownMenuItem title="Log out" @click="signOut">
                     <template #icon>
                       <Icon name="lucide:log-out" class="size-4" />
                     </template>

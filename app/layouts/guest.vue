@@ -20,10 +20,7 @@ const currentUser = computed(() => {
   }
 })
 
-const handleSignOut = async () => {
-  await authClient.signOut()
-  navigateTo("/login")
-}
+const { signOut } = useAuth()
 
 useSeoMeta({ title: `${name} - Shared with you` })
 </script>
@@ -94,7 +91,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
                   </UiDropdownMenuItem>
                 </NuxtLink>
                 <UiDropdownMenuSeparator />
-                <UiDropdownMenuItem title="Sign Out" @click="handleSignOut">
+                <UiDropdownMenuItem title="Sign Out" @click="signOut">
                   <template #icon>
                     <Icon name="lucide:log-out" class="size-4" />
                   </template>

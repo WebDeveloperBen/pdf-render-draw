@@ -18,14 +18,8 @@
         :multiple="multiple"
         :class="[hasIcon && 'pl-9']"
         :accept="accept"
-        @change="
-          handleChange($event)
-          emits('change', ($event.target as HTMLInputElement).files)
-        "
-        @blur="
-          handleBlur($event)
-          emits('blur', $event)
-        "
+        @change="onFileChange"
+        @blur="onBlur"
       />
     </div>
     <AnimatePresence multiple as="div" mode="wait">
@@ -93,4 +87,14 @@ const { errorMessage, handleChange, handleBlur } = useField(() => props.name, pr
   label: props.label,
   validateOnMount: props.validateOnMount
 })
+
+const onFileChange = (event: Event) => {
+  handleChange(event)
+  emits("change", (event.target as HTMLInputElement).files)
+}
+
+const onBlur = (event: FocusEvent) => {
+  handleBlur(event)
+  emits("blur", event)
+}
 </script>

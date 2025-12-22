@@ -59,34 +59,41 @@ export function useActiveOrganization() {
   }
 
   // Auto-select first organization if none is active
+  // Uses a flag to prevent concurrent calls from causing loops
+  let isEnsuring = false
   const ensureActiveOrganization = async () => {
-    // Fetch organizations list directly to avoid reactivity timing issues
-    const orgListResponse = await authClient.organization.list()
-    const orgList = orgListResponse.data
+    // Prevent concurrent/repeated calls
+    if (isEnsuring) return
+    isEnsuring = true
 
-    if (!orgList?.length) {
-      return // No organizations available
-    }
+    try {
+      // Fetch organizations list directly to avoid reactivity timing issues
+      const orgListResponse = await authClient.organization.list()
+      const orgList = orgListResponse.data
 
-    // Check if we have a valid active organization
-    const currentActiveOrg = activeOrg.value?.data
-    if (currentActiveOrg?.id) {
-      // Verify the active org is still valid (user is still a member)
-      const isValidOrg = orgList.some((org) => org.id === currentActiveOrg.id)
-      if (isValidOrg) {
-        // Re-sync with server to ensure session state is correct
-        // This handles cases where client has cached data but server session is stale
-        await authClient.organization.setActive({
-          organizationId: currentActiveOrg.id
-        })
-        return
+      if (!orgList?.length) {
+        return // No organizations available
       }
-    }
 
-    // No valid active org - select the first one
-    const firstOrg = orgList[0]
-    if (firstOrg) {
-      await switchOrganization(firstOrg.id)
+      // Check if we have a valid active organization
+      const currentActiveOrg = activeOrg.value?.data
+      if (currentActiveOrg?.id) {
+        // Verify the active org is still valid (user is still a member)
+        const isValidOrg = orgList.some((org) => org.id === currentActiveOrg.id)
+        if (isValidOrg) {
+          // Already have a valid active org - don't call setActive again
+          // This prevents infinite loops from reactive state updates
+          return
+        }
+      }
+
+      // No valid active org - select the first one
+      const firstOrg = orgList[0]
+      if (firstOrg) {
+        await switchOrganization(firstOrg.id)
+      }
+    } finally {
+      isEnsuring = false
     }
   }
 

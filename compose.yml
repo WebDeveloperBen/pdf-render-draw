@@ -1,3 +1,24 @@
+# PDF Annotator Development Database
+#
+# Quick Start (new developers):
+#   1. docker compose up -d       # Start PostgreSQL
+#   2. pnpm db:setup              # Push schema + seed data (one command!)
+#   3. pnpm dev                   # Start dev server
+#
+# Or with auto-seeding:
+#   docker compose up -d && pnpm db:setup && pnpm dev
+#
+# Individual commands:
+#   pnpm db:push                  # Push schema only
+#   pnpm db:seed                  # Run seeds only (idempotent)
+#   pnpm dev:seed                 # Seed + start dev server
+#
+# Demo Accounts (after seeding):
+#   - owner@platform.com / password123  (Platform Owner)
+#   - user@example.com / password123    (Regular User)
+#   - team@example.com / password123    (Team Member)
+#   - guest@example.com                 (Guest - magic link only)
+
 services:
   postgres:
     image: postgres:16-alpine
