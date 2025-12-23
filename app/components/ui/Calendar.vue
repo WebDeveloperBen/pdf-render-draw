@@ -196,7 +196,7 @@ defineOptions({ inheritAttrs: false })
 
 const calendarRef = useTemplateRef("calendarRef")
 
-interface Props extends /* @vue-ignore */ Partial<InstanceType<typeof Calendar>["$props"]> {}
+type Props = /* @vue-ignore */ Partial<InstanceType<typeof Calendar>["$props"]>
 
 const props = defineProps<Props & { trimWeeks?: boolean; attributes?: Partial<AttributeConfig> }>()
 

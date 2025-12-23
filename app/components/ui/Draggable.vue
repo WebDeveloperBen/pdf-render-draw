@@ -879,36 +879,19 @@ export interface SortableEvent {
  */
 export type DraggableEmits<T = any> = {
   /**
-   * This event is triggered when the user starts dragging an item.
-   *
-   * @description This event is triggered when the user starts dragging an item.
+   * Sortable drag events with full SortableEvent payload:
+   * - start: User starts dragging an item
+   * - add: Element added to list from another list
+   * - remove: Element removed from list into another list
+   * - update: Order of an element changes within its list
+   * - end: Dragging ends
+   * - unchoose: Element is deselected for dragging
+   * - sort: Any change to the list happens (add/update/remove)
    */
-  (e: "start", event: SortableEvent): void
-
-  /**
-   * Emitted when an element is added to the list from another list
-   */
-  (e: "add", event: SortableEvent): void
-
-  /**
-   * Emitted when an element is removed from the list into another list
-   */
-  (e: "remove", event: SortableEvent): void
-
-  /** Emitted when the order of an element changes within its list */
-  (e: "update", event: SortableEvent): void
-
-  /** Emitted when dragging ends */
-  (e: "end", event: SortableEvent): void
+  (e: "start" | "add" | "remove" | "update" | "end" | "unchoose" | "sort", event: SortableEvent): void
 
   /** Emitted when an element is selected for dragging */
   (e: "choose", event: Pick<SortableEvent, "item" | "oldIndex">): void
-
-  /** Emitted when an element is deselected for dragging */
-  (e: "unchoose", event: SortableEvent): void
-
-  /** Emitted when any change to the list happens (add/update/remove) */
-  (e: "sort", event: SortableEvent): void
 
   /** Emitted when attempting to drag a filtered element */
   (e: "filter", event: Pick<SortableEvent, "item">): void

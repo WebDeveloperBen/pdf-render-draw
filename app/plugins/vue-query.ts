@@ -45,7 +45,7 @@ export default defineNuxtPlugin((nuxt) => {
   // }
 
   // Retry function - synchronous, doesn't retry 401/403
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const retryFunction = (failureCount: number, error: any): boolean => {
     // Don't retry auth errors - they're handled by onError
     if (error?.status === 401 || error?.status === 403) {
@@ -67,7 +67,7 @@ export default defineNuxtPlugin((nuxt) => {
       mutations: {
         retry: retryFunction,
         // Handle 401 errors globally for mutations
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         onError: async (error: any) => {
           if (error?.status === 401) {
             console.error("[Authentication Error]: Please investigate", error)
@@ -79,7 +79,7 @@ export default defineNuxtPlugin((nuxt) => {
   })
 
   // Add global error handler for queries
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   queryClient.getQueryCache().config.onError = (error: any) => {
     if (error?.status === 401) {
       // handle401Error(queryClient)

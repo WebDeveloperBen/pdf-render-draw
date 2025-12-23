@@ -24,6 +24,9 @@ export interface UseFetchReturn<T> {
   isPending: false
 }
 
+// Type for fetch function parameter (e.g., Nuxt's useFetch)
+type FetchFn = (url: string) => Promise<{ data: Ref<unknown>; error: Ref<Error | null> }>
+
 export interface PlatformAdminUser {
   id: string
   name: string
@@ -61,7 +64,7 @@ export const platformAdminClient = () => {
          * Get the current user's platform admin status
          * @param fetchFn - Optional Nuxt useFetch for SSR support (same pattern as useSession)
          */
-        getStatus: async <F extends ((...args: any[]) => any) | undefined = undefined>(
+        getStatus: async <F extends FetchFn | undefined = undefined>(
           fetchFn?: F
         ): Promise<
           F extends undefined
@@ -78,11 +81,15 @@ export const platformAdminClient = () => {
               data: result.data,
               error: result.error,
               isPending: false
-            } as any
+            } as F extends undefined
+              ? Awaited<ReturnType<typeof $fetch<PlatformAdminStatus>>>
+              : UseFetchReturn<PlatformAdminStatus>
           }
           return $fetch<PlatformAdminStatus>("/platform-admin/me", {
             method: "GET"
-          }) as any
+          }) as F extends undefined
+            ? Awaited<ReturnType<typeof $fetch<PlatformAdminStatus>>>
+            : UseFetchReturn<PlatformAdminStatus>
         },
 
         /**

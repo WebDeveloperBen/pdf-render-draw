@@ -13,7 +13,7 @@
       </slot>
       <slot v-if="content || $slots.content" name="content">
         <UiCardContent>
-          <div v-html="content" />
+          <div>{{ content }}</div>
         </UiCardContent>
       </slot>
       <slot name="footer" />
