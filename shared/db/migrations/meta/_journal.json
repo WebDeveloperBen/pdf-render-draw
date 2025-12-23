@@ -78,6 +78,13 @@
       "when": 1766491130181,
       "tag": "0010_young_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1766496026489,
+      "tag": "0011_add_project_details_fields",
+      "breakpoints": true
     }
   ]
 }

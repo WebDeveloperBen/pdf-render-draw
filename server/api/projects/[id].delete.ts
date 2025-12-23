@@ -94,7 +94,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get all files for this project and delete from R2
-  const files = await db.select({ pdfUrl: projectFile.pdfUrl }).from(projectFile).where(eq(projectFile.projectId, projectId))
+  const files = await db
+    .select({ pdfUrl: projectFile.pdfUrl })
+    .from(projectFile)
+    .where(eq(projectFile.projectId, projectId))
 
   for (const file of files) {
     try {

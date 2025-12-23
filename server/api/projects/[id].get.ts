@@ -32,6 +32,17 @@ defineRouteMeta({
                 id: { type: "string" },
                 name: { type: "string" },
                 description: { type: "string", nullable: true },
+                reference: { type: "string", nullable: true },
+                category: { type: "string", nullable: true },
+                siteAddress: { type: "string", nullable: true },
+                suburb: { type: "string", nullable: true },
+                postcode: { type: "string", nullable: true },
+                clientName: { type: "string", nullable: true },
+                clientEmail: { type: "string", nullable: true },
+                clientPhone: { type: "string", nullable: true },
+                priority: { type: "string" },
+                tags: { type: "array", items: { type: "string" } },
+                notes: { type: "string", nullable: true },
                 annotationCount: { type: "number" },
                 lastViewedAt: { type: "string", format: "date-time", nullable: true },
                 createdBy: { type: "string" },
@@ -98,22 +109,18 @@ defineRouteMeta({
                     ]
                   }
                 },
-                shares: {
-                  type: "array",
-                  items: { type: "object" }
-                },
+                shares: { type: "array", items: { type: "object" } },
                 _count: {
                   type: "object",
-                  properties: {
-                    shares: { type: "number" },
-                    files: { type: "number" }
-                  },
+                  properties: { shares: { type: "number" }, files: { type: "number" } },
                   required: ["shares", "files"]
                 }
               },
               required: [
                 "id",
                 "name",
+                "priority",
+                "tags",
                 "annotationCount",
                 "createdBy",
                 "createdAt",
@@ -167,6 +174,17 @@ export default defineEventHandler(async (event) => {
       id: project.id,
       name: project.name,
       description: project.description,
+      reference: project.reference,
+      category: project.category,
+      siteAddress: project.siteAddress,
+      suburb: project.suburb,
+      postcode: project.postcode,
+      clientName: project.clientName,
+      clientEmail: project.clientEmail,
+      clientPhone: project.clientPhone,
+      priority: project.priority,
+      tags: project.tags,
+      notes: project.notes,
       annotationCount: project.annotationCount,
       lastViewedAt: project.lastViewedAt,
       createdBy: project.createdBy,

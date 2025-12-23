@@ -6,6 +6,22 @@ import { auth } from "@auth"
 const bodySchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters"),
   description: z.string().max(500).nullish(),
+  // Reference / Job number
+  reference: z.string().max(50).nullish(),
+  // Project category
+  category: z.string().max(50).nullish(),
+  // Job site location
+  siteAddress: z.string().max(200).nullish(),
+  suburb: z.string().max(100).nullish(),
+  postcode: z.string().max(10).nullish(),
+  // Client information
+  clientName: z.string().max(100).nullish(),
+  clientEmail: z.string().email().nullish().or(z.literal("")),
+  clientPhone: z.string().max(20).nullish(),
+  // Priority and organisation
+  priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+  tags: z.array(z.string().max(50)).max(20).default([]),
+  notes: z.string().max(2000).nullish(),
   // File data for the initial file
   pdfUrl: z.url({ message: "Invalid PDF URL" }),
   pdfFileName: z.string().min(1, "File name is required"),
@@ -26,39 +42,28 @@ defineRouteMeta({
           schema: {
             type: "object",
             properties: {
-              name: {
+              name: { type: "string", description: "Project name" },
+              description: { type: "string", nullable: true, description: "Project description" },
+              reference: { type: "string", nullable: true, description: "Reference / Job number" },
+              category: { type: "string", nullable: true, description: "Project category" },
+              siteAddress: { type: "string", nullable: true, description: "Job site street address" },
+              suburb: { type: "string", nullable: true, description: "Suburb" },
+              postcode: { type: "string", nullable: true, description: "Postcode" },
+              clientName: { type: "string", nullable: true, description: "Client name" },
+              clientEmail: { type: "string", nullable: true, description: "Client email" },
+              clientPhone: { type: "string", nullable: true, description: "Client phone" },
+              priority: {
                 type: "string",
-                minLength: 3,
-                maxLength: 100,
-                description: "Project name"
+                enum: ["low", "normal", "high", "urgent"],
+                default: "normal",
+                description: "Priority level"
               },
-              description: {
-                type: "string",
-                maxLength: 500,
-                nullable: true,
-                description: "Project description"
-              },
-              pdfUrl: {
-                type: "string",
-                format: "uri",
-                description: "URL to the PDF file"
-              },
-              pdfFileName: {
-                type: "string",
-                minLength: 1,
-                description: "Original PDF file name"
-              },
-              pdfFileSize: {
-                type: "number",
-                minimum: 1,
-                description: "PDF file size in bytes"
-              },
-              pageCount: {
-                type: "integer",
-                minimum: 1,
-                default: 1,
-                description: "Number of pages in the PDF"
-              }
+              tags: { type: "array", items: { type: "string" }, description: "Project tags" },
+              notes: { type: "string", nullable: true, description: "Internal notes" },
+              pdfUrl: { type: "string", format: "uri", description: "URL to the PDF file" },
+              pdfFileName: { type: "string", description: "Original PDF file name" },
+              pdfFileSize: { type: "number", description: "PDF file size in bytes" },
+              pageCount: { type: "integer", default: 0, description: "Number of pages in the PDF" }
             },
             required: ["name", "pdfUrl", "pdfFileName", "pdfFileSize"]
           }
@@ -76,6 +81,17 @@ defineRouteMeta({
                 id: { type: "string" },
                 name: { type: "string" },
                 description: { type: "string", nullable: true },
+                reference: { type: "string", nullable: true },
+                category: { type: "string", nullable: true },
+                siteAddress: { type: "string", nullable: true },
+                suburb: { type: "string", nullable: true },
+                postcode: { type: "string", nullable: true },
+                clientName: { type: "string", nullable: true },
+                clientEmail: { type: "string", nullable: true },
+                clientPhone: { type: "string", nullable: true },
+                priority: { type: "string" },
+                tags: { type: "array", items: { type: "string" } },
+                notes: { type: "string", nullable: true },
                 annotationCount: { type: "number" },
                 lastViewedAt: { type: "string", format: "date-time", nullable: true },
                 createdBy: { type: "string" },
@@ -129,16 +145,15 @@ defineRouteMeta({
                 shares: { type: "array", items: { type: "object" } },
                 _count: {
                   type: "object",
-                  properties: {
-                    shares: { type: "number" },
-                    files: { type: "number" }
-                  },
+                  properties: { shares: { type: "number" }, files: { type: "number" } },
                   required: ["shares", "files"]
                 }
               },
               required: [
                 "id",
                 "name",
+                "priority",
+                "tags",
                 "annotationCount",
                 "createdBy",
                 "createdAt",
@@ -188,11 +203,22 @@ export default defineEventHandler(async (event) => {
   const projectId = randomUUID()
   const fileId = randomUUID()
 
-  // Create project (without deprecated PDF fields)
+  // Create project with all details
   await db.insert(project).values({
     id: projectId,
     name: body.name,
     description: body.description ?? null,
+    reference: body.reference ?? null,
+    category: body.category ?? null,
+    siteAddress: body.siteAddress ?? null,
+    suburb: body.suburb ?? null,
+    postcode: body.postcode ?? null,
+    clientName: body.clientName ?? null,
+    clientEmail: body.clientEmail || null,
+    clientPhone: body.clientPhone ?? null,
+    priority: body.priority,
+    tags: body.tags,
+    notes: body.notes ?? null,
     annotationCount: 0,
     createdBy: session.user.id,
     organizationId: activeOrgId,
@@ -218,6 +244,17 @@ export default defineEventHandler(async (event) => {
       id: project.id,
       name: project.name,
       description: project.description,
+      reference: project.reference,
+      category: project.category,
+      siteAddress: project.siteAddress,
+      suburb: project.suburb,
+      postcode: project.postcode,
+      clientName: project.clientName,
+      clientEmail: project.clientEmail,
+      clientPhone: project.clientPhone,
+      priority: project.priority,
+      tags: project.tags,
+      notes: project.notes,
       annotationCount: project.annotationCount,
       lastViewedAt: project.lastViewedAt,
       createdBy: project.createdBy,

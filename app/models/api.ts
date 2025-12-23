@@ -684,6 +684,26 @@ export type GetApiProjectsId200 = {
   name: string
   /** @nullable */
   description?: string | null
+  /** @nullable */
+  reference?: string | null
+  /** @nullable */
+  category?: string | null
+  /** @nullable */
+  siteAddress?: string | null
+  /** @nullable */
+  suburb?: string | null
+  /** @nullable */
+  postcode?: string | null
+  /** @nullable */
+  clientName?: string | null
+  /** @nullable */
+  clientEmail?: string | null
+  /** @nullable */
+  clientPhone?: string | null
+  priority: string
+  tags: string[]
+  /** @nullable */
+  notes?: string | null
   annotationCount: number
   /** @nullable */
   lastViewedAt?: string | null
@@ -1241,35 +1261,83 @@ export type GetApiProjects200Item = {
   _count: _GetApiProjects200ItemCount
 }
 
+/**
+ * Priority level
+ */
+export type PostApiProjectsBodyPriority = (typeof PostApiProjectsBodyPriority)[keyof typeof PostApiProjectsBodyPriority]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostApiProjectsBodyPriority = {
+  low: "low",
+  normal: "normal",
+  high: "high",
+  urgent: "urgent"
+} as const
+
 export type PostApiProjectsBody = {
-  /**
-   * Project name
-   * @minLength 3
-   * @maxLength 100
-   */
+  /** Project name */
   name: string
   /**
    * Project description
-   * @maxLength 500
    * @nullable
    */
   description?: string | null
+  /**
+   * Reference / Job number
+   * @nullable
+   */
+  reference?: string | null
+  /**
+   * Project category
+   * @nullable
+   */
+  category?: string | null
+  /**
+   * Job site street address
+   * @nullable
+   */
+  siteAddress?: string | null
+  /**
+   * Suburb
+   * @nullable
+   */
+  suburb?: string | null
+  /**
+   * Postcode
+   * @nullable
+   */
+  postcode?: string | null
+  /**
+   * Client name
+   * @nullable
+   */
+  clientName?: string | null
+  /**
+   * Client email
+   * @nullable
+   */
+  clientEmail?: string | null
+  /**
+   * Client phone
+   * @nullable
+   */
+  clientPhone?: string | null
+  /** Priority level */
+  priority?: PostApiProjectsBodyPriority
+  /** Project tags */
+  tags?: string[]
+  /**
+   * Internal notes
+   * @nullable
+   */
+  notes?: string | null
   /** URL to the PDF file */
   pdfUrl: string
-  /**
-   * Original PDF file name
-   * @minLength 1
-   */
+  /** Original PDF file name */
   pdfFileName: string
-  /**
-   * PDF file size in bytes
-   * @minimum 1
-   */
+  /** PDF file size in bytes */
   pdfFileSize: number
-  /**
-   * Number of pages in the PDF
-   * @minimum 1
-   */
+  /** Number of pages in the PDF */
   pageCount?: number
 }
 
@@ -1314,6 +1382,26 @@ export type PostApiProjects201 = {
   name: string
   /** @nullable */
   description?: string | null
+  /** @nullable */
+  reference?: string | null
+  /** @nullable */
+  category?: string | null
+  /** @nullable */
+  siteAddress?: string | null
+  /** @nullable */
+  suburb?: string | null
+  /** @nullable */
+  postcode?: string | null
+  /** @nullable */
+  clientName?: string | null
+  /** @nullable */
+  clientEmail?: string | null
+  /** @nullable */
+  clientPhone?: string | null
+  priority: string
+  tags: string[]
+  /** @nullable */
+  notes?: string | null
   annotationCount: number
   /** @nullable */
   lastViewedAt?: string | null

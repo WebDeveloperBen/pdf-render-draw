@@ -15,6 +15,7 @@
 - [ ] Annotations should persist into the database and be rehydrated on load. (what algorithym should we use to sync them)
 - [ ] We need to enable printing of the pdf's with annotations embedded e.g. a download link
 - [ ] We need to enable download of the original file without annotations
+- [ ] Add the concepts of clients and database, api and ui to reflect this. Clients would be the collective information for recurring work for a user of our platform and as such would be tied to many projects. This feature enables this. Will need a clear creation modal not unlike the create project modal. to fully document their details. And then we'll need to update the create project model to select the client from instead of providing all their relevant details each time.
 
 ### Platform Admins
 

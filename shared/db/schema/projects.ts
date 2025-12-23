@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm"
-import { pgTable, text, timestamp, integer, index } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, integer, index, jsonb } from "drizzle-orm/pg-core"
 import { user, organization } from "./better-auth"
 import { projectShare } from "./project-share"
 import { projectFile } from "./project-file"
@@ -10,6 +10,22 @@ export const project = pgTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
+    // Reference / Job number
+    reference: text("reference"),
+    // Project category (new-build, renovation, etc.)
+    category: text("category"),
+    // Job site location
+    siteAddress: text("site_address"),
+    suburb: text("suburb"),
+    postcode: text("postcode"),
+    // Client information
+    clientName: text("client_name"),
+    clientEmail: text("client_email"),
+    clientPhone: text("client_phone"),
+    // Priority and organisation
+    priority: text("priority").default("normal").notNull(),
+    tags: jsonb("tags").$type<string[]>().default([]).notNull(),
+    notes: text("notes"),
     // Deprecated: PDF fields moved to project_file table
     // Kept nullable for migration transition, will be removed
     pdfUrl: text("pdf_url"),
