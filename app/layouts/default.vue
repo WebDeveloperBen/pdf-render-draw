@@ -178,6 +178,9 @@ useSeoMeta({ title: `${name} - Measure with precision` })
 
         <UiSidebarRail />
 
+        <!-- Pricing CTA -->
+        <SidebarPricingCta />
+
         <!-- Footer -->
         <UiSidebarFooter>
           <UiSidebarMenu>
