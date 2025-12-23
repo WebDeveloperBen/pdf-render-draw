@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
+import type { ViewportState } from "@/composables/useViewportStorage"
+
 definePageMeta({
   layout: "editor"
 })
@@ -9,16 +12,85 @@ const annotationStore = useAnnotationStore()
 
 // Get project and file IDs from query params
 const projectId = computed(() => route.query.projectId as string | undefined)
-const fileId = computed(() => route.query.fileId as string | undefined)
+const fileId = ref<string | null>(null)
 
 // File loading state
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 const fileName = ref<string>("")
 
+// Editor sync composable - handles persistence automatically via store action interception
+const {
+  syncState,
+  pendingCount,
+  syncError,
+  hasPendingChanges,
+  isOnline,
+  isInitialized,
+  currentViewportState,
+  initializeForFile,
+  forceSync,
+  cleanup: cleanupSync,
+  persistViewportState
+} = useEditorSync({
+  fileId: fileId,
+  annotationStore,
+  onAnnotationsLoaded: (annotations) => {
+    annotationStore.setAnnotations(annotations)
+  },
+  onViewportLoaded: (viewport) => {
+    // Apply server viewport state to viewport store
+    viewportStore.setScale(viewport.scale)
+    viewportStore.setRotation(viewport.rotation)
+    viewportStore.setCanvasPos({
+      scrollLeft: viewport.scrollLeft,
+      scrollTop: viewport.scrollTop
+    })
+    viewportStore.setCurrentPage(viewport.currentPage)
+  }
+})
+
+// Watch viewport changes and persist them (debounced)
+const viewportDebounceTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
+
+function persistViewport() {
+  if (!fileId.value) return
+
+  const state: ViewportState = {
+    scale: viewportStore.scale,
+    rotation: viewportStore.rotation,
+    scrollLeft: viewportStore.canvasPos.scrollLeft,
+    scrollTop: viewportStore.canvasPos.scrollTop,
+    currentPage: viewportStore.currentPage
+  }
+
+  persistViewportState(state)
+}
+
+// Watch viewport changes
+watch(
+  [
+    () => viewportStore.scale,
+    () => viewportStore.rotation,
+    () => viewportStore.canvasPos.scrollLeft,
+    () => viewportStore.canvasPos.scrollTop,
+    () => viewportStore.currentPage
+  ],
+  () => {
+    // Debounce viewport persistence (500ms)
+    if (viewportDebounceTimeout.value) {
+      clearTimeout(viewportDebounceTimeout.value)
+    }
+    viewportDebounceTimeout.value = setTimeout(persistViewport, 500)
+  }
+)
+
 // Fetch file details and load PDF
 async function loadFile() {
-  if (!projectId.value || !fileId.value) {
+  const projectIdValue = route.query.projectId as string | undefined
+  const fileIdValue = route.query.fileId as string | undefined
+
+  if (!projectIdValue || !fileIdValue) {
     loadError.value = "Missing project or file ID"
     isLoading.value = false
     return
@@ -28,9 +100,14 @@ async function loadFile() {
     isLoading.value = true
     loadError.value = null
 
-    const response = await $fetch(`/api/projects/${projectId.value}/files/${fileId.value}`)
+    const response = await $fetch(`/api/projects/${projectIdValue}/files/${fileIdValue}`)
     fileName.value = response.pdfFileName
     await viewportStore.loadPdf(response.pdfUrl)
+
+    // Set file ID and initialize sync
+    fileId.value = fileIdValue
+    annotationStore.setCurrentFileId(fileIdValue)
+    await initializeForFile(fileIdValue)
   } catch (error: unknown) {
     console.error("Failed to load file:", error)
     loadError.value = error instanceof Error ? error.message : "Failed to load file"
@@ -43,8 +120,25 @@ onMounted(() => {
   loadFile()
 })
 
-// Sidebar state
-const isSidebarOpen = ref(false)
+// Cleanup on unmount
+onUnmounted(async () => {
+  if (viewportDebounceTimeout.value) {
+    clearTimeout(viewportDebounceTimeout.value)
+  }
+  await cleanupSync()
+})
+
+// Sidebar state - persisted to localStorage
+const isSidebarOpen = useLocalStorage('editor-sidebar-open', false)
+
+// Sync status tooltip
+const syncTooltip = computed(() => {
+  if (syncState.value === "syncing") return "Syncing changes..."
+  if (syncState.value === "error") return `Sync error: ${syncError.value || "Unknown error"}`
+  if (syncState.value === "offline") return "Offline - changes saved locally"
+  if (pendingCount.value > 0) return `${pendingCount.value} unsaved change${pendingCount.value > 1 ? "s" : ""}`
+  return "All changes saved"
+})
 
 function toggleSidebar() {
   isSidebarOpen.value = !isSidebarOpen.value
@@ -129,8 +223,15 @@ function handleMouseUp() {
   }
 }
 
-// Keyboard shortcuts for space bar panning
+// Keyboard shortcuts for space bar panning and save
 function handleKeyDown(e: KeyboardEvent) {
+  // Ctrl+S or Cmd+S to force sync
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault()
+    forceSync()
+    return
+  }
+
   // Space bar panning
   if (e.code === "Space" && !spacePressed.value) {
     e.preventDefault()
@@ -239,7 +340,7 @@ if (typeof window !== "undefined") {
                 <Icon name="lucide:rotate-ccw" class="size-4" />
               </button>
               <button class="toolbar-btn-sm" title="Reset rotation" @click="resetRotation">
-                {{ viewportStore.rotation }}°
+                {{ Math.round(viewportStore.rotation) }}°
               </button>
               <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">
                 <Icon name="lucide:rotate-cw" class="size-4" />
@@ -247,8 +348,38 @@ if (typeof window !== "undefined") {
             </div>
           </div>
 
-          <!-- Right side - Info & Theme -->
+          <!-- Right side - Sync Status, Info & Theme -->
           <div class="toolbar-section">
+            <!-- Sync Status Indicator -->
+            <div class="sync-status" :class="syncState" :title="syncTooltip">
+              <Icon
+                v-if="syncState === 'syncing'"
+                name="svg-spinners:ring-resize"
+                class="size-4"
+              />
+              <Icon
+                v-else-if="syncState === 'error'"
+                name="lucide:cloud-off"
+                class="size-4"
+              />
+              <Icon
+                v-else-if="syncState === 'offline'"
+                name="lucide:wifi-off"
+                class="size-4"
+              />
+              <Icon
+                v-else-if="hasPendingChanges"
+                name="lucide:cloud-upload"
+                class="size-4"
+              />
+              <Icon v-else name="lucide:cloud-check" class="size-4" />
+              <span v-if="pendingCount > 0" class="pending-badge">
+                {{ pendingCount }}
+              </span>
+            </div>
+
+            <div class="divider" />
+
             <span class="info-text">Total Annotations: {{ annotationStore.annotations.length }}</span>
             <div class="divider" />
             <BackgroundThemeToggle />
@@ -605,5 +736,50 @@ if (typeof window !== "undefined") {
 
 .error-link:hover {
   opacity: 0.9;
+}
+
+/* Sync Status Indicator */
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.sync-status.idle {
+  color: var(--muted-foreground);
+}
+
+.sync-status.syncing {
+  color: var(--primary);
+}
+
+.sync-status.error {
+  color: hsl(0 84% 60%);
+  background: hsl(0 84% 60% / 0.1);
+}
+
+.sync-status.offline {
+  color: hsl(45 93% 47%);
+  background: hsl(45 93% 47% / 0.1);
+}
+
+.pending-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 600;
 }
 </style>

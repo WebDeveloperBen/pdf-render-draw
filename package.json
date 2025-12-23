@@ -55,6 +55,7 @@
     "@vueform/slider": "^2.1.10",
     "apexcharts": "^5.3.6",
     "better-auth": "^1.4.7",
+    "dexie": "^4.2.1",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "embla-carousel": "^8.6.0",

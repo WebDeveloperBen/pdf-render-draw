@@ -85,6 +85,27 @@
       "when": 1766496026489,
       "tag": "0011_add_project_details_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1766498374555,
+      "tag": "0012_add_annotations",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1766499779997,
+      "tag": "0013_concerned_dormammu",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1766500104177,
+      "tag": "0014_brief_swarm",
+      "breakpoints": true
     }
   ]
 }

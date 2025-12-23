@@ -6,6 +6,10 @@ import { project } from "./projects"
 /**
  * Project File table - stores individual PDF files within a project
  * Projects can have multiple files (1:N relationship)
+ *
+ * Note: Viewport state (scale, rotation, scroll, page) is stored per-user
+ * in the user_file_state table to support collaborative editing where
+ * each user has their own view of the document.
  */
 export const projectFile = pgTable(
   "project_file",

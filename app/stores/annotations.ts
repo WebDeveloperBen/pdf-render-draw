@@ -1,8 +1,14 @@
 import { defineStore } from "pinia"
 
+/**
+ * Annotation Store - Pure local state management
+ *
+ * This store manages in-memory annotation state only.
+ * Persistence and sync are handled by useEditorSync composable.
+ */
 export const useAnnotationStore = defineStore("annotations", () => {
   // ============================================
-  // State - DRASTICALLY SIMPLIFIED
+  // State - Core annotations
   // ============================================
 
   const annotations = ref<Annotation[]>([])
@@ -12,6 +18,9 @@ export const useAnnotationStore = defineStore("annotations", () => {
 
   // Temporary rotation delta during drag (added to stored rotation)
   const rotationDragDelta = ref(0)
+
+  // Current file ID (for reference, not for sync)
+  const currentFileId = ref<string | null>(null)
 
   // ============================================
   // Getters
@@ -140,6 +149,13 @@ export const useAnnotationStore = defineStore("annotations", () => {
   // ============================================
 
   /**
+   * Set current file ID (for reference)
+   */
+  function setCurrentFileId(fileId: string | null) {
+    currentFileId.value = fileId
+  }
+
+  /**
    * Recalculate derived values for annotations when points change
    * This ensures labels (midpoint, center) update when dragging/transforming
    * Note: calculateDistance/calculatePolygonArea read scale from settings store internally
@@ -198,26 +214,29 @@ export const useAnnotationStore = defineStore("annotations", () => {
 
   /**
    * Add a new annotation with validation
+   * @returns The annotation if added successfully
    * @throws {Error} If annotation is invalid
    */
-  function addAnnotation(annotation: Annotation) {
+  function addAnnotation(annotation: Annotation): Annotation {
     if (!validateAnnotation(annotation)) {
       console.error("Invalid annotation:", annotation)
       throw new Error(`Invalid annotation: missing or malformed data`)
     }
     annotations.value.push(annotation)
+    return annotation
   }
 
   /**
    * Update an existing annotation with validation
    * Automatically recalculates derived values (distance, area, center, etc.) when points change
+   * @returns The updated annotation if successful
    * @throws {Error} If updated annotation is invalid
    */
-  function updateAnnotation(id: string, updates: Partial<Annotation>) {
+  function updateAnnotation(id: string, updates: Partial<Annotation>): Annotation | undefined {
     const index = annotations.value.findIndex((a) => a.id === id)
     if (index === -1) {
       console.warn(`Annotation with id ${id} not found`)
-      return
+      return undefined
     }
 
     const before = annotations.value[index]
@@ -259,14 +278,51 @@ export const useAnnotationStore = defineStore("annotations", () => {
         savedRotationDeg: ((annotations.value[index] as { rotation?: number }).rotation || 0) * (180 / Math.PI)
       })
     }
+
+    return updated as Annotation
   }
 
-  function deleteAnnotation(id: string) {
+  /**
+   * Delete an annotation
+   * @returns true if deleted, false if not found
+   */
+  function deleteAnnotation(id: string): boolean {
+    const index = annotations.value.findIndex((a) => a.id === id)
+    if (index === -1) {
+      return false
+    }
+
+    annotations.value.splice(index, 1)
+
+    // Remove from selection if selected
+    const selIndex = selectedAnnotationIds.value.indexOf(id)
+    if (selIndex !== -1) {
+      selectedAnnotationIds.value.splice(selIndex, 1)
+    }
+
+    return true
+  }
+
+  /**
+   * Update annotation in memory only (for server updates, bypasses return)
+   */
+  function updateAnnotationFromServer(annotation: Annotation): void {
+    const index = annotations.value.findIndex((a) => a.id === annotation.id)
+    if (index !== -1) {
+      annotations.value[index] = annotation
+    } else {
+      annotations.value.push(annotation)
+    }
+  }
+
+  /**
+   * Remove annotation from memory only (for server deletes)
+   */
+  function removeAnnotationFromServer(id: string): void {
     const index = annotations.value.findIndex((a) => a.id === id)
     if (index !== -1) {
       annotations.value.splice(index, 1)
     }
-    // Remove from selection if selected
     const selIndex = selectedAnnotationIds.value.indexOf(id)
     if (selIndex !== -1) {
       selectedAnnotationIds.value.splice(selIndex, 1)
@@ -371,36 +427,6 @@ export const useAnnotationStore = defineStore("annotations", () => {
   }
 
   // ============================================
-  // Persistence (replaces your complex save logic)
-  // ============================================
-
-  async function saveAnnotations(documentUrl: string, authorId: string) {
-    const payload = annotations.value.map((ann) => ({
-      id: ann.id,
-      document_url: documentUrl,
-      author_id: authorId,
-      page_num: ann.pageNum,
-      type: ann.type,
-      data: ann // Entire annotation as JSON - NO NORMALIZATION!
-    }))
-
-    await $fetch("/api/annotations/upsert", {
-      method: "POST",
-      body: payload
-    })
-  }
-
-  async function loadAnnotations(documentUrl: string) {
-    const { data } = await $fetch<{ data: Array<{ data: Annotation }> }>("/api/annotations/fetch", {
-      method: "POST",
-      body: { documentSlug: documentUrl }
-    })
-
-    // Data is already in the right format - NO DENORMALIZATION!
-    annotations.value = data.map((item) => item.data)
-  }
-
-  // ============================================
   // JSON Export/Import (for local backup/restore)
   // ============================================
 
@@ -452,6 +478,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
     selectedAnnotationId, // Backwards compat: first selected or null
     isDrawing,
     rotationDragDelta,
+    currentFileId: readonly(currentFileId),
 
     // Getters
     getAnnotationsByPage,
@@ -481,19 +508,25 @@ export const useAnnotationStore = defineStore("annotations", () => {
       : {}),
 
     // Actions
+    setCurrentFileId,
     addAnnotation,
     updateAnnotation,
     deleteAnnotation,
+    updateAnnotationFromServer,
+    removeAnnotationFromServer,
     setActiveTool,
     selectAnnotation, // Supports single, multi, and options
     selectAnnotations, // Convenience for multi-select
     deselectAll, // Clear selection
     clearAnnotations,
     setAnnotations,
-    saveAnnotations,
-    loadAnnotations,
+
+    // Export/Import
     exportToJSON,
     importFromJSON,
     downloadJSON
   }
 })
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useAnnotationStore, import.meta.hot))
+}

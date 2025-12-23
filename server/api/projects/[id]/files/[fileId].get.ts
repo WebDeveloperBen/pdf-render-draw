@@ -12,7 +12,8 @@ defineRouteMeta({
   openAPI: {
     tags: ["Project Files"],
     summary: "Get Project File",
-    description: "Get a specific file from a project",
+    description:
+      "Get a specific file from a project with user-specific viewport state",
     parameters: [
       {
         name: "id",
@@ -31,7 +32,7 @@ defineRouteMeta({
     ],
     responses: {
       200: {
-        description: "File details",
+        description: "File details with user-specific viewport state",
         content: {
           "application/json": {
             schema: {
@@ -45,7 +46,11 @@ defineRouteMeta({
                 pageCount: { type: "number" },
                 annotationCount: { type: "number" },
                 uploadedBy: { type: "string" },
-                lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                lastViewedAt: {
+                  type: "string",
+                  format: "date-time",
+                  nullable: true
+                },
                 createdAt: { type: "string", format: "date-time" },
                 updatedAt: { type: "string", format: "date-time" },
                 uploader: {
@@ -57,6 +62,18 @@ defineRouteMeta({
                     image: { type: "string", nullable: true }
                   },
                   required: ["id", "name", "email"]
+                },
+                viewportState: {
+                  type: "object",
+                  nullable: true,
+                  description: "User-specific viewport preferences for this file",
+                  properties: {
+                    scale: { type: "number" },
+                    rotation: { type: "number" },
+                    scrollLeft: { type: "number" },
+                    scrollTop: { type: "number" },
+                    currentPage: { type: "number" }
+                  }
                 }
               },
               required: [
@@ -160,5 +177,25 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return file
+  // Get user-specific viewport state
+  const [viewportStateData] = await db
+    .select({
+      scale: userFileState.viewportScale,
+      rotation: userFileState.viewportRotation,
+      scrollLeft: userFileState.viewportScrollLeft,
+      scrollTop: userFileState.viewportScrollTop,
+      currentPage: userFileState.viewportCurrentPage
+    })
+    .from(userFileState)
+    .where(
+      and(
+        eq(userFileState.userId, session.user.id),
+        eq(userFileState.fileId, fileId)
+      )
+    )
+
+  return {
+    ...file,
+    viewportState: viewportStateData || null
+  }
 })

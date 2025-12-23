@@ -4,7 +4,6 @@ import { useKeyboardShortcuts } from "./useKeyboardShortcuts"
 import { useAnnotationStore } from "~/stores/annotations"
 import { useViewportStore } from "~/stores/viewport"
 
-import type { Measurement, Area } from "~/types/annotations"
 
 describe("Keyboard Shortcuts", () => {
   beforeEach(() => {

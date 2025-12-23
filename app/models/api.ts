@@ -192,7 +192,7 @@ export type GetApiAdminOrganizationsParams = {
 export type GetApiAdminOrganizationsSortBy =
   (typeof GetApiAdminOrganizationsSortBy)[keyof typeof GetApiAdminOrganizationsSortBy]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiAdminOrganizationsSortBy = {
   createdAt: "createdAt",
   name: "name"
@@ -201,7 +201,7 @@ export const GetApiAdminOrganizationsSortBy = {
 export type GetApiAdminOrganizationsSortOrder =
   (typeof GetApiAdminOrganizationsSortOrder)[keyof typeof GetApiAdminOrganizationsSortOrder]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiAdminOrganizationsSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -380,7 +380,7 @@ export type GetApiAdminUsersParams = {
 
 export type GetApiAdminUsersSortBy = (typeof GetApiAdminUsersSortBy)[keyof typeof GetApiAdminUsersSortBy]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiAdminUsersSortBy = {
   createdAt: "createdAt",
   name: "name",
@@ -389,7 +389,7 @@ export const GetApiAdminUsersSortBy = {
 
 export type GetApiAdminUsersSortOrder = (typeof GetApiAdminUsersSortOrder)[keyof typeof GetApiAdminUsersSortOrder]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiAdminUsersSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -428,7 +428,7 @@ export type GetApiAdminUsers200 = {
 export type GetApiDashboardStats200RecentActivityItemType =
   (typeof GetApiDashboardStats200RecentActivityItemType)[keyof typeof GetApiDashboardStats200RecentActivityItemType]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiDashboardStats200RecentActivityItemType = {
   project_updated: "project_updated"
 } as const
@@ -967,7 +967,7 @@ export type PatchApiProjectsIdSharesShareIdBody = {
 export type PatchApiProjectsIdSharesShareId200ShareType =
   (typeof PatchApiProjectsIdSharesShareId200ShareType)[keyof typeof PatchApiProjectsIdSharesShareId200ShareType]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const PatchApiProjectsIdSharesShareId200ShareType = {
   public: "public",
   private: "private"
@@ -1010,7 +1010,7 @@ export type PatchApiProjectsIdSharesShareId200 = {
 export type GetApiProjectsIdShares200ItemShareType =
   (typeof GetApiProjectsIdShares200ItemShareType)[keyof typeof GetApiProjectsIdShares200ItemShareType]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiProjectsIdShares200ItemShareType = {
   public: "public",
   private: "private"
@@ -1081,7 +1081,7 @@ export type GetApiProjectsIdShares200Item = {
 export type PostApiProjectsIdSharesBodyShareType =
   (typeof PostApiProjectsIdSharesBodyShareType)[keyof typeof PostApiProjectsIdSharesBodyShareType]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const PostApiProjectsIdSharesBodyShareType = {
   public: "public",
   private: "private"
@@ -1122,7 +1122,7 @@ export type PostApiProjectsIdSharesBody = {
 export type PostApiProjectsIdShares201ShareType =
   (typeof PostApiProjectsIdShares201ShareType)[keyof typeof PostApiProjectsIdShares201ShareType]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const PostApiProjectsIdShares201ShareType = {
   public: "public",
   private: "private"
@@ -1199,7 +1199,7 @@ export type GetApiProjectsParams = {
 
 export type GetApiProjectsSortBy = (typeof GetApiProjectsSortBy)[keyof typeof GetApiProjectsSortBy]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiProjectsSortBy = {
   name: "name",
   createdAt: "createdAt",
@@ -1209,7 +1209,7 @@ export const GetApiProjectsSortBy = {
 
 export type GetApiProjectsSortOrder = (typeof GetApiProjectsSortOrder)[keyof typeof GetApiProjectsSortOrder]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiProjectsSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -1266,7 +1266,7 @@ export type GetApiProjects200Item = {
  */
 export type PostApiProjectsBodyPriority = (typeof PostApiProjectsBodyPriority)[keyof typeof PostApiProjectsBodyPriority]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const PostApiProjectsBodyPriority = {
   low: "low",
   normal: "normal",
@@ -1450,7 +1450,7 @@ export type GetApiShareToken200Organization = {
 export type GetApiShareToken200ShareShareType =
   (typeof GetApiShareToken200ShareShareType)[keyof typeof GetApiShareToken200ShareShareType]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const GetApiShareToken200ShareShareType = {
   public: "public",
   private: "private"

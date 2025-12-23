@@ -1036,7 +1036,7 @@ defineExpose({
         <strong>Size:</strong> {{ selectedShape.width }} × {{ selectedShape.height }}
       </p>
       <p v-if="selectedIds.length === 1 && selectedShape">
-        <strong>Rotation:</strong> {{ ((selectedShape.rotation * 180) / Math.PI).toFixed(1) }}°
+        <strong>Rotation:</strong> {{ Math.round((selectedShape.rotation * 180) / Math.PI) }}°
       </p>
       <p v-if="selectionBounds">
         <strong>Union BBox:</strong> ({{ Math.round(selectionBounds.x) }}, {{ Math.round(selectionBounds.y) }})
