@@ -3,21 +3,45 @@ definePageMeta({
   layout: "editor"
 })
 
+const route = useRoute()
 const viewportStore = useViewportStore()
-
-// Load PDF via store (lazy worker initialization)
-const pdfUrl = ref("/house.pdf")
-onMounted(() => {
-  viewportStore.loadPdf(pdfUrl.value)
-})
-
-// Watch for URL changes (e.g., if user loads a different PDF)
-watch(pdfUrl, (newUrl) => {
-  if (newUrl) {
-    viewportStore.loadPdf(newUrl)
-  }
-})
 const annotationStore = useAnnotationStore()
+
+// Get project and file IDs from query params
+const projectId = computed(() => route.query.projectId as string | undefined)
+const fileId = computed(() => route.query.fileId as string | undefined)
+
+// File loading state
+const isLoading = ref(true)
+const loadError = ref<string | null>(null)
+const fileName = ref<string>("")
+
+// Fetch file details and load PDF
+async function loadFile() {
+  if (!projectId.value || !fileId.value) {
+    loadError.value = "Missing project or file ID"
+    isLoading.value = false
+    return
+  }
+
+  try {
+    isLoading.value = true
+    loadError.value = null
+
+    const response = await $fetch(`/api/projects/${projectId.value}/files/${fileId.value}`)
+    fileName.value = response.pdfFileName
+    await viewportStore.loadPdf(response.pdfUrl)
+  } catch (error: unknown) {
+    console.error("Failed to load file:", error)
+    loadError.value = error instanceof Error ? error.message : "Failed to load file"
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadFile()
+})
 
 // Sidebar state
 const isSidebarOpen = ref(false)
@@ -140,12 +164,20 @@ if (typeof window !== "undefined") {
         <div class="toolbar">
           <!-- Left side - Navigation -->
           <div class="toolbar-section">
-            <NuxtLink to="/" class="toolbar-btn" title="Back to dashboard">
+            <NuxtLink :to="projectId ? `/projects/${projectId}` : '/'" class="toolbar-btn" title="Back to project">
               <Icon name="lucide:arrow-left" class="size-4" />
               <span>Back</span>
             </NuxtLink>
 
             <div class="divider" />
+
+            <!-- File name -->
+            <div v-if="fileName" class="file-name" :title="fileName">
+              <Icon name="lucide:file-text" class="size-4" />
+              <span>{{ fileName }}</span>
+            </div>
+
+            <div v-if="fileName" class="divider" />
 
             <button
               class="toolbar-btn"
@@ -260,7 +292,21 @@ if (typeof window !== "undefined") {
           @mouseleave="handleMouseUp"
           @contextmenu.prevent
         >
-          <Editor v-if="viewportStore.isPdfLoaded" />
+          <!-- Loading state -->
+          <div v-if="isLoading" class="loading-state">
+            <Icon name="svg-spinners:ring-resize" class="size-8 text-primary" />
+            <span>Loading file...</span>
+          </div>
+
+          <!-- Error state -->
+          <div v-else-if="loadError" class="error-state">
+            <Icon name="lucide:alert-circle" class="size-8 text-destructive" />
+            <span>{{ loadError }}</span>
+            <NuxtLink :to="projectId ? `/projects/${projectId}` : '/'" class="error-link"> Return to project </NuxtLink>
+          </div>
+
+          <!-- Editor -->
+          <Editor v-else-if="viewportStore.isPdfLoaded" />
         </div>
       </div>
     </ClientOnly>
@@ -502,5 +548,62 @@ if (typeof window !== "undefined") {
 
 .editor-container.panning {
   cursor: grabbing;
+}
+
+/* File name in toolbar */
+.file-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  max-width: 200px;
+  overflow: hidden;
+}
+
+.file-name span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Loading state */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+/* Error state */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+.error-link {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.error-link:hover {
+  opacity: 0.9;
 }
 </style>

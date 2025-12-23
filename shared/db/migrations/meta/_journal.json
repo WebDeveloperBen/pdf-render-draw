@@ -71,6 +71,13 @@
       "when": 1766359183637,
       "tag": "0009_even_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1766491130181,
+      "tag": "0010_young_norrin_radd",
+      "breakpoints": true
     }
   ]
 }

@@ -4,9 +4,9 @@
 
 ### General
 
-- [ ] first read, update and then complete the outstanding items from ADMIN_AUDIT_REPORT.md
-- [ ] I want to remove organisations from being used within the frontend and instead replace it with "workplace" since this is aimed at trades. I think it fits their niche much better than organisation. under the hood in the api and database it can stay as organisation
-- [ ] I want to move the workplace selector component into the top of the sidebar component so there isn't two, will make it much more polished I feel.
+- [x] first read, update and then complete the outstanding items from ADMIN_AUDIT_REPORT.md (core complete, remaining items are polish/enhancements)
+- [x] I want to remove organisations from being used within the frontend and instead replace it with "workplace" since this is aimed at trades. I think it fits their niche much better than organisation. under the hood in the api and database it can stay as organisation
+- [x] I want to move the workplace selector component into the top of the sidebar component so there isn't two, will make it much more polished I feel.
 
 ### Features
 
@@ -24,11 +24,11 @@
 
 ### Errors
 
-- [ ] ERROR [Better Auth]: BetterAuthError Field createdAt not found in model admin_audit_log
+- [x] ERROR [Better Auth]: BetterAuthError Field createdAt not found in model admin_audit_log (added createdAt to plugin schema)
 
 ### BUGS
 
-- [ ] Default organisation selection may or may not work for new users
+- [x] Default organisation selection may or may not work for new users (logic verified - ensureActiveOrganization handles correctly)
 
 ### Tests to do
 

@@ -6,11 +6,11 @@ import { auth } from "@auth"
 const bodySchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters"),
   description: z.string().max(500).nullish(),
+  // File data for the initial file
   pdfUrl: z.url({ message: "Invalid PDF URL" }),
   pdfFileName: z.string().min(1, "File name is required"),
   pdfFileSize: z.number().positive("File size must be positive"),
-  thumbnailUrl: z.url().nullish(),
-  pageCount: z.number().int().min(1).default(1)
+  pageCount: z.number().int().min(0).default(0)
 })
 
 // OpenAPI metadata for Orval type generation
@@ -53,12 +53,6 @@ defineRouteMeta({
                 minimum: 1,
                 description: "PDF file size in bytes"
               },
-              thumbnailUrl: {
-                type: "string",
-                format: "uri",
-                nullable: true,
-                description: "URL to the project thumbnail"
-              },
               pageCount: {
                 type: "integer",
                 minimum: 1,
@@ -82,11 +76,6 @@ defineRouteMeta({
                 id: { type: "string" },
                 name: { type: "string" },
                 description: { type: "string", nullable: true },
-                pdfUrl: { type: "string" },
-                pdfFileName: { type: "string", nullable: true },
-                pdfFileSize: { type: "number", nullable: true },
-                thumbnailUrl: { type: "string", nullable: true },
-                pageCount: { type: "number" },
                 annotationCount: { type: "number" },
                 lastViewedAt: { type: "string", format: "date-time", nullable: true },
                 createdBy: { type: "string" },
@@ -113,25 +102,49 @@ defineRouteMeta({
                     logo: { type: "string", nullable: true }
                   }
                 },
+                files: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      pdfUrl: { type: "string" },
+                      pdfFileName: { type: "string" },
+                      pdfFileSize: { type: "number" },
+                      pageCount: { type: "number" },
+                      annotationCount: { type: "number" },
+                      createdAt: { type: "string", format: "date-time" }
+                    },
+                    required: [
+                      "id",
+                      "pdfUrl",
+                      "pdfFileName",
+                      "pdfFileSize",
+                      "pageCount",
+                      "annotationCount",
+                      "createdAt"
+                    ]
+                  }
+                },
                 shares: { type: "array", items: { type: "object" } },
                 _count: {
                   type: "object",
                   properties: {
-                    shares: { type: "number" }
+                    shares: { type: "number" },
+                    files: { type: "number" }
                   },
-                  required: ["shares"]
+                  required: ["shares", "files"]
                 }
               },
               required: [
                 "id",
                 "name",
-                "pdfUrl",
-                "pageCount",
                 "annotationCount",
                 "createdBy",
                 "createdAt",
                 "updatedAt",
                 "creator",
+                "files",
                 "shares",
                 "_count"
               ]
@@ -173,19 +186,29 @@ export default defineEventHandler(async (event) => {
 
   // Create the project
   const projectId = randomUUID()
+  const fileId = randomUUID()
 
+  // Create project (without deprecated PDF fields)
   await db.insert(project).values({
     id: projectId,
     name: body.name,
     description: body.description ?? null,
-    pdfUrl: body.pdfUrl,
-    pdfFileName: body.pdfFileName,
-    pdfFileSize: body.pdfFileSize,
-    thumbnailUrl: body.thumbnailUrl ?? null,
-    pageCount: body.pageCount,
     annotationCount: 0,
     createdBy: session.user.id,
     organizationId: activeOrgId,
+    lastViewedAt: null
+  })
+
+  // Create initial file for the project
+  await db.insert(projectFile).values({
+    id: fileId,
+    projectId,
+    pdfUrl: body.pdfUrl,
+    pdfFileName: body.pdfFileName,
+    pdfFileSize: body.pdfFileSize,
+    pageCount: body.pageCount,
+    annotationCount: 0,
+    uploadedBy: session.user.id,
     lastViewedAt: null
   })
 
@@ -195,11 +218,6 @@ export default defineEventHandler(async (event) => {
       id: project.id,
       name: project.name,
       description: project.description,
-      pdfUrl: project.pdfUrl,
-      pdfFileName: project.pdfFileName,
-      pdfFileSize: project.pdfFileSize,
-      thumbnailUrl: project.thumbnailUrl,
-      pageCount: project.pageCount,
       annotationCount: project.annotationCount,
       lastViewedAt: project.lastViewedAt,
       createdBy: project.createdBy,
@@ -224,12 +242,28 @@ export default defineEventHandler(async (event) => {
     .leftJoin(organization, eq(project.organizationId, organization.id))
     .where(eq(project.id, projectId))
 
+  // Fetch the created file
+  const files = await db
+    .select({
+      id: projectFile.id,
+      pdfUrl: projectFile.pdfUrl,
+      pdfFileName: projectFile.pdfFileName,
+      pdfFileSize: projectFile.pdfFileSize,
+      pageCount: projectFile.pageCount,
+      annotationCount: projectFile.annotationCount,
+      createdAt: projectFile.createdAt
+    })
+    .from(projectFile)
+    .where(eq(projectFile.projectId, projectId))
+
   setResponseStatus(event, 201)
   return {
     ...projectWithRelations,
+    files,
     shares: [],
     _count: {
-      shares: 0
+      shares: 0,
+      files: files.length
     }
   }
 })

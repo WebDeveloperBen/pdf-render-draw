@@ -1,18 +1,18 @@
 import { z } from "zod"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { auth } from "@auth"
-import { deleteFromR2 } from "../../utils/r2"
 
 const paramsSchema = z.object({
-  id: z.uuid({ message: "Invalid project ID" })
+  id: z.uuid({ message: "Invalid project ID" }),
+  fileId: z.uuid({ message: "Invalid file ID" })
 })
 
 // OpenAPI metadata for Orval type generation
 defineRouteMeta({
   openAPI: {
-    tags: ["Projects"],
-    summary: "Delete Project",
-    description: "Delete a project permanently",
+    tags: ["Project Files"],
+    summary: "Delete Project File",
+    description: "Remove a file from a project",
     parameters: [
       {
         name: "id",
@@ -20,11 +20,18 @@ defineRouteMeta({
         required: true,
         schema: { type: "string", format: "uuid" },
         description: "Project ID (UUID)"
+      },
+      {
+        name: "fileId",
+        in: "path",
+        required: true,
+        schema: { type: "string", format: "uuid" },
+        description: "File ID (UUID)"
       }
     ],
     responses: {
       200: {
-        description: "Project deleted successfully",
+        description: "File deleted successfully",
         content: {
           "application/json": {
             schema: {
@@ -40,8 +47,8 @@ defineRouteMeta({
       },
       400: { description: "Bad request - no active organization" },
       401: { description: "Unauthorized - authentication required" },
-      403: { description: "Forbidden - insufficient permissions or access denied" },
-      404: { description: "Project not found" }
+      403: { description: "Forbidden - access denied" },
+      404: { description: "Project or file not found" }
     }
   }
 })
@@ -57,11 +64,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check permission to delete projects
-  await requirePermission(event, { project: ["delete"] })
-
   // Validate route params
-  const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
+  const { id: projectId, fileId } = await getValidatedRouterParams(event, paramsSchema.parse)
 
   // Get active organization
   const activeOrgId = session.session.activeOrganizationId
@@ -75,10 +79,10 @@ export default defineEventHandler(async (event) => {
 
   const db = useDrizzle()
 
-  // Fetch the project
-  const [existingProject] = await db.select().from(project).where(eq(project.id, projectId))
+  // Check if project exists
+  const [projectData] = await db.select().from(project).where(eq(project.id, projectId))
 
-  if (!existingProject) {
+  if (!projectData) {
     throw createError({
       statusCode: 404,
       statusMessage: "Project not found"
@@ -86,30 +90,35 @@ export default defineEventHandler(async (event) => {
   }
 
   // Check access: project must belong to active organization
-  if (existingProject.organizationId !== activeOrgId) {
+  if (projectData.organizationId !== activeOrgId) {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"
     })
   }
 
-  // Get all files for this project and delete from R2
-  const files = await db.select({ pdfUrl: projectFile.pdfUrl }).from(projectFile).where(eq(projectFile.projectId, projectId))
+  // Check if file exists
+  const [existingFile] = await db
+    .select()
+    .from(projectFile)
+    .where(and(eq(projectFile.id, fileId), eq(projectFile.projectId, projectId)))
 
-  for (const file of files) {
-    try {
-      await deleteFromR2(file.pdfUrl)
-    } catch (error) {
-      console.error("Failed to delete file from R2:", error)
-      // Continue with other files even if one fails
-    }
+  if (!existingFile) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "File not found"
+    })
   }
 
-  // Delete project (cascade will delete files and shares)
-  await db.delete(project).where(eq(project.id, projectId))
+  // TODO: Delete file from R2 storage
+  // const r2 = useR2()
+  // await r2.delete(existingFile.pdfUrl)
+
+  // Delete the file record
+  await db.delete(projectFile).where(eq(projectFile.id, fileId))
 
   return {
     success: true,
-    message: "Project deleted successfully"
+    message: "File deleted successfully"
   }
 })

@@ -74,15 +74,11 @@ const styles = {
           <Button :href="verificationUrl" :style="styles.button">Verify Email</Button>
         </Section>
 
-        <Text :style="styles.textMuted">
-          If you didn't create an account, you can safely ignore this email.
-        </Text>
+        <Text :style="styles.textMuted"> If you didn't create an account, you can safely ignore this email. </Text>
 
         <Hr :style="styles.hr" />
 
-        <Text :style="styles.textSmall">
-          If the button doesn't work, copy and paste this link into your browser:
-        </Text>
+        <Text :style="styles.textSmall"> If the button doesn't work, copy and paste this link into your browser: </Text>
         <Link :href="verificationUrl" :style="styles.link">{{ verificationUrl }}</Link>
 
         <Section :style="styles.footer">

@@ -86,9 +86,7 @@ const styles = {
           <strong>{{ inviterName }}</strong> has invited you to join
         </Text>
         <Text :style="styles.orgName">{{ organizationName }}</Text>
-        <Text :style="styles.text">
-          Join the team to collaborate on PDF annotations and projects together.
-        </Text>
+        <Text :style="styles.text"> Join the team to collaborate on PDF annotations and projects together. </Text>
 
         <Section :style="{ textAlign: 'center', margin: '32px 0' }">
           <Button :href="inviteUrl" :style="styles.button">Accept Invitation</Button>
@@ -96,9 +94,7 @@ const styles = {
 
         <Hr :style="styles.hr" />
 
-        <Text :style="styles.textSmall">
-          If the button doesn't work, copy and paste this link into your browser:
-        </Text>
+        <Text :style="styles.textSmall"> If the button doesn't work, copy and paste this link into your browser: </Text>
         <Link :href="inviteUrl" :style="styles.link">{{ inviteUrl }}</Link>
 
         <Section :style="styles.footer">

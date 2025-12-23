@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { ProjectWithRelations, ProjectShareWithRelations } from "#shared/types/projects.types"
+import type {
+  ProjectWithRelations,
+  ProjectShareWithRelations,
+  ProjectFileWithUploader
+} from "#shared/types/projects.types"
 import { toast } from "vue-sonner"
 
 const route = useRoute("projects-id")
@@ -12,8 +16,10 @@ useSeoMeta({ title: "Project Details" })
 
 const isLoading = ref(true)
 const isDeleting = ref(false)
+const isDeletingFile = ref<string | null>(null)
 const project = ref<ProjectWithRelations | null>(null)
 const shares = ref<ProjectShareWithRelations[]>([])
+const files = ref<ProjectFileWithUploader[]>([])
 
 // Share creation
 const showShareDialog = ref(false)
@@ -81,6 +87,155 @@ const fetchShares = async () => {
   } catch (error: any) {
     toast.error("Failed to load shares")
   }
+}
+
+// Fetch files
+const fetchFiles = async () => {
+  try {
+    const data = await $fetch<ProjectFileWithUploader[]>(`/api/projects/${projectId}/files`)
+    files.value = data
+  } catch (error: any) {
+    toast.error("Failed to load files")
+  }
+}
+
+// Add file dialog
+const showAddFileDialog = ref(false)
+const isUploading = ref(false)
+const isDragging = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const uploadedFile = ref<{
+  pdfUrl: string
+  fileName: string
+  fileSize: number
+  pageCount: number
+} | null>(null)
+
+// Reset add file dialog
+function resetAddFileDialog() {
+  uploadedFile.value = null
+  isUploading.value = false
+  isDragging.value = false
+}
+
+// Handle file selection
+function handleFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    uploadFile(input.files[0])
+  }
+}
+
+// Handle drag events
+function handleDragOver(event: DragEvent) {
+  event.preventDefault()
+  isDragging.value = true
+}
+
+function handleDragLeave() {
+  isDragging.value = false
+}
+
+function handleDrop(event: DragEvent) {
+  event.preventDefault()
+  isDragging.value = false
+
+  const droppedFiles = event.dataTransfer?.files
+  if (droppedFiles && droppedFiles[0]) {
+    if (droppedFiles[0].type !== "application/pdf") {
+      toast.error("Please upload a PDF file")
+      return
+    }
+    uploadFile(droppedFiles[0])
+  }
+}
+
+// Upload file to R2
+async function uploadFile(file: File) {
+  if (file.type !== "application/pdf") {
+    toast.error("Please upload a PDF file")
+    return
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    toast.error("File too large. Maximum size is 50MB.")
+    return
+  }
+
+  isUploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append("pdf", file)
+
+    const result = await $fetch<{
+      pdfUrl: string
+      fileName: string
+      fileSize: number
+      pageCount: number
+    }>("/api/upload/pdf", {
+      method: "POST",
+      body: formData
+    })
+
+    uploadedFile.value = result
+    toast.success("File uploaded")
+  } catch (error: any) {
+    toast.error(error.data?.statusMessage || "Failed to upload file")
+  } finally {
+    isUploading.value = false
+  }
+}
+
+// Add file to project
+async function handleAddFile() {
+  if (!uploadedFile.value) return
+
+  try {
+    const newFile = await $fetch<ProjectFileWithUploader>(`/api/projects/${projectId}/files`, {
+      method: "POST",
+      body: {
+        pdfUrl: uploadedFile.value.pdfUrl,
+        pdfFileName: uploadedFile.value.fileName,
+        pdfFileSize: uploadedFile.value.fileSize,
+        pageCount: uploadedFile.value.pageCount
+      }
+    })
+
+    files.value.push(newFile)
+    toast.success("File added to project")
+    showAddFileDialog.value = false
+    resetAddFileDialog()
+  } catch (error: any) {
+    toast.error(error.data?.statusMessage || "Failed to add file")
+  }
+}
+
+// Delete file
+const handleDeleteFile = async (fileId: string) => {
+  if (!confirm("Are you sure you want to delete this file? This action cannot be undone.")) {
+    return
+  }
+
+  isDeletingFile.value = fileId
+  try {
+    await $fetch(`/api/projects/${projectId}/files/${fileId}`, {
+      method: "DELETE"
+    })
+
+    files.value = files.value.filter((f) => f.id !== fileId)
+    toast.success("File deleted")
+  } catch (error: any) {
+    toast.error(error.data?.statusMessage || "Failed to delete file")
+  } finally {
+    isDeletingFile.value = null
+  }
+}
+
+// Format file size
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return bytes + " B"
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB"
 }
 
 // Create share
@@ -195,6 +350,7 @@ const formatDate = (date: Date | string | null) => {
 
 onMounted(() => {
   fetchProject()
+  fetchFiles()
   fetchShares()
 })
 </script>
@@ -225,10 +381,6 @@ onMounted(() => {
           <Icon name="lucide:share-2" class="size-4 mr-2" />
           Share
         </UiButton>
-        <UiButton variant="outline" @click="navigateTo(`/editor?projectId=${projectId}`)">
-          <Icon name="lucide:edit" class="size-4 mr-2" />
-          Open Editor
-        </UiButton>
         <UiDropdownMenu>
           <UiDropdownMenuTrigger as-child>
             <UiButton variant="ghost" size="icon">
@@ -250,11 +402,11 @@ onMounted(() => {
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <UiCard>
         <UiCardHeader class="flex flex-row items-center justify-between pb-2">
-          <UiCardTitle class="text-sm font-medium">Pages</UiCardTitle>
-          <Icon name="lucide:file" class="size-4 text-muted-foreground" />
+          <UiCardTitle class="text-sm font-medium">Files</UiCardTitle>
+          <Icon name="lucide:file-text" class="size-4 text-muted-foreground" />
         </UiCardHeader>
         <UiCardContent>
-          <div class="text-2xl font-bold">{{ project.pageCount }}</div>
+          <div class="text-2xl font-bold">{{ files.length }}</div>
         </UiCardContent>
       </UiCard>
 
@@ -289,17 +441,64 @@ onMounted(() => {
       </UiCard>
     </div>
 
-    <!-- PDF Preview -->
+    <!-- Files List -->
     <UiCard>
       <UiCardHeader>
-        <UiCardTitle>PDF Preview</UiCardTitle>
+        <div class="flex items-center justify-between">
+          <div>
+            <UiCardTitle>Files</UiCardTitle>
+            <UiCardDescription>PDF files in this project</UiCardDescription>
+          </div>
+          <UiButton size="sm" @click="showAddFileDialog = true">
+            <Icon name="lucide:plus" class="size-4 mr-2" />
+            Add File
+          </UiButton>
+        </div>
       </UiCardHeader>
       <UiCardContent>
-        <div class="aspect-video bg-muted rounded-lg flex items-center justify-center border">
-          <div class="text-center">
-            <Icon name="lucide:file-text" class="size-24 mx-auto mb-4 text-muted-foreground/30" />
-            <p class="text-lg font-medium">{{ project.pdfFileName }}</p>
-            <p class="text-sm text-muted-foreground">Click "Open Editor" to view and annotate</p>
+        <div v-if="files.length === 0" class="text-center py-8 text-muted-foreground">
+          <Icon name="lucide:file-text" class="size-12 mx-auto mb-2 opacity-50" />
+          <p>No files yet</p>
+        </div>
+
+        <div v-else class="space-y-3">
+          <div
+            v-for="file in files"
+            :key="file.id"
+            class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+          >
+            <!-- File info -->
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="flex size-10 items-center justify-center rounded-lg bg-muted shrink-0">
+                <Icon name="lucide:file-text" class="size-5 text-muted-foreground" />
+              </div>
+              <div class="min-w-0">
+                <p class="font-medium truncate">{{ file.pdfFileName }}</p>
+                <div class="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{{ formatFileSize(file.pdfFileSize) }}</span>
+                  <span>{{ file.pageCount }} pages</span>
+                  <span>{{ file.annotationCount }} annotations</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 shrink-0">
+              <UiButton size="sm" @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)">
+                <Icon name="lucide:edit" class="size-4 mr-2" />
+                Edit
+              </UiButton>
+              <UiButton
+                variant="ghost"
+                size="icon"
+                class="text-destructive hover:text-destructive"
+                :disabled="isDeletingFile === file.id"
+                @click="handleDeleteFile(file.id)"
+              >
+                <Icon v-if="isDeletingFile === file.id" name="svg-spinners:ring-resize" class="size-4" />
+                <Icon v-else name="lucide:trash" class="size-4" />
+              </UiButton>
+            </div>
           </div>
         </div>
       </UiCardContent>
@@ -660,6 +859,76 @@ onMounted(() => {
               <Icon v-else name="lucide:link" class="size-4" />
             </template>
             {{ newShare.shareType === "private" ? "Send Invitations" : "Create Link" }}
+          </UiButton>
+        </UiDialogFooter>
+      </UiDialogContent>
+    </UiDialog>
+
+    <!-- Add File Dialog -->
+    <UiDialog v-model:open="showAddFileDialog" @update:open="(open) => !open && resetAddFileDialog()">
+      <UiDialogContent class="sm:max-w-lg">
+        <UiDialogHeader>
+          <UiDialogTitle>Add File</UiDialogTitle>
+          <UiDialogDescription>Upload a PDF file to add to this project</UiDialogDescription>
+        </UiDialogHeader>
+
+        <div class="space-y-4 py-4">
+          <!-- Upload area -->
+          <div
+            v-if="!uploadedFile"
+            class="border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer"
+            :class="isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'"
+            @click="fileInputRef?.click()"
+            @dragover="handleDragOver"
+            @dragleave="handleDragLeave"
+            @drop="handleDrop"
+          >
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept="application/pdf"
+              class="hidden"
+              @change="handleFileSelect"
+            />
+
+            <div v-if="isUploading" class="space-y-3">
+              <Icon name="svg-spinners:ring-resize" class="size-10 mx-auto text-primary" />
+              <p class="text-sm text-muted-foreground">Uploading...</p>
+            </div>
+
+            <div v-else class="space-y-3">
+              <Icon name="lucide:upload-cloud" class="size-10 mx-auto text-muted-foreground" />
+              <div>
+                <p class="font-medium">Drop your PDF here or click to browse</p>
+                <p class="text-sm text-muted-foreground mt-1">Maximum file size: 50MB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Uploaded file preview -->
+          <div v-else class="border rounded-lg p-4">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 size-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Icon name="lucide:file-text" class="size-5 text-primary" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium truncate">{{ uploadedFile.fileName }}</p>
+                <p class="text-sm text-muted-foreground">
+                  {{ formatFileSize(uploadedFile.fileSize) }}
+                  <span v-if="uploadedFile.pageCount"> &bull; {{ uploadedFile.pageCount }} pages</span>
+                </p>
+              </div>
+              <UiButton variant="ghost" size="sm" @click="uploadedFile = null">
+                <Icon name="lucide:x" class="size-4" />
+              </UiButton>
+            </div>
+          </div>
+        </div>
+
+        <UiDialogFooter>
+          <UiButton variant="outline" @click="showAddFileDialog = false">Cancel</UiButton>
+          <UiButton :disabled="!uploadedFile" @click="handleAddFile">
+            Add to Project
           </UiButton>
         </UiDialogFooter>
       </UiDialogContent>

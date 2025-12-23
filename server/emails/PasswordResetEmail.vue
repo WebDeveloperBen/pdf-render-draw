@@ -80,9 +80,7 @@ const styles = {
 
         <Hr :style="styles.hr" />
 
-        <Text :style="styles.textSmall">
-          If the button doesn't work, copy and paste this link into your browser:
-        </Text>
+        <Text :style="styles.textSmall"> If the button doesn't work, copy and paste this link into your browser: </Text>
         <Link :href="resetUrl" :style="styles.link">{{ resetUrl }}</Link>
 
         <Section :style="styles.footer">

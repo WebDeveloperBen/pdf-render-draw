@@ -1,4 +1,5 @@
 export * from "./better-auth"
 export * from "./projects"
+export * from "./project-file"
 export * from "./project-share"
 export * from "./project-share-recipient"

@@ -28,44 +28,159 @@ const fetchProjects = async () => {
   }
 }
 
-// Create project dialog
+// Multi-step create project dialog
 const showCreateDialog = ref(false)
+const createStep = ref<1 | 2>(1)
+const isUploading = ref(false)
+const isDragging = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
 const newProject = ref({
   name: "",
   description: ""
 })
 
-const handleCreateProject = async () => {
+// Uploaded file data from R2
+const uploadedFile = ref<{
+  pdfUrl: string
+  fileName: string
+  fileSize: number
+  pageCount: number
+} | null>(null)
+
+// Reset dialog state
+function resetCreateDialog() {
+  createStep.value = 1
+  newProject.value = { name: "", description: "" }
+  uploadedFile.value = null
+  isUploading.value = false
+  isDragging.value = false
+}
+
+// Close dialog and reset
+function closeCreateDialog() {
+  showCreateDialog.value = false
+  resetCreateDialog()
+}
+
+// Go to next step
+function goToStep2() {
   if (!newProject.value.name) {
     toast.error("Please enter a project name")
+    return
+  }
+  createStep.value = 2
+}
+
+// Go back to step 1
+function goToStep1() {
+  createStep.value = 1
+}
+
+// Handle file selection
+function handleFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    uploadFile(input.files[0])
+  }
+}
+
+// Handle drag events
+function handleDragOver(event: DragEvent) {
+  event.preventDefault()
+  isDragging.value = true
+}
+
+function handleDragLeave() {
+  isDragging.value = false
+}
+
+function handleDrop(event: DragEvent) {
+  event.preventDefault()
+  isDragging.value = false
+
+  const files = event.dataTransfer?.files
+  if (files && files[0]) {
+    if (files[0].type !== "application/pdf") {
+      toast.error("Please upload a PDF file")
+      return
+    }
+    uploadFile(files[0])
+  }
+}
+
+// Upload file to R2
+async function uploadFile(file: File) {
+  if (file.type !== "application/pdf") {
+    toast.error("Please upload a PDF file")
+    return
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    toast.error("File too large. Maximum size is 50MB.")
+    return
+  }
+
+  isUploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append("pdf", file)
+
+    const result = await $fetch<{
+      pdfUrl: string
+      fileName: string
+      fileSize: number
+      pageCount: number
+    }>("/api/upload/pdf", {
+      method: "POST",
+      body: formData
+    })
+
+    uploadedFile.value = result
+    toast.success("File uploaded successfully")
+  } catch (error: any) {
+    toast.error(error.data?.statusMessage || "Failed to upload file")
+  } finally {
+    isUploading.value = false
+  }
+}
+
+// Create project with uploaded file
+async function handleCreateProject() {
+  if (!newProject.value.name || !uploadedFile.value) {
+    toast.error("Please complete all steps")
     return
   }
 
   isCreating.value = true
   try {
-    // For demo purposes, we'll create with placeholder PDF data
-    // In production, this would involve a file upload flow
     const project = await $fetch<ProjectWithRelations>("/api/projects", {
       method: "POST",
       body: {
         name: newProject.value.name,
         description: newProject.value.description || null,
-        pdfUrl: "https://example.com/placeholder.pdf",
-        pdfFileName: "placeholder.pdf",
-        pdfFileSize: 1024,
-        pageCount: 1
+        pdfUrl: uploadedFile.value.pdfUrl,
+        pdfFileName: uploadedFile.value.fileName,
+        pdfFileSize: uploadedFile.value.fileSize,
+        pageCount: uploadedFile.value.pageCount
       }
     })
 
     projects.value.unshift(project)
     toast.success("Project created successfully")
-    showCreateDialog.value = false
-    newProject.value = { name: "", description: "" }
+    closeCreateDialog()
   } catch (error: any) {
     toast.error(error.data?.statusMessage || "Failed to create project")
   } finally {
     isCreating.value = false
   }
+}
+
+// Format file size
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 // Format date
@@ -76,13 +191,6 @@ const formatDate = (date: Date | string | null) => {
     month: "short",
     day: "numeric"
   })
-}
-
-// Format file size
-const formatFileSize = (bytes: number) => {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 // Search with debounce
@@ -166,8 +274,8 @@ onMounted(() => {
 
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
             <div class="flex items-center gap-1">
-              <Icon name="lucide:file" class="size-3" />
-              {{ project.pageCount }} {{ project.pageCount === 1 ? "page" : "pages" }}
+              <Icon name="lucide:file-text" class="size-3" />
+              {{ project._count?.files ?? 0 }} {{ project._count?.files === 1 ? "file" : "files" }}
             </div>
             <div class="flex items-center gap-1">
               <Icon name="lucide:message-square" class="size-3" />
@@ -196,23 +304,44 @@ onMounted(() => {
       </UiCard>
     </div>
 
-    <!-- Create Project Dialog -->
-    <UiDialog v-model:open="showCreateDialog">
-      <UiDialogContent>
+    <!-- Create Project Dialog (Multi-step) -->
+    <UiDialog v-model:open="showCreateDialog" @update:open="(open) => !open && resetCreateDialog()">
+      <UiDialogContent class="sm:max-w-lg">
         <UiDialogHeader>
-          <UiDialogTitle>Create New Project</UiDialogTitle>
-          <UiDialogDescription>Give your project a name and optionally add a description</UiDialogDescription>
+          <UiDialogTitle>
+            {{ createStep === 1 ? "Create New Project" : "Upload PDF" }}
+          </UiDialogTitle>
+          <UiDialogDescription>
+            {{ createStep === 1 ? "Give your project a name and description" : "Upload a PDF file to get started" }}
+          </UiDialogDescription>
         </UiDialogHeader>
 
-        <div class="space-y-4 py-4">
+        <!-- Step indicators -->
+        <div class="flex items-center justify-center gap-2 py-2">
+          <div
+            class="flex items-center justify-center size-8 rounded-full text-sm font-medium transition-colors"
+            :class="createStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'"
+          >
+            1
+          </div>
+          <div class="w-12 h-0.5" :class="createStep >= 2 ? 'bg-primary' : 'bg-muted'" />
+          <div
+            class="flex items-center justify-center size-8 rounded-full text-sm font-medium transition-colors"
+            :class="createStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'"
+          >
+            2
+          </div>
+        </div>
+
+        <!-- Step 1: Project Details -->
+        <div v-if="createStep === 1" class="space-y-4 py-4">
           <div class="space-y-2">
             <UiLabel for="project-name">Project Name</UiLabel>
             <UiInput
               id="project-name"
               v-model="newProject.name"
               placeholder="e.g., Building Plan A"
-              :disabled="isCreating"
-              @keyup.enter="handleCreateProject"
+              @keyup.enter="goToStep2"
             />
           </div>
 
@@ -222,18 +351,84 @@ onMounted(() => {
               id="project-description"
               v-model="newProject.description"
               placeholder="Add a brief description..."
-              :disabled="isCreating"
               :rows="3"
             />
           </div>
         </div>
 
+        <!-- Step 2: File Upload -->
+        <div v-else class="space-y-4 py-4">
+          <!-- Upload area -->
+          <div
+            v-if="!uploadedFile"
+            class="border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer"
+            :class="isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'"
+            @click="fileInputRef?.click()"
+            @dragover="handleDragOver"
+            @dragleave="handleDragLeave"
+            @drop="handleDrop"
+          >
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept="application/pdf"
+              class="hidden"
+              @change="handleFileSelect"
+            />
+
+            <div v-if="isUploading" class="space-y-3">
+              <Icon name="svg-spinners:ring-resize" class="size-10 mx-auto text-primary" />
+              <p class="text-sm text-muted-foreground">Uploading...</p>
+            </div>
+
+            <div v-else class="space-y-3">
+              <Icon name="lucide:upload-cloud" class="size-10 mx-auto text-muted-foreground" />
+              <div>
+                <p class="font-medium">Drop your PDF here or click to browse</p>
+                <p class="text-sm text-muted-foreground mt-1">Maximum file size: 50MB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Uploaded file preview -->
+          <div v-else class="border rounded-lg p-4">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 size-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Icon name="lucide:file-text" class="size-5 text-primary" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium truncate">{{ uploadedFile.fileName }}</p>
+                <p class="text-sm text-muted-foreground">
+                  {{ formatFileSize(uploadedFile.fileSize) }}
+                  <span v-if="uploadedFile.pageCount"> &bull; {{ uploadedFile.pageCount }} pages</span>
+                </p>
+              </div>
+              <UiButton variant="ghost" size="sm" @click="uploadedFile = null">
+                <Icon name="lucide:x" class="size-4" />
+              </UiButton>
+            </div>
+          </div>
+        </div>
+
         <UiDialogFooter>
-          <UiButton variant="outline" :disabled="isCreating" @click="showCreateDialog = false"> Cancel </UiButton>
-          <UiButton :disabled="!newProject.name || isCreating" @click="handleCreateProject">
-            <Icon v-if="isCreating" name="svg-spinners:90-ring-with-bg" class="size-4 mr-2" />
-            Create Project
-          </UiButton>
+          <template v-if="createStep === 1">
+            <UiButton variant="outline" @click="closeCreateDialog">Cancel</UiButton>
+            <UiButton :disabled="!newProject.name" @click="goToStep2">
+              Next
+              <Icon name="lucide:arrow-right" class="size-4 ml-2" />
+            </UiButton>
+          </template>
+
+          <template v-else>
+            <UiButton variant="outline" @click="goToStep1">
+              <Icon name="lucide:arrow-left" class="size-4 mr-2" />
+              Back
+            </UiButton>
+            <UiButton :disabled="!uploadedFile || isCreating" @click="handleCreateProject">
+              <Icon v-if="isCreating" name="svg-spinners:90-ring-with-bg" class="size-4 mr-2" />
+              Create Project
+            </UiButton>
+          </template>
         </UiDialogFooter>
       </UiDialogContent>
     </UiDialog>

@@ -66,11 +66,6 @@ defineRouteMeta({
                   id: { type: "string" },
                   name: { type: "string" },
                   description: { type: "string", nullable: true },
-                  pdfUrl: { type: "string" },
-                  pdfFileName: { type: "string", nullable: true },
-                  pdfFileSize: { type: "number", nullable: true },
-                  thumbnailUrl: { type: "string", nullable: true },
-                  pageCount: { type: "number" },
                   annotationCount: { type: "number" },
                   lastViewedAt: { type: "string", format: "date-time", nullable: true },
                   createdBy: { type: "string" },
@@ -101,16 +96,15 @@ defineRouteMeta({
                   _count: {
                     type: "object",
                     properties: {
-                      shares: { type: "number" }
+                      shares: { type: "number" },
+                      files: { type: "number" }
                     },
-                    required: ["shares"]
+                    required: ["shares", "files"]
                   }
                 },
                 required: [
                   "id",
                   "name",
-                  "pdfUrl",
-                  "pageCount",
                   "annotationCount",
                   "createdBy",
                   "createdAt",
@@ -185,11 +179,6 @@ export default defineEventHandler(async (event) => {
       id: project.id,
       name: project.name,
       description: project.description,
-      pdfUrl: project.pdfUrl,
-      pdfFileName: project.pdfFileName,
-      pdfFileSize: project.pdfFileSize,
-      thumbnailUrl: project.thumbnailUrl,
-      pageCount: project.pageCount,
       annotationCount: project.annotationCount,
       lastViewedAt: project.lastViewedAt,
       createdBy: project.createdBy,
@@ -234,12 +223,28 @@ export default defineEventHandler(async (event) => {
 
   const shareCountMap = new Map(shareCounts.map((sc) => [sc.projectId, sc.count]))
 
+  // Get file counts for each project
+  const fileCounts =
+    projectIds.length > 0
+      ? await db
+          .select({
+            projectId: projectFile.projectId,
+            count: sql<number>`count(*)::int`
+          })
+          .from(projectFile)
+          .where(inArray(projectFile.projectId, projectIds))
+          .groupBy(projectFile.projectId)
+      : []
+
+  const fileCountMap = new Map(fileCounts.map((fc) => [fc.projectId, fc.count]))
+
   // Combine results
   return projects.map((p) => ({
     ...p,
     shares: [],
     _count: {
-      shares: shareCountMap.get(p.id) || 0
+      shares: shareCountMap.get(p.id) || 0,
+      files: fileCountMap.get(p.id) || 0
     }
   }))
 })

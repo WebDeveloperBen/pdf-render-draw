@@ -29,6 +29,7 @@ const {
   organization,
   member,
   project,
+  projectFile,
   projectShare,
   projectShareRecipient,
   platformAdmin
@@ -67,6 +68,12 @@ const SEED_IDS = {
     floorPlan: "00000000-0000-4000-8000-000000000020",
     sitePlan: "00000000-0000-4000-8000-000000000021",
     electrical: "00000000-0000-4000-8000-000000000022"
+  },
+  files: {
+    floorPlanFile: "00000000-0000-4000-8000-000000000050",
+    sitePlanFile: "00000000-0000-4000-8000-000000000051",
+    sitePlanRevision: "00000000-0000-4000-8000-000000000052",
+    electricalFile: "00000000-0000-4000-8000-000000000053"
   },
   shares: {
     publicShare: "00000000-0000-4000-8000-000000000030",
@@ -145,11 +152,7 @@ async function seedDev() {
     console.log("👤 Seeding users...")
 
     for (const demoUser of DEMO_USERS) {
-      const [existing] = await db
-        .select()
-        .from(user)
-        .where(eq(user.email, demoUser.email))
-        .limit(1)
+      const [existing] = await db.select().from(user).where(eq(user.email, demoUser.email)).limit(1)
 
       if (existing) {
         console.log(`   ✓ User ${demoUser.email} already exists`)
@@ -196,21 +199,13 @@ async function seedDev() {
     console.log("🔑 Seeding platform admin...")
 
     const adminUserId = SEED_IDS.users.admin
-    const [existingAdmin] = await db
-      .select()
-      .from(platformAdmin)
-      .where(eq(platformAdmin.userId, adminUserId))
-      .limit(1)
+    const [existingAdmin] = await db.select().from(platformAdmin).where(eq(platformAdmin.userId, adminUserId)).limit(1)
 
     if (existingAdmin) {
       console.log("   ✓ Platform admin already exists")
     } else {
       // Check if user exists first
-      const [adminUser] = await db
-        .select()
-        .from(user)
-        .where(eq(user.id, adminUserId))
-        .limit(1)
+      const [adminUser] = await db.select().from(user).where(eq(user.id, adminUserId)).limit(1)
 
       if (adminUser) {
         await db.insert(platformAdmin).values({
@@ -234,11 +229,7 @@ async function seedDev() {
     console.log("🏢 Seeding organizations...")
 
     for (const org of DEMO_ORGS) {
-      const [existing] = await db
-        .select()
-        .from(organization)
-        .where(eq(organization.slug, org.slug))
-        .limit(1)
+      const [existing] = await db.select().from(organization).where(eq(organization.slug, org.slug)).limit(1)
 
       if (existing) {
         console.log(`   ✓ Organization ${org.name} already exists`)
@@ -302,10 +293,6 @@ async function seedDev() {
         id: SEED_IDS.projects.floorPlan,
         name: "Office Floor Plan",
         description: "Main office building floor plan with measurements",
-        pdfUrl: "https://example.com/demo/floor-plan.pdf",
-        pdfFileName: "floor-plan.pdf",
-        pdfFileSize: 2500000,
-        pageCount: 3,
         createdBy: SEED_IDS.users.user,
         organizationId: SEED_IDS.orgs.acme
       },
@@ -313,10 +300,6 @@ async function seedDev() {
         id: SEED_IDS.projects.sitePlan,
         name: "Construction Site Plan",
         description: "Full site layout with building footprints",
-        pdfUrl: "https://example.com/demo/site-plan.pdf",
-        pdfFileName: "site-plan.pdf",
-        pdfFileSize: 5000000,
-        pageCount: 8,
         createdBy: SEED_IDS.users.admin,
         organizationId: SEED_IDS.orgs.acme
       },
@@ -324,34 +307,87 @@ async function seedDev() {
         id: SEED_IDS.projects.electrical,
         name: "Electrical Layout",
         description: "Electrical wiring and outlet placement",
-        pdfUrl: "https://example.com/demo/electrical.pdf",
-        pdfFileName: "electrical.pdf",
-        pdfFileSize: 1800000,
-        pageCount: 2,
         createdBy: SEED_IDS.users.user,
         organizationId: null // Personal project
       }
     ]
 
     for (const proj of projects) {
-      const [existing] = await db
-        .select()
-        .from(project)
-        .where(eq(project.id, proj.id))
-        .limit(1)
+      const [existing] = await db.select().from(project).where(eq(project.id, proj.id)).limit(1)
 
       if (existing) {
         console.log(`   ✓ Project ${proj.name} already exists`)
       } else {
         await db.insert(project).values({
           ...proj,
-          thumbnailUrl: null,
           annotationCount: 0,
           lastViewedAt: null,
           createdAt: new Date(),
           updatedAt: new Date()
         })
         console.log(`   + Created project: ${proj.name}`)
+      }
+    }
+
+    // ==========================================
+    // 5b. SEED PROJECT FILES
+    // ==========================================
+    console.log("")
+    console.log("📄 Seeding project files...")
+
+    const projectFiles = [
+      {
+        id: SEED_IDS.files.floorPlanFile,
+        projectId: SEED_IDS.projects.floorPlan,
+        pdfUrl: "https://example.com/demo/floor-plan.pdf",
+        pdfFileName: "floor-plan.pdf",
+        pdfFileSize: 2500000,
+        pageCount: 3,
+        uploadedBy: SEED_IDS.users.user
+      },
+      {
+        id: SEED_IDS.files.sitePlanFile,
+        projectId: SEED_IDS.projects.sitePlan,
+        pdfUrl: "https://example.com/demo/site-plan.pdf",
+        pdfFileName: "site-plan.pdf",
+        pdfFileSize: 5000000,
+        pageCount: 8,
+        uploadedBy: SEED_IDS.users.admin
+      },
+      {
+        id: SEED_IDS.files.sitePlanRevision,
+        projectId: SEED_IDS.projects.sitePlan,
+        pdfUrl: "https://example.com/demo/site-plan-v2.pdf",
+        pdfFileName: "site-plan-v2.pdf",
+        pdfFileSize: 5200000,
+        pageCount: 10,
+        uploadedBy: SEED_IDS.users.admin
+      },
+      {
+        id: SEED_IDS.files.electricalFile,
+        projectId: SEED_IDS.projects.electrical,
+        pdfUrl: "https://example.com/demo/electrical.pdf",
+        pdfFileName: "electrical.pdf",
+        pdfFileSize: 1800000,
+        pageCount: 2,
+        uploadedBy: SEED_IDS.users.user
+      }
+    ]
+
+    for (const file of projectFiles) {
+      const [existing] = await db.select().from(projectFile).where(eq(projectFile.id, file.id)).limit(1)
+
+      if (existing) {
+        console.log(`   ✓ File ${file.pdfFileName} already exists`)
+      } else {
+        await db.insert(projectFile).values({
+          ...file,
+          annotationCount: 0,
+          lastViewedAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        console.log(`   + Created file: ${file.pdfFileName}`)
       }
     }
 
@@ -391,11 +427,7 @@ async function seedDev() {
     ]
 
     for (const share of shares) {
-      const [existing] = await db
-        .select()
-        .from(projectShare)
-        .where(eq(projectShare.id, share.id))
-        .limit(1)
+      const [existing] = await db.select().from(projectShare).where(eq(projectShare.id, share.id)).limit(1)
 
       if (existing) {
         console.log(`   ✓ Share ${share.name} already exists`)
@@ -439,10 +471,7 @@ async function seedDev() {
         .select()
         .from(projectShareRecipient)
         .where(
-          and(
-            eq(projectShareRecipient.shareId, recipient.shareId),
-            eq(projectShareRecipient.email, recipient.email)
-          )
+          and(eq(projectShareRecipient.shareId, recipient.shareId), eq(projectShareRecipient.email, recipient.email))
         )
         .limit(1)
 

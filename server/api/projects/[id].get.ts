@@ -23,7 +23,7 @@ defineRouteMeta({
     ],
     responses: {
       200: {
-        description: "Project details with shares",
+        description: "Project details with files and shares",
         content: {
           "application/json": {
             schema: {
@@ -32,11 +32,6 @@ defineRouteMeta({
                 id: { type: "string" },
                 name: { type: "string" },
                 description: { type: "string", nullable: true },
-                pdfUrl: { type: "string" },
-                pdfFileName: { type: "string", nullable: true },
-                pdfFileSize: { type: "number", nullable: true },
-                thumbnailUrl: { type: "string", nullable: true },
-                pageCount: { type: "number" },
                 annotationCount: { type: "number" },
                 lastViewedAt: { type: "string", format: "date-time", nullable: true },
                 createdBy: { type: "string" },
@@ -63,6 +58,46 @@ defineRouteMeta({
                     logo: { type: "string", nullable: true }
                   }
                 },
+                files: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      pdfUrl: { type: "string" },
+                      pdfFileName: { type: "string" },
+                      pdfFileSize: { type: "number" },
+                      pageCount: { type: "number" },
+                      annotationCount: { type: "number" },
+                      uploadedBy: { type: "string" },
+                      lastViewedAt: { type: "string", format: "date-time", nullable: true },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" },
+                      uploader: {
+                        type: "object",
+                        properties: {
+                          id: { type: "string" },
+                          name: { type: "string" },
+                          email: { type: "string" },
+                          image: { type: "string", nullable: true }
+                        },
+                        required: ["id", "name", "email"]
+                      }
+                    },
+                    required: [
+                      "id",
+                      "pdfUrl",
+                      "pdfFileName",
+                      "pdfFileSize",
+                      "pageCount",
+                      "annotationCount",
+                      "uploadedBy",
+                      "createdAt",
+                      "updatedAt",
+                      "uploader"
+                    ]
+                  }
+                },
                 shares: {
                   type: "array",
                   items: { type: "object" }
@@ -70,21 +105,21 @@ defineRouteMeta({
                 _count: {
                   type: "object",
                   properties: {
-                    shares: { type: "number" }
+                    shares: { type: "number" },
+                    files: { type: "number" }
                   },
-                  required: ["shares"]
+                  required: ["shares", "files"]
                 }
               },
               required: [
                 "id",
                 "name",
-                "pdfUrl",
-                "pageCount",
                 "annotationCount",
                 "createdBy",
                 "createdAt",
                 "updatedAt",
                 "creator",
+                "files",
                 "shares",
                 "_count"
               ]
@@ -132,11 +167,6 @@ export default defineEventHandler(async (event) => {
       id: project.id,
       name: project.name,
       description: project.description,
-      pdfUrl: project.pdfUrl,
-      pdfFileName: project.pdfFileName,
-      pdfFileSize: project.pdfFileSize,
-      thumbnailUrl: project.thumbnailUrl,
-      pageCount: project.pageCount,
       annotationCount: project.annotationCount,
       lastViewedAt: project.lastViewedAt,
       createdBy: project.createdBy,
@@ -176,6 +206,31 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Get files for this project
+  const files = await db
+    .select({
+      id: projectFile.id,
+      pdfUrl: projectFile.pdfUrl,
+      pdfFileName: projectFile.pdfFileName,
+      pdfFileSize: projectFile.pdfFileSize,
+      pageCount: projectFile.pageCount,
+      annotationCount: projectFile.annotationCount,
+      uploadedBy: projectFile.uploadedBy,
+      lastViewedAt: projectFile.lastViewedAt,
+      createdAt: projectFile.createdAt,
+      updatedAt: projectFile.updatedAt,
+      uploader: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image
+      }
+    })
+    .from(projectFile)
+    .leftJoin(user, eq(projectFile.uploadedBy, user.id))
+    .where(eq(projectFile.projectId, projectId))
+    .orderBy(projectFile.createdAt)
+
   // Get shares for this project
   const shares = await db.select().from(projectShare).where(eq(projectShare.projectId, projectId))
 
@@ -184,9 +239,11 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...projectData,
+    files,
     shares,
     _count: {
-      shares: shares.length
+      shares: shares.length,
+      files: files.length
     }
   }
 })

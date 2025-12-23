@@ -72,11 +72,7 @@ function generateFileId(): string {
  * @param contentType - MIME type of the file
  * @returns Public URL of the uploaded file
  */
-export async function uploadToR2(
-  file: ArrayBuffer | Uint8Array,
-  path: string,
-  contentType: string
-): Promise<string> {
+export async function uploadToR2(file: ArrayBuffer | Uint8Array, path: string, contentType: string): Promise<string> {
   const client = getS3Client()
   const bucketName = getBucketName()
   const publicUrl = getR2PublicUrl()
@@ -144,10 +140,7 @@ export async function deleteMultipleFromR2(urls: string[]): Promise<void> {
  * @param fileName - Original file name
  * @returns Upload result with URL and metadata
  */
-export async function uploadPdf(
-  pdfBuffer: ArrayBuffer | Uint8Array,
-  fileName: string
-): Promise<PDFUploadResult> {
+export async function uploadPdf(pdfBuffer: ArrayBuffer | Uint8Array, fileName: string): Promise<PDFUploadResult> {
   const fileId = generateFileId()
   const fileExt = fileName.split(".").pop() || "pdf"
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_").substring(0, 100)

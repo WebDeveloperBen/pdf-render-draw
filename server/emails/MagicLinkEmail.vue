@@ -66,9 +66,7 @@ const styles = {
         </Section>
 
         <Heading :style="styles.heading">Sign in to {{ appName }}</Heading>
-        <Text :style="styles.text">
-          Click the button below to sign in to your account. No password needed!
-        </Text>
+        <Text :style="styles.text"> Click the button below to sign in to your account. No password needed! </Text>
 
         <Section :style="{ textAlign: 'center', margin: '32px 0' }">
           <Button :href="magicLinkUrl" :style="styles.button">Sign In</Button>
@@ -80,9 +78,7 @@ const styles = {
 
         <Hr :style="styles.hr" />
 
-        <Text :style="styles.textSmall">
-          If the button doesn't work, copy and paste this link into your browser:
-        </Text>
+        <Text :style="styles.textSmall"> If the button doesn't work, copy and paste this link into your browser: </Text>
         <Link :href="magicLinkUrl" :style="styles.link">{{ magicLinkUrl }}</Link>
 
         <Section :style="styles.footer">

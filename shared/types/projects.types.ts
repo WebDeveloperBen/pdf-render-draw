@@ -1,5 +1,5 @@
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm"
-import type { project, projectShare, projectShareRecipient } from "../db/schema"
+import type { project, projectFile, projectShare, projectShareRecipient } from "../db/schema"
 
 // Share types
 export type ShareType = "public" | "private"
@@ -9,11 +9,24 @@ export type RecipientStatus = "pending" | "viewed" | "expired"
 export type Project = InferSelectModel<typeof project>
 export type ProjectInsert = InferInsertModel<typeof project>
 
+export type ProjectFile = InferSelectModel<typeof projectFile>
+export type ProjectFileInsert = InferInsertModel<typeof projectFile>
+
 export type ProjectShare = InferSelectModel<typeof projectShare>
 export type ProjectShareInsert = InferInsertModel<typeof projectShare>
 
 export type ProjectShareRecipient = InferSelectModel<typeof projectShareRecipient>
 export type ProjectShareRecipientInsert = InferInsertModel<typeof projectShareRecipient>
+
+// Project file with uploader info
+export interface ProjectFileWithUploader extends ProjectFile {
+  uploader: {
+    id: string
+    name: string
+    email: string
+    image: string | null
+  }
+}
 
 // Extended types with relations
 export interface ProjectWithRelations extends Project {
@@ -30,8 +43,10 @@ export interface ProjectWithRelations extends Project {
     logo: string | null
   } | null
   shares: ProjectShare[]
+  files: ProjectFile[]
   _count?: {
     shares: number
+    files: number
   }
 }
 
@@ -88,12 +103,19 @@ export interface ProjectFilters {
 export interface CreateProjectInput {
   name: string
   description?: string
+  organizationId?: string | null
+  // Initial file data (first file in project)
   pdfUrl: string
   pdfFileName: string
   pdfFileSize: number
-  thumbnailUrl?: string
   pageCount: number
-  organizationId?: string | null
+}
+
+export interface AddProjectFileInput {
+  pdfUrl: string
+  pdfFileName: string
+  pdfFileSize: number
+  pageCount: number
 }
 
 export interface UpdateProjectInput {

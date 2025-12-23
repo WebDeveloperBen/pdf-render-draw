@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm"
 import { pgTable, text, timestamp, integer, index } from "drizzle-orm/pg-core"
 import { user, organization } from "./better-auth"
 import { projectShare } from "./project-share"
+import { projectFile } from "./project-file"
 
 export const project = pgTable(
   "project",
@@ -9,11 +10,13 @@ export const project = pgTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
-    pdfUrl: text("pdf_url").notNull(),
-    pdfFileName: text("pdf_file_name").notNull(),
-    pdfFileSize: integer("pdf_file_size").notNull(),
+    // Deprecated: PDF fields moved to project_file table
+    // Kept nullable for migration transition, will be removed
+    pdfUrl: text("pdf_url"),
+    pdfFileName: text("pdf_file_name"),
+    pdfFileSize: integer("pdf_file_size"),
     thumbnailUrl: text("thumbnail_url"),
-    pageCount: integer("page_count").default(0).notNull(),
+    pageCount: integer("page_count").default(0),
     annotationCount: integer("annotation_count").default(0).notNull(),
     lastViewedAt: timestamp("last_viewed_at"),
     createdBy: text("created_by")
@@ -44,5 +47,6 @@ export const projectRelations = relations(project, ({ one, many }) => ({
     fields: [project.organizationId],
     references: [organization.id]
   }),
-  shares: many(projectShare)
+  shares: many(projectShare),
+  files: many(projectFile)
 }))
