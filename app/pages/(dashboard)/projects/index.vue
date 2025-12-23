@@ -4,6 +4,7 @@ import { toast } from "vue-sonner"
 
 useSeoMeta({ title: "Projects" })
 
+const route = useRoute()
 const isLoading = ref(true)
 const projects = ref<ProjectWithRelations[]>([])
 const searchQuery = ref("")
@@ -54,6 +55,13 @@ watch(searchQuery, () => {
 
 onMounted(() => {
   fetchProjects()
+
+  // Auto-open create dialog if ?create=true is in URL
+  if (route.query.create === "true") {
+    showCreateDialog.value = true
+    // Clean up the URL
+    navigateTo("/projects", { replace: true })
+  }
 })
 </script>
 

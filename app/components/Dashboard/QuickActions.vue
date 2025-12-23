@@ -31,16 +31,16 @@ const projectCount = projects.length > 0 ? "View" : "0"
       </UiCardContent>
     </UiCard>
 
-    <UiCard class="hover:shadow-md transition-shadow cursor-pointer" @click="navigateTo('/editor')">
+    <UiCard class="hover:shadow-md transition-shadow cursor-pointer" @click="navigateTo('/projects?create=true')">
       <UiCardHeader class="flex flex-row items-center justify-between pb-2">
-        <UiCardTitle class="text-sm font-medium">Open Editor</UiCardTitle>
-        <Icon name="lucide:edit" class="size-4 text-muted-foreground" />
+        <UiCardTitle class="text-sm font-medium">New Project</UiCardTitle>
+        <Icon name="lucide:plus" class="size-4 text-muted-foreground" />
       </UiCardHeader>
       <UiCardContent>
         <div class="text-2xl font-bold">
-          <Icon name="lucide:arrow-right" class="size-6" />
+          <Icon name="lucide:file-plus" class="size-6" />
         </div>
-        <p class="text-xs text-muted-foreground mt-1">Start annotating PDFs</p>
+        <p class="text-xs text-muted-foreground mt-1">Create a new project</p>
       </UiCardContent>
     </UiCard>
 
