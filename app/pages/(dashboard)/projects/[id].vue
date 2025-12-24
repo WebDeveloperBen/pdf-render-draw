@@ -36,6 +36,33 @@ async function handleExportFile(file: ProjectFileWithUploader) {
   }
 }
 
+// Download original file without annotations
+const downloadingFileId = ref<string | null>(null)
+
+async function handleDownloadOriginal(file: ProjectFileWithUploader) {
+  if (downloadingFileId.value) return
+  downloadingFileId.value = file.id
+
+  try {
+    const response = await fetch(file.pdfUrl)
+    if (!response.ok) throw new Error("Failed to fetch file")
+
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = file.pdfFileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } catch (error: any) {
+    toast.error("Failed to download file")
+  } finally {
+    downloadingFileId.value = null
+  }
+}
+
 // Breadcrumb management
 const { setLabel, clearLabel } = useBreadcrumbs()
 
@@ -676,16 +703,41 @@ onMounted(() => {
                     Edit
                   </UiButton>
                   <div class="flex items-center gap-1">
-                    <UiButton
-                      variant="ghost"
-                      size="icon"
-                      :disabled="exportingFileId === file.id"
-                      title="Download PDF with annotations"
-                      @click.stop="handleExportFile(file)"
-                    >
-                      <Icon v-if="exportingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
-                      <Icon v-else name="lucide:download" class="size-4" />
-                    </UiButton>
+                    <!-- Download dropdown -->
+                    <UiDropdownMenu>
+                      <UiDropdownMenuTrigger as-child>
+                        <UiButton
+                          variant="ghost"
+                          size="icon"
+                          :disabled="exportingFileId === file.id || downloadingFileId === file.id"
+                          @click.stop
+                        >
+                          <Icon v-if="exportingFileId === file.id || downloadingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
+                          <Icon v-else name="lucide:download" class="size-4" />
+                        </UiButton>
+                      </UiDropdownMenuTrigger>
+                      <UiDropdownMenuContent align="end" @click.stop>
+                        <UiDropdownMenuItem
+                          title="Download with Annotations"
+                          :disabled="exportingFileId === file.id"
+                          @click="handleExportFile(file)"
+                        >
+                          <template #icon>
+                            <Icon name="lucide:file-pen" class="size-4" />
+                          </template>
+                        </UiDropdownMenuItem>
+                        <UiDropdownMenuItem
+                          title="Download Original"
+                          :disabled="downloadingFileId === file.id"
+                          @click="handleDownloadOriginal(file)"
+                        >
+                          <template #icon>
+                            <Icon name="lucide:file" class="size-4" />
+                          </template>
+                        </UiDropdownMenuItem>
+                      </UiDropdownMenuContent>
+                    </UiDropdownMenu>
+                    <!-- More actions dropdown -->
                     <UiDropdownMenu>
                       <UiDropdownMenuTrigger as-child>
                         <UiButton variant="ghost" size="icon" @click.stop>
