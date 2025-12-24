@@ -620,23 +620,16 @@ onMounted(() => {
                     <Icon name="lucide:edit" class="size-4 mr-2" />
                     Edit
                   </UiButton>
-                  <UiTooltip>
-                    <UiTooltipTrigger as-child>
-                      <UiButton
-                        variant="ghost"
-                        size="icon"
-                        :disabled="exportingFileId === file.id || file.annotationCount === 0"
-                        @click="handleExportFile(file)"
-                      >
-                        <Icon v-if="exportingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
-                        <Icon v-else name="lucide:download" class="size-4" />
-                      </UiButton>
-                    </UiTooltipTrigger>
-                    <UiTooltipContent>
-                      <p v-if="file.annotationCount === 0">No annotations to export</p>
-                      <p v-else>Download PDF with annotations</p>
-                    </UiTooltipContent>
-                  </UiTooltip>
+                  <UiButton
+                    variant="ghost"
+                    size="icon"
+                    :disabled="exportingFileId === file.id"
+                    title="Download PDF with annotations"
+                    @click="handleExportFile(file)"
+                  >
+                    <Icon v-if="exportingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
+                    <Icon v-else name="lucide:download" class="size-4" />
+                  </UiButton>
                   <UiButton
                     variant="ghost"
                     size="icon"
