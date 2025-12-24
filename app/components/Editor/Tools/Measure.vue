@@ -111,90 +111,119 @@ const viewportStore = props.exportMode ? null : useViewportStore()
 
 <template>
   <g class="measure-tool">
-    <!-- Export mode: render directly without interactive wrapper -->
-    <template v-if="exportMode">
-      <g v-for="measure in completed" :key="measure.id">
+    <!-- Completed annotations - single rendering path for both modes -->
+    <EditorAnnotation
+      v-for="measure in completed"
+      :key="measure.id"
+      :annotation="measure"
+      :export-mode="exportMode"
+    >
+      <template #content="{ annotation, isSelected }">
+        <!-- Invisible hit area - interactive mode only -->
+        <line
+          v-if="!exportMode"
+          :x1="annotation.points[0].x"
+          :y1="annotation.points[0].y"
+          :x2="annotation.points[1].x"
+          :y2="annotation.points[1].y"
+          stroke="transparent"
+          :stroke-width="config.hitArea.strokeWidth"
+          class="measurement-hit-area"
+        />
+
         <!-- Visible line -->
-        <line :x1="measure.points[0].x" :y1="measure.points[0].y" :x2="measure.points[1].x" :y2="measure.points[1].y"
-          :stroke="config.strokeColor" :stroke-width="config.strokeWidth" />
+        <line
+          :x1="annotation.points[0].x"
+          :y1="annotation.points[0].y"
+          :x2="annotation.points[1].x"
+          :y2="annotation.points[1].y"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
+          :class="{ 'selected-line': isSelected, 'measurement-line': !exportMode }"
+        />
 
         <!-- Label background with rotation -->
-        <rect :x="measure.midpoint.x - config.label.background.offsetX"
-          :y="measure.midpoint.y - config.label.background.offsetY" :width="config.label.background.width"
-          :height="config.label.background.height" :fill="config.label.background.fill"
-          :opacity="config.label.background.opacity" :rx="config.label.background.borderRadius"
-          :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`" />
+        <rect
+          :x="annotation.midpoint.x - config.label.background.offsetX"
+          :y="annotation.midpoint.y - config.label.background.offsetY"
+          :width="config.label.background.width"
+          :height="config.label.background.height"
+          :fill="config.label.background.fill"
+          :opacity="config.label.background.opacity"
+          :rx="config.label.background.borderRadius"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.midpoint.x} ${annotation.midpoint.y})`"
+        />
 
         <!-- Label with rotation -->
-        <text :x="measure.midpoint.x" :y="measure.midpoint.y" :fill="config.labelColor" :font-size="config.labelSize"
-          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'" text-anchor="middle"
+        <text
+          :x="annotation.midpoint.x"
+          :y="annotation.midpoint.y"
+          :fill="config.labelColor"
+          :font-size="config.labelSize"
+          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
+          text-anchor="middle"
           dominant-baseline="middle"
-          :transform="`rotate(${measure.labelRotation} ${measure.midpoint.x} ${measure.midpoint.y})`">
-          {{ measure.distance }}mm
+          :class="{ 'measurement-label': !exportMode }"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.midpoint.x} ${annotation.midpoint.y})`"
+        >
+          {{ annotation.distance }}mm
+        </text>
+      </template>
+    </EditorAnnotation>
+
+    <!-- Preview while drawing - interactive mode only -->
+    <g v-if="!exportMode && tempEndPoint" class="preview">
+      <!-- Cursor indicator (before first click) -->
+      <circle
+        v-if="!isDrawing"
+        :cx="tempEndPoint.x"
+        :cy="tempEndPoint.y"
+        :r="config.preview.cursorIndicator.radius"
+        fill="none"
+        :stroke="config.strokeColor"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :opacity="config.preview.cursorIndicator.opacity"
+      />
+
+      <!-- After first click -->
+      <g v-if="isDrawing && points.length === 1 && points[0] && tempEndPoint">
+        <!-- Start point marker -->
+        <circle
+          :cx="points[0].x"
+          :cy="points[0].y"
+          :r="config.preview.startMarker.radius"
+          :fill="config.preview.startMarker.fill"
+          :stroke="config.preview.startMarker.stroke"
+          :stroke-width="config.preview.startMarker.strokeWidth"
+          class="point-marker"
+        />
+
+        <!-- Temp line -->
+        <line
+          :x1="points[0].x"
+          :y1="points[0].y"
+          :x2="tempEndPoint.x"
+          :y2="tempEndPoint.y"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
+          :stroke-dasharray="config.preview.line.strokeDashArray"
+          :opacity="config.preview.line.opacity"
+        />
+
+        <!-- Preview distance (viewport-relative rotation) -->
+        <text
+          v-if="previewDistance"
+          :x="(points[0].x + tempEndPoint.x) / 2"
+          :y="(points[0].y + tempEndPoint.y) / 2 - config.preview.distance.offsetY"
+          :fill="config.preview.distance.fill"
+          :font-size="config.preview.distance.fontSize"
+          text-anchor="middle"
+          :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${(points[0].x + tempEndPoint.x) / 2} ${(points[0].y + tempEndPoint.y) / 2})`"
+        >
+          {{ previewDistance }}mm
         </text>
       </g>
-    </template>
-
-    <!-- Interactive mode: use EditorAnnotation wrapper -->
-    <template v-else>
-      <EditorAnnotation v-for="measure in completed" :key="measure.id" :annotation="measure">
-        <template #content="{ annotation, isSelected }">
-          <!-- Invisible hit area (makes it easier to click thin lines) -->
-          <line :x1="annotation.points[0].x" :y1="annotation.points[0].y" :x2="annotation.points[1].x"
-            :y2="annotation.points[1].y" stroke="transparent" :stroke-width="config.hitArea.strokeWidth"
-            class="measurement-hit-area" />
-
-          <!-- Visible line -->
-          <line :x1="annotation.points[0].x" :y1="annotation.points[0].y" :x2="annotation.points[1].x"
-            :y2="annotation.points[1].y" :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
-            :class="{ 'selected-line': isSelected }" class="measurement-line" />
-
-          <!-- Label background with rotation -->
-          <rect :x="annotation.midpoint.x - config.label.background.offsetX"
-            :y="annotation.midpoint.y - config.label.background.offsetY" :width="config.label.background.width"
-            :height="config.label.background.height" :fill="config.label.background.fill"
-            :opacity="config.label.background.opacity" :rx="config.label.background.borderRadius"
-            :transform="`rotate(${annotation.labelRotation} ${annotation.midpoint.x} ${annotation.midpoint.y})`" />
-
-          <!-- Label with rotation -->
-          <text :x="annotation.midpoint.x" :y="annotation.midpoint.y" :fill="config.labelColor"
-            :font-size="config.labelSize" :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
-            text-anchor="middle" dominant-baseline="middle" class="measurement-label"
-            :transform="`rotate(${annotation.labelRotation} ${annotation.midpoint.x} ${annotation.midpoint.y})`">
-            {{ annotation.distance }}mm
-          </text>
-        </template>
-      </EditorAnnotation>
-
-      <!-- Preview while drawing (only in interactive mode) -->
-      <g v-if="tempEndPoint" class="preview">
-        <!-- Cursor indicator (before first click) -->
-        <circle v-if="!isDrawing" :cx="tempEndPoint.x" :cy="tempEndPoint.y" :r="config.preview.cursorIndicator.radius"
-          fill="none" :stroke="config.strokeColor" :stroke-width="config.preview.cursorIndicator.strokeWidth"
-          :opacity="config.preview.cursorIndicator.opacity" />
-
-        <!-- After first click -->
-        <g v-if="isDrawing && points.length === 1 && points[0] && tempEndPoint">
-          <!-- Start point marker -->
-          <circle :cx="points[0].x" :cy="points[0].y" :r="config.preview.startMarker.radius"
-            :fill="config.preview.startMarker.fill" :stroke="config.preview.startMarker.stroke"
-            :stroke-width="config.preview.startMarker.strokeWidth" class="point-marker" />
-
-          <!-- Temp line -->
-          <line :x1="points[0].x" :y1="points[0].y" :x2="tempEndPoint.x" :y2="tempEndPoint.y"
-            :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
-            :stroke-dasharray="config.preview.line.strokeDashArray" :opacity="config.preview.line.opacity" />
-
-          <!-- Preview distance (viewport-relative rotation) -->
-          <text v-if="previewDistance" :x="(points[0].x + tempEndPoint.x) / 2"
-            :y="(points[0].y + tempEndPoint.y) / 2 - config.preview.distance.offsetY"
-            :fill="config.preview.distance.fill" :font-size="config.preview.distance.fontSize" text-anchor="middle"
-            :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${(points[0].x + tempEndPoint.x) / 2} ${(points[0].y + tempEndPoint.y) / 2})`">
-            {{ previewDistance }}mm
-          </text>
-        </g>
-      </g>
-    </template>
+    </g>
   </g>
 </template>
 

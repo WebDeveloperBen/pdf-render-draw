@@ -95,83 +95,57 @@ if (!props.exportMode) {
 
 <template>
   <g class="line-tool">
-    <!-- Export mode: render directly without interactive wrapper -->
-    <template v-if="exportMode">
-      <g v-for="line in completed" :key="line.id">
+    <!-- Completed annotations - single rendering path for both modes -->
+    <EditorAnnotation
+      v-for="line in completed"
+      :key="line.id"
+      :annotation="line"
+      :export-mode="exportMode"
+    >
+      <template #content="{ annotation }">
+        <!-- Invisible wider hitbox for easier clicking - interactive mode only -->
+        <polyline
+          v-if="!exportMode"
+          :points="toSvgPoints(annotation.points)"
+          stroke="transparent"
+          :stroke-width="config.hitArea.strokeWidth"
+          fill="none"
+          class="line-hitbox"
+        />
+
         <!-- Visible line -->
         <polyline
-          :points="toSvgPoints(line.points)"
+          :points="toSvgPoints(annotation.points)"
           :stroke="config.strokeColor"
           :stroke-width="config.strokeWidth"
           fill="none"
+          :class="{ 'line-path': !exportMode }"
         />
 
         <!-- Start point marker -->
         <circle
-          v-if="line.points[0]"
-          :cx="line.points[0].x"
-          :cy="line.points[0].y"
+          v-if="annotation.points[0]"
+          :cx="annotation.points[0].x"
+          :cy="annotation.points[0].y"
           :r="config.markers.radius"
           :fill="config.strokeColor"
+          :class="{ 'start-marker': !exportMode }"
         />
 
         <!-- End point marker -->
         <circle
-          v-if="line.points[line.points.length - 1]"
-          :cx="line.points[line.points.length - 1]?.x ?? 0"
-          :cy="line.points[line.points.length - 1]?.y ?? 0"
+          v-if="annotation.points[annotation.points.length - 1]"
+          :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
+          :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
           :r="config.markers.radius"
           :fill="config.strokeColor"
+          :class="{ 'end-marker': !exportMode }"
         />
-      </g>
-    </template>
+      </template>
+    </EditorAnnotation>
 
-    <!-- Interactive mode: use EditorAnnotation wrapper -->
-    <template v-else>
-      <EditorAnnotation v-for="line in completed" :key="line.id" :annotation="line">
-        <template #content="{ annotation }">
-          <!-- Invisible wider hitbox for easier clicking -->
-          <polyline
-            :points="toSvgPoints(annotation.points)"
-            stroke="transparent"
-            :stroke-width="config.hitArea.strokeWidth"
-            fill="none"
-            class="line-hitbox"
-          />
-
-          <!-- Visible line -->
-          <polyline
-            :points="toSvgPoints(annotation.points)"
-            :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth"
-            fill="none"
-            class="line-path"
-          />
-
-          <!-- Start point marker -->
-          <circle
-            v-if="annotation.points[0]"
-            :cx="annotation.points[0].x"
-            :cy="annotation.points[0].y"
-            :r="config.markers.radius"
-            :fill="config.strokeColor"
-            class="start-marker"
-          />
-
-          <!-- End point marker -->
-          <circle
-            v-if="annotation.points[annotation.points.length - 1]"
-            :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
-            :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
-            :r="config.markers.radius"
-            :fill="config.strokeColor"
-            class="end-marker"
-          />
-        </template>
-      </EditorAnnotation>
-
-      <!-- Preview while drawing (only in interactive mode) -->
-      <g v-if="tempEndPoint" class="preview">
+    <!-- Preview while drawing - interactive mode only -->
+    <g v-if="!exportMode && tempEndPoint" class="preview">
       <!-- Cursor indicator (before first click) -->
       <circle
         v-if="!isDrawing"
@@ -218,7 +192,6 @@ if (!props.exportMode) {
         />
       </g>
     </g>
-    </template>
   </g>
 </template>
 

@@ -78,6 +78,13 @@ export function useExportPdf() {
     // These are boolean attributes without values, which is invalid in XML/SVG
     svgString = svgString.replace(/\s+data-v-[a-f0-9]+/g, "")
 
+    // Remove empty transform attributes (transform="" or just transform) which break XML parsing
+    svgString = svgString.replace(/\s+transform=""/g, "")
+    svgString = svgString.replace(/\s+transform(?=[\s>])/g, "")
+
+    // Remove empty class attributes (class="") for cleaner output
+    svgString = svgString.replace(/\s+class=""/g, "")
+
     // Also remove Vue SSR comments that aren't needed
     svgString = svgString.replace(/<!--\[-->/g, "").replace(/<!--\]-->/g, "")
 

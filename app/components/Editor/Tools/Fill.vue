@@ -64,79 +64,55 @@ const currentRect = computed(() => tool?.currentRect.value ?? null)
 </script>
 <template>
   <g class="fill-tool">
-    <!-- Export mode: render directly without interactive wrapper -->
-    <template v-if="exportMode">
-      <g v-for="fill in completed" :key="fill.id">
+    <!-- Completed annotations - single rendering path for both modes -->
+    <EditorAnnotation
+      v-for="fill in completed"
+      :key="fill.id"
+      :annotation="fill"
+      :export-mode="exportMode"
+    >
+      <template #content="{ annotation, isSelected }">
         <!-- Filled rectangle -->
         <rect
-          :x="fill.x"
-          :y="fill.y"
-          :width="fill.width"
-          :height="fill.height"
-          :fill="fill.color"
-          :fill-opacity="fill.opacity"
+          :x="annotation.x"
+          :y="annotation.y"
+          :width="annotation.width"
+          :height="annotation.height"
+          :fill="annotation.color"
+          :fill-opacity="annotation.opacity"
+          :class="{ 'fill-rect': !exportMode }"
         />
 
-        <!-- Border for visibility -->
+        <!-- Border for visibility and selection state -->
         <rect
-          :x="fill.x"
-          :y="fill.y"
-          :width="fill.width"
-          :height="fill.height"
+          :x="annotation.x"
+          :y="annotation.y"
+          :width="annotation.width"
+          :height="annotation.height"
           fill="transparent"
-          :stroke="fill.color"
-          :stroke-width="config.border.strokeWidth"
-          :stroke-opacity="config.border.strokeOpacity"
+          :stroke="isSelected ? config.color : annotation.color"
+          :stroke-width="isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth"
+          :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
+          :class="{ 'fill-border': !exportMode }"
         />
-      </g>
-    </template>
+      </template>
+    </EditorAnnotation>
 
-    <!-- Interactive mode: use EditorAnnotation wrapper -->
-    <template v-else>
-      <EditorAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
-        <template #content="{ annotation, isSelected }">
-          <!-- Filled rectangle -->
-          <rect
-            :x="annotation.x"
-            :y="annotation.y"
-            :width="annotation.width"
-            :height="annotation.height"
-            :fill="annotation.color"
-            :fill-opacity="annotation.opacity"
-            class="fill-rect"
-          />
-
-          <!-- Border for visibility and selection state -->
-          <rect
-            :x="annotation.x"
-            :y="annotation.y"
-            :width="annotation.width"
-            :height="annotation.height"
-            fill="transparent"
-            :stroke="isSelected ? config.color : annotation.color"
-            :stroke-width="isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth"
-            :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
-            class="fill-border"
-          />
-        </template>
-      </EditorAnnotation>
-
-      <!-- Preview while drawing (only in interactive mode) -->
-      <rect
-        v-if="isDrawing && currentRect"
-        :x="currentRect.x"
-        :y="currentRect.y"
-        :width="currentRect.width"
-        :height="currentRect.height"
-        :fill="config.color"
-        :fill-opacity="config.preview.fillOpacity"
-        :stroke="config.color"
-        :stroke-width="config.preview.strokeWidth"
-        :stroke-dasharray="config.preview.strokeDashArray"
-        class="preview-rect"
-        pointer-events="none"
-      />
-    </template>
+    <!-- Preview while drawing - interactive mode only -->
+    <rect
+      v-if="!exportMode && isDrawing && currentRect"
+      :x="currentRect.x"
+      :y="currentRect.y"
+      :width="currentRect.width"
+      :height="currentRect.height"
+      :fill="config.color"
+      :fill-opacity="config.preview.fillOpacity"
+      :stroke="config.color"
+      :stroke-width="config.preview.strokeWidth"
+      :stroke-dasharray="config.preview.strokeDashArray"
+      class="preview-rect"
+      pointer-events="none"
+    />
   </g>
 </template>
 

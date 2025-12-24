@@ -140,147 +140,183 @@ const viewportStore = props.exportMode ? null : useViewportStore()
 </script>
 <template>
   <g class="perimeter-tool">
-    <!-- Export mode: render directly without interactive wrapper -->
-    <template v-if="exportMode">
-      <g v-for="perimeter in completed" :key="perimeter.id">
+    <!-- Completed annotations - single rendering path for both modes -->
+    <EditorAnnotation
+      v-for="perimeter in completed"
+      :key="perimeter.id"
+      :annotation="perimeter"
+      :export-mode="exportMode"
+    >
+      <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
-        <polygon :points="toSvgPoints(perimeter.points)" :fill="config.fillColor" :fill-opacity="config.opacity"
-          :stroke="config.strokeColor" :stroke-width="config.strokeWidth" />
+        <polygon
+          :points="toSvgPoints(annotation.points)"
+          :fill="config.fillColor"
+          :fill-opacity="config.opacity"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
+          :class="{ 'selected-polygon': isSelected, 'perimeter-polygon': !exportMode }"
+        />
 
         <!-- Individual segment labels with rotation -->
-        <g v-for="(segment, idx) in perimeter.segments" :key="idx">
+        <g v-for="(segment, idx) in annotation.segments" :key="idx">
           <!-- Label background with rotation -->
-          <rect :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
+          <rect
+            :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
             :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
-            :width="config.segmentLabel.background.width" :height="config.segmentLabel.background.height"
-            :fill="config.segmentLabel.background.fill" :opacity="config.segmentLabel.background.opacity"
+            :width="config.segmentLabel.background.width"
+            :height="config.segmentLabel.background.height"
+            :fill="config.segmentLabel.background.fill"
+            :opacity="config.segmentLabel.background.opacity"
             :rx="config.segmentLabel.background.borderRadius"
-            :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`" />
+            :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+          />
 
           <!-- Segment length label with rotation -->
-          <text :x="segment.midpoint.x" :y="segment.midpoint.y" :fill="config.labelColor" :font-size="config.labelSize"
-            font-weight="bold" text-anchor="middle" dominant-baseline="middle"
-            :transform="`rotate(${perimeter.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`">
+          <text
+            :x="segment.midpoint.x"
+            :y="segment.midpoint.y"
+            :fill="config.labelColor"
+            :font-size="config.labelSize"
+            font-weight="bold"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            :class="{ 'segment-label': !exportMode }"
+            :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+          >
             {{ segment.length }}mm
           </text>
         </g>
 
         <!-- Total perimeter label at center with rotation -->
-        <rect :x="perimeter.center.x - config.totalLabel.background.offsetX"
-          :y="perimeter.center.y - config.totalLabel.background.offsetY" :width="config.totalLabel.background.width"
-          :height="config.totalLabel.background.height" :fill="config.totalLabel.background.fill"
-          :opacity="config.totalLabel.background.opacity" :rx="config.totalLabel.background.borderRadius"
-          :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`" />
-        <text :x="perimeter.center.x" :y="perimeter.center.y" :fill="config.labelColor"
-          :font-size="config.labelSize + config.totalLabel.fontSizeBonus" font-weight="bold" text-anchor="middle"
+        <rect
+          :x="annotation.center.x - config.totalLabel.background.offsetX"
+          :y="annotation.center.y - config.totalLabel.background.offsetY"
+          :width="config.totalLabel.background.width"
+          :height="config.totalLabel.background.height"
+          :fill="config.totalLabel.background.fill"
+          :opacity="config.totalLabel.background.opacity"
+          :rx="config.totalLabel.background.borderRadius"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
+        />
+        <text
+          :x="annotation.center.x"
+          :y="annotation.center.y"
+          :fill="config.labelColor"
+          :font-size="config.labelSize + config.totalLabel.fontSizeBonus"
+          font-weight="bold"
+          text-anchor="middle"
           dominant-baseline="middle"
-          :transform="`rotate(${perimeter.labelRotation} ${perimeter.center.x} ${perimeter.center.y})`">
-          Total: {{ perimeter.totalLength }}mm
+          :class="{ 'total-label': !exportMode }"
+          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
+        >
+          Total: {{ annotation.totalLength }}mm
         </text>
-      </g>
-    </template>
+      </template>
+    </EditorAnnotation>
 
-    <!-- Interactive mode: use EditorAnnotation wrapper -->
-    <template v-else>
-      <EditorAnnotation v-for="perimeter in completed" :key="perimeter.id" :annotation="perimeter">
-        <template #content="{ annotation, isSelected }">
-          <!-- Polygon -->
-          <polygon :points="toSvgPoints(annotation.points)" :fill="config.fillColor" :fill-opacity="config.opacity"
-            :stroke="config.strokeColor" :stroke-width="config.strokeWidth" :class="{ 'selected-polygon': isSelected }"
-            class="perimeter-polygon" />
+    <!-- Preview while drawing - interactive mode only -->
+    <g v-if="!exportMode && tempEndPoint" class="preview">
+      <!-- Cursor indicator (before first click) -->
+      <circle
+        v-if="!isDrawing"
+        :cx="tempEndPoint.x"
+        :cy="tempEndPoint.y"
+        :r="config.preview.cursorIndicator.radius"
+        fill="none"
+        :stroke="config.strokeColor"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :opacity="config.preview.cursorIndicator.opacity"
+      />
 
-          <!-- Individual segment labels with rotation -->
-          <g v-for="(segment, idx) in annotation.segments" :key="idx">
-            <!-- Label background with rotation -->
-            <rect :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
-              :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
-              :width="config.segmentLabel.background.width" :height="config.segmentLabel.background.height"
-              :fill="config.segmentLabel.background.fill" :opacity="config.segmentLabel.background.opacity"
-              :rx="config.segmentLabel.background.borderRadius"
-              :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`" />
+      <!-- After first click -->
+      <g v-if="isDrawing">
+        <!-- Placed point markers -->
+        <circle
+          v-for="(point, index) in points"
+          :key="`point-${index}`"
+          :cx="point.x"
+          :cy="point.y"
+          :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
+          :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
+          :stroke="config.preview.pointMarkers.stroke"
+          :stroke-width="config.preview.pointMarkers.strokeWidth"
+          class="point-marker"
+        />
 
-            <!-- Segment length label with rotation -->
-            <text :x="segment.midpoint.x" :y="segment.midpoint.y" :fill="config.labelColor"
-              :font-size="config.labelSize" font-weight="bold" text-anchor="middle" dominant-baseline="middle"
-              class="segment-label"
-              :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`">
-              {{ segment.length }}mm
-            </text>
-          </g>
+        <!-- Preview polygon (if we have enough points) -->
+        <polygon
+          v-if="points.length >= 2"
+          :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
+          :fill="config.fillColor"
+          :fill-opacity="config.opacity * config.preview.polygon.opacityMultiplier"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
+          :stroke-dasharray="config.preview.polygon.strokeDashArray"
+        />
 
-          <!-- Total perimeter label at center with rotation -->
-          <rect :x="annotation.center.x - config.totalLabel.background.offsetX"
-            :y="annotation.center.y - config.totalLabel.background.offsetY" :width="config.totalLabel.background.width"
-            :height="config.totalLabel.background.height" :fill="config.totalLabel.background.fill"
-            :opacity="config.totalLabel.background.opacity" :rx="config.totalLabel.background.borderRadius"
-            :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`" />
-          <text :x="annotation.center.x" :y="annotation.center.y" :fill="config.labelColor"
-            :font-size="config.labelSize + config.totalLabel.fontSizeBonus" font-weight="bold" text-anchor="middle"
-            dominant-baseline="middle" class="total-label"
-            :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`">
-            Total: {{ annotation.totalLength }}mm
+        <!-- Preview segment labels -->
+        <g v-for="(segment, idx) in previewSegments" :key="idx">
+          <line
+            :x1="segment.start.x"
+            :y1="segment.start.y"
+            :x2="segment.end.x"
+            :y2="segment.end.y"
+            :stroke="config.strokeColor"
+            :stroke-width="config.strokeWidth"
+            :stroke-dasharray="idx === previewSegments.length - 1 ? config.preview.polygon.strokeDashArray : '0'"
+          />
+
+          <!-- Segment length label background (viewport-relative rotation) -->
+          <rect
+            :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
+            :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
+            :width="config.segmentLabel.background.width"
+            :height="config.segmentLabel.background.height"
+            :fill="config.segmentLabel.background.fill"
+            :opacity="config.segmentLabel.background.opacity"
+            :rx="config.segmentLabel.background.borderRadius"
+            :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+          />
+
+          <!-- Segment length label (viewport-relative rotation) -->
+          <text
+            :x="segment.midpoint.x"
+            :y="segment.midpoint.y"
+            :fill="config.preview.segmentLabel.fill"
+            :font-size="config.preview.segmentLabel.fontSize"
+            font-weight="bold"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
+          >
+            {{ segment.length }}mm
           </text>
-        </template>
-      </EditorAnnotation>
+        </g>
 
-      <!-- Preview while drawing (only in interactive mode) -->
-      <g v-if="tempEndPoint" class="preview">
-        <!-- Cursor indicator (before first click) -->
-        <circle v-if="!isDrawing" :cx="tempEndPoint.x" :cy="tempEndPoint.y" :r="config.preview.cursorIndicator.radius"
-          fill="none" :stroke="config.strokeColor" :stroke-width="config.preview.cursorIndicator.strokeWidth"
-          :opacity="config.preview.cursorIndicator.opacity" />
-
-        <!-- After first click -->
-        <g v-if="isDrawing">
-          <!-- Placed point markers -->
-          <circle v-for="(point, index) in points" :key="`point-${index}`" :cx="point.x" :cy="point.y"
-            :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
-            :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
-            :stroke="config.preview.pointMarkers.stroke" :stroke-width="config.preview.pointMarkers.strokeWidth"
-            class="point-marker" />
-
-          <!-- Preview polygon (if we have enough points) -->
-          <polygon v-if="points.length >= 2"
-            :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])" :fill="config.fillColor"
-            :fill-opacity="config.opacity * config.preview.polygon.opacityMultiplier" :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth" :stroke-dasharray="config.preview.polygon.strokeDashArray" />
-
-          <!-- Preview segment labels -->
-          <g v-for="(segment, idx) in previewSegments" :key="idx">
-            <line :x1="segment.start.x" :y1="segment.start.y" :x2="segment.end.x" :y2="segment.end.y"
-              :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
-              :stroke-dasharray="idx === previewSegments.length - 1 ? config.preview.polygon.strokeDashArray : '0'" />
-
-            <!-- Segment length label background (viewport-relative rotation) -->
-            <rect :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
-              :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
-              :width="config.segmentLabel.background.width" :height="config.segmentLabel.background.height"
-              :fill="config.segmentLabel.background.fill" :opacity="config.segmentLabel.background.opacity"
-              :rx="config.segmentLabel.background.borderRadius"
-              :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`" />
-
-            <!-- Segment length label (viewport-relative rotation) -->
-            <text :x="segment.midpoint.x" :y="segment.midpoint.y" :fill="config.preview.segmentLabel.fill"
-              :font-size="config.preview.segmentLabel.fontSize" font-weight="bold" text-anchor="middle"
-              dominant-baseline="middle"
-              :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`">
-              {{ segment.length }}mm
-            </text>
-          </g>
-
-          <!-- Snap to close indicator -->
-          <g v-if="canSnapToClose && points.length > 0 && points[0]">
-            <circle :cx="points[0].x" :cy="points[0].y" :r="config.snap.radius" fill="none" :stroke="config.snap.stroke"
-              :stroke-width="config.snap.strokeWidth" class="snap-indicator" />
-            <text :x="points[0].x + config.snap.text.offsetX" :y="points[0].y - config.snap.text.offsetY"
-              :fill="config.snap.text.fill" :font-size="config.snap.text.fontSize"
-              :font-weight="config.snap.text.fontWeight">
-              Click to close
-            </text>
-          </g>
+        <!-- Snap to close indicator -->
+        <g v-if="canSnapToClose && points.length > 0 && points[0]">
+          <circle
+            :cx="points[0].x"
+            :cy="points[0].y"
+            :r="config.snap.radius"
+            fill="none"
+            :stroke="config.snap.stroke"
+            :stroke-width="config.snap.strokeWidth"
+            class="snap-indicator"
+          />
+          <text
+            :x="points[0].x + config.snap.text.offsetX"
+            :y="points[0].y - config.snap.text.offsetY"
+            :fill="config.snap.text.fill"
+            :font-size="config.snap.text.fontSize"
+            :font-weight="config.snap.text.fontWeight"
+          >
+            Click to close
+          </text>
         </g>
       </g>
-    </template>
+    </g>
   </g>
 </template>
 
