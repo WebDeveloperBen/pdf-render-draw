@@ -46,81 +46,132 @@ export type LineToolConfig = typeof LINE_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-// Inject the tool state (which extends BaseTool)
-const tool = useLineToolState()
+import type { Line, Point } from "#shared/types/annotations.types"
+
+// Props for export mode
+const props = defineProps<{
+  annotations?: Line[]
+  exportMode?: boolean
+}>()
+
 const config = LINE_TOOL_DEFAULTS
 
-if (!tool) {
+// Inject the tool state (only in interactive mode)
+const tool = props.exportMode ? null : useLineToolState()
+
+if (!tool && !props.exportMode) {
   throw new Error("LineTool must be used within AnnotationLayer")
 }
 
-// Destructure everything we need (inherited + tool-specific)
-const {
-  // From DrawingTool (inherited):
-  isDrawing,
-  points,
-  tempEndPoint,
-  completed,
-  toSvgPoints
-} = tool
+// Helper to convert points to SVG polyline format
+function toSvgPoints(pts: Point[]): string {
+  return pts.map((p) => `${p.x},${p.y}`).join(" ")
+}
 
-// Debug: watch completed to see when it changes
-watch(
-  completed,
-  (newVal) => {
-    console.log("[Line.vue] Completed lines changed:", newVal.length, newVal)
-  },
-  { immediate: true }
-)
+// Use passed annotations in export mode, otherwise from store
+const completed = computed(() => {
+  if (props.exportMode && props.annotations) {
+    return props.annotations
+  }
+  return tool?.completed.value ?? []
+})
+
+// Interactive-only state (not used in export mode)
+const isDrawing = computed(() => tool?.isDrawing.value ?? false)
+const points = computed(() => tool?.points.value ?? [])
+const tempEndPoint = computed(() => tool?.tempEndPoint.value ?? null)
+
+// Debug: watch completed to see when it changes (only in interactive mode)
+if (!props.exportMode) {
+  watch(
+    completed,
+    (newVal) => {
+      console.log("[Line.vue] Completed lines changed:", newVal.length, newVal)
+    },
+    { immediate: true }
+  )
+}
 </script>
 
 <template>
   <g class="line-tool">
-    <!-- Completed lines -->
-    <EditorAnnotation v-for="line in completed" :key="line.id" :annotation="line">
-      <template #content="{ annotation }">
-        <!-- Invisible wider hitbox for easier clicking -->
-        <polyline
-          :points="toSvgPoints(annotation.points)"
-          stroke="transparent"
-          :stroke-width="config.hitArea.strokeWidth"
-          fill="none"
-          class="line-hitbox"
-        />
-
+    <!-- Export mode: render directly without interactive wrapper -->
+    <template v-if="exportMode">
+      <g v-for="line in completed" :key="line.id">
         <!-- Visible line -->
         <polyline
-          :points="toSvgPoints(annotation.points)"
+          :points="toSvgPoints(line.points)"
           :stroke="config.strokeColor"
           :stroke-width="config.strokeWidth"
           fill="none"
-          class="line-path"
         />
 
         <!-- Start point marker -->
         <circle
-          v-if="annotation.points[0]"
-          :cx="annotation.points[0].x"
-          :cy="annotation.points[0].y"
+          v-if="line.points[0]"
+          :cx="line.points[0].x"
+          :cy="line.points[0].y"
           :r="config.markers.radius"
           :fill="config.strokeColor"
-          class="start-marker"
         />
 
         <!-- End point marker -->
         <circle
-          v-if="annotation.points[annotation.points.length - 1]"
-          :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
-          :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
+          v-if="line.points[line.points.length - 1]"
+          :cx="line.points[line.points.length - 1]?.x ?? 0"
+          :cy="line.points[line.points.length - 1]?.y ?? 0"
           :r="config.markers.radius"
           :fill="config.strokeColor"
-          class="end-marker"
         />
-      </template>
-    </EditorAnnotation>
+      </g>
+    </template>
 
-    <!-- Preview while drawing -->
-    <g v-if="tempEndPoint" class="preview">
+    <!-- Interactive mode: use EditorAnnotation wrapper -->
+    <template v-else>
+      <EditorAnnotation v-for="line in completed" :key="line.id" :annotation="line">
+        <template #content="{ annotation }">
+          <!-- Invisible wider hitbox for easier clicking -->
+          <polyline
+            :points="toSvgPoints(annotation.points)"
+            stroke="transparent"
+            :stroke-width="config.hitArea.strokeWidth"
+            fill="none"
+            class="line-hitbox"
+          />
+
+          <!-- Visible line -->
+          <polyline
+            :points="toSvgPoints(annotation.points)"
+            :stroke="config.strokeColor"
+            :stroke-width="config.strokeWidth"
+            fill="none"
+            class="line-path"
+          />
+
+          <!-- Start point marker -->
+          <circle
+            v-if="annotation.points[0]"
+            :cx="annotation.points[0].x"
+            :cy="annotation.points[0].y"
+            :r="config.markers.radius"
+            :fill="config.strokeColor"
+            class="start-marker"
+          />
+
+          <!-- End point marker -->
+          <circle
+            v-if="annotation.points[annotation.points.length - 1]"
+            :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
+            :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
+            :r="config.markers.radius"
+            :fill="config.strokeColor"
+            class="end-marker"
+          />
+        </template>
+      </EditorAnnotation>
+
+      <!-- Preview while drawing (only in interactive mode) -->
+      <g v-if="tempEndPoint" class="preview">
       <!-- Cursor indicator (before first click) -->
       <circle
         v-if="!isDrawing"
@@ -167,6 +218,7 @@ watch(
         />
       </g>
     </g>
+    </template>
   </g>
 </template>
 

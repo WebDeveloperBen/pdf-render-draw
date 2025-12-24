@@ -60,13 +60,41 @@ export const TEXT_TOOL_DEFAULTS = {
 export type TextToolConfig = typeof TEXT_TOOL_DEFAULTS
 </script>
 <script setup lang="ts">
-const tool = useTextToolState()
+import type { TextAnnotation } from "#shared/types/annotations.types"
+
+// Props for export mode
+const props = defineProps<{
+  annotations?: TextAnnotation[]
+  exportMode?: boolean
+}>()
+
 const config = TEXT_TOOL_DEFAULTS
-if (!tool) {
+
+// Inject the tool state (only in interactive mode)
+const tool = props.exportMode ? null : useTextToolState()
+
+if (!tool && !props.exportMode) {
   throw new Error("TextTool must be used within AnnotationLayer")
 }
 
-const { completed, editingId, editingContent, finishEditing, deleteText, handleDoubleClick } = tool
+// Use passed annotations in export mode, otherwise from store
+const completed = computed(() => {
+  if (props.exportMode && props.annotations) {
+    return props.annotations
+  }
+  return tool?.completed.value ?? []
+})
+
+// Interactive-only state (not used in export mode)
+const editingId = computed(() => tool?.editingId.value ?? null)
+const editingContent = computed({
+  get: () => tool?.editingContent.value ?? "",
+  set: (val) => {
+    if (tool) tool.editingContent.value = val
+  }
+})
+const finishEditing = tool?.finishEditing ?? (() => {})
+const deleteText = tool?.deleteText ?? (() => {})
 
 // Store ref to currently editing textarea
 const currentTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -173,86 +201,127 @@ function handleFinishEditing() {
 
 <template>
   <g class="text-tool">
-    <!-- Each text annotation uses BaseAnnotation for common functionality -->
-    <EditorAnnotation v-for="text in completed" :key="text.id" :annotation="text">
-      <!-- Custom content for text annotations -->
-      <template #content="{ annotation, isSelected }">
-        <!-- Non-editing mode: display text -->
-        <!-- Note: x, y are TOP-LEFT corner of the bounding box (consistent with other positioned annotations) -->
-        <g v-if="editingId !== annotation.id">
-          <!-- Background for better readability -->
-          <rect
-            :x="annotation.x - config.background.padding.horizontal"
-            :y="annotation.y - config.background.padding.vertical"
-            :width="annotation.width + config.background.padding.horizontal * 2"
-            :height="annotation.height + config.background.padding.vertical * 2"
-            :fill="config.background.fill"
-            :opacity="config.background.opacity"
-            :rx="config.background.borderRadius"
-            class="text-background"
-            :class="{ selected: isSelected }"
-          />
+    <!-- Export mode: render directly without interactive wrapper -->
+    <template v-if="exportMode">
+      <g v-for="text in completed" :key="text.id">
+        <!-- Background for better readability -->
+        <rect
+          :x="text.x - config.background.padding.horizontal"
+          :y="text.y - config.background.padding.vertical"
+          :width="text.width + config.background.padding.horizontal * 2"
+          :height="text.height + config.background.padding.vertical * 2"
+          :fill="config.background.fill"
+          :opacity="config.background.opacity"
+          :rx="config.background.borderRadius"
+        />
 
-          <!-- Text content - use foreignObject for consistent wrapping with edit mode -->
-          <!-- Offset by editor border+padding to match textarea content area -->
-          <foreignObject
-            :x="annotation.x + config.editor.borderWidth + config.editor.padding"
-            :y="annotation.y + config.editor.borderWidth + config.editor.padding"
-            :width="annotation.width - 2 * (config.editor.borderWidth + config.editor.padding)"
-            :height="annotation.height - 2 * (config.editor.borderWidth + config.editor.padding)"
-            class="text-foreign-object"
+        <!-- Text content - use foreignObject for text wrapping -->
+        <foreignObject
+          :x="text.x + config.editor.borderWidth + config.editor.padding"
+          :y="text.y + config.editor.borderWidth + config.editor.padding"
+          :width="text.width - 2 * (config.editor.borderWidth + config.editor.padding)"
+          :height="text.height - 2 * (config.editor.borderWidth + config.editor.padding)"
+        >
+          <div
+            xmlns="http://www.w3.org/1999/xhtml"
+            :style="{
+              fontSize: text.fontSize + 'px',
+              lineHeight: config.lineHeight,
+              color: text.color,
+              fontFamily: config.fontFamily,
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              whiteSpace: 'pre-wrap',
+              overflow: 'hidden'
+            }"
           >
-            <div
-              xmlns="http://www.w3.org/1999/xhtml"
-              class="text-display"
-              :style="{
-                fontSize: annotation.fontSize + 'px',
-                lineHeight: config.lineHeight,
-                color: annotation.color,
-                fontFamily: config.fontFamily
-              }"
+            {{ text.content }}
+          </div>
+        </foreignObject>
+      </g>
+    </template>
+
+    <!-- Interactive mode: use EditorAnnotation wrapper -->
+    <template v-else>
+      <EditorAnnotation v-for="text in completed" :key="text.id" :annotation="text">
+        <!-- Custom content for text annotations -->
+        <template #content="{ annotation, isSelected }">
+          <!-- Non-editing mode: display text -->
+          <!-- Note: x, y are TOP-LEFT corner of the bounding box (consistent with other positioned annotations) -->
+          <g v-if="editingId !== annotation.id">
+            <!-- Background for better readability -->
+            <rect
+              :x="annotation.x - config.background.padding.horizontal"
+              :y="annotation.y - config.background.padding.vertical"
+              :width="annotation.width + config.background.padding.horizontal * 2"
+              :height="annotation.height + config.background.padding.vertical * 2"
+              :fill="config.background.fill"
+              :opacity="config.background.opacity"
+              :rx="config.background.borderRadius"
+              class="text-background"
+              :class="{ selected: isSelected }"
+            />
+
+            <!-- Text content - use foreignObject for consistent wrapping with edit mode -->
+            <!-- Offset by editor border+padding to match textarea content area -->
+            <foreignObject
+              :x="annotation.x + config.editor.borderWidth + config.editor.padding"
+              :y="annotation.y + config.editor.borderWidth + config.editor.padding"
+              :width="annotation.width - 2 * (config.editor.borderWidth + config.editor.padding)"
+              :height="annotation.height - 2 * (config.editor.borderWidth + config.editor.padding)"
+              class="text-foreign-object"
             >
-              {{ annotation.content }}
-            </div>
-          </foreignObject>
+              <div
+                xmlns="http://www.w3.org/1999/xhtml"
+                class="text-display"
+                :style="{
+                  fontSize: annotation.fontSize + 'px',
+                  lineHeight: config.lineHeight,
+                  color: annotation.color,
+                  fontFamily: config.fontFamily
+                }"
+              >
+                {{ annotation.content }}
+              </div>
+            </foreignObject>
 
-          <!-- Transparent hit area on top for reliable click/double-click events -->
-          <rect
-            :x="annotation.x - config.background.padding.horizontal"
-            :y="annotation.y - config.background.padding.vertical"
-            :width="annotation.width + config.background.padding.horizontal * 2"
-            :height="annotation.height + config.background.padding.vertical * 2"
-            fill="transparent"
-            class="text-hit-area"
-          />
+            <!-- Transparent hit area on top for reliable click/double-click events -->
+            <rect
+              :x="annotation.x - config.background.padding.horizontal"
+              :y="annotation.y - config.background.padding.vertical"
+              :width="annotation.width + config.background.padding.horizontal * 2"
+              :height="annotation.height + config.background.padding.vertical * 2"
+              fill="transparent"
+              class="text-hit-area"
+            />
 
-          <!-- Delete button (shown on hover) -->
-          <g class="delete-button" @click.stop="deleteText(annotation.id)">
-            <circle
-              :cx="annotation.x + annotation.width + config.deleteButton.offset"
-              :cy="annotation.y + annotation.height / 2"
-              :r="config.deleteButton.radius"
-              :fill="config.deleteButton.fill"
-              :opacity="config.deleteButton.opacity"
-            />
-            <line
-              :x1="annotation.x + annotation.width + config.deleteButton.offset - 4"
-              :y1="annotation.y + annotation.height / 2 - 4"
-              :x2="annotation.x + annotation.width + config.deleteButton.offset + 4"
-              :y2="annotation.y + annotation.height / 2 + 4"
-              stroke="white"
-              stroke-width="2"
-            />
-            <line
-              :x1="annotation.x + annotation.width + config.deleteButton.offset + 4"
-              :y1="annotation.y + annotation.height / 2 - 4"
-              :x2="annotation.x + annotation.width + config.deleteButton.offset - 4"
-              :y2="annotation.y + annotation.height / 2 + 4"
-              stroke="white"
-              stroke-width="2"
-            />
+            <!-- Delete button (shown on hover) -->
+            <g class="delete-button" @click.stop="deleteText(annotation.id)">
+              <circle
+                :cx="annotation.x + annotation.width + config.deleteButton.offset"
+                :cy="annotation.y + annotation.height / 2"
+                :r="config.deleteButton.radius"
+                :fill="config.deleteButton.fill"
+                :opacity="config.deleteButton.opacity"
+              />
+              <line
+                :x1="annotation.x + annotation.width + config.deleteButton.offset - 4"
+                :y1="annotation.y + annotation.height / 2 - 4"
+                :x2="annotation.x + annotation.width + config.deleteButton.offset + 4"
+                :y2="annotation.y + annotation.height / 2 + 4"
+                stroke="white"
+                stroke-width="2"
+              />
+              <line
+                :x1="annotation.x + annotation.width + config.deleteButton.offset + 4"
+                :y1="annotation.y + annotation.height / 2 - 4"
+                :x2="annotation.x + annotation.width + config.deleteButton.offset - 4"
+                :y2="annotation.y + annotation.height / 2 + 4"
+                stroke="white"
+                stroke-width="2"
+              />
+            </g>
           </g>
-        </g>
 
         <!-- Editing mode: use foreignObject for HTML input -->
         <!-- Note: x, y are TOP-LEFT corner of the bounding box -->
@@ -293,6 +362,7 @@ function handleFinishEditing() {
       <!-- Transform handles are now handled by BaseAnnotation -->
       <!-- No need to manually include them here -->
     </EditorAnnotation>
+    </template>
   </g>
 </template>
 

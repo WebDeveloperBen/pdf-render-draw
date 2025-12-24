@@ -33,68 +33,110 @@ export type FillToolConfig = typeof FILL_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-// Inject the tool state (which extends BaseTool)
-const tool = useFillToolState()
+import type { Fill } from "#shared/types/annotations.types"
+
+// Props for export mode
+const props = defineProps<{
+  annotations?: Fill[]
+  exportMode?: boolean
+}>()
+
 const config = FILL_TOOL_DEFAULTS
 
-if (!tool) {
+// Inject the tool state (only in interactive mode)
+const tool = props.exportMode ? null : useFillToolState()
+
+if (!tool && !props.exportMode) {
   throw new Error("FillTool must be used within AnnotationLayer")
 }
 
-// Destructure everything we need (inherited + tool-specific)
-const {
-  // From FillTool:
-  isDrawing,
-  currentRect,
-  completed
-} = tool
+// Use passed annotations in export mode, otherwise from store
+const completed = computed(() => {
+  if (props.exportMode && props.annotations) {
+    return props.annotations
+  }
+  return tool?.completed.value ?? []
+})
+
+// Interactive-only state (not used in export mode)
+const isDrawing = computed(() => tool?.isDrawing.value ?? false)
+const currentRect = computed(() => tool?.currentRect.value ?? null)
 </script>
 <template>
   <g class="fill-tool">
-    <!-- Completed fill rectangles -->
-    <EditorAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
-      <template #content="{ annotation, isSelected }">
+    <!-- Export mode: render directly without interactive wrapper -->
+    <template v-if="exportMode">
+      <g v-for="fill in completed" :key="fill.id">
         <!-- Filled rectangle -->
         <rect
-          :x="annotation.x"
-          :y="annotation.y"
-          :width="annotation.width"
-          :height="annotation.height"
-          :fill="annotation.color"
-          :fill-opacity="annotation.opacity"
-          class="fill-rect"
+          :x="fill.x"
+          :y="fill.y"
+          :width="fill.width"
+          :height="fill.height"
+          :fill="fill.color"
+          :fill-opacity="fill.opacity"
         />
 
-        <!-- Border for visibility and selection state -->
+        <!-- Border for visibility -->
         <rect
-          :x="annotation.x"
-          :y="annotation.y"
-          :width="annotation.width"
-          :height="annotation.height"
+          :x="fill.x"
+          :y="fill.y"
+          :width="fill.width"
+          :height="fill.height"
           fill="transparent"
-          :stroke="isSelected ? config.color : annotation.color"
-          :stroke-width="isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth"
-          :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
-          class="fill-border"
+          :stroke="fill.color"
+          :stroke-width="config.border.strokeWidth"
+          :stroke-opacity="config.border.strokeOpacity"
         />
-      </template>
-    </EditorAnnotation>
+      </g>
+    </template>
 
-    <!-- Preview while drawing -->
-    <rect
-      v-if="isDrawing && currentRect"
-      :x="currentRect.x"
-      :y="currentRect.y"
-      :width="currentRect.width"
-      :height="currentRect.height"
-      :fill="config.color"
-      :fill-opacity="config.preview.fillOpacity"
-      :stroke="config.color"
-      :stroke-width="config.preview.strokeWidth"
-      :stroke-dasharray="config.preview.strokeDashArray"
-      class="preview-rect"
-      pointer-events="none"
-    />
+    <!-- Interactive mode: use EditorAnnotation wrapper -->
+    <template v-else>
+      <EditorAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
+        <template #content="{ annotation, isSelected }">
+          <!-- Filled rectangle -->
+          <rect
+            :x="annotation.x"
+            :y="annotation.y"
+            :width="annotation.width"
+            :height="annotation.height"
+            :fill="annotation.color"
+            :fill-opacity="annotation.opacity"
+            class="fill-rect"
+          />
+
+          <!-- Border for visibility and selection state -->
+          <rect
+            :x="annotation.x"
+            :y="annotation.y"
+            :width="annotation.width"
+            :height="annotation.height"
+            fill="transparent"
+            :stroke="isSelected ? config.color : annotation.color"
+            :stroke-width="isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth"
+            :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
+            class="fill-border"
+          />
+        </template>
+      </EditorAnnotation>
+
+      <!-- Preview while drawing (only in interactive mode) -->
+      <rect
+        v-if="isDrawing && currentRect"
+        :x="currentRect.x"
+        :y="currentRect.y"
+        :width="currentRect.width"
+        :height="currentRect.height"
+        :fill="config.color"
+        :fill-opacity="config.preview.fillOpacity"
+        :stroke="config.color"
+        :stroke-width="config.preview.strokeWidth"
+        :stroke-dasharray="config.preview.strokeDashArray"
+        class="preview-rect"
+        pointer-events="none"
+      />
+    </template>
   </g>
 </template>
 

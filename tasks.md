@@ -10,12 +10,14 @@
 
 ### Features
 
-- [ ] When creating a new project the user must be able to attach the pdf to their project
-- [ ] A user should be able to attach more than one file to a project, to allow revisions, changes, multi file projects for example. Currently projects are 1:1 with files this needs to be changed
-- [ ] Annotations should persist into the database and be rehydrated on load. (what algorithym should we use to sync them)
+- [x] When creating a new project the user must be able to attach the pdf to their project
+- [x] A user should be able to attach more than one file to a project, to allow revisions, changes, multi file projects for example. Currently projects are 1:1 with files this needs to be changed
+- [x] Annotations should persist into the database and be rehydrated on load. (what algorithym should we use to sync them)
 - [ ] We need to enable printing of the pdf's with annotations embedded e.g. a download link
 - [ ] We need to enable download of the original file without annotations
 - [ ] Add the concepts of clients and database, api and ui to reflect this. Clients would be the collective information for recurring work for a user of our platform and as such would be tied to many projects. This feature enables this. Will need a clear creation modal not unlike the create project modal. to fully document their details. And then we'll need to update the create project model to select the client from instead of providing all their relevant details each time.
+- [ ] Remote sync of annotations and viewport state should be a paid feature. need to make a way to add features enabled cleaning, maybe database table tied to plans or something and then dynamically enable and disable based on that via checks and guards in the ui and functions
+- [x] We need to add a pricing CTA on the bottom of the sidebar and a pricing page that clearly outlines the pricing concepts here
 
 ### Platform Admins
 
@@ -43,8 +45,4 @@
 
 ### User Experience
 
-- [ ] It should be less clicks to be able to open a project in their editor
-
-### Performance
-
-- [ ] Create a <https://www.better-auth.com/docs/concepts/database#secondary-storage> implementation using cloudflare kv to store our rate limiting tokens.
+- [x] It should be less clicks to be able to open a project in their editor

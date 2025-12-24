@@ -4,10 +4,37 @@ import type {
   ProjectShareWithRelations,
   ProjectFileWithUploader
 } from "#shared/types/projects.types"
+import type { Annotation } from "#shared/types/annotations.types"
 import { toast } from "vue-sonner"
 
 const route = useRoute("projects-id")
 const projectId = route.params.id
+
+// PDF Export
+const { exportWithAnnotations, isExporting } = useExportPdf()
+const exportingFileId = ref<string | null>(null)
+
+async function handleExportFile(file: ProjectFileWithUploader) {
+  if (exportingFileId.value) return
+  exportingFileId.value = file.id
+
+  try {
+    // Fetch annotations for this file
+    const response = await $fetch<{ annotations: Annotation[] }>(`/api/files/${file.id}/annotations`)
+
+    // Export the PDF with annotations
+    const exportFileName = file.pdfFileName.replace(/\.pdf$/i, "-annotated.pdf")
+    await exportWithAnnotations({
+      pdfUrl: file.pdfUrl,
+      annotations: response.annotations,
+      filename: exportFileName
+    })
+  } catch (error: any) {
+    toast.error(error.data?.statusMessage || "Failed to export PDF")
+  } finally {
+    exportingFileId.value = null
+  }
+}
 
 // Breadcrumb management
 const { setLabel, clearLabel } = useBreadcrumbs()
@@ -593,6 +620,23 @@ onMounted(() => {
                     <Icon name="lucide:edit" class="size-4 mr-2" />
                     Edit
                   </UiButton>
+                  <UiTooltip>
+                    <UiTooltipTrigger as-child>
+                      <UiButton
+                        variant="ghost"
+                        size="icon"
+                        :disabled="exportingFileId === file.id || file.annotationCount === 0"
+                        @click="handleExportFile(file)"
+                      >
+                        <Icon v-if="exportingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
+                        <Icon v-else name="lucide:download" class="size-4" />
+                      </UiButton>
+                    </UiTooltipTrigger>
+                    <UiTooltipContent>
+                      <p v-if="file.annotationCount === 0">No annotations to export</p>
+                      <p v-else>Download PDF with annotations</p>
+                    </UiTooltipContent>
+                  </UiTooltip>
                   <UiButton
                     variant="ghost"
                     size="icon"

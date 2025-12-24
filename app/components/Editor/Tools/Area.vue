@@ -86,197 +86,165 @@ export type AreaToolConfig = typeof AREA_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-// Inject the tool state (which extends BaseTool)
-const tool = useAreaToolState()
+import type { Area, Point } from "#shared/types/annotations.types"
+
+// Props for export mode
+const props = defineProps<{
+  annotations?: Area[]
+  exportMode?: boolean
+}>()
+
 const config = AREA_TOOL_DEFAULTS
 
-if (!tool) {
+// Inject the tool state (only in interactive mode)
+const tool = props.exportMode ? null : useAreaToolState()
+
+if (!tool && !props.exportMode) {
   throw new Error("AreaTool must be used within AnnotationLayer")
 }
 
-// Destructure everything we need (inherited + tool-specific)
-const {
-  // From DrawingTool (inherited):
-  isDrawing,
-  points,
-  tempEndPoint,
-  canSnapToClose,
-  completed,
-  toSvgPoints,
-  // From AreaTool (specific):
-  previewArea,
-  previewPolygon
-} = tool
+// Helper to convert points to SVG polygon format
+function toSvgPoints(pts: Point[]): string {
+  return pts.map((p) => `${p.x},${p.y}`).join(" ")
+}
+
+// Use passed annotations in export mode, otherwise from store
+const completed = computed(() => {
+  if (props.exportMode && props.annotations) {
+    return props.annotations
+  }
+  return tool?.completed.value ?? []
+})
+
+// Interactive-only state (not used in export mode)
+const isDrawing = computed(() => tool?.isDrawing.value ?? false)
+const points = computed(() => tool?.points.value ?? [])
+const tempEndPoint = computed(() => tool?.tempEndPoint.value ?? null)
+const canSnapToClose = computed(() => tool?.canSnapToClose.value ?? false)
+const previewArea = computed(() => tool?.previewArea.value ?? null)
+const previewPolygon = computed(() => tool?.previewPolygon.value ?? null)
 
 // Get viewport-relative label rotation from renderer store
-const viewportStore = useViewportStore()
+const viewportStore = props.exportMode ? null : useViewportStore()
 </script>
 <template>
   <g class="area-tool">
-    <!-- Completed areas -->
-    <EditorAnnotation v-for="area in completed" :key="area.id" :annotation="area">
-      <template #content="{ annotation, isSelected }">
+    <!-- Export mode: render directly without interactive wrapper -->
+    <template v-if="exportMode">
+      <g v-for="area in completed" :key="area.id">
         <!-- Polygon -->
-        <polygon
-          :points="toSvgPoints(annotation.points)"
-          :fill="config.fillColor"
-          :fill-opacity="config.opacity"
-          :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
-          :class="{ 'selected-polygon': isSelected }"
-          class="area-polygon"
-        />
+        <polygon :points="toSvgPoints(area.points)" :fill="config.fillColor" :fill-opacity="config.opacity"
+          :stroke="config.strokeColor" :stroke-width="config.strokeWidth" />
 
         <!-- Label background with rotation -->
-        <rect
-          :x="annotation.center.x - config.label.background.offsetX"
-          :y="annotation.center.y - config.label.background.offsetY"
-          :width="config.label.background.width"
-          :height="config.label.background.height"
-          :fill="config.label.background.fill"
-          :opacity="config.label.background.opacity"
+        <rect :x="area.center.x - config.label.background.offsetX" :y="area.center.y - config.label.background.offsetY"
+          :width="config.label.background.width" :height="config.label.background.height"
+          :fill="config.label.background.fill" :opacity="config.label.background.opacity"
           :rx="config.label.background.borderRadius"
-          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
-        />
+          :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`" />
 
         <!-- Label with rotation -->
-        <text
-          :x="annotation.center.x"
-          :y="annotation.center.y"
-          :fill="config.labelColor"
-          :font-size="config.labelSize"
-          font-weight="bold"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          class="area-label"
-          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
-        >
-          {{ annotation.area }}m²
-        </text>
-      </template>
-    </EditorAnnotation>
-
-    <!-- Preview while drawing -->
-    <g v-if="tempEndPoint" class="preview">
-      <!-- Cursor indicator (before first click) -->
-      <circle
-        v-if="!isDrawing"
-        :cx="tempEndPoint.x"
-        :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius"
-        fill="none"
-        :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth"
-        :opacity="config.preview.cursorIndicator.opacity"
-      />
-
-      <!-- Placed point markers (after starting) -->
-      <g v-if="isDrawing">
-        <circle
-          v-for="(point, index) in points"
-          :key="`point-${index}`"
-          :cx="point.x"
-          :cy="point.y"
-          :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
-          :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
-          :stroke="config.preview.pointMarkers.stroke"
-          :stroke-width="config.preview.pointMarkers.strokeWidth"
-          class="point-marker"
-        />
-
-        <!-- Draw lines between placed points -->
-        <g v-if="points.length > 0">
-          <!-- Lines connecting placed points -->
-          <template v-for="(point, index) in points.slice(0, -1)" :key="`line-${index}`">
-            <line
-              v-if="points[index + 1]"
-              :x1="point.x"
-              :y1="point.y"
-              :x2="points[index + 1]?.x ?? 0"
-              :y2="points[index + 1]?.y ?? 0"
-              :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth"
-              :stroke-dasharray="config.preview.lines.strokeDashArray"
-              :opacity="config.preview.lines.opacity"
-            />
-          </template>
-
-          <!-- Line from last point to cursor -->
-          <template v-if="tempEndPoint && points.length > 0">
-            <line
-              v-if="points[points.length - 1]"
-              :x1="points[points.length - 1]?.x ?? 0"
-              :y1="points[points.length - 1]?.y ?? 0"
-              :x2="tempEndPoint.x"
-              :y2="tempEndPoint.y"
-              :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth"
-              :stroke-dasharray="config.preview.lines.strokeDashArray"
-              :opacity="config.preview.lines.opacity"
-            />
-          </template>
-
-          <!-- Preview closing line when hovering near start -->
-          <line
-            v-if="tempEndPoint && points.length >= 2 && points[0]"
-            :x1="tempEndPoint.x"
-            :y1="tempEndPoint.y"
-            :x2="points[0].x"
-            :y2="points[0].y"
-            :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth"
-            :stroke-dasharray="config.preview.lines.strokeDashArray"
-            :opacity="config.preview.lines.closingLineOpacity"
-          />
-        </g>
-
-        <!-- Preview polygon fill -->
-        <polygon
-          v-if="previewPolygon"
-          :points="previewPolygon"
-          :fill="config.fillColor"
-          :fill-opacity="config.opacity * config.preview.polygonOpacityMultiplier"
-          fill-rule="evenodd"
-          pointer-events="none"
-        />
-
-        <!-- Snap to close indicator -->
-        <g v-if="canSnapToClose && points.length > 0 && points[0]">
-          <circle
-            :cx="points[0].x"
-            :cy="points[0].y"
-            :r="config.snap.radius"
-            fill="none"
-            :stroke="config.snap.stroke"
-            :stroke-width="config.snap.strokeWidth"
-            class="snap-indicator"
-          />
-          <text
-            :x="points[0].x + config.snap.text.offsetX"
-            :y="points[0].y - config.snap.text.offsetY"
-            :fill="config.snap.text.fill"
-            :font-size="config.snap.text.fontSize"
-            :font-weight="config.snap.text.fontWeight"
-            :transform="`rotate(${viewportStore.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX} ${points[0].y - config.snap.text.offsetY})`"
-          >
-            Click to close
-          </text>
-        </g>
-
-        <!-- Preview area (viewport-relative rotation) -->
-        <text
-          v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
-          :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
-          :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2"
-          :fill="config.preview.distance.fill"
-          :font-size="config.preview.distance.fontSize"
-          text-anchor="middle"
-          :transform="`rotate(${viewportStore.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`"
-        >
-          {{ previewArea }}m²
+        <text :x="area.center.x" :y="area.center.y" :fill="config.labelColor" :font-size="config.labelSize"
+          font-weight="bold" text-anchor="middle" dominant-baseline="middle"
+          :transform="`rotate(${area.labelRotation} ${area.center.x} ${area.center.y})`">
+          {{ area.area }}m²
         </text>
       </g>
-    </g>
+    </template>
+
+    <!-- Interactive mode: use EditorAnnotation wrapper -->
+    <template v-else>
+      <EditorAnnotation v-for="area in completed" :key="area.id" :annotation="area">
+        <template #content="{ annotation, isSelected }">
+          <!-- Polygon -->
+          <polygon :points="toSvgPoints(annotation.points)" :fill="config.fillColor" :fill-opacity="config.opacity"
+            :stroke="config.strokeColor" :stroke-width="config.strokeWidth" :class="{ 'selected-polygon': isSelected }"
+            class="area-polygon" />
+
+          <!-- Label background with rotation -->
+          <rect :x="annotation.center.x - config.label.background.offsetX"
+            :y="annotation.center.y - config.label.background.offsetY" :width="config.label.background.width"
+            :height="config.label.background.height" :fill="config.label.background.fill"
+            :opacity="config.label.background.opacity" :rx="config.label.background.borderRadius"
+            :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`" />
+
+          <!-- Label with rotation -->
+          <text :x="annotation.center.x" :y="annotation.center.y" :fill="config.labelColor"
+            :font-size="config.labelSize" font-weight="bold" text-anchor="middle" dominant-baseline="middle"
+            class="area-label"
+            :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`">
+            {{ annotation.area }}m²
+          </text>
+        </template>
+      </EditorAnnotation>
+
+      <!-- Preview while drawing (only in interactive mode) -->
+      <g v-if="tempEndPoint" class="preview">
+        <!-- Cursor indicator (before first click) -->
+        <circle v-if="!isDrawing" :cx="tempEndPoint.x" :cy="tempEndPoint.y" :r="config.preview.cursorIndicator.radius"
+          fill="none" :stroke="config.strokeColor" :stroke-width="config.preview.cursorIndicator.strokeWidth"
+          :opacity="config.preview.cursorIndicator.opacity" />
+
+        <!-- Placed point markers (after starting) -->
+        <g v-if="isDrawing">
+          <circle v-for="(point, index) in points" :key="`point-${index}`" :cx="point.x" :cy="point.y"
+            :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
+            :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
+            :stroke="config.preview.pointMarkers.stroke" :stroke-width="config.preview.pointMarkers.strokeWidth"
+            class="point-marker" />
+
+          <!-- Draw lines between placed points -->
+          <g v-if="points.length > 0">
+            <!-- Lines connecting placed points -->
+            <template v-for="(point, index) in points.slice(0, -1)" :key="`line-${index}`">
+              <line v-if="points[index + 1]" :x1="point.x" :y1="point.y" :x2="points[index + 1]?.x ?? 0"
+                :y2="points[index + 1]?.y ?? 0" :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
+                :stroke-dasharray="config.preview.lines.strokeDashArray" :opacity="config.preview.lines.opacity" />
+            </template>
+
+            <!-- Line from last point to cursor -->
+            <template v-if="tempEndPoint && points.length > 0">
+              <line v-if="points[points.length - 1]" :x1="points[points.length - 1]?.x ?? 0"
+                :y1="points[points.length - 1]?.y ?? 0" :x2="tempEndPoint.x" :y2="tempEndPoint.y"
+                :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
+                :stroke-dasharray="config.preview.lines.strokeDashArray" :opacity="config.preview.lines.opacity" />
+            </template>
+
+            <!-- Preview closing line when hovering near start -->
+            <line v-if="tempEndPoint && points.length >= 2 && points[0]" :x1="tempEndPoint.x" :y1="tempEndPoint.y"
+              :x2="points[0].x" :y2="points[0].y" :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
+              :stroke-dasharray="config.preview.lines.strokeDashArray"
+              :opacity="config.preview.lines.closingLineOpacity" />
+          </g>
+
+          <!-- Preview polygon fill -->
+          <polygon v-if="previewPolygon" :points="previewPolygon" :fill="config.fillColor"
+            :fill-opacity="config.opacity * config.preview.polygonOpacityMultiplier" fill-rule="evenodd"
+            pointer-events="none" />
+
+          <!-- Snap to close indicator -->
+          <g v-if="canSnapToClose && points.length > 0 && points[0]">
+            <circle :cx="points[0].x" :cy="points[0].y" :r="config.snap.radius" fill="none" :stroke="config.snap.stroke"
+              :stroke-width="config.snap.strokeWidth" class="snap-indicator" />
+            <text :x="points[0].x + config.snap.text.offsetX" :y="points[0].y - config.snap.text.offsetY"
+              :fill="config.snap.text.fill" :font-size="config.snap.text.fontSize"
+              :font-weight="config.snap.text.fontWeight"
+              :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX} ${points[0].y - config.snap.text.offsetY})`">
+              Click to close
+            </text>
+          </g>
+
+          <!-- Preview area (viewport-relative rotation) -->
+          <text v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
+            :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
+            :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2" :fill="config.preview.distance.fill"
+            :font-size="config.preview.distance.fontSize" text-anchor="middle"
+            :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`">
+            {{ previewArea }}m²
+          </text>
+        </g>
+      </g>
+    </template>
   </g>
 </template>
 
@@ -301,11 +269,13 @@ const viewportStore = useViewportStore()
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     r: 8;
     opacity: 1;
   }
+
   50% {
     r: 12;
     opacity: 0.5;

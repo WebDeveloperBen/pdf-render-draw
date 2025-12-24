@@ -18,6 +18,7 @@ const fileId = ref<string | null>(null)
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 const fileName = ref<string>("")
+const pdfUrl = ref<string>("")
 
 // Editor sync composable - handles persistence automatically via store action interception
 const {
@@ -102,6 +103,7 @@ async function loadFile() {
 
     const response = await $fetch(`/api/projects/${projectIdValue}/files/${fileIdValue}`)
     fileName.value = response.pdfFileName
+    pdfUrl.value = response.pdfUrl
     await viewportStore.loadPdf(response.pdfUrl)
 
     // Set file ID and initialize sync
@@ -181,6 +183,19 @@ function resetRotation() {
 const isPanning = ref(false)
 const panStart = ref({ x: 0, y: 0 })
 const spacePressed = ref(false)
+
+// PDF Export
+const { exportFromEditor, isExporting } = useExportPdf()
+
+async function handleExport() {
+  if (!pdfUrl.value) {
+    return
+  }
+  const exportFileName = fileName.value
+    ? fileName.value.replace(/\.pdf$/i, "-annotated.pdf")
+    : "annotated.pdf"
+  await exportFromEditor(pdfUrl.value, exportFileName)
+}
 
 // Zoom handling composable
 const { handleWheel: handleWheelZoom } = useZoom()
@@ -348,8 +363,22 @@ if (typeof window !== "undefined") {
             </div>
           </div>
 
-          <!-- Right side - Sync Status, Info & Theme -->
+          <!-- Right side - Export, Sync Status, Info & Theme -->
           <div class="toolbar-section">
+            <!-- Export Button -->
+            <button
+              class="toolbar-btn"
+              :disabled="isExporting || !viewportStore.isPdfLoaded"
+              title="Download PDF with annotations"
+              @click="handleExport"
+            >
+              <Icon v-if="isExporting" name="svg-spinners:ring-resize" class="size-4" />
+              <Icon v-else name="lucide:download" class="size-4" />
+              <span>{{ isExporting ? 'Exporting...' : 'Export' }}</span>
+            </button>
+
+            <div class="divider" />
+
             <!-- Sync Status Indicator -->
             <div class="sync-status" :class="syncState" :title="syncTooltip">
               <Icon

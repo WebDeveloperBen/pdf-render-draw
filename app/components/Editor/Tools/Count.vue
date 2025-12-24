@@ -42,87 +42,140 @@ export type CountToolConfig = typeof COUNT_TOOL_DEFAULTS
 </script>
 
 <script setup lang="ts">
-const tool = useCountToolState()
+import type { Count } from "#shared/types/annotations.types"
+
+// Props for export mode
+const props = defineProps<{
+  annotations?: Count[]
+  exportMode?: boolean
+}>()
+
 const config = COUNT_TOOL_DEFAULTS
 
-if (!tool) {
+// Inject the tool state (only in interactive mode)
+const tool = props.exportMode ? null : useCountToolState()
+
+if (!tool && !props.exportMode) {
   throw new Error("CountTool must be used within AnnotationLayer")
 }
 
-const annotationStore = useAnnotationStore()
-const { completed, nextCountNumber, cursorPosition } = tool
+// Use passed annotations in export mode, otherwise from store
+const completed = computed(() => {
+  if (props.exportMode && props.annotations) {
+    return props.annotations
+  }
+  return tool?.completed.value ?? []
+})
 
-// Only show preview when count tool is active
-const showPreview = computed(() => annotationStore.activeTool === "count" && cursorPosition.value)
+// Interactive-only state (not used in export mode)
+const annotationStore = props.exportMode ? null : useAnnotationStore()
+const nextCountNumber = computed(() => tool?.nextCountNumber.value ?? 0)
+const cursorPosition = computed(() => tool?.cursorPosition.value ?? null)
+
+// Only show preview when count tool is active (interactive mode only)
+const showPreview = computed(() => {
+  if (props.exportMode) return false
+  return annotationStore?.activeTool === "count" && cursorPosition.value
+})
 </script>
 
 <template>
   <g class="count-tool">
-    <!-- Completed count annotations -->
-    <EditorAnnotation v-for="count in completed" :key="count.id" :annotation="count">
-      <template #content="{ annotation }">
-        <!-- Invisible hitbox for easier clicking -->
-        <circle
-          :cx="annotation.x + annotation.width / 2"
-          :cy="annotation.y + annotation.height / 2"
-          :r="config.hitArea.radius"
-          fill="transparent"
-          class="count-hitbox"
-        />
-
+    <!-- Export mode: render directly without interactive wrapper -->
+    <template v-if="exportMode">
+      <g v-for="count in completed" :key="count.id">
         <!-- Count marker circle -->
         <circle
-          :cx="annotation.x + annotation.width / 2"
-          :cy="annotation.y + annotation.height / 2"
+          :cx="count.x + count.width / 2"
+          :cy="count.y + count.height / 2"
           :r="config.marker.radius"
           :fill="config.marker.fill"
           :stroke="config.marker.stroke"
           :stroke-width="config.marker.strokeWidth"
-          class="count-marker"
         />
 
         <!-- Count number text -->
         <text
-          :x="annotation.x + annotation.width / 2"
-          :y="annotation.y + annotation.height / 2"
+          :x="count.x + count.width / 2"
+          :y="count.y + count.height / 2"
           text-anchor="middle"
           dominant-baseline="middle"
           :font-size="config.text.fontSize"
           :font-weight="config.text.fontWeight"
           :fill="config.text.fill"
-          class="count-number"
         >
-          {{ annotation.number }}
+          {{ count.number }}
         </text>
-      </template>
-    </EditorAnnotation>
+      </g>
+    </template>
 
-    <!-- Preview marker (shown when hovering with count tool active) -->
-    <g v-if="showPreview && cursorPosition" class="preview">
-      <circle
-        :cx="cursorPosition.x"
-        :cy="cursorPosition.y"
-        :r="config.marker.radius"
-        :fill="config.marker.fill"
-        :stroke="config.marker.stroke"
-        :stroke-width="config.marker.strokeWidth"
-        :opacity="config.preview.opacity"
-        class="preview-marker"
-      />
-      <text
-        :x="cursorPosition.x"
-        :y="cursorPosition.y"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        :font-size="config.text.fontSize"
-        :font-weight="config.text.fontWeight"
-        :fill="config.text.fill"
-        :opacity="config.preview.opacity"
-        class="preview-number"
-      >
-        {{ nextCountNumber }}
-      </text>
-    </g>
+    <!-- Interactive mode: use EditorAnnotation wrapper -->
+    <template v-else>
+      <EditorAnnotation v-for="count in completed" :key="count.id" :annotation="count">
+        <template #content="{ annotation }">
+          <!-- Invisible hitbox for easier clicking -->
+          <circle
+            :cx="annotation.x + annotation.width / 2"
+            :cy="annotation.y + annotation.height / 2"
+            :r="config.hitArea.radius"
+            fill="transparent"
+            class="count-hitbox"
+          />
+
+          <!-- Count marker circle -->
+          <circle
+            :cx="annotation.x + annotation.width / 2"
+            :cy="annotation.y + annotation.height / 2"
+            :r="config.marker.radius"
+            :fill="config.marker.fill"
+            :stroke="config.marker.stroke"
+            :stroke-width="config.marker.strokeWidth"
+            class="count-marker"
+          />
+
+          <!-- Count number text -->
+          <text
+            :x="annotation.x + annotation.width / 2"
+            :y="annotation.y + annotation.height / 2"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            :font-size="config.text.fontSize"
+            :font-weight="config.text.fontWeight"
+            :fill="config.text.fill"
+            class="count-number"
+          >
+            {{ annotation.number }}
+          </text>
+        </template>
+      </EditorAnnotation>
+
+      <!-- Preview marker (shown when hovering with count tool active, interactive mode only) -->
+      <g v-if="showPreview && cursorPosition" class="preview">
+        <circle
+          :cx="cursorPosition.x"
+          :cy="cursorPosition.y"
+          :r="config.marker.radius"
+          :fill="config.marker.fill"
+          :stroke="config.marker.stroke"
+          :stroke-width="config.marker.strokeWidth"
+          :opacity="config.preview.opacity"
+          class="preview-marker"
+        />
+        <text
+          :x="cursorPosition.x"
+          :y="cursorPosition.y"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          :font-size="config.text.fontSize"
+          :font-weight="config.text.fontWeight"
+          :fill="config.text.fill"
+          :opacity="config.preview.opacity"
+          class="preview-number"
+        >
+          {{ nextCountNumber }}
+        </text>
+      </g>
+    </template>
   </g>
 </template>
 
