@@ -1,29 +1,27 @@
 <script lang="ts" setup>
-import { toast } from "vue-sonner"
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
     mode?: "signin" | "signup"
-    disabled?: boolean
   }>(),
   {
-    mode: "signin",
-    disabled: false
+    mode: "signin"
   }
 )
-
-const label = computed(() => (props.mode === "signup" ? "Sign up with Google" : "Continue with Google"))
-
-const handleClick = () => {
-  toast.info("Google authentication coming soon")
-  // TODO: Implement Google OAuth
-  // authClient.signIn.social({ provider: "google" })
-}
 </script>
 
 <template>
-  <UiButton variant="outline" type="button" class="w-full" :disabled="disabled" @click="handleClick">
-    <IconsGoogle class="size-5" />
-    <span class="ml-2">{{ label }}</span>
-  </UiButton>
+  <UiTooltip>
+    <UiTooltipTrigger as-child>
+      <!-- Wrapper span needed because disabled buttons don't receive pointer events -->
+      <span class="inline-block w-full">
+        <UiButton variant="outline" type="button" class="w-full pointer-events-none" disabled>
+          <IconsGoogle class="size-5" />
+          <span class="ml-2">{{ mode === "signup" ? "Sign up with Google" : "Continue with Google" }}</span>
+        </UiButton>
+      </span>
+    </UiTooltipTrigger>
+    <UiTooltipContent>
+      <p>Coming soon</p>
+    </UiTooltipContent>
+  </UiTooltip>
 </template>

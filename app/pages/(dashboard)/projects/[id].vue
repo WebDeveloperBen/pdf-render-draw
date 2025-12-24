@@ -75,6 +75,11 @@ const project = ref<ProjectWithRelations | null>(null)
 const shares = ref<ProjectShareWithRelations[]>([])
 const files = ref<ProjectFileWithUploader[]>([])
 
+// Delete confirmation modals
+const showDeleteProjectModal = ref(false)
+const showDeleteFileModal = ref(false)
+const fileToDelete = ref<ProjectFileWithUploader | null>(null)
+
 // File selector for editor
 const showFileSelector = ref(false)
 
@@ -308,13 +313,19 @@ async function handleAddFile() {
   }
 }
 
-// Delete file
-const handleDeleteFile = async (fileId: string) => {
-  if (!confirm("Are you sure you want to delete this file? This action cannot be undone.")) {
-    return
-  }
+// Delete file - show confirmation modal
+function promptDeleteFile(file: ProjectFileWithUploader) {
+  fileToDelete.value = file
+  showDeleteFileModal.value = true
+}
 
+// Confirm file deletion
+async function confirmDeleteFile() {
+  if (!fileToDelete.value) return
+
+  const fileId = fileToDelete.value.id
   isDeletingFile.value = fileId
+
   try {
     await $fetch(`/api/projects/${projectId}/files/${fileId}`, {
       method: "DELETE"
@@ -322,6 +333,8 @@ const handleDeleteFile = async (fileId: string) => {
 
     files.value = files.value.filter((f) => f.id !== fileId)
     toast.success("File deleted")
+    showDeleteFileModal.value = false
+    fileToDelete.value = null
   } catch (error: any) {
     toast.error(error.data?.statusMessage || "Failed to delete file")
   } finally {
@@ -407,12 +420,13 @@ const handleDeleteShare = async (shareId: string) => {
   }
 }
 
-// Delete project
-const handleDeleteProject = async () => {
-  if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-    return
-  }
+// Delete project - show confirmation modal
+function promptDeleteProject() {
+  showDeleteProjectModal.value = true
+}
 
+// Confirm project deletion
+async function confirmDeleteProject() {
   isDeleting.value = true
   try {
     await $fetch(`/api/projects/${projectId}`, {
@@ -551,7 +565,7 @@ onMounted(() => {
             </UiButton>
           </UiDropdownMenuTrigger>
           <UiDropdownMenuContent align="end">
-            <UiDropdownMenuItem title="Delete Project" class="text-destructive" @click="handleDeleteProject">
+            <UiDropdownMenuItem title="Delete Project" class="text-destructive" @click="promptDeleteProject">
               <template #icon>
                 <Icon name="lucide:trash" class="size-4" />
               </template>
@@ -748,12 +762,10 @@ onMounted(() => {
                         <UiDropdownMenuItem
                           title="Delete File"
                           class="text-destructive focus:text-destructive"
-                          :disabled="isDeletingFile === file.id"
-                          @click="handleDeleteFile(file.id)"
+                          @click="promptDeleteFile(file)"
                         >
                           <template #icon>
-                            <Icon v-if="isDeletingFile === file.id" name="svg-spinners:ring-resize" class="size-4" />
-                            <Icon v-else name="lucide:trash" class="size-4" />
+                            <Icon name="lucide:trash" class="size-4" />
                           </template>
                         </UiDropdownMenuItem>
                       </UiDropdownMenuContent>
@@ -1316,5 +1328,28 @@ onMounted(() => {
         </div>
       </UiDialogContent>
     </UiDialog>
+
+    <!-- Delete Project Confirmation Modal -->
+    <UiDeleteConfirmModal
+      v-model:open="showDeleteProjectModal"
+      title="Delete Project"
+      description="This will permanently delete the project, all files, annotations, and shares. This action cannot be undone."
+      :item-name="project?.name || ''"
+      :is-deleting="isDeleting"
+      :require-confirmation="true"
+      confirm-text="Delete Project"
+      @confirm="confirmDeleteProject"
+    />
+
+    <!-- Delete File Confirmation Modal -->
+    <UiDeleteConfirmModal
+      v-model:open="showDeleteFileModal"
+      title="Delete File"
+      description="This will permanently delete the file and all its annotations. This action cannot be undone."
+      :item-name="fileToDelete?.pdfFileName || ''"
+      :is-deleting="isDeletingFile === fileToDelete?.id"
+      confirm-text="Delete File"
+      @confirm="confirmDeleteFile"
+    />
   </div>
 </template>

@@ -178,10 +178,24 @@ function toggleFaq(index: number) {
 
         <!-- Footer -->
         <div class="flex items-center p-6 pt-0">
-          <UiButton :variant="tier.ctaVariant" class="w-full" :disabled="tier.name === 'Free'"
-            :to="tier.name !== 'Free' ? '/checkout?plan=' + tier.name.toLowerCase() : undefined">
+          <!-- Free tier - disabled current plan -->
+          <UiButton v-if="tier.name === 'Free'" :variant="tier.ctaVariant" class="w-full" disabled>
             {{ tier.cta }}
           </UiButton>
+          <!-- Pro/Team tiers - coming soon with tooltip -->
+          <UiTooltip v-else>
+            <UiTooltipTrigger as-child>
+              <!-- Wrapper span needed because disabled buttons don't receive pointer events -->
+              <span class="inline-block w-full">
+                <UiButton :variant="tier.ctaVariant" class="w-full pointer-events-none" disabled>
+                  {{ tier.cta }}
+                </UiButton>
+              </span>
+            </UiTooltipTrigger>
+            <UiTooltipContent>
+              <p>Coming soon</p>
+            </UiTooltipContent>
+          </UiTooltip>
         </div>
       </div>
     </div>
