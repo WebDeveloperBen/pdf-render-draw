@@ -1,10 +1,5 @@
-import { createSSRApp } from "vue"
-import { renderToString } from "vue/server-renderer"
-import { jsPDF } from "jspdf"
-import { svg2pdf } from "svg2pdf.js"
 import { PDFDocument } from "pdf-lib"
 import { toast } from "vue-sonner"
-import AnnotationRenderer from "~/components/Editor/AnnotationRenderer.vue"
 import type { Annotation } from "#shared/types/annotations.types"
 
 interface ExportOptions {
@@ -35,6 +30,11 @@ export function useExportPdf() {
     height: number
   ): Promise<SVGSVGElement> {
     console.log(`[Export] Rendering ${annotations.length} annotations to SVG (${width}x${height})`)
+
+    // Dynamic imports for browser-only modules
+    const { createSSRApp } = await import("vue")
+    const { renderToString } = await import("vue/server-renderer")
+    const AnnotationRenderer = (await import("~/components/Editor/AnnotationRenderer.vue")).default
 
     // Dynamically import tool components for SSR
     const [
@@ -113,6 +113,11 @@ export function useExportPdf() {
     isExporting.value = true
 
     try {
+      // Dynamic imports for browser-only PDF libraries
+      const { jsPDF } = await import("jspdf")
+      const svg2pdfModule = await import("svg2pdf.js")
+      const svg2pdf = svg2pdfModule.default
+
       // 1. Fetch original PDF
       const pdfBytes = await fetch(options.pdfUrl).then((r) => r.arrayBuffer())
       const originalPdf = await PDFDocument.load(pdfBytes)
