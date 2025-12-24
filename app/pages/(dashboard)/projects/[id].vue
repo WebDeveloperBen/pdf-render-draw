@@ -48,6 +48,29 @@ const project = ref<ProjectWithRelations | null>(null)
 const shares = ref<ProjectShareWithRelations[]>([])
 const files = ref<ProjectFileWithUploader[]>([])
 
+// File selector for editor
+const showFileSelector = ref(false)
+
+// Most recent file for quick access
+const mostRecentFile = computed(() => {
+  if (files.value.length === 0) return null
+  // Sort by updatedAt descending and return the first
+  return [...files.value].sort((a, b) => {
+    const dateA = new Date(a.updatedAt || a.createdAt).getTime()
+    const dateB = new Date(b.updatedAt || b.createdAt).getTime()
+    return dateB - dateA
+  })[0]
+})
+
+// Handle Open Editor click - show selector if multiple files
+function handleOpenEditor() {
+  if (files.value.length === 1 && mostRecentFile.value) {
+    navigateTo(`/editor?projectId=${projectId}&fileId=${mostRecentFile.value.id}`)
+  } else {
+    showFileSelector.value = true
+  }
+}
+
 // Share creation
 const showShareDialog = ref(false)
 const isCreatingShare = ref(false)
@@ -476,6 +499,20 @@ onMounted(() => {
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-2 ml-11 lg:ml-0">
+        <!-- Primary CTA: Open Editor (when files exist) -->
+        <UiButton
+          v-if="files.length > 0"
+          size="lg"
+          @click="handleOpenEditor"
+        >
+          <Icon name="lucide:pencil-ruler" class="size-5 mr-2" />
+          Open Editor
+        </UiButton>
+        <!-- Upload CTA (when no files) -->
+        <UiButton v-else size="lg" @click="showAddFileDialog = true">
+          <Icon name="lucide:upload" class="size-5 mr-2" />
+          Upload PDF
+        </UiButton>
         <UiButton variant="outline" @click="showShareDialog = true">
           <Icon name="lucide:share-2" class="size-4 mr-2" />
           Share
@@ -578,68 +615,98 @@ onMounted(() => {
             </div>
           </UiCardHeader>
           <UiCardContent>
-            <div v-if="files.length === 0" class="text-center py-12 text-muted-foreground">
-              <Icon name="lucide:file-text" class="size-16 mx-auto mb-3 opacity-30" />
-              <p class="font-medium">No files yet</p>
-              <p class="text-sm mt-1">Upload a PDF to get started</p>
+            <!-- Empty state with prominent CTA -->
+            <div v-if="files.length === 0" class="text-center py-16">
+              <div class="mx-auto size-20 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+                <Icon name="lucide:file-plus" class="size-10 text-primary" />
+              </div>
+              <h3 class="font-semibold text-lg mb-1">No files yet</h3>
+              <p class="text-muted-foreground mb-6 max-w-sm mx-auto">
+                Upload a PDF to start annotating, measuring, and marking up your building plans.
+              </p>
+              <UiButton size="lg" @click="showAddFileDialog = true">
+                <Icon name="lucide:upload" class="size-5 mr-2" />
+                Upload PDF
+              </UiButton>
             </div>
 
-            <div v-else class="space-y-3">
+            <!-- File cards grid -->
+            <div v-else class="grid gap-4 sm:grid-cols-2">
               <div
                 v-for="file in files"
                 :key="file.id"
-                class="group flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 hover:border-primary/20 transition-all"
+                class="group relative border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
+                @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
               >
-                <!-- File info -->
-                <div class="flex items-center gap-4 min-w-0">
-                  <div class="flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/20 dark:to-red-800/10 shrink-0">
-                    <Icon name="lucide:file-text" class="size-6 text-red-500" />
-                  </div>
-                  <div class="min-w-0">
-                    <p class="font-medium truncate">{{ file.pdfFileName }}</p>
-                    <div class="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                      <span class="flex items-center gap-1">
-                        <Icon name="lucide:hard-drive" class="size-3" />
-                        {{ formatFileSize(file.pdfFileSize) }}
-                      </span>
-                      <span class="flex items-center gap-1">
-                        <Icon name="lucide:file" class="size-3" />
-                        {{ file.pageCount }} pages
-                      </span>
-                      <span class="flex items-center gap-1">
-                        <Icon name="lucide:message-square" class="size-3" />
-                        {{ file.annotationCount }} annotations
-                      </span>
+                <!-- Card header with PDF preview placeholder -->
+                <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
+                  <Icon name="lucide:file-text" class="size-16 text-slate-300 dark:text-slate-600" />
+                  <!-- Overlay on hover -->
+                  <div class="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="text-center text-primary-foreground">
+                      <Icon name="lucide:pencil-ruler" class="size-8 mx-auto mb-2" />
+                      <span class="font-medium">Open in Editor</span>
                     </div>
+                  </div>
+                  <!-- Annotation badge -->
+                  <div v-if="file.annotationCount > 0" class="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium">
+                    <Icon name="lucide:pen-tool" class="size-3 text-primary" />
+                    {{ file.annotationCount }}
                   </div>
                 </div>
 
-                <!-- Actions -->
-                <div class="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <UiButton size="sm" @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)">
-                    <Icon name="lucide:edit" class="size-4 mr-2" />
+                <!-- Card content -->
+                <div class="p-4">
+                  <h4 class="font-medium truncate mb-1" :title="file.pdfFileName">{{ file.pdfFileName }}</h4>
+                  <div class="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>{{ file.pageCount }} {{ file.pageCount === 1 ? 'page' : 'pages' }}</span>
+                    <span class="text-border">•</span>
+                    <span>{{ formatFileSize(file.pdfFileSize) }}</span>
+                  </div>
+                </div>
+
+                <!-- Always visible actions bar -->
+                <div class="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
+                  <UiButton
+                    size="sm"
+                    class="flex-1 mr-2"
+                    @click.stop="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
+                  >
+                    <Icon name="lucide:pencil-ruler" class="size-4 mr-2" />
                     Edit
                   </UiButton>
-                  <UiButton
-                    variant="ghost"
-                    size="icon"
-                    :disabled="exportingFileId === file.id"
-                    title="Download PDF with annotations"
-                    @click="handleExportFile(file)"
-                  >
-                    <Icon v-if="exportingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
-                    <Icon v-else name="lucide:download" class="size-4" />
-                  </UiButton>
-                  <UiButton
-                    variant="ghost"
-                    size="icon"
-                    class="text-destructive hover:text-destructive"
-                    :disabled="isDeletingFile === file.id"
-                    @click="handleDeleteFile(file.id)"
-                  >
-                    <Icon v-if="isDeletingFile === file.id" name="svg-spinners:ring-resize" class="size-4" />
-                    <Icon v-else name="lucide:trash" class="size-4" />
-                  </UiButton>
+                  <div class="flex items-center gap-1">
+                    <UiButton
+                      variant="ghost"
+                      size="icon"
+                      :disabled="exportingFileId === file.id"
+                      title="Download PDF with annotations"
+                      @click.stop="handleExportFile(file)"
+                    >
+                      <Icon v-if="exportingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
+                      <Icon v-else name="lucide:download" class="size-4" />
+                    </UiButton>
+                    <UiDropdownMenu>
+                      <UiDropdownMenuTrigger as-child>
+                        <UiButton variant="ghost" size="icon" @click.stop>
+                          <Icon name="lucide:more-vertical" class="size-4" />
+                        </UiButton>
+                      </UiDropdownMenuTrigger>
+                      <UiDropdownMenuContent align="end" @click.stop>
+                        <UiDropdownMenuItem
+                          title="Delete File"
+                          class="text-destructive focus:text-destructive"
+                          :disabled="isDeletingFile === file.id"
+                          @click="handleDeleteFile(file.id)"
+                        >
+                          <template #icon>
+                            <Icon v-if="isDeletingFile === file.id" name="svg-spinners:ring-resize" class="size-4" />
+                            <Icon v-else name="lucide:trash" class="size-4" />
+                          </template>
+                        </UiDropdownMenuItem>
+                      </UiDropdownMenuContent>
+                    </UiDropdownMenu>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1103,6 +1170,98 @@ onMounted(() => {
           <UiButton variant="outline" @click="showAddFileDialog = false">Cancel</UiButton>
           <UiButton :disabled="!uploadedFile" @click="handleAddFile">Add to Project</UiButton>
         </UiDialogFooter>
+      </UiDialogContent>
+    </UiDialog>
+
+    <!-- File Selector Dialog -->
+    <UiDialog v-model:open="showFileSelector">
+      <UiDialogContent class="sm:max-w-3xl p-0 gap-0 overflow-hidden" :hide-close="true">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b bg-muted/30">
+          <div class="flex items-center gap-4">
+            <div class="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Icon name="lucide:pencil-ruler" class="size-6 text-primary" />
+            </div>
+            <div class="flex-1">
+              <h2 class="text-lg font-semibold">Open in Editor</h2>
+              <p class="text-sm text-muted-foreground">Select a file to start editing</p>
+            </div>
+            <UiButton variant="ghost" size="icon" @click="showFileSelector = false">
+              <Icon name="lucide:x" class="size-5" />
+            </UiButton>
+          </div>
+        </div>
+
+        <!-- File Grid -->
+        <div class="p-6 max-h-[60vh] overflow-y-auto">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <button
+              v-for="file in files"
+              :key="file.id"
+              type="button"
+              class="group relative border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all text-left bg-background"
+              @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
+            >
+              <!-- PDF Preview Area -->
+              <div class="relative h-36 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
+                <Icon name="lucide:file-text" class="size-14 text-slate-300 dark:text-slate-600" />
+
+                <!-- Hover Overlay -->
+                <div class="absolute inset-0 bg-primary/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+                  <div class="size-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
+                    <Icon name="lucide:pencil-ruler" class="size-7 text-primary-foreground" />
+                  </div>
+                  <span class="font-semibold text-primary-foreground">Open in Editor</span>
+                </div>
+
+                <!-- Annotation Badge -->
+                <div v-if="file.annotationCount > 0" class="absolute top-3 right-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm">
+                  <Icon name="lucide:pen-tool" class="size-3.5 text-primary" />
+                  {{ file.annotationCount }}
+                </div>
+
+                <!-- Page Count Badge -->
+                <div class="absolute bottom-3 left-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm">
+                  <Icon name="lucide:layers" class="size-3.5 text-muted-foreground" />
+                  {{ file.pageCount }} {{ file.pageCount === 1 ? 'page' : 'pages' }}
+                </div>
+              </div>
+
+              <!-- File Info -->
+              <div class="p-4">
+                <h4 class="font-medium truncate mb-2" :title="file.pdfFileName">
+                  {{ file.pdfFileName }}
+                </h4>
+                <div class="flex items-center justify-between text-xs text-muted-foreground">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="lucide:hard-drive" class="size-3.5" />
+                    {{ formatFileSize(file.pdfFileSize) }}
+                  </span>
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="lucide:clock" class="size-3.5" />
+                    {{ formatDate(file.updatedAt || file.createdAt) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Bottom Action Bar -->
+              <div class="px-4 py-3 border-t bg-muted/30 flex items-center justify-between">
+                <span class="text-xs text-muted-foreground">Click to edit</span>
+                <Icon name="lucide:arrow-right" class="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t bg-muted/30 flex items-center justify-between">
+          <p class="text-sm text-muted-foreground">
+            {{ files.length }} {{ files.length === 1 ? 'file' : 'files' }} in this project
+          </p>
+          <UiButton variant="outline" @click="showFileSelector = false">
+            Cancel
+          </UiButton>
+        </div>
       </UiDialogContent>
     </UiDialog>
   </div>
