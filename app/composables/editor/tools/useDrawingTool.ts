@@ -43,8 +43,23 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
       currentPoints: base.points.value.length
     })
 
-    const point = base.getSvgPoint(e)
-    debugLog(`${config.type}Tool`, "Got SVG point:", point)
+    const lastPoint = base.points.value[base.points.value.length - 1]
+    const rawPoint = base.getSvgPoint(e)
+
+    // Build snap options: shift-constrain + snap work together
+    let point: Point
+    if (e.shiftKey && lastPoint) {
+      const constrained = base.snapTo45Degrees(lastPoint, rawPoint)
+      point = base.getSnappedSvgPoint(e, {
+        ctrlHeld: e.ctrlKey,
+        shiftStart: lastPoint,
+        shiftConstrained: constrained
+      })
+    } else {
+      point = base.getSnappedSvgPoint(e, { ctrlHeld: e.ctrlKey })
+    }
+
+    debugLog(`${config.type}Tool`, "Got point:", point)
 
     // Check for snap to close
     if (base.canSnapToClose.value) {
@@ -57,12 +72,8 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
       debugLog(`${config.type}Tool`, "Starting new drawing")
       base.startDrawing(point)
     } else {
-      const pointToAdd = e.shiftKey
-        ? base.snapTo45Degrees(base.points.value[base.points.value.length - 1]!, point)
-        : point
-
-      debugLog(`${config.type}Tool`, "Adding point:", pointToAdd)
-      base.addPoint(pointToAdd)
+      debugLog(`${config.type}Tool`, "Adding point:", point)
+      base.addPoint(point)
 
       // Auto-complete for 2-point tools (measure, line)
       if (config.minPoints === 2 && base.points.value.length === 2) {
@@ -73,19 +84,30 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
   }
 
   function handleMove(e: MouseEvent) {
-    const point = base.getSvgPoint(e)
+    const lastPoint = base.points.value[base.points.value.length - 1]
+    const rawPoint = base.getSvgPoint(e)
 
     // Always update temp point for preview, even before first click
     if (!annotationStore.isDrawing) {
-      base.updateTempPoint(point)
+      const snapped = base.getSnappedSvgPoint(e, { ctrlHeld: e.ctrlKey })
+      base.updateTempPoint(snapped)
       return
     }
 
-    const lastPoint = base.points.value[base.points.value.length - 1]!
+    // Build snap options with shift-constrain support
+    let point: Point
+    if (e.shiftKey && lastPoint) {
+      const constrained = base.snapTo45Degrees(lastPoint, rawPoint)
+      point = base.getSnappedSvgPoint(e, {
+        ctrlHeld: e.ctrlKey,
+        shiftStart: lastPoint,
+        shiftConstrained: constrained
+      })
+    } else {
+      point = base.getSnappedSvgPoint(e, { ctrlHeld: e.ctrlKey })
+    }
 
-    const snappedPoint = e.shiftKey && lastPoint ? base.snapTo45Degrees(lastPoint, point) : point
-
-    base.updateTempPoint(snappedPoint)
+    base.updateTempPoint(point)
   }
 
   function handleKeyDown(e: KeyboardEvent) {

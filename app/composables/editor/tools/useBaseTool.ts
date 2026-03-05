@@ -1,4 +1,5 @@
 import { RENDERING } from "@/constants/rendering"
+import { useSnapProvider, type SnapPointOpts } from "@/composables/editor/useSnapProvider"
 
 export interface BaseToolOptions {
   type: string
@@ -31,6 +32,7 @@ export interface BaseToolOptions {
  */
 export function useBaseTool(options: BaseToolOptions) {
   const annotationStore = useAnnotationStore()
+  const { getSnappedPoint } = useSnapProvider()
 
   // State
   const points = ref<Point[]>([])
@@ -136,6 +138,18 @@ export function useBaseTool(options: BaseToolOptions) {
     tempEndPoint.value = null
   }
 
+  /**
+   * Convert mouse event to SVG coordinates with snap applied.
+   *
+   * Replaces direct getSvgPoint usage in drawing tools.
+   * Handles shift-constrain + snap interaction automatically.
+   */
+  function getSnappedSvgPoint(e: MouseEvent, snapOpts: SnapPointOpts = {}): Point {
+    const raw = getSvgPoint(e)
+    const result = getSnappedPoint(raw, snapOpts)
+    return result.point
+  }
+
   return {
     // State
     points,
@@ -153,6 +167,7 @@ export function useBaseTool(options: BaseToolOptions) {
     complete,
     clearPreview,
     getSvgPoint,
+    getSnappedSvgPoint,
     toSvgPoints,
     snapTo45Degrees
   }

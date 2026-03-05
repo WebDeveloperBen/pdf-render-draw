@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SELECTION } from "@/constants/ui"
+import { useSnapProvider } from "@/composables/editor/useSnapProvider"
 
 // Import tool components directly
 import ToolsMeasure from "~/components/Editor/Tools/Measure.vue"
@@ -70,6 +71,26 @@ useFillTool()!
 const selectionMarquee = useEditorMarquee()
 const dragState = useEditorDragState()
 const toolRegistry = useToolRegistry()
+
+// Initialise snap provider (sets up reactive watches)
+const { extractPageContent } = useSnapProvider()
+
+// Extract PDF content for snapping when page changes or PDF finishes loading
+watch(
+  [() => viewportStore.getCurrentPage, () => viewportStore.getDocumentProxy],
+  async ([pageNum, docProxy]) => {
+    if (!docProxy) return
+    try {
+      const page = await docProxy.getPage(pageNum)
+      debugLog("SnapProvider", `Extracting PDF content for page ${pageNum}...`)
+      await extractPageContent(page)
+      debugLog("SnapProvider", `PDF content extracted for page ${pageNum}`)
+    } catch (err) {
+      debugLog("SnapProvider", "PDF content extraction failed:", err)
+    }
+  },
+  { immediate: true }
+)
 
 // Enable keyboard shortcuts (undo/redo, copy/paste, etc.)
 useKeyboardShortcuts()
@@ -273,6 +294,9 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
       class="selection-marquee"
       pointer-events="none"
     />
+
+    <!-- Snap indicator (rendered above annotations, below handles) -->
+    <EditorSnapIndicator />
 
     <!-- Transform handles (for rotation/scaling/moving annotations) -->
     <EditorHandlesTransform />
