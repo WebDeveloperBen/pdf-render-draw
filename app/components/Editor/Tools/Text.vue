@@ -339,7 +339,7 @@ function handleFinishEditing() {
 g:hover > .text-background.selected {
   opacity: 0.95;
   stroke: #ccc;
-  stroke-width: 1;
+  stroke-width: v-bind("inverseScale + 'px'");
 }
 
 .text-foreign-object {
@@ -381,7 +381,7 @@ g:hover > .text-background.selected {
 
 .delete-button:hover circle {
   opacity: 1;
-  r: v-bind("config.deleteButton.radiusHover");
+  r: v-bind("config.deleteButton.radiusHover * inverseScale");
 }
 
 .text-editor-wrapper {

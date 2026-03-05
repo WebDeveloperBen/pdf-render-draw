@@ -38,9 +38,14 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     // Use tool defaults from constants (will be user-configurable in the future)
     const { defaultWidth, minHeight, fontSize, lineHeight, color, placeholder } = TEXT_TOOL_DEFAULTS
 
+    // Scale dimensions by inverse viewport scale so the text box appears
+    // the same screen size regardless of zoom level
+    const inv = viewportStore.getInverseScale
+
     // Initial dimensions: fixed width, height fits single line
-    const width = defaultWidth
-    const height = Math.max(Math.ceil(fontSize * lineHeight), minHeight)
+    const width = defaultWidth * inv
+    const scaledFontSize = fontSize * inv
+    const height = Math.max(Math.ceil(scaledFontSize * lineHeight), minHeight * inv)
 
     // Store x, y as TOP-LEFT corner (consistent with Fill, Count, and other positioned annotations)
     // This ensures bounds calculation works correctly for selection and transforms
@@ -53,7 +58,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
       width,
       height,
       content: placeholder,
-      fontSize,
+      fontSize: scaledFontSize,
       color,
       rotation: degreesToRadians(-viewportStore.rotation) // Counter-rotate to appear upright in viewport
     }

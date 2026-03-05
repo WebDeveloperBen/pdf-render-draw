@@ -42,8 +42,10 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 
-    // Use tool defaults for marker size (radius * 2)
-    const markerSize = COUNT_TOOL_DEFAULTS.marker.radius * 2
+    // Use tool defaults for marker size (radius * 2), scaled by inverse viewport scale
+    // so the bounding box matches the visual marker size at any zoom level
+    const inv = viewportStore.getInverseScale
+    const markerSize = COUNT_TOOL_DEFAULTS.marker.radius * 2 * inv
     const count: Count = {
       id: uuidv4(),
       type: "count",
@@ -53,7 +55,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
       width: markerSize,
       height: markerSize,
       number: nextCountNumber.value,
-      rotation: 0 // Counts don't rotate with page
+      rotation: degreesToRadians(-viewportStore.rotation) // Counter-rotate to appear upright at creation time
     }
 
     base.annotationStore.addAnnotation(count)

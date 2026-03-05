@@ -74,6 +74,8 @@ const cursorPosition = computed(() => tool?.cursorPosition.value ?? null)
 
 const viewportStore = props.exportMode ? null : useViewportStore()
 const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
+// Counter-rotation for preview to appear upright in current viewport
+const previewCounterRotation = computed(() => viewportStore?.getViewportLabelRotation ?? 0)
 
 // Only show preview when count tool is active (interactive mode only)
 const showPreview = computed(() => {
@@ -150,6 +152,7 @@ const showPreview = computed(() => {
         :font-weight="config.text.fontWeight"
         :fill="config.text.fill"
         :opacity="config.preview.opacity"
+        :transform="`rotate(${previewCounterRotation} ${cursorPosition.x} ${cursorPosition.y})`"
         class="preview-number"
       >
         {{ nextCountNumber }}
