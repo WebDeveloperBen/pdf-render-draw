@@ -3,9 +3,12 @@ const bounds = useEditorBounds()
 const move = useEditorMove()
 const annotationStore = useAnnotationStore()
 const toolRegistry = useToolRegistry()
+const viewportStore = useViewportStore()
 
 const { selectionBounds, selectionRotation } = bounds
 const { isDragging, startDrag } = move
+
+const inverseScale = computed(() => viewportStore.getInverseScale)
 
 /**
  * Transform for the entire selection UI
@@ -55,8 +58,8 @@ function handleDoubleClick(event: MouseEvent) {
       :height="selectionBounds.height"
       fill="transparent"
       stroke="#3b82f6"
-      stroke-width="2"
-      stroke-dasharray="4 4"
+      :stroke-width="2 * inverseScale"
+      :stroke-dasharray="`${4 * inverseScale} ${4 * inverseScale}`"
       class="selection-box"
       :class="{ dragging: isDragging }"
       @mousedown="handleDragStart"
@@ -77,12 +80,7 @@ function handleDoubleClick(event: MouseEvent) {
   cursor: move;
 }
 
-.selection-box:hover {
-  stroke-width: 3;
-}
-
 .selection-box.dragging {
   cursor: grabbing;
-  stroke-width: 3;
 }
 </style>

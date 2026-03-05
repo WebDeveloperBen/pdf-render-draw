@@ -56,6 +56,7 @@ export const useViewportStore = defineStore("viewport", () => {
    */
 
   const getScale = computed(() => scale.value)
+  const getInverseScale = computed(() => 1 / scale.value)
   const getRotation = computed(() => rotation.value)
   const getPdfScale = computed(() => pdfScale.value)
 
@@ -303,6 +304,7 @@ export const useViewportStore = defineStore("viewport", () => {
   return {
     scale,
     getScale,
+    getInverseScale,
     setScale,
     zoomIn,
     zoomOut,

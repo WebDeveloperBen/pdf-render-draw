@@ -72,6 +72,9 @@ const annotationStore = props.exportMode ? null : useAnnotationStore()
 const nextCountNumber = computed(() => tool?.nextCountNumber.value ?? 0)
 const cursorPosition = computed(() => tool?.cursorPosition.value ?? null)
 
+const viewportStore = props.exportMode ? null : useViewportStore()
+const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
+
 // Only show preview when count tool is active (interactive mode only)
 const showPreview = computed(() => {
   if (props.exportMode) return false
@@ -94,7 +97,7 @@ const showPreview = computed(() => {
           v-if="!exportMode"
           :cx="annotation.x + annotation.width / 2"
           :cy="annotation.y + annotation.height / 2"
-          :r="config.hitArea.radius"
+          :r="config.hitArea.radius * inverseScale"
           fill="transparent"
           class="count-hitbox"
         />
@@ -103,10 +106,10 @@ const showPreview = computed(() => {
         <circle
           :cx="annotation.x + annotation.width / 2"
           :cy="annotation.y + annotation.height / 2"
-          :r="config.marker.radius"
+          :r="config.marker.radius * inverseScale"
           :fill="config.marker.fill"
           :stroke="config.marker.stroke"
-          :stroke-width="config.marker.strokeWidth"
+          :stroke-width="config.marker.strokeWidth * inverseScale"
           :class="{ 'count-marker': !exportMode }"
         />
 
@@ -116,7 +119,7 @@ const showPreview = computed(() => {
           :y="annotation.y + annotation.height / 2"
           text-anchor="middle"
           dominant-baseline="middle"
-          :font-size="config.text.fontSize"
+          :font-size="config.text.fontSize * inverseScale"
           :font-weight="config.text.fontWeight"
           :fill="config.text.fill"
           :class="{ 'count-number': !exportMode }"
@@ -131,10 +134,10 @@ const showPreview = computed(() => {
       <circle
         :cx="cursorPosition.x"
         :cy="cursorPosition.y"
-        :r="config.marker.radius"
+        :r="config.marker.radius * inverseScale"
         :fill="config.marker.fill"
         :stroke="config.marker.stroke"
-        :stroke-width="config.marker.strokeWidth"
+        :stroke-width="config.marker.strokeWidth * inverseScale"
         :opacity="config.preview.opacity"
         class="preview-marker"
       />
@@ -143,7 +146,7 @@ const showPreview = computed(() => {
         :y="cursorPosition.y"
         text-anchor="middle"
         dominant-baseline="middle"
-        :font-size="config.text.fontSize"
+        :font-size="config.text.fontSize * inverseScale"
         :font-weight="config.text.fontWeight"
         :fill="config.text.fill"
         :opacity="config.preview.opacity"

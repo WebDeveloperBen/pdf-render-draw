@@ -137,6 +137,7 @@ const previewSegments = computed(() => tool?.previewSegments.value ?? [])
 
 // Get viewport-relative label rotation from renderer store
 const viewportStore = props.exportMode ? null : useViewportStore()
+const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
 </script>
 <template>
   <g class="perimeter-tool">
@@ -154,7 +155,7 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           :fill="config.fillColor"
           :fill-opacity="config.opacity"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
+          :stroke-width="config.strokeWidth * inverseScale"
           :class="{ 'selected-polygon': isSelected, 'perimeter-polygon': !exportMode }"
         />
 
@@ -162,13 +163,13 @@ const viewportStore = props.exportMode ? null : useViewportStore()
         <g v-for="(segment, idx) in annotation.segments" :key="idx">
           <!-- Label background with rotation -->
           <rect
-            :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
-            :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
-            :width="config.segmentLabel.background.width"
-            :height="config.segmentLabel.background.height"
+            :x="segment.midpoint.x - config.segmentLabel.background.offsetX * inverseScale / 2"
+            :y="segment.midpoint.y - config.segmentLabel.background.offsetY * inverseScale / 2"
+            :width="config.segmentLabel.background.width * inverseScale"
+            :height="config.segmentLabel.background.height * inverseScale"
             :fill="config.segmentLabel.background.fill"
             :opacity="config.segmentLabel.background.opacity"
-            :rx="config.segmentLabel.background.borderRadius"
+            :rx="config.segmentLabel.background.borderRadius * inverseScale"
             :transform="`rotate(${annotation.labelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           />
 
@@ -177,7 +178,7 @@ const viewportStore = props.exportMode ? null : useViewportStore()
             :x="segment.midpoint.x"
             :y="segment.midpoint.y"
             :fill="config.labelColor"
-            :font-size="config.labelSize"
+            :font-size="config.labelSize * inverseScale"
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
@@ -190,20 +191,20 @@ const viewportStore = props.exportMode ? null : useViewportStore()
 
         <!-- Total perimeter label at center with rotation -->
         <rect
-          :x="annotation.center.x - config.totalLabel.background.offsetX"
-          :y="annotation.center.y - config.totalLabel.background.offsetY"
-          :width="config.totalLabel.background.width"
-          :height="config.totalLabel.background.height"
+          :x="annotation.center.x - config.totalLabel.background.offsetX * inverseScale / 2"
+          :y="annotation.center.y - config.totalLabel.background.offsetY * inverseScale / 2"
+          :width="config.totalLabel.background.width * inverseScale"
+          :height="config.totalLabel.background.height * inverseScale"
           :fill="config.totalLabel.background.fill"
           :opacity="config.totalLabel.background.opacity"
-          :rx="config.totalLabel.background.borderRadius"
+          :rx="config.totalLabel.background.borderRadius * inverseScale"
           :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         />
         <text
           :x="annotation.center.x"
           :y="annotation.center.y"
           :fill="config.labelColor"
-          :font-size="config.labelSize + config.totalLabel.fontSizeBonus"
+          :font-size="(config.labelSize + config.totalLabel.fontSizeBonus) * inverseScale"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
@@ -222,10 +223,10 @@ const viewportStore = props.exportMode ? null : useViewportStore()
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius"
+        :r="config.preview.cursorIndicator.radius * inverseScale"
         fill="none"
         :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth * inverseScale"
         :opacity="config.preview.cursorIndicator.opacity"
       />
 
@@ -237,10 +238,10 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           :key="`point-${index}`"
           :cx="point.x"
           :cy="point.y"
-          :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
+          :r="(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius) * inverseScale"
           :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
           :stroke="config.preview.pointMarkers.stroke"
-          :stroke-width="config.preview.pointMarkers.strokeWidth"
+          :stroke-width="config.preview.pointMarkers.strokeWidth * inverseScale"
           class="point-marker"
         />
 
@@ -251,8 +252,8 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           :fill="config.fillColor"
           :fill-opacity="config.opacity * config.preview.polygon.opacityMultiplier"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
-          :stroke-dasharray="config.preview.polygon.strokeDashArray"
+          :stroke-width="config.strokeWidth * inverseScale"
+          :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
         />
 
         <!-- Preview segment labels -->
@@ -263,19 +264,19 @@ const viewportStore = props.exportMode ? null : useViewportStore()
             :x2="segment.end.x"
             :y2="segment.end.y"
             :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth"
-            :stroke-dasharray="idx === previewSegments.length - 1 ? config.preview.polygon.strokeDashArray : '0'"
+            :stroke-width="config.strokeWidth * inverseScale"
+            :stroke-dasharray="idx === previewSegments.length - 1 ? `${5 * inverseScale},${5 * inverseScale}` : '0'"
           />
 
           <!-- Segment length label background (viewport-relative rotation) -->
           <rect
-            :x="segment.midpoint.x - config.segmentLabel.background.offsetX"
-            :y="segment.midpoint.y - config.segmentLabel.background.offsetY"
-            :width="config.segmentLabel.background.width"
-            :height="config.segmentLabel.background.height"
+            :x="segment.midpoint.x - config.segmentLabel.background.offsetX * inverseScale / 2"
+            :y="segment.midpoint.y - config.segmentLabel.background.offsetY * inverseScale / 2"
+            :width="config.segmentLabel.background.width * inverseScale"
+            :height="config.segmentLabel.background.height * inverseScale"
             :fill="config.segmentLabel.background.fill"
             :opacity="config.segmentLabel.background.opacity"
-            :rx="config.segmentLabel.background.borderRadius"
+            :rx="config.segmentLabel.background.borderRadius * inverseScale"
             :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${segment.midpoint.x} ${segment.midpoint.y})`"
           />
 
@@ -284,7 +285,7 @@ const viewportStore = props.exportMode ? null : useViewportStore()
             :x="segment.midpoint.x"
             :y="segment.midpoint.y"
             :fill="config.preview.segmentLabel.fill"
-            :font-size="config.preview.segmentLabel.fontSize"
+            :font-size="config.preview.segmentLabel.fontSize * inverseScale"
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
@@ -299,17 +300,17 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           <circle
             :cx="points[0].x"
             :cy="points[0].y"
-            :r="config.snap.radius"
+            :r="config.snap.radius * inverseScale"
             fill="none"
             :stroke="config.snap.stroke"
-            :stroke-width="config.snap.strokeWidth"
+            :stroke-width="config.snap.strokeWidth * inverseScale"
             class="snap-indicator"
           />
           <text
-            :x="points[0].x + config.snap.text.offsetX"
-            :y="points[0].y - config.snap.text.offsetY"
+            :x="points[0].x + config.snap.text.offsetX * inverseScale"
+            :y="points[0].y - config.snap.text.offsetY * inverseScale"
             :fill="config.snap.text.fill"
-            :font-size="config.snap.text.fontSize"
+            :font-size="config.snap.text.fontSize * inverseScale"
             :font-weight="config.snap.text.fontWeight"
           >
             Click to close

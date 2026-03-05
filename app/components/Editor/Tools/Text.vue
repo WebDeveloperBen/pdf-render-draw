@@ -77,6 +77,9 @@ if (!tool && !props.exportMode) {
   throw new Error("TextTool must be used within AnnotationLayer")
 }
 
+const viewportStore = props.exportMode ? null : useViewportStore()
+const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
+
 // Use passed annotations in export mode, otherwise from store
 const completed = computed(() => {
   if (props.exportMode && props.annotations) {
@@ -264,27 +267,27 @@ function handleFinishEditing() {
           <!-- Delete button (shown on hover) - interactive only -->
           <g v-if="!exportMode" class="delete-button" @click.stop="deleteText(annotation.id)">
             <circle
-              :cx="annotation.x + annotation.width + config.deleteButton.offset"
+              :cx="annotation.x + annotation.width + config.deleteButton.offset * inverseScale"
               :cy="annotation.y + annotation.height / 2"
-              :r="config.deleteButton.radius"
+              :r="config.deleteButton.radius * inverseScale"
               :fill="config.deleteButton.fill"
               :opacity="config.deleteButton.opacity"
             />
             <line
-              :x1="annotation.x + annotation.width + config.deleteButton.offset - 4"
-              :y1="annotation.y + annotation.height / 2 - 4"
-              :x2="annotation.x + annotation.width + config.deleteButton.offset + 4"
-              :y2="annotation.y + annotation.height / 2 + 4"
+              :x1="annotation.x + annotation.width + config.deleteButton.offset * inverseScale - 4 * inverseScale"
+              :y1="annotation.y + annotation.height / 2 - 4 * inverseScale"
+              :x2="annotation.x + annotation.width + config.deleteButton.offset * inverseScale + 4 * inverseScale"
+              :y2="annotation.y + annotation.height / 2 + 4 * inverseScale"
               stroke="white"
-              stroke-width="2"
+              :stroke-width="2 * inverseScale"
             />
             <line
-              :x1="annotation.x + annotation.width + config.deleteButton.offset + 4"
-              :y1="annotation.y + annotation.height / 2 - 4"
-              :x2="annotation.x + annotation.width + config.deleteButton.offset - 4"
-              :y2="annotation.y + annotation.height / 2 + 4"
+              :x1="annotation.x + annotation.width + config.deleteButton.offset * inverseScale + 4 * inverseScale"
+              :y1="annotation.y + annotation.height / 2 - 4 * inverseScale"
+              :x2="annotation.x + annotation.width + config.deleteButton.offset * inverseScale - 4 * inverseScale"
+              :y2="annotation.y + annotation.height / 2 + 4 * inverseScale"
               stroke="white"
-              stroke-width="2"
+              :stroke-width="2 * inverseScale"
             />
           </g>
         </g>

@@ -126,6 +126,7 @@ const previewPolygon = computed(() => tool?.previewPolygon.value ?? null)
 
 // Get viewport-relative label rotation from renderer store
 const viewportStore = props.exportMode ? null : useViewportStore()
+const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
 </script>
 <template>
   <g class="area-tool">
@@ -143,19 +144,19 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           :fill="config.fillColor"
           :fill-opacity="config.opacity"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
+          :stroke-width="config.strokeWidth * inverseScale"
           :class="{ 'selected-polygon': isSelected, 'area-polygon': !exportMode }"
         />
 
         <!-- Label background with rotation -->
         <rect
-          :x="annotation.center.x - config.label.background.offsetX"
-          :y="annotation.center.y - config.label.background.offsetY"
-          :width="config.label.background.width"
-          :height="config.label.background.height"
+          :x="annotation.center.x - config.label.background.offsetX * inverseScale / 2"
+          :y="annotation.center.y - config.label.background.offsetY * inverseScale / 2"
+          :width="config.label.background.width * inverseScale"
+          :height="config.label.background.height * inverseScale"
           :fill="config.label.background.fill"
           :opacity="config.label.background.opacity"
-          :rx="config.label.background.borderRadius"
+          :rx="config.label.background.borderRadius * inverseScale"
           :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         />
 
@@ -164,7 +165,7 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           :x="annotation.center.x"
           :y="annotation.center.y"
           :fill="config.labelColor"
-          :font-size="config.labelSize"
+          :font-size="config.labelSize * inverseScale"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
@@ -183,10 +184,10 @@ const viewportStore = props.exportMode ? null : useViewportStore()
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius"
+        :r="config.preview.cursorIndicator.radius * inverseScale"
         fill="none"
         :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth * inverseScale"
         :opacity="config.preview.cursorIndicator.opacity"
       />
 
@@ -197,10 +198,10 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           :key="`point-${index}`"
           :cx="point.x"
           :cy="point.y"
-          :r="index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius"
+          :r="(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius) * inverseScale"
           :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
           :stroke="config.preview.pointMarkers.stroke"
-          :stroke-width="config.preview.pointMarkers.strokeWidth"
+          :stroke-width="config.preview.pointMarkers.strokeWidth * inverseScale"
           class="point-marker"
         />
 
@@ -215,8 +216,8 @@ const viewportStore = props.exportMode ? null : useViewportStore()
               :x2="points[index + 1]?.x ?? 0"
               :y2="points[index + 1]?.y ?? 0"
               :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth"
-              :stroke-dasharray="config.preview.lines.strokeDashArray"
+              :stroke-width="config.strokeWidth * inverseScale"
+              :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
               :opacity="config.preview.lines.opacity"
             />
           </template>
@@ -230,8 +231,8 @@ const viewportStore = props.exportMode ? null : useViewportStore()
               :x2="tempEndPoint.x"
               :y2="tempEndPoint.y"
               :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth"
-              :stroke-dasharray="config.preview.lines.strokeDashArray"
+              :stroke-width="config.strokeWidth * inverseScale"
+              :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
               :opacity="config.preview.lines.opacity"
             />
           </template>
@@ -244,8 +245,8 @@ const viewportStore = props.exportMode ? null : useViewportStore()
             :x2="points[0].x"
             :y2="points[0].y"
             :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth"
-            :stroke-dasharray="config.preview.lines.strokeDashArray"
+            :stroke-width="config.strokeWidth * inverseScale"
+            :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
             :opacity="config.preview.lines.closingLineOpacity"
           />
         </g>
@@ -265,19 +266,19 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           <circle
             :cx="points[0].x"
             :cy="points[0].y"
-            :r="config.snap.radius"
+            :r="config.snap.radius * inverseScale"
             fill="none"
             :stroke="config.snap.stroke"
-            :stroke-width="config.snap.strokeWidth"
+            :stroke-width="config.snap.strokeWidth * inverseScale"
             class="snap-indicator"
           />
           <text
-            :x="points[0].x + config.snap.text.offsetX"
-            :y="points[0].y - config.snap.text.offsetY"
+            :x="points[0].x + config.snap.text.offsetX * inverseScale"
+            :y="points[0].y - config.snap.text.offsetY * inverseScale"
             :fill="config.snap.text.fill"
-            :font-size="config.snap.text.fontSize"
+            :font-size="config.snap.text.fontSize * inverseScale"
             :font-weight="config.snap.text.fontWeight"
-            :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX} ${points[0].y - config.snap.text.offsetY})`"
+            :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX * inverseScale} ${points[0].y - config.snap.text.offsetY * inverseScale})`"
           >
             Click to close
           </text>
@@ -289,7 +290,7 @@ const viewportStore = props.exportMode ? null : useViewportStore()
           :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
           :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2"
           :fill="config.preview.distance.fill"
-          :font-size="config.preview.distance.fontSize"
+          :font-size="config.preview.distance.fontSize * inverseScale"
           text-anchor="middle"
           :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`"
         >

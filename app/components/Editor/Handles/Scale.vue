@@ -5,6 +5,12 @@ defineProps<{
 
 const scale = useEditorScale()
 const { startScale } = scale
+const viewportStore = useViewportStore()
+
+const inverseScale = computed(() => viewportStore.getInverseScale)
+const handleSize = computed(() => 8 * inverseScale.value)
+const handleOffset = computed(() => 4 * inverseScale.value)
+const handleStroke = computed(() => 2 * inverseScale.value)
 
 function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
   startScale(event, handle)
@@ -14,92 +20,92 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
   <g class="scale-handles">
     <!-- Corner handles -->
     <rect
-      :x="selectionBounds.x - 4"
-      :y="selectionBounds.y - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x - handleOffset"
+      :y="selectionBounds.y - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle nwse-resize"
       @mousedown="handleScaleStart($event, 'nw')"
     />
     <rect
-      :x="selectionBounds.x + selectionBounds.width - 4"
-      :y="selectionBounds.y - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x + selectionBounds.width - handleOffset"
+      :y="selectionBounds.y - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle nesw-resize"
       @mousedown="handleScaleStart($event, 'ne')"
     />
     <rect
-      :x="selectionBounds.x + selectionBounds.width - 4"
-      :y="selectionBounds.y + selectionBounds.height - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x + selectionBounds.width - handleOffset"
+      :y="selectionBounds.y + selectionBounds.height - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle nwse-resize"
       @mousedown="handleScaleStart($event, 'se')"
     />
     <rect
-      :x="selectionBounds.x - 4"
-      :y="selectionBounds.y + selectionBounds.height - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x - handleOffset"
+      :y="selectionBounds.y + selectionBounds.height - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle nesw-resize"
       @mousedown="handleScaleStart($event, 'sw')"
     />
 
     <!-- Edge handles -->
     <rect
-      :x="selectionBounds.x + selectionBounds.width / 2 - 4"
-      :y="selectionBounds.y - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x + selectionBounds.width / 2 - handleOffset"
+      :y="selectionBounds.y - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle ns-resize"
       @mousedown="handleScaleStart($event, 'n')"
     />
     <rect
-      :x="selectionBounds.x + selectionBounds.width - 4"
-      :y="selectionBounds.y + selectionBounds.height / 2 - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x + selectionBounds.width - handleOffset"
+      :y="selectionBounds.y + selectionBounds.height / 2 - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle ew-resize"
       @mousedown="handleScaleStart($event, 'e')"
     />
     <rect
-      :x="selectionBounds.x + selectionBounds.width / 2 - 4"
-      :y="selectionBounds.y + selectionBounds.height - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x + selectionBounds.width / 2 - handleOffset"
+      :y="selectionBounds.y + selectionBounds.height - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle ns-resize"
       @mousedown="handleScaleStart($event, 's')"
     />
     <rect
-      :x="selectionBounds.x - 4"
-      :y="selectionBounds.y + selectionBounds.height / 2 - 4"
-      width="8"
-      height="8"
+      :x="selectionBounds.x - handleOffset"
+      :y="selectionBounds.y + selectionBounds.height / 2 - handleOffset"
+      :width="handleSize"
+      :height="handleSize"
       fill="white"
       stroke="#3b82f6"
-      stroke-width="2"
+      :stroke-width="handleStroke"
       class="scale-handle ew-resize"
       @mousedown="handleScaleStart($event, 'w')"
     />

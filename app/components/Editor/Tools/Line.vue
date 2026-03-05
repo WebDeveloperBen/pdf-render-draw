@@ -81,6 +81,9 @@ const isDrawing = computed(() => tool?.isDrawing.value ?? false)
 const points = computed(() => tool?.points.value ?? [])
 const tempEndPoint = computed(() => tool?.tempEndPoint.value ?? null)
 
+const viewportStore = props.exportMode ? null : useViewportStore()
+const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
+
 // Debug: watch completed to see when it changes (only in interactive mode)
 if (!props.exportMode) {
   watch(
@@ -108,7 +111,7 @@ if (!props.exportMode) {
           v-if="!exportMode"
           :points="toSvgPoints(annotation.points)"
           stroke="transparent"
-          :stroke-width="config.hitArea.strokeWidth"
+          :stroke-width="config.hitArea.strokeWidth * inverseScale"
           fill="none"
           class="line-hitbox"
         />
@@ -117,7 +120,7 @@ if (!props.exportMode) {
         <polyline
           :points="toSvgPoints(annotation.points)"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
+          :stroke-width="config.strokeWidth * inverseScale"
           fill="none"
           :class="{ 'line-path': !exportMode }"
         />
@@ -127,7 +130,7 @@ if (!props.exportMode) {
           v-if="annotation.points[0]"
           :cx="annotation.points[0].x"
           :cy="annotation.points[0].y"
-          :r="config.markers.radius"
+          :r="config.markers.radius * inverseScale"
           :fill="config.strokeColor"
           :class="{ 'start-marker': !exportMode }"
         />
@@ -137,7 +140,7 @@ if (!props.exportMode) {
           v-if="annotation.points[annotation.points.length - 1]"
           :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
           :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
-          :r="config.markers.radius"
+          :r="config.markers.radius * inverseScale"
           :fill="config.strokeColor"
           :class="{ 'end-marker': !exportMode }"
         />
@@ -151,10 +154,10 @@ if (!props.exportMode) {
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius"
+        :r="config.preview.cursorIndicator.radius * inverseScale"
         fill="none"
         :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth * inverseScale"
         :opacity="config.preview.cursorIndicator.opacity"
       />
 
@@ -165,9 +168,9 @@ if (!props.exportMode) {
           v-if="points.length >= 1"
           :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
+          :stroke-width="config.strokeWidth * inverseScale"
           fill="none"
-          :stroke-dasharray="config.preview.line.strokeDashArray"
+          :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
           :opacity="config.preview.line.opacity"
         />
 
@@ -177,7 +180,7 @@ if (!props.exportMode) {
           :key="idx"
           :cx="point.x"
           :cy="point.y"
-          :r="config.preview.pointRadius"
+          :r="config.preview.pointRadius * inverseScale"
           :fill="config.strokeColor"
         />
 
@@ -186,7 +189,7 @@ if (!props.exportMode) {
           v-if="tempEndPoint"
           :cx="tempEndPoint.x"
           :cy="tempEndPoint.y"
-          :r="config.preview.tempEndPoint.radius"
+          :r="config.preview.tempEndPoint.radius * inverseScale"
           :fill="config.preview.tempEndPoint.fill"
           :opacity="config.preview.tempEndPoint.opacity"
         />

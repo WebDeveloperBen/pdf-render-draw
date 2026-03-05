@@ -16,7 +16,7 @@ const SIZE_PX = 5
 const FONT_PX = 9
 const STROKE_PX = 1.5
 
-const inverseScale = computed(() => 1 / viewportStore.getScale)
+const inverseScale = computed(() => viewportStore.getInverseScale)
 const size = computed(() => SIZE_PX * inverseScale.value)
 const strokeWidth = computed(() => STROKE_PX * inverseScale.value)
 const fontSize = computed(() => FONT_PX * inverseScale.value)
