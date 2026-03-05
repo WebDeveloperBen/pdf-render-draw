@@ -1,6 +1,7 @@
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - canvas
+  - core-js
   - esbuild
   - unrs-resolver
   - vue-demi

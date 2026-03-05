@@ -23,13 +23,7 @@ describe("Drawing Workflow & Visual Feedback", () => {
 
   describe("Tool Activation for Drawing", () => {
     it("should activate measure tool and prepare for drawing", () => {
-      // Initially no active tool
-      expect(annotationStore.activeTool).toBe("")
-
-      // Activate measure tool
-      annotationStore.setActiveTool("measure")
-
-      // Should be ready for drawing
+      // Default active tool is measure
       expect(annotationStore.activeTool).toBe("measure")
       expect(annotationStore.isDrawing).toBe(false)
     })

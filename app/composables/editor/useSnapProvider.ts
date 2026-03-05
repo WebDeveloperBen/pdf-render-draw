@@ -392,6 +392,75 @@ export function useSnapProvider() {
     snapIndicator.value = null
   }
 
+  /**
+   * Force-rebuild the markup grid synchronously. Exposed for testing
+   * where the debounced watcher is unreliable with fake timers.
+   */
+  function _forceRebuildMarkup() {
+    rebuildMarkupGrid(annotationStore, viewportStore)
+  }
+
+  /**
+   * Reset all internal state — used in tests to allow re-registration of watches
+   * after Pinia is recreated between test cases.
+   */
+  function _resetForTesting() {
+    for (const stop of _stopWatches) stop()
+    _stopWatches = []
+    pageCache.clear()
+    markupGrid.clear()
+    contentPointGrid.clear()
+    contentSegmentGrid.clear()
+    contentGridPage = null
+    currentExtractedPage.value = null
+    snapIndicator.value = null
+    snapEnabled.value = true
+    contentSnapEnabled.value = true
+  }
+
+  /**
+   * Directly populate the content grids from raw data. Exposed for testing
+   * to avoid mocking PDFPageProxy end-to-end.
+   */
+  function _forcePopulateContent(data: {
+    endpoints?: Point[]
+    midpoints?: Point[]
+    intersections?: Point[]
+    segments?: Segment[]
+  }) {
+    contentPointGrid.clear()
+    contentSegmentGrid.clear()
+
+    for (const pt of data.endpoints ?? []) {
+      contentPointGrid.insert({
+        point: pt,
+        type: "endpoint",
+        source: "content",
+        priority: SNAP.PRIORITY_CONTENT_ENDPOINT
+      })
+    }
+    for (const pt of data.intersections ?? []) {
+      contentPointGrid.insert({
+        point: pt,
+        type: "intersection",
+        source: "content",
+        priority: SNAP.PRIORITY_CONTENT_INTERSECTION
+      })
+    }
+    for (const pt of data.midpoints ?? []) {
+      contentPointGrid.insert({
+        point: pt,
+        type: "midpoint",
+        source: "content",
+        priority: SNAP.PRIORITY_MIDPOINT
+      })
+    }
+    if (data.segments) {
+      contentSegmentGrid.insertAll(data.segments)
+    }
+    contentGridPage = viewportStore.getCurrentPage
+  }
+
   return {
     // State (reactive)
     snapEnabled,
@@ -402,7 +471,10 @@ export function useSnapProvider() {
     getSnappedPoint,
     extractPageContent,
     clearContentCache,
-    clearIndicator
+    clearIndicator,
+    _resetForTesting,
+    _forceRebuildMarkup,
+    _forcePopulateContent
   }
 }
 

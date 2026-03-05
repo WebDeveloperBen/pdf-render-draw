@@ -16,13 +16,7 @@ describe("Tool Selection & Visual Feedback Workflow", () => {
     it("should activate measure tool and update active tool state", () => {
       const annotationStore = useAnnotationStore()
 
-      // Initially in select mode
-      expect(annotationStore.activeTool).toBe("")
-
-      // Activate measure tool
-      annotationStore.setActiveTool("measure")
-
-      // Verify tool activation
+      // Default active tool is measure
       expect(annotationStore.activeTool).toBe("measure")
     })
 

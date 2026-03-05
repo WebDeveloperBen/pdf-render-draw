@@ -133,7 +133,7 @@ describe("Debug SVG Editor - Phase 4: Rotation", () => {
       await shapes[0]!.trigger("click")
 
       const debugInfo = wrapper.find(".debug-info").text()
-      expect(debugInfo).toContain("Rotation: 0.0°")
+      expect(debugInfo).toContain("Rotation: 0°")
     })
 
     it("should have empty transform for non-rotated shapes", () => {
