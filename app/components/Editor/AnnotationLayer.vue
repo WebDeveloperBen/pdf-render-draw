@@ -73,7 +73,17 @@ const dragState = useEditorDragState()
 const toolRegistry = useToolRegistry()
 
 // Initialise snap provider (sets up reactive watches)
-const { extractPageContent } = useSnapProvider()
+const { extractPageContent, clearContentCache, clearIndicator } = useSnapProvider()
+
+// Clear snap cache when document changes (new PDF loaded)
+watch(
+  () => viewportStore.getDocumentProxy,
+  (docProxy, oldProxy) => {
+    if (docProxy && docProxy !== oldProxy) {
+      clearContentCache()
+    }
+  }
+)
 
 // Extract PDF content for snapping when page changes or PDF finishes loading
 watch(
@@ -135,6 +145,9 @@ function handleMouseUp(e: MouseEvent) {
 }
 
 function handleMouseLeave(e: MouseEvent) {
+  // Clear snap indicator when cursor leaves the SVG
+  clearIndicator()
+
   // Clear cursor preview for all tools when mouse leaves canvas
   for (const toolDef of toolRegistry.getAllTools()) {
     toolDef.clearPreview?.()

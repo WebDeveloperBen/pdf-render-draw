@@ -50,13 +50,13 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     let point: Point
     if (e.shiftKey && lastPoint) {
       const constrained = base.snapTo45Degrees(lastPoint, rawPoint)
-      point = base.getSnappedSvgPoint(e, {
+      point = base.getSnappedSvgPoint(rawPoint, {
         ctrlHeld: e.ctrlKey,
         shiftStart: lastPoint,
         shiftConstrained: constrained
       })
     } else {
-      point = base.getSnappedSvgPoint(e, { ctrlHeld: e.ctrlKey })
+      point = base.getSnappedSvgPoint(rawPoint, { ctrlHeld: e.ctrlKey })
     }
 
     debugLog(`${config.type}Tool`, "Got point:", point)
@@ -89,7 +89,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
 
     // Always update temp point for preview, even before first click
     if (!annotationStore.isDrawing) {
-      const snapped = base.getSnappedSvgPoint(e, { ctrlHeld: e.ctrlKey })
+      const snapped = base.getSnappedSvgPoint(rawPoint, { ctrlHeld: e.ctrlKey })
       base.updateTempPoint(snapped)
       return
     }
@@ -98,13 +98,13 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     let point: Point
     if (e.shiftKey && lastPoint) {
       const constrained = base.snapTo45Degrees(lastPoint, rawPoint)
-      point = base.getSnappedSvgPoint(e, {
+      point = base.getSnappedSvgPoint(rawPoint, {
         ctrlHeld: e.ctrlKey,
         shiftStart: lastPoint,
         shiftConstrained: constrained
       })
     } else {
-      point = base.getSnappedSvgPoint(e, { ctrlHeld: e.ctrlKey })
+      point = base.getSnappedSvgPoint(rawPoint, { ctrlHeld: e.ctrlKey })
     }
 
     base.updateTempPoint(point)

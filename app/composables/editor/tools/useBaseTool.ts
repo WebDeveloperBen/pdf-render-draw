@@ -1,4 +1,4 @@
-import { RENDERING } from "@/constants/rendering"
+import { SNAP } from "@/constants/snap"
 import { useSnapProvider, type SnapPointOpts } from "@/composables/editor/useSnapProvider"
 
 export interface BaseToolOptions {
@@ -32,6 +32,7 @@ export interface BaseToolOptions {
  */
 export function useBaseTool(options: BaseToolOptions) {
   const annotationStore = useAnnotationStore()
+  const viewportStore = useViewportStore()
   const { getSnappedPoint } = useSnapProvider()
 
   // State
@@ -49,7 +50,11 @@ export function useBaseTool(options: BaseToolOptions) {
 
     const firstPoint = points.value[0]!
     const dist = distance(tempEndPoint.value, firstPoint)
-    const snapDist = options.snapDistance ?? RENDERING.TOOL_SNAP_DISTANCE
+    // Scale-aware: convert screen-pixel threshold to PDF points
+    const scale = viewportStore.getScale
+    const snapDist = options.snapDistance
+      ? options.snapDistance / scale
+      : SNAP.DISTANCE_PX / scale
     return dist < snapDist
   })
 
@@ -139,13 +144,15 @@ export function useBaseTool(options: BaseToolOptions) {
   }
 
   /**
-   * Convert mouse event to SVG coordinates with snap applied.
+   * Apply snap to a cursor point (already in SVG/PDF coordinates).
    *
-   * Replaces direct getSvgPoint usage in drawing tools.
-   * Handles shift-constrain + snap interaction automatically.
+   * Accepts either a pre-computed Point or a MouseEvent.
+   * When given a Point, avoids redundant SVG coordinate conversion.
    */
-  function getSnappedSvgPoint(e: MouseEvent, snapOpts: SnapPointOpts = {}): Point {
-    const raw = getSvgPoint(e)
+  function getSnappedSvgPoint(cursorOrEvent: Point | MouseEvent, snapOpts: SnapPointOpts = {}): Point {
+    const raw = "x" in cursorOrEvent && "y" in cursorOrEvent && !("clientX" in cursorOrEvent)
+      ? cursorOrEvent as Point
+      : getSvgPoint(cursorOrEvent as MouseEvent)
     const result = getSnappedPoint(raw, snapOpts)
     return result.point
   }

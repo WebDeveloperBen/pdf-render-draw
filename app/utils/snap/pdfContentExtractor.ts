@@ -1,6 +1,7 @@
 import type { PDFPageProxy } from "pdfjs-dist"
 import { SNAP } from "@/constants/snap"
 import type { Segment } from "@/types/snap"
+import { deduplicatePointsSpatial } from "@/utils/snap/SpatialGrid"
 
 /**
  * PDF Content Extractor (pdfjs v5)
@@ -59,6 +60,7 @@ function parsePathBuffer(
 ): Segment[] {
   const segments: Segment[] = []
   let currentPos: Point | null = null
+  let subpathStart: Point | null = null
   let i = 0
 
   function toViewport(x: number, y: number): Point {
@@ -71,6 +73,7 @@ function parsePathBuffer(
 
     if (cmd === DRAW_OPS.moveTo) {
       currentPos = toViewport(buffer[i + 1]!, buffer[i + 2]!)
+      subpathStart = currentPos
       i += 3
     } else if (cmd === DRAW_OPS.lineTo) {
       const endPt = toViewport(buffer[i + 1]!, buffer[i + 2]!)
@@ -96,7 +99,16 @@ function parsePathBuffer(
       currentPos = endPt
       i += 5
     } else if (cmd === DRAW_OPS.closePath) {
-      currentPos = null
+      // closePath draws a line back to the subpath start
+      if (currentPos && subpathStart) {
+        const dx = currentPos.x - subpathStart.x
+        const dy = currentPos.y - subpathStart.y
+        // Only emit if not already at the start point
+        if (dx * dx + dy * dy > 0.01) {
+          segments.push({ start: { ...currentPos }, end: { ...subpathStart } })
+        }
+      }
+      currentPos = subpathStart
       i += 1
     } else {
       // Unknown command — skip to avoid infinite loop
@@ -117,7 +129,7 @@ export async function extractSegments(
   if (signal?.aborted) return []
 
   // scale=1 viewport for Y-axis flip only (PDF is Y-up, SVG is Y-down)
-  const viewport = page.getViewport({ scale: 1 })
+  const viewport = page.getViewport({ scale: 1 }) as unknown as { convertToViewportPoint: (x: number, y: number) => [number, number] }
 
   const segments: Segment[] = []
 
@@ -148,21 +160,6 @@ function segmentLength(s: Segment): number {
 
 function segmentAngle(s: Segment): number {
   return Math.atan2(s.end.y - s.start.y, s.end.x - s.start.x)
-}
-
-function deduplicatePoints(points: Point[], tolerance: number): Point[] {
-  const result: Point[] = []
-  for (const p of points) {
-    let isDupe = false
-    for (const r of result) {
-      if (Math.hypot(p.x - r.x, p.y - r.y) <= tolerance) {
-        isDupe = true
-        break
-      }
-    }
-    if (!isDupe) result.push(p)
-  }
-  return result
 }
 
 function segmentSegmentIntersection(a: Segment, b: Segment): Point | null {
@@ -212,10 +209,14 @@ export function nearestPointOnSegment(cursor: Point, seg: Segment): Point | null
 
 // --- Intersection computation with spatial acceleration ---
 
-function computeIntersections(segments: Segment[]): Point[] {
+/** How many grid buckets to process before yielding to the main thread */
+const INTERSECTION_YIELD_INTERVAL = 200
+
+async function computeIntersections(segments: Segment[], signal?: AbortSignal): Promise<Point[]> {
   if (segments.length === 0) return []
 
   const nearParallelRad = (SNAP.NEAR_PARALLEL_DEG * Math.PI) / 180
+  const yieldToMain = () => new Promise<void>((r) => setTimeout(r, 0))
 
   // Build spatial grid for acceleration
   const grid = new Map<string, number[]>()
@@ -244,15 +245,20 @@ function computeIntersections(segments: Segment[]): Point[] {
     }
   }
 
-  const testedPairs = new Set<string>()
+  // Use numeric pair encoding instead of string keys for performance
+  const maxIdx = segments.length
+  const testedPairs = new Set<number>()
   const rawIntersections: Point[] = []
 
+  let bucketsProcessed = 0
   for (const bucket of grid.values()) {
     for (let ai = 0; ai < bucket.length; ai++) {
       for (let bi = ai + 1; bi < bucket.length; bi++) {
         const idxA = bucket[ai]!
         const idxB = bucket[bi]!
-        const pairKey = idxA < idxB ? `${idxA},${idxB}` : `${idxB},${idxA}`
+        const lo = idxA < idxB ? idxA : idxB
+        const hi = idxA < idxB ? idxB : idxA
+        const pairKey = lo * maxIdx + hi
         if (testedPairs.has(pairKey)) continue
         testedPairs.add(pairKey)
 
@@ -269,6 +275,12 @@ function computeIntersections(segments: Segment[]): Point[] {
         const pt = segmentSegmentIntersection(segA, segB)
         if (pt) rawIntersections.push(pt)
       }
+    }
+
+    // Yield periodically to keep the UI responsive
+    if (++bucketsProcessed % INTERSECTION_YIELD_INTERVAL === 0) {
+      if (signal?.aborted) return []
+      await yieldToMain()
     }
   }
 
@@ -293,7 +305,7 @@ function computeIntersections(segments: Segment[]): Point[] {
     }
   }
 
-  return deduplicatePoints(filtered, SNAP.INTERSECTION_DEDUP_TOLERANCE)
+  return deduplicatePointsSpatial(filtered, SNAP.INTERSECTION_DEDUP_TOLERANCE)
 }
 
 // --- Public API ---
@@ -332,7 +344,7 @@ export async function extractPdfContent(
   for (const s of segments) {
     rawEndpoints.push(s.start, s.end)
   }
-  const endpoints = deduplicatePoints(rawEndpoints, SNAP.ENDPOINT_DEDUP_TOLERANCE)
+  const endpoints = deduplicatePointsSpatial(rawEndpoints, SNAP.ENDPOINT_DEDUP_TOLERANCE)
 
   // Compute midpoints
   const rawMidpoints: Point[] = []
@@ -342,13 +354,13 @@ export async function extractPdfContent(
       y: (s.start.y + s.end.y) / 2
     })
   }
-  const midpoints = deduplicatePoints(rawMidpoints, SNAP.ENDPOINT_DEDUP_TOLERANCE)
+  const midpoints = deduplicatePointsSpatial(rawMidpoints, SNAP.ENDPOINT_DEDUP_TOLERANCE)
 
   // Compute intersections
   await yieldToMain()
   if (signal?.aborted) return { segments, endpoints, midpoints, intersections: [] }
 
-  const intersections = computeIntersections(segments)
+  const intersections = await computeIntersections(segments, signal)
 
   return { segments, endpoints, midpoints, intersections }
 }

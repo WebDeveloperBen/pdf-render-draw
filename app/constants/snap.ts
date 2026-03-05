@@ -5,8 +5,8 @@
  */
 
 export const SNAP = {
-  /** Default snap distance threshold in PDF points */
-  DISTANCE: 15,
+  /** Default snap distance threshold in screen pixels (converted to PDF points at runtime) */
+  DISTANCE_PX: 12,
 
   /** Spatial grid cell size for fast nearest-neighbor lookup (PDF points) */
   GRID_CELL_SIZE: 40,
@@ -31,6 +31,12 @@ export const SNAP = {
   /** Density cap — discard cells with more intersections than this (hatching filter) */
   DENSITY_CELL_SIZE: 20,
   DENSITY_CAP: 15,
+
+  /** Cell size for segment spatial grid used in edge snapping (PDF points) */
+  SEGMENT_GRID_CELL: 50,
+
+  /** Cell size for deduplication spatial hash (PDF points) */
+  DEDUP_CELL_SIZE: 1,
 
   // --- Snap priorities (lower = preferred) ---
 

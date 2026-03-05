@@ -18,6 +18,7 @@ export * from "./useTextEditingState"
 export * from "./useToolRegistry"
 export * from "./useTransformBase"
 export * from "./useZoom"
+export * from "./useSnapProvider"
 
 // Tools
 export * from "./tools"
