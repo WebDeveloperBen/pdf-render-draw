@@ -19,6 +19,7 @@ export * from "./useToolRegistry"
 export * from "./useTransformBase"
 export * from "./useZoom"
 export * from "./useSnapProvider"
+export * from "./useRoomDetection"
 
 // Tools
 export * from "./tools"

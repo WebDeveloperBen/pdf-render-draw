@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { SELECTION } from "@/constants/ui"
 import { useSnapProvider } from "@/composables/editor/useSnapProvider"
+import { useRoomDetection } from "@/composables/editor/useRoomDetection"
 
 // Import tool components directly
 import ToolsMeasure from "~/components/Editor/Tools/Measure.vue"
@@ -75,12 +76,40 @@ const toolRegistry = useToolRegistry()
 // Initialise snap provider (sets up reactive watches)
 const { extractPageContent, clearContentCache, clearIndicator } = useSnapProvider()
 
+// Room detection + plan debug overlays
+const {
+  roomLayerEnabled,
+  debugLayerEnabled,
+  detectCurrentPage,
+  handlePageChange,
+  clearCache: clearRoomCache
+} = useRoomDetection()
+
 // Clear snap cache when document changes (new PDF loaded)
 watch(
   () => viewportStore.getDocumentProxy,
   (docProxy, oldProxy) => {
     if (docProxy && docProxy !== oldProxy) {
       clearContentCache()
+      clearRoomCache()
+    }
+  }
+)
+
+// Clear overlays immediately on page change, then detect for the new page.
+watch(
+  () => viewportStore.getCurrentPage,
+  () => {
+    handlePageChange()
+  }
+)
+
+// Detect when either overlay layer is enabled.
+watch(
+  [roomLayerEnabled, debugLayerEnabled],
+  ([roomsEnabled, debugEnabled]) => {
+    if (roomsEnabled || debugEnabled) {
+      detectCurrentPage()
     }
   }
 )
@@ -283,6 +312,12 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseLeave"
   >
+    <!-- Raw plan debug overlay (edges/nodes) -->
+    <EditorPlanDebugLayer />
+
+    <!-- Room detection overlay (renders below annotations) -->
+    <EditorRoomLayer />
+
     <!-- Render all registered tool components dynamically -->
     <template v-for="toolDef in registeredTools" :key="toolDef.type">
       <component

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
+import { useRoomDetection } from "@/composables/editor/useRoomDetection"
 
 definePageMeta({
   layout: "editor"
@@ -153,6 +154,17 @@ function closeSidebar() {
 // Tool registry for drawing tools
 const toolRegistry = useToolRegistry()
 const tools = computed(() => toolRegistry.getCompleteToolbarTools())
+
+// Room detection
+const {
+  roomLayerEnabled,
+  debugLayerEnabled,
+  isDetecting: isDetectingRooms,
+  toggleRoomLayer,
+  toggleDebugLayer,
+  detectedRooms,
+  debugData
+} = useRoomDetection()
 
 // Zoom controls
 function zoomIn() {
@@ -438,6 +450,31 @@ if (typeof window !== "undefined") {
               <Icon name="lucide:mouse-pointer-2" class="size-4" />
               <span class="tool-name">Select</span>
             </button>
+
+            <div class="tool-divider" />
+
+            <button
+              :class="['tool-btn room-detect-btn', { active: roomLayerEnabled }]"
+              :title="roomLayerEnabled ? 'Hide detected rooms' : 'Auto-detect rooms from plan'"
+              :disabled="!viewportStore.isPdfLoaded"
+              @click="toggleRoomLayer"
+            >
+              <Icon v-if="isDetectingRooms" name="svg-spinners:ring-resize" class="size-4" />
+              <Icon v-else name="lucide:scan-line" class="size-4" />
+              <span class="tool-name">{{ roomLayerEnabled ? `Rooms (${detectedRooms.length})` : 'Detect Rooms' }}</span>
+            </button>
+
+            <button
+              :class="['tool-btn room-debug-btn', { active: debugLayerEnabled }]"
+              :title="debugLayerEnabled ? 'Hide raw plan debug overlay' : 'Show raw edges/nodes debug overlay'"
+              :disabled="!viewportStore.isPdfLoaded"
+              @click="toggleDebugLayer"
+            >
+              <Icon name="lucide:bug" class="size-4" />
+              <span class="tool-name">
+                {{ debugLayerEnabled ? `Debug (${debugData?.nodes.length ?? 0} nodes)` : 'Debug Plan' }}
+              </span>
+            </button>
           </div>
         </div>
 
@@ -691,6 +728,25 @@ if (typeof window !== "undefined") {
 .tool-name {
   font-size: 13px;
   font-weight: 500;
+}
+
+.tool-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.room-detect-btn.active {
+  background: hsl(210, 80%, 50%) !important;
+  color: white !important;
+  border-color: hsl(210, 80%, 50%) !important;
+}
+
+.room-debug-btn.active {
+  background: hsl(14, 85%, 52%) !important;
+  color: white !important;
+  border-color: hsl(14, 85%, 52%) !important;
 }
 
 /* Editor Container */
