@@ -19,7 +19,10 @@ export default defineNuxtConfig({
   },
   typescript: {
     typeCheck: "build",
-    strict: true
+    strict: true,
+    tsConfig: {
+      include: ["../worker-configuration.d.ts"]
+    }
   },
 
   alias: {

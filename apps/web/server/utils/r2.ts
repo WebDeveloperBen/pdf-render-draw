@@ -18,17 +18,14 @@ interface R2StorageClient {
 
 function getCloudflareR2Bucket(): R2StorageClient | null {
   try {
-    // @ts-expect-error Cloudflare Workers R2 binding
-    const bucket = globalThis.__env__?.R2_BUCKET || globalThis.R2_BUCKET
-    if (bucket && typeof bucket.put === "function") return bucket
+    const env = (globalThis as Record<string, unknown>).__env__ as Cloudflare.Env | undefined
+    if (env?.R2_BUCKET && typeof env.R2_BUCKET.put === "function") return env.R2_BUCKET as unknown as R2StorageClient
   } catch {}
 
-  // Nitro provides bindings via useStorage or hubBlob, but for direct R2
-  // we check if the binding is available in the Cloudflare environment
   try {
     const event = useEvent()
-    const bucket = (event.context.cloudflare?.env as Record<string, unknown>)?.R2_BUCKET as R2StorageClient | undefined
-    if (bucket) return bucket
+    const env = event.context.cloudflare?.env as Cloudflare.Env | undefined
+    if (env?.R2_BUCKET) return env.R2_BUCKET as unknown as R2StorageClient
   } catch {}
 
   return null

@@ -217,7 +217,9 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://0.0.0.0:3000",
     "http://localhost:3000",
-    process.env.BETTER_AUTH_URL || "https://pdf.bens.digital"
+    "http://localhost:3001",
+    "https://pdf-annotator.bens-digital.workers.dev",
+    "https://pdf-app-dev.bens.digital"
   ],
   user: {
     additionalFields: {

@@ -29,6 +29,8 @@
     "fly:logs": "fly logs",
     "fly:ssh": "fly ssh console",
     "fly:status": "fly status",
+    "cf:types": "wrangler types",
+    "cf:deploy": "wrangler deploy .output/server/index.mjs --assets .output/public",
     "clean": "rm -rf .nuxt .output dist"
   },
   "dependencies": {
