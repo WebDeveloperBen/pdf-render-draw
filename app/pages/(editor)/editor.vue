@@ -162,6 +162,8 @@ const {
   isDetecting: isDetectingRooms,
   toggleRoomLayer,
   toggleDebugLayer,
+  detectWithOCR,
+  detectWithTextWalls,
   detectedRooms,
   debugData
 } = useRoomDetection()
@@ -465,6 +467,28 @@ if (typeof window !== "undefined") {
             </button>
 
             <button
+              class="tool-btn room-text-wall-btn"
+              title="Detect rooms from PDF text labels + wall geometry (no AI)"
+              :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
+              @click="detectWithTextWalls"
+            >
+              <Icon v-if="isDetectingRooms" name="svg-spinners:ring-resize" class="size-4" />
+              <Icon v-else name="lucide:text-search" class="size-4" />
+              <span class="tool-name">Smart Detect</span>
+            </button>
+
+            <button
+              class="tool-btn room-ocr-btn"
+              title="Detect rooms using AI vision (OCR)"
+              :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
+              @click="detectWithOCR"
+            >
+              <Icon v-if="isDetectingRooms" name="svg-spinners:ring-resize" class="size-4" />
+              <Icon v-else name="lucide:brain" class="size-4" />
+              <span class="tool-name">AI Detect</span>
+            </button>
+
+            <button
               :class="['tool-btn room-debug-btn', { active: debugLayerEnabled }]"
               :title="debugLayerEnabled ? 'Hide raw plan debug overlay' : 'Show raw edges/nodes debug overlay'"
               :disabled="!viewportStore.isPdfLoaded"
@@ -741,6 +765,30 @@ if (typeof window !== "undefined") {
   background: hsl(210, 80%, 50%) !important;
   color: white !important;
   border-color: hsl(210, 80%, 50%) !important;
+}
+
+.room-text-wall-btn {
+  background: hsl(150, 60%, 40%);
+  color: white;
+  border-color: hsl(150, 60%, 40%);
+}
+.room-text-wall-btn:hover:not(:disabled) {
+  background: hsl(150, 60%, 35%);
+}
+.room-text-wall-btn:disabled {
+  opacity: 0.5;
+}
+
+.room-ocr-btn {
+  background: hsl(270, 60%, 50%);
+  color: white;
+  border-color: hsl(270, 60%, 50%);
+}
+.room-ocr-btn:hover:not(:disabled) {
+  background: hsl(270, 60%, 45%);
+}
+.room-ocr-btn:disabled {
+  opacity: 0.5;
 }
 
 .room-debug-btn.active {

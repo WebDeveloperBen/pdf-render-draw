@@ -1,0 +1,464 @@
+{
+    "analysis_id": "4e71a19b-4b74-4e1c-917a-b4a556324db3",
+    "rooms": [
+        {
+            "id": "room_1",
+            "label": "Garage",
+            "room_type": "garage",
+            "polygon": [
+                [
+                    21,
+                    31
+                ],
+                [
+                    306,
+                    31
+                ],
+                [
+                    306,
+                    263
+                ],
+                [
+                    21,
+                    263
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_2",
+            "label": "Carport",
+            "room_type": "porch",
+            "polygon": [
+                [
+                    306,
+                    31
+                ],
+                [
+                    579,
+                    31
+                ],
+                [
+                    579,
+                    263
+                ],
+                [
+                    306,
+                    263
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.92,
+            "level_index": 0
+        },
+        {
+            "id": "room_3",
+            "label": "WC",
+            "room_type": "other",
+            "polygon": [
+                [
+                    306,
+                    263
+                ],
+                [
+                    390,
+                    263
+                ],
+                [
+                    390,
+                    366
+                ],
+                [
+                    306,
+                    366
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_4",
+            "label": "Bed 3",
+            "room_type": "bedroom",
+            "polygon": [
+                [
+                    390,
+                    263
+                ],
+                [
+                    541,
+                    263
+                ],
+                [
+                    541,
+                    360
+                ],
+                [
+                    390,
+                    360
+                ]
+            ],
+            "conditionable": true,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_5",
+            "label": "Ldy",
+            "room_type": "laundry",
+            "polygon": [
+                [
+                    541,
+                    263
+                ],
+                [
+                    625,
+                    263
+                ],
+                [
+                    625,
+                    360
+                ],
+                [
+                    541,
+                    360
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_6",
+            "label": "Kitchen",
+            "room_type": "kitchen",
+            "polygon": [
+                [
+                    625,
+                    263
+                ],
+                [
+                    841,
+                    263
+                ],
+                [
+                    841,
+                    413
+                ],
+                [
+                    596,
+                    413
+                ],
+                [
+                    596,
+                    360
+                ],
+                [
+                    625,
+                    360
+                ]
+            ],
+            "conditionable": true,
+            "confidence": 0.92,
+            "level_index": 0
+        },
+        {
+            "id": "room_7",
+            "label": "Lounge",
+            "room_type": "living",
+            "polygon": [
+                [
+                    596,
+                    413
+                ],
+                [
+                    841,
+                    413
+                ],
+                [
+                    841,
+                    605
+                ],
+                [
+                    596,
+                    605
+                ]
+            ],
+            "conditionable": true,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_8",
+            "label": "Patio",
+            "room_type": "porch",
+            "polygon": [
+                [
+                    841,
+                    263
+                ],
+                [
+                    978,
+                    263
+                ],
+                [
+                    978,
+                    605
+                ],
+                [
+                    841,
+                    605
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.9,
+            "level_index": 0
+        },
+        {
+            "id": "room_9",
+            "label": "Bed 1",
+            "room_type": "bedroom",
+            "polygon": [
+                [
+                    426,
+                    413
+                ],
+                [
+                    596,
+                    413
+                ],
+                [
+                    596,
+                    605
+                ],
+                [
+                    426,
+                    605
+                ]
+            ],
+            "conditionable": true,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_10",
+            "label": "WIR",
+            "room_type": "robe",
+            "polygon": [
+                [
+                    348,
+                    467
+                ],
+                [
+                    426,
+                    467
+                ],
+                [
+                    426,
+                    605
+                ],
+                [
+                    348,
+                    605
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_11",
+            "label": "Ens",
+            "room_type": "ensuite",
+            "polygon": [
+                [
+                    241,
+                    467
+                ],
+                [
+                    348,
+                    467
+                ],
+                [
+                    348,
+                    605
+                ],
+                [
+                    241,
+                    605
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_12",
+            "label": "Bed 2",
+            "room_type": "bedroom",
+            "polygon": [
+                [
+                    33,
+                    467
+                ],
+                [
+                    211,
+                    467
+                ],
+                [
+                    211,
+                    605
+                ],
+                [
+                    103,
+                    605
+                ],
+                [
+                    33,
+                    546
+                ]
+            ],
+            "conditionable": true,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_13",
+            "label": "Study",
+            "room_type": "study",
+            "polygon": [
+                [
+                    33,
+                    300
+                ],
+                [
+                    170,
+                    300
+                ],
+                [
+                    170,
+                    413
+                ],
+                [
+                    33,
+                    413
+                ]
+            ],
+            "conditionable": true,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_14",
+            "label": "Bath",
+            "room_type": "bathroom",
+            "polygon": [
+                [
+                    200,
+                    300
+                ],
+                [
+                    306,
+                    300
+                ],
+                [
+                    306,
+                    413
+                ],
+                [
+                    200,
+                    413
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.95,
+            "level_index": 0
+        },
+        {
+            "id": "room_15",
+            "label": "Hallway",
+            "room_type": "entry",
+            "polygon": [
+                [
+                    170,
+                    300
+                ],
+                [
+                    200,
+                    300
+                ],
+                [
+                    200,
+                    413
+                ],
+                [
+                    306,
+                    413
+                ],
+                [
+                    306,
+                    366
+                ],
+                [
+                    390,
+                    366
+                ],
+                [
+                    390,
+                    360
+                ],
+                [
+                    596,
+                    360
+                ],
+                [
+                    596,
+                    413
+                ],
+                [
+                    426,
+                    413
+                ],
+                [
+                    426,
+                    467
+                ],
+                [
+                    211,
+                    467
+                ],
+                [
+                    211,
+                    413
+                ],
+                [
+                    170,
+                    413
+                ]
+            ],
+            "conditionable": false,
+            "confidence": 0.85,
+            "level_index": 0
+        }
+    ],
+    "scale_status": "found",
+    "scale_references": [
+        {
+            "type": "dimension_line",
+            "pixel_length": 72,
+            "real_length_m": 1.5,
+            "confidence": 0.9
+        }
+    ],
+    "overall_confidence": 0.9,
+    "uncertainty_reasons": [],
+    "image_dims": {
+        "width": 1000,
+        "height": 633
+    },
+    "provider": "gemini",
+    "credits_remaining": 49
+}

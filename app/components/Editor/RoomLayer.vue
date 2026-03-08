@@ -51,7 +51,7 @@ function polygonPoints(polygon: readonly Point[]): string {
       stroke-linejoin="round"
     />
 
-    <!-- Room labels (area at centroid) -->
+    <!-- Room labels at centroid -->
     <text
       v-for="room in detectedRooms"
       :key="`label-${room.id}`"
@@ -64,7 +64,7 @@ function polygonPoints(polygon: readonly Point[]): string {
       text-anchor="middle"
       dominant-baseline="central"
     >
-      {{ Math.round(room.area).toLocaleString() }} pt²
+      {{ room.label || `${Math.round(room.area).toLocaleString()} pt²` }}
     </text>
 
     <!-- Stats badge -->

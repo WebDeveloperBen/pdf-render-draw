@@ -9,6 +9,7 @@
 import type { PDFPageProxy } from "pdfjs-dist"
 import type { DetectedRoom, RoomDetectionDebug, RoomDetectionResult } from "@/types/rooms"
 import { extractWallSegments, detectRooms } from "@/utils/rooms/roomDetector"
+import { detectRoomsFromTextAndWalls } from "@/utils/rooms/textWallDetector"
 
 // --- Module-level state (shared across all consumers) ---
 
@@ -208,6 +209,185 @@ export function useRoomDetection() {
     await detectCurrentPage()
   }
 
+  /**
+   * Run OCR-based room detection for the current page.
+   * Renders the PDF page to an image, sends to the AI vision API,
+   * and gets back labeled room polygons.
+   */
+  async function detectWithOCR() {
+    const docProxy = viewportStore.getDocumentProxy
+    if (!docProxy) return
+
+    const annotationStore = useAnnotationStore()
+    const fileId = annotationStore.currentFileId
+    if (!fileId) {
+      console.error("[RoomOCR] No file ID available")
+      return
+    }
+
+    const pageNum = viewportStore.getCurrentPage
+    cancelDetection()
+    isDetecting.value = true
+    roomLayerEnabled.value = true
+
+    try {
+      const page = await docProxy.getPage(pageNum)
+      const viewport = page.getViewport({ scale: 1 })
+      const pageWidth = viewport.width
+      const pageHeight = viewport.height
+
+      // Extract wall segments for wall-snapping (these are in viewport coords)
+      console.log(`[RoomOCR] Extracting wall segments for snapping...`)
+      const wallSegments = await extractWallSegments(page)
+      console.log(`[RoomOCR] Got ${wallSegments.length} wall segments for snapping`)
+
+      // Render at 2x scale for better OCR quality, capped at 2000px wide
+      const maxWidth = 2000
+      const renderScale = Math.min(2, maxWidth / pageWidth)
+      const renderViewport = page.getViewport({ scale: renderScale })
+      const imageWidth = Math.round(renderViewport.width)
+      const imageHeight = Math.round(renderViewport.height)
+
+      console.log(`[RoomOCR] Rendering page ${pageNum} at ${imageWidth}x${imageHeight} (scale ${renderScale.toFixed(2)})`)
+
+      // Render to offscreen canvas
+      const canvas = document.createElement("canvas")
+      canvas.width = imageWidth
+      canvas.height = imageHeight
+      const ctx = canvas.getContext("2d")!
+      ctx.fillStyle = "white"
+      ctx.fillRect(0, 0, imageWidth, imageHeight)
+
+      await page.render({ canvas, canvasContext: ctx, viewport: renderViewport }).promise
+
+      const imageDataUrl = canvas.toDataURL("image/png")
+      canvas.width = 0
+      canvas.height = 0
+
+      // Extract text labels with positions from the PDF (exact coordinates)
+      const textContent = await page.getTextContent()
+      const roomLabelPattern = /^(bed|bath|ensuite|kitchen|living|family|dining|meals|garage|hallway|hall|entry|foyer|laundry|study|robe|wir|w\.?i\.?r|pantry|wc|w\.?c|toilet|store|linen|lounge|rumpus|theatre|media|office|nook|dressing|alfresco|patio|carport|porch|verandah|balcony|deck|mud\s?room|butler)/i
+      const textLabels: Array<{ text: string; pdfX: number; pdfY: number; pixelX: number; pixelY: number }> = []
+
+      for (const item of textContent.items) {
+        if (!("str" in item) || !item.str.trim()) continue
+        const text = item.str.trim()
+        if (text.length > 30 || text.length < 2) continue
+        if (!roomLabelPattern.test(text)) continue
+
+        // transform[4]=x, transform[5]=y in PDF default space (origin bottom-left)
+        const pdfX = item.transform[4] as number
+        const pdfY = item.transform[5] as number
+
+        // Convert to viewport coordinates (origin top-left, matching rendered image)
+        const [vpX, vpY] = viewport.convertToViewportPoint(pdfX, pdfY)
+
+        // Scale to image pixel coordinates
+        const pixelX = Math.round(vpX * renderScale)
+        const pixelY = Math.round(vpY * renderScale)
+
+        textLabels.push({ text, pdfX: Math.round(vpX), pdfY: Math.round(vpY), pixelX, pixelY })
+      }
+
+      console.log(`[RoomOCR] Page dimensions: PDF viewport=${pageWidth.toFixed(1)}x${pageHeight.toFixed(1)}, Image=${imageWidth}x${imageHeight}, renderScale=${renderScale.toFixed(2)}`)
+      console.log(`[RoomOCR] Extracted ${textLabels.length} room text labels:`)
+      for (const l of textLabels) {
+        console.log(`[RoomOCR]   "${l.text}" → PDF viewport (${l.pdfX}, ${l.pdfY}), pixel (${l.pixelX}, ${l.pixelY})`)
+      }
+      console.log(`[RoomOCR] Image size: ${Math.round(imageDataUrl.length / 1024)}KB, sending to API...`)
+
+      // Call the OCR API
+      const response = await $fetch(`/api/files/${fileId}/detected-rooms/poc-ocr-detect`, {
+        method: "POST",
+        body: {
+          pageNum,
+          pageWidth,
+          pageHeight,
+          imageWidth,
+          imageHeight,
+          imageDataUrl,
+          textLabels,
+          wallSegments: wallSegments.map(s => ({
+            x1: Math.round(s.start.x * 10) / 10,
+            y1: Math.round(s.start.y * 10) / 10,
+            x2: Math.round(s.end.x * 10) / 10,
+            y2: Math.round(s.end.y * 10) / 10
+          }))
+        }
+      })
+
+      const ocrRooms: DetectedRoom[] = (response as any).rooms.map((r: any) => ({
+        id: r.id,
+        polygon: r.polygon,
+        area: r.area,
+        centroid: r.centroid,
+        bounds: r.bounds,
+        label: r.label,
+        confidence: r.confidence
+      }))
+
+      console.log(`[RoomOCR] Page ${pageNum}: ${ocrRooms.length} rooms detected`)
+      if (ocrRooms.length > 0) {
+        console.log("[RoomOCR] Rooms:", ocrRooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`))
+      }
+
+      const result: RoomDetectionResult = {
+        rooms: ocrRooms,
+        nodeCount: 0,
+        edgeCount: 0,
+        debug: null
+      }
+
+      cacheSet(pageNum, result)
+      detectedRooms.value = ocrRooms
+      detectionStats.value = { nodeCount: 0, edgeCount: 0 }
+
+      // Log scale info if available
+      const scale = (response as any).scale
+      if (scale) {
+        console.log(`[RoomOCR] Scale detected: ${scale.realLengthMm}mm = ${scale.pdfPointsLength.toFixed(1)} PDF points`)
+      }
+    } catch (err) {
+      console.error("[RoomOCR] Detection failed:", err)
+    } finally {
+      isDetecting.value = false
+    }
+  }
+
+  /**
+   * Detect rooms using PDF text labels + wall segments only. No vision model.
+   * Extracts room labels from PDF text, then ray-casts to find enclosing walls.
+   */
+  async function detectWithTextWalls() {
+    const docProxy = viewportStore.getDocumentProxy
+    if (!docProxy) return
+
+    const pageNum = viewportStore.getCurrentPage
+    cancelDetection()
+    isDetecting.value = true
+    roomLayerEnabled.value = true
+
+    try {
+      const page = await docProxy.getPage(pageNum)
+      console.log(`[TextWallDetect] Starting detection for page ${pageNum}`)
+
+      const result = await detectRoomsFromTextAndWalls(page)
+
+      console.log(`[TextWallDetect] Page ${pageNum}: ${result.rooms.length} rooms detected`)
+      if (result.rooms.length > 0) {
+        console.log("[TextWallDetect] Rooms:", result.rooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`))
+      }
+
+      cacheSet(pageNum, result)
+      detectedRooms.value = result.rooms
+      detectionStats.value = { nodeCount: result.nodeCount, edgeCount: result.edgeCount }
+    } catch (err) {
+      console.error("[TextWallDetect] Detection failed:", err)
+    } finally {
+      isDetecting.value = false
+    }
+  }
+
   /** Clear all cached and visible results */
   function clearCache() {
     cancelDetection()
@@ -229,6 +409,8 @@ export function useRoomDetection() {
     toggleDebugLayer,
     detectCurrentPage,
     detectForPage,
+    detectWithOCR,
+    detectWithTextWalls,
     handlePageChange,
     clearVisibleResults,
     clearCache

@@ -45,6 +45,10 @@ export default defineNuxtConfig({
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET
     },
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    azureOpenaiApiKey: process.env.AZURE_OPENAI_API_KEY,
+    azureOpenaiApiVersion: process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview",
+    azureOpenaiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
+    azureOpenaiDeployment: process.env.AZURE_OPENAI_DEPLOYMENT,
     resendApiKey: process.env.RESEND_API_KEY,
     emailFrom: process.env.EMAIL_FROM || "PDF Annotator <noreply@resend.dev>",
     // Public (exposed to client)
@@ -233,6 +237,6 @@ API requests are subject to rate limiting. Contact support for higher limits.
     },
     experimental: {
       openAPI: true
-    }
+    },
   }
 })

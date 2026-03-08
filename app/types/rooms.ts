@@ -19,6 +19,10 @@ export interface DetectedRoom {
   centroid: Point
   /** Axis-aligned bounding box */
   bounds: { minX: number; minY: number; maxX: number; maxY: number }
+  /** Room label from OCR or text extraction (e.g. "Bed 3", "Kitchen") */
+  label?: string | null
+  /** Detection confidence 0-1 (from OCR provider) */
+  confidence?: number | null
 }
 
 export interface RoomDetectionResult {
