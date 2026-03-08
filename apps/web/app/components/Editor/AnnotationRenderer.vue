@@ -29,21 +29,12 @@ const annotationsByType = computed(() => {
 </script>
 
 <template>
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    :viewBox="`0 0 ${width} ${height}`"
-    :width="width"
-    :height="height"
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" :viewBox="`0 0 ${width} ${height}`" :width="width" :height="height">
     <!-- Render each tool type's annotations using the same components as the editor -->
     <!-- Each tool type group contains correctly-typed annotations at runtime -->
     <template v-for="[type, anns] in annotationsByType" :key="type">
-      <component
-        :is="toolComponents[type]"
-        v-if="toolComponents[type]"
-        :annotations="(anns as any)"
-        :export-mode="true"
-      />
+      <component :is="toolComponents[type]" v-if="toolComponents[type]" :annotations="(anns as any)"
+        :export-mode="true" />
     </template>
   </svg>
 </template>

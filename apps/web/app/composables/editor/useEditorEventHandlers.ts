@@ -73,7 +73,7 @@ export const useEditorEventHandlers = createSharedComposable(() => {
     const wasInteracting =
       move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || marquee.isMarqueeSelecting.value
 
-    console.log("⬆️ [handleGlobalMouseUp] Mouse up detected", {
+    debugLog("⬆️ [handleGlobalMouseUp] Mouse up detected", {
       wasInteracting,
       isDragging: move.isDragging.value,
       isRotating: rotation.isRotating.value,

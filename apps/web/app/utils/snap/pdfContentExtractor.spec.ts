@@ -4,7 +4,16 @@ import type { Segment } from "@/types/snap"
 // Mock pdfjs-dist
 vi.mock("pdfjs-dist", () => ({
   OPS: {
-    constructPath: 91
+    constructPath: 91,
+    save: 10,
+    restore: 11,
+    transform: 12,
+    stroke: 50,
+    closeStroke: 51,
+    fillStroke: 52,
+    eoFillStroke: 53,
+    closeFillStroke: 54,
+    closeEOFillStroke: 55
   }
 }))
 
@@ -47,25 +56,28 @@ describe("nearestPointOnSegment", () => {
     expect(result!.y).toBeCloseTo(50, 1)
   })
 
-  it("should return null when projection falls near start endpoint (t <= 0.01)", () => {
+  it("should clamp to start endpoint when projection falls before start (t <= 0)", () => {
     const seg = makeSeg(0, 0, 100, 0)
-    const result = nearestPointOnSegment({ x: 0.5, y: 5 }, seg)
+    const result = nearestPointOnSegment({ x: -10, y: 5 }, seg)
 
-    expect(result).toBeNull()
+    expect(result.x).toBeCloseTo(0, 1)
+    expect(result.y).toBeCloseTo(0, 1)
   })
 
-  it("should return null when projection falls near end endpoint (t >= 0.99)", () => {
+  it("should clamp to end endpoint when projection falls past end (t >= 1)", () => {
     const seg = makeSeg(0, 0, 100, 0)
-    const result = nearestPointOnSegment({ x: 99.5, y: 5 }, seg)
+    const result = nearestPointOnSegment({ x: 110, y: 5 }, seg)
 
-    expect(result).toBeNull()
+    expect(result.x).toBeCloseTo(100, 1)
+    expect(result.y).toBeCloseTo(0, 1)
   })
 
-  it("should return null for zero-length segment", () => {
+  it("should return start point for zero-length segment", () => {
     const seg = makeSeg(50, 50, 50, 50)
     const result = nearestPointOnSegment({ x: 50, y: 55 }, seg)
 
-    expect(result).toBeNull()
+    expect(result.x).toBeCloseTo(50, 1)
+    expect(result.y).toBeCloseTo(50, 1)
   })
 
   it("should return interior projection for cursor far from segment", () => {
@@ -83,7 +95,7 @@ describe("extractPdfContent", () => {
   function createMockPage(pathBuffers: Float32Array[], pageNumber = 1) {
     const fnArray = pathBuffers.map(() => 91) // OPS.constructPath
     const argsArray = pathBuffers.map((buf) => [
-      0, // rendering op
+      50, // rendering op = OPS.stroke
       [buf], // [Float32Array]
       new Float32Array([0, 0, 1000, 1000]) // bounding box
     ])

@@ -6,15 +6,21 @@
 
 export const SNAP = {
   /** Default snap distance threshold in screen pixels (converted to PDF points at runtime) */
-  DISTANCE_PX: 12,
+  DISTANCE_PX: 16,
+
+  /** Edge snap gets a larger catch radius (multiplier on DISTANCE_PX) */
+  EDGE_DISTANCE_MULTIPLIER: 1.5,
 
   /** Spatial grid cell size for fast nearest-neighbor lookup (PDF points) */
   GRID_CELL_SIZE: 40,
 
   // --- PDF content extraction ---
 
-  /** Minimum segment length to keep (filters font glyphs and noise) */
+  /** Minimum segment length for edge snapping (keeps fine detail for "on edge" snap) */
   MIN_SEGMENT_LENGTH: 3,
+
+  /** Minimum segment length for point targets — endpoints/midpoints (filters text glyphs and hatching noise) */
+  MIN_SEGMENT_LENGTH_POINTS: 15,
 
   /** Dedup tolerance for extracted endpoints (PDF points) */
   ENDPOINT_DEDUP_TOLERANCE: 0.5,
@@ -43,6 +49,6 @@ export const SNAP = {
   PRIORITY_MARKUP_ENDPOINT: 0,
   PRIORITY_CONTENT_ENDPOINT: 1,
   PRIORITY_CONTENT_INTERSECTION: 2,
-  PRIORITY_MIDPOINT: 3,
-  PRIORITY_NEAREST_ON_EDGE: 4
+  PRIORITY_NEAREST_ON_EDGE: 3,
+  PRIORITY_MIDPOINT: 4
 } as const

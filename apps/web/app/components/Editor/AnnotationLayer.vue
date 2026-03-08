@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { SELECTION } from "@/constants/ui"
-import { useSnapProvider } from "@/composables/editor/useSnapProvider"
-import { useRoomDetection } from "@/composables/editor/useRoomDetection"
 
 import { toolComponents } from "~/components/Editor/Tools"
 
@@ -282,48 +280,32 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
 </script>
 
 <template>
-  <svg
-    ref="svgRef"
-    :viewBox="`0 0 ${pdfWidth} ${pdfHeight}`"
-    :style="svgStyle"
+  <svg ref="svgRef" :viewBox="`0 0 ${pdfWidth} ${pdfHeight}`" :style="svgStyle"
     :class="['svg-annotation-layer', { 'selection-mode': isSelectionMode(annotationStore.activeTool) }]"
-    preserveAspectRatio="xMidYMid meet"
-    @click="handleClick"
-    @mousedown="handleMouseDown"
-    @mousemove="handleMove"
-    @mouseup="handleMouseUp"
-    @mouseleave="handleMouseLeave"
-  >
+    preserveAspectRatio="xMidYMid meet" @click="handleClick" @mousedown="handleMouseDown" @mousemove="handleMove"
+    @mouseup="handleMouseUp" @mouseleave="handleMouseLeave">
     <!-- Raw plan debug overlay (edges/nodes) -->
     <EditorPlanDebugLayer />
+
+    <!-- Snap system debug overlay (extracted segments/points) -->
+    <EditorSnapDebugLayer />
 
     <!-- Room detection overlay (renders below annotations) -->
     <EditorRoomLayer />
 
     <!-- Render all registered tool components dynamically -->
     <template v-for="toolDef in registeredTools" :key="toolDef.type">
-      <component
-        :is="toolComponents[toolDef.type as keyof typeof toolComponents]"
-        v-if="
-          annotationStore.activeTool === toolDef.type || annotationStore.getAnnotationsByType(toolDef.type).length > 0
-        "
-      />
+      <component :is="toolComponents[toolDef.type as keyof typeof toolComponents]" v-if="
+        annotationStore.activeTool === toolDef.type || annotationStore.getAnnotationsByType(toolDef.type).length > 0
+      " />
     </template>
 
     <!-- Selection marquee (drag-to-select rectangle) -->
-    <rect
-      v-if="selectionMarquee.isMarqueeSelecting.value && selectionMarquee.marqueeBounds.value"
-      :x="selectionMarquee.marqueeBounds.value.x"
-      :y="selectionMarquee.marqueeBounds.value.y"
-      :width="selectionMarquee.marqueeBounds.value.width"
-      :height="selectionMarquee.marqueeBounds.value.height"
-      :fill="SELECTION.MARQUEE_FILL"
-      :stroke="SELECTION.MARQUEE_STROKE"
-      :stroke-width="SELECTION.MARQUEE_STROKE_WIDTH"
-      :stroke-dasharray="SELECTION.MARQUEE_DASH_ARRAY"
-      class="selection-marquee"
-      pointer-events="none"
-    />
+    <rect v-if="selectionMarquee.isMarqueeSelecting.value && selectionMarquee.marqueeBounds.value"
+      :x="selectionMarquee.marqueeBounds.value.x" :y="selectionMarquee.marqueeBounds.value.y"
+      :width="selectionMarquee.marqueeBounds.value.width" :height="selectionMarquee.marqueeBounds.value.height"
+      :fill="SELECTION.MARQUEE_FILL" :stroke="SELECTION.MARQUEE_STROKE" :stroke-width="SELECTION.MARQUEE_STROKE_WIDTH"
+      :stroke-dasharray="SELECTION.MARQUEE_DASH_ARRAY" class="selection-marquee" pointer-events="none" />
 
     <!-- Snap indicator (rendered above annotations, below handles) -->
     <EditorSnapIndicator />

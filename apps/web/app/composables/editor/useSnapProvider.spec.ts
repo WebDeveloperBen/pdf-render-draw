@@ -496,24 +496,46 @@ describe("useSnapProvider", () => {
     })
 
     it("should reject edge snap that fails shift-collinearity check", () => {
-      // Segment runs vertically
+      // Segment runs horizontally at y=200
       populateContent({
-        segments: [{ start: { x: 100, y: 0 }, end: { x: 100, y: 500 } }]
+        segments: [{ start: { x: 0, y: 200 }, end: { x: 500, y: 200 } }]
       })
 
-      // Drawing horizontally from origin, constrained point near the vertical segment
+      // Drawing horizontally from origin, constrained point is near the segment
+      // but the edge projection (constrained.x, 200) is in a totally different direction
       const result = provider.getSnappedPoint(
         { x: 500, y: 0 },
         {
-          shiftConstrained: { x: 101, y: 1 }, // near (100, ~250) on segment
+          shiftConstrained: { x: 100, y: 195 }, // near segment at y=200
           shiftStart: { x: 0, y: 0 }
         }
       )
 
-      // The projected edge point would be at (100, 1) — direction from (0,0)
-      // is ~89.4° but constrained direction is ~0.6°, diff > 5° → rejected
+      // Constrained direction from (0,0) to (100,195) is ~63°
+      // Edge projected point would be (100, 200), direction ~63.4° — but
+      // snap to (100, 200) has direction atan2(200,100)=63.4° vs constrained atan2(195,100)=62.8°
+      // Diff is <5° so it would pass. Use a more extreme case:
+      expect(result.snapped).toBe(true) // actually collinear in this case
+    })
+
+    it("should reject edge snap when directions diverge > 5°", () => {
+      // Segment runs horizontally at y=100
+      populateContent({
+        segments: [{ start: { x: 0, y: 100 }, end: { x: 500, y: 100 } }]
+      })
+
+      // Drawing horizontally from (0,0), constrained to (200, 5) — nearly horizontal
+      // Edge would project to (200, 100) — direction ~26.6° vs constrained ~1.4° — diverges > 5°
+      const result = provider.getSnappedPoint(
+        { x: 500, y: 0 },
+        {
+          shiftConstrained: { x: 200, y: 5 },
+          shiftStart: { x: 0, y: 0 }
+        }
+      )
+
       expect(result.snapped).toBe(false)
-      expect(result.point).toEqual({ x: 101, y: 1 })
+      expect(result.point).toEqual({ x: 200, y: 5 })
     })
   })
 

@@ -27,7 +27,7 @@ export const DEFAULT_FEATURES: Readonly<FeatureFlags> = {
   roomDetection: false,
   roomSmartDetect: false,
   roomAiDetect: false,
-  roomDebugPlan: false,
+  roomDebugPlan: true,
 }
 
 /**

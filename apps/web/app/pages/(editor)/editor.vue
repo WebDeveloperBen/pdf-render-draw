@@ -172,6 +172,12 @@ const {
   debugData
 } = useRoomDetection()
 
+// Snap debug
+const { snapDebugEnabled } = useSnapProvider()
+function toggleSnapDebug() {
+  snapDebugEnabled.value = !snapDebugEnabled.value
+}
+
 // Zoom controls
 function zoomIn() {
   viewportStore.zoomIn()
@@ -505,6 +511,19 @@ if (typeof window !== "undefined") {
               <Icon name="lucide:bug" class="size-4" />
               <span class="tool-name">
                 {{ debugLayerEnabled ? `Debug (${debugData?.nodes.length ?? 0} nodes)` : 'Debug Plan' }}
+              </span>
+            </button>
+
+            <button
+              v-if="flags.roomDebugPlan"
+              :class="['tool-btn room-debug-btn', { active: snapDebugEnabled }]"
+              title="Show extracted snap segments overlay"
+              :disabled="!viewportStore.isPdfLoaded"
+              @click="toggleSnapDebug"
+            >
+              <Icon name="lucide:crosshair" class="size-4" />
+              <span class="tool-name">
+                {{ snapDebugEnabled ? 'Hide Snap Debug' : 'Snap Debug' }}
               </span>
             </button>
           </div>
