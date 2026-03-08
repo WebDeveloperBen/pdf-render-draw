@@ -209,32 +209,32 @@ describe("extractPdfContent", () => {
     expect(result.endpoints).toHaveLength(0)
   })
 
-  it("should handle cubic bezier curves (curveTo)", async () => {
-    // DrawOPS: moveTo(0,0), curveTo(cp1x, cp1y, cp2x, cp2y, endX, endY)
-    // curveTo = cmd 2, followed by 6 coords
+  it("should discard subpaths containing cubic bezier curves", async () => {
+    // parseWallSegments skips entire subpaths with curves — walls are straight lines
     const buffer = new Float32Array([
       0, 0, 0,             // moveTo(0, 0)
-      2, 25, 50, 75, 50, 100, 0  // curveTo → endpoint at (100, 0)
+      2, 25, 50, 75, 50, 100, 0  // curveTo → discards this subpath
     ])
     const page = createMockPage([buffer])
 
     const result = await extractPdfContent(page)
 
-    // Should create a segment from start to end (skipping control points)
-    expect(result.segments).toHaveLength(1)
+    // Curves are not wall segments — entire subpath is discarded
+    expect(result.segments).toHaveLength(0)
   })
 
-  it("should handle quadratic bezier curves", async () => {
-    // quadraticCurveTo = cmd 3, followed by 4 coords
+  it("should discard subpaths containing quadratic bezier curves", async () => {
+    // parseWallSegments skips entire subpaths with curves
     const buffer = new Float32Array([
       0, 0, 0,          // moveTo(0, 0)
-      3, 50, 50, 100, 0 // quadraticCurveTo → endpoint at (100, 0)
+      3, 50, 50, 100, 0 // quadraticCurveTo → discards this subpath
     ])
     const page = createMockPage([buffer])
 
     const result = await extractPdfContent(page)
 
-    expect(result.segments).toHaveLength(1)
+    // Curves are not wall segments — entire subpath is discarded
+    expect(result.segments).toHaveLength(0)
   })
 
   it("should handle empty operator list", async () => {
@@ -283,8 +283,8 @@ describe("extractPdfContent", () => {
       getOperatorList: vi.fn().mockResolvedValue({
         fnArray: [91, 91],
         argsArray: [
-          [0, [buf1], new Float32Array([0, 0, 100, 100])],
-          [0, [buf2], new Float32Array([0, 0, 100, 100])]
+          [50, [buf1], new Float32Array([0, 0, 100, 100])],
+          [50, [buf2], new Float32Array([0, 0, 100, 100])]
         ]
       }),
       getViewport: vi.fn().mockReturnValue({

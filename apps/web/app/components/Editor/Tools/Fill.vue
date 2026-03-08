@@ -46,9 +46,6 @@ const tool = useFillToolState()!
 const completed = computed(() => props.annotations ?? tool.completed.value)
 const isDrawing = computed(() => tool.isDrawing.value)
 const currentRect = computed(() => tool.currentRect.value)
-
-
-
 </script>
 <template>
   <g class="fill-tool">

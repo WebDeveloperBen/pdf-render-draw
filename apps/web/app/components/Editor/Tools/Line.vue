@@ -65,14 +65,6 @@ const points = computed(() => tool.points.value)
 const tempEndPoint = computed(() => tool.tempEndPoint.value)
 
 const { s, stamped } = useToolViewport()
-
-watch(
-  completed,
-  (newVal) => {
-    console.log("[Line.vue] Completed lines changed:", newVal.length, newVal)
-  },
-  { immediate: true }
-)
 </script>
 
 <template>

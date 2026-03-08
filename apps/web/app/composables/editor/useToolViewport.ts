@@ -1,9 +1,9 @@
 /**
  * Shared viewport helpers for annotation tool components.
  *
- * Provides label rotation so preview text stays upright
- * regardless of PDF rotation, and scale-compensation so
- * preview markers/text stay a constant screen size.
+ * Provides scale-compensation so preview markers/text stay a constant
+ * screen size, and stamped transforms for completed annotations that
+ * preserve the visual size from when they were created.
  *
  * Safe to call in any context (editor or export) — returns
  * sensible defaults when no active viewport exists.
@@ -11,24 +11,7 @@
 export function useToolViewport() {
   const viewportStore = useViewportStore()
 
-  /** Counter-rotation value (degrees) to keep text upright in the viewport */
-  const labelRotation = computed(() => viewportStore.getViewportLabelRotation)
-
-  /**
-   * Build an SVG `rotate()` transform string that keeps an element
-   * upright relative to the viewport, pivoting around (cx, cy).
-   * Returns `undefined` when no rotation is needed (avoids empty attributes).
-   */
-  function labelRotationTransform(cx: number, cy: number): string | undefined {
-    const r = labelRotation.value
-    return r ? `rotate(${r}, ${cx}, ${cy})` : undefined
-  }
-
-  /**
-   * Raw inverse zoom factor — stays constant screen size at all zoom levels.
-   * Used for preview elements (cursors, point markers) that should always
-   * appear the same size regardless of zoom direction.
-   */
+  /** Inverse zoom factor for constant-screen-size preview elements. */
   const inverseScale = computed(() => viewportStore.getInverseScale)
 
   /**
@@ -71,5 +54,5 @@ export function useToolViewport() {
     return value * (labelScale ?? inverseScale.value)
   }
 
-  return { labelRotation, labelRotationTransform, inverseScale, s, screenTransform, stampedTransform, stamped }
+  return { inverseScale, s, screenTransform, stampedTransform, stamped }
 }
