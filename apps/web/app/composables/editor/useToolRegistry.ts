@@ -52,6 +52,10 @@ const toolRegistry = ref(markRaw(new Map<ToolType, ToolDefinition>()))
  * Call this in your tool's module to make it available
  */
 export function registerTool(definition: ToolDefinition) {
+  // Skip if already registered — prevents SSR export from overwriting
+  // the editor's live handlers with dead SSR-context references.
+  if (toolRegistry.value.has(definition.type)) return
+
   toolRegistry.value.set(definition.type, definition)
   // Trigger reactivity update since the Map is marked raw
   triggerRef(toolRegistry)

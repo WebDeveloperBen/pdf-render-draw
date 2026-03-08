@@ -47,110 +47,54 @@ import type { Count } from "#shared/types/annotations.types"
 // Props for export mode
 const props = defineProps<{
   annotations?: Count[]
-  exportMode?: boolean
 }>()
 
 const config = COUNT_TOOL_DEFAULTS
+const tool = useCountToolState()!
+const annotationStore = useAnnotationStore()
 
-// Inject the tool state (only in interactive mode)
-const tool = props.exportMode ? null : useCountToolState()
+const completed = computed(() => props.annotations ?? tool.completed.value)
+const nextCountNumber = computed(() => tool.nextCountNumber.value)
+const cursorPosition = computed(() => tool.cursorPosition.value)
 
-if (!tool && !props.exportMode) {
-  throw new Error("CountTool must be used within AnnotationLayer")
-}
+const { labelRotationTransform, s } = useToolViewport()
 
-// Use passed annotations in export mode, otherwise from store
-const completed = computed(() => {
-  if (props.exportMode && props.annotations) {
-    return props.annotations
-  }
-  return tool?.completed.value ?? []
-})
-
-// Interactive-only state (not used in export mode)
-const annotationStore = props.exportMode ? null : useAnnotationStore()
-const nextCountNumber = computed(() => tool?.nextCountNumber.value ?? 0)
-const cursorPosition = computed(() => tool?.cursorPosition.value ?? null)
-
-const { labelRotationTransform } = useToolViewport()
-
-// Only show preview when count tool is active (interactive mode only)
 const showPreview = computed(() => {
-  if (props.exportMode) return false
-  return annotationStore?.activeTool === "count" && cursorPosition.value
+  return annotationStore.activeTool === "count" && cursorPosition.value
 })
 </script>
 
 <template>
   <g class="count-tool">
     <!-- Completed annotations - single rendering path for both modes -->
-    <EditorAnnotation
-      v-for="count in completed"
-      :key="count.id"
-      :annotation="count"
-      :export-mode="exportMode"
-    >
+    <EditorAnnotation v-for="count in completed" :key="count.id" :annotation="count">
       <template #content="{ annotation }">
-        <!-- Invisible hitbox - interactive mode only -->
-        <circle
-          v-if="!exportMode"
-          :cx="annotation.x + annotation.width / 2"
-          :cy="annotation.y + annotation.height / 2"
-          :r="config.hitArea.radius"
-          fill="transparent"
-          class="count-hitbox"
-        />
+        <!-- Invisible hitbox -->
+        <circle :cx="annotation.x + annotation.width / 2" :cy="annotation.y + annotation.height / 2"
+          :r="config.hitArea.radius" fill="transparent" class="count-hitbox" />
 
         <!-- Count marker circle -->
-        <circle
-          :cx="annotation.x + annotation.width / 2"
-          :cy="annotation.y + annotation.height / 2"
-          :r="config.marker.radius"
-          :fill="config.marker.fill"
-          :stroke="config.marker.stroke"
-          :stroke-width="config.marker.strokeWidth"
-          :class="{ 'count-marker': !exportMode }"
-        />
+        <circle :cx="annotation.x + annotation.width / 2" :cy="annotation.y + annotation.height / 2"
+          :r="config.marker.radius" :fill="config.marker.fill" :stroke="config.marker.stroke"
+          :stroke-width="config.marker.strokeWidth" class="count-marker" />
 
-        <text
-          :x="annotation.x + annotation.width / 2"
-          :y="annotation.y + annotation.height / 2"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          :font-size="config.text.fontSize"
-          :font-weight="config.text.fontWeight"
-          :fill="config.text.fill"
-          :class="{ 'count-number': !exportMode }"
-        >
+        <text :x="annotation.x + annotation.width / 2" :y="annotation.y + annotation.height / 2" text-anchor="middle"
+          dominant-baseline="middle" :font-size="config.text.fontSize" :font-weight="config.text.fontWeight"
+          :fill="config.text.fill" class="count-number">
           {{ annotation.number }}
         </text>
       </template>
     </EditorAnnotation>
 
     <!-- Preview marker - interactive mode only -->
-    <g v-if="!exportMode && showPreview && cursorPosition" class="preview">
-      <circle
-        :cx="cursorPosition.x"
-        :cy="cursorPosition.y"
-        :r="config.marker.radius"
-        :fill="config.marker.fill"
-        :stroke="config.marker.stroke"
-        :stroke-width="config.marker.strokeWidth"
-        :opacity="config.preview.opacity"
-        class="preview-marker"
-      />
-      <text
-        :x="cursorPosition.x"
-        :y="cursorPosition.y"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        :font-size="config.text.fontSize"
-        :font-weight="config.text.fontWeight"
-        :fill="config.text.fill"
-        :opacity="config.preview.opacity"
-        :transform="labelRotationTransform(cursorPosition.x, cursorPosition.y)"
-        class="preview-number"
-      >
+    <g v-if="showPreview && cursorPosition" class="preview">
+      <circle :cx="cursorPosition.x" :cy="cursorPosition.y" :r="s(config.marker.radius)" :fill="config.marker.fill"
+        :stroke="config.marker.stroke" :stroke-width="s(config.marker.strokeWidth)" :opacity="config.preview.opacity"
+        class="preview-marker" />
+      <text :x="cursorPosition.x" :y="cursorPosition.y" text-anchor="middle" dominant-baseline="middle"
+        :font-size="s(config.text.fontSize)" :font-weight="config.text.fontWeight" :fill="config.text.fill"
+        :opacity="config.preview.opacity" :transform="labelRotationTransform(cursorPosition.x, cursorPosition.y)"
+        class="preview-number">
         {{ nextCountNumber }}
       </text>
     </g>

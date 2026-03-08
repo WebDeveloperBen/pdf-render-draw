@@ -91,40 +91,24 @@ import type { Area, Point } from "#shared/types/annotations.types"
 // Props for export mode
 const props = defineProps<{
   annotations?: Area[]
-  exportMode?: boolean
 }>()
 
 const config = AREA_TOOL_DEFAULTS
+const tool = useAreaToolState()!
 
-// Inject the tool state (only in interactive mode)
-const tool = props.exportMode ? null : useAreaToolState()
-
-if (!tool && !props.exportMode) {
-  throw new Error("AreaTool must be used within AnnotationLayer")
-}
-
-// Helper to convert points to SVG polygon format
 function toSvgPoints(pts: Point[]): string {
   return pts.map((p) => `${p.x},${p.y}`).join(" ")
 }
 
-// Use passed annotations in export mode, otherwise from store
-const completed = computed(() => {
-  if (props.exportMode && props.annotations) {
-    return props.annotations
-  }
-  return tool?.completed.value ?? []
-})
+const completed = computed(() => props.annotations ?? tool.completed.value)
+const isDrawing = computed(() => tool.isDrawing.value)
+const points = computed(() => tool.points.value)
+const tempEndPoint = computed(() => tool.tempEndPoint.value)
+const canSnapToClose = computed(() => tool.canSnapToClose.value)
+const previewArea = computed(() => tool.previewArea.value)
+const previewPolygon = computed(() => tool.previewPolygon.value)
 
-// Interactive-only state (not used in export mode)
-const isDrawing = computed(() => tool?.isDrawing.value ?? false)
-const points = computed(() => tool?.points.value ?? [])
-const tempEndPoint = computed(() => tool?.tempEndPoint.value ?? null)
-const canSnapToClose = computed(() => tool?.canSnapToClose.value ?? false)
-const previewArea = computed(() => tool?.previewArea.value ?? null)
-const previewPolygon = computed(() => tool?.previewPolygon.value ?? null)
-
-const { labelRotationTransform } = useToolViewport()
+const { labelRotationTransform, s } = useToolViewport()
 </script>
 <template>
   <g class="area-tool">
@@ -133,7 +117,6 @@ const { labelRotationTransform } = useToolViewport()
       v-for="area in completed"
       :key="area.id"
       :annotation="area"
-      :export-mode="exportMode"
     >
       <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
@@ -143,7 +126,8 @@ const { labelRotationTransform } = useToolViewport()
           :fill-opacity="config.opacity"
           :stroke="config.strokeColor"
           :stroke-width="config.strokeWidth"
-          :class="{ 'selected-polygon': isSelected, 'area-polygon': !exportMode }"
+          class="area-polygon"
+          :class="{ 'selected-polygon': isSelected }"
         />
 
         <rect
@@ -166,7 +150,7 @@ const { labelRotationTransform } = useToolViewport()
           text-anchor="middle"
           dominant-baseline="middle"
           :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
-          :class="{ 'area-label': !exportMode }"
+          class="area-label"
         >
           {{ annotation.area }}m²
         </text>
@@ -174,16 +158,16 @@ const { labelRotationTransform } = useToolViewport()
     </EditorAnnotation>
 
     <!-- Preview while drawing - interactive mode only -->
-    <g v-if="!exportMode && tempEndPoint" class="preview">
+    <g v-if="tempEndPoint" class="preview">
       <!-- Cursor indicator (before first click) -->
       <circle
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius"
+        :r="s(config.preview.cursorIndicator.radius)"
         fill="none"
         :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :stroke-width="s(config.preview.cursorIndicator.strokeWidth)"
         :opacity="config.preview.cursorIndicator.opacity"
       />
 
@@ -194,10 +178,10 @@ const { labelRotationTransform } = useToolViewport()
           :key="`point-${index}`"
           :cx="point.x"
           :cy="point.y"
-          :r="(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius)"
+          :r="s(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius)"
           :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
           :stroke="config.preview.pointMarkers.stroke"
-          :stroke-width="config.preview.pointMarkers.strokeWidth"
+          :stroke-width="s(config.preview.pointMarkers.strokeWidth)"
           class="point-marker"
         />
 
@@ -212,8 +196,9 @@ const { labelRotationTransform } = useToolViewport()
               :x2="points[index + 1]?.x ?? 0"
               :y2="points[index + 1]?.y ?? 0"
               :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth"
-              :stroke-dasharray="`${5},${5}`"
+              stroke-width="1"
+              vector-effect="non-scaling-stroke"
+              :stroke-dasharray="`5,5`"
               :opacity="config.preview.lines.opacity"
             />
           </template>
@@ -227,8 +212,9 @@ const { labelRotationTransform } = useToolViewport()
               :x2="tempEndPoint.x"
               :y2="tempEndPoint.y"
               :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth"
-              :stroke-dasharray="`${5},${5}`"
+              stroke-width="1"
+              vector-effect="non-scaling-stroke"
+              :stroke-dasharray="`5,5`"
               :opacity="config.preview.lines.opacity"
             />
           </template>
@@ -241,8 +227,9 @@ const { labelRotationTransform } = useToolViewport()
             :x2="points[0].x"
             :y2="points[0].y"
             :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth"
-            :stroke-dasharray="`${5},${5}`"
+            stroke-width="1"
+            vector-effect="non-scaling-stroke"
+            :stroke-dasharray="`5,5`"
             :opacity="config.preview.lines.closingLineOpacity"
           />
         </g>
@@ -262,17 +249,17 @@ const { labelRotationTransform } = useToolViewport()
           <circle
             :cx="points[0].x"
             :cy="points[0].y"
-            :r="config.snap.radius"
+            :r="s(config.snap.radius)"
             fill="none"
             :stroke="config.snap.stroke"
-            :stroke-width="config.snap.strokeWidth"
+            :stroke-width="s(config.snap.strokeWidth)"
             class="snap-indicator"
           />
           <text
-            :x="points[0].x + config.snap.text.offsetX"
-            :y="points[0].y - config.snap.text.offsetY"
+            :x="points[0].x + s(config.snap.text.offsetX)"
+            :y="points[0].y - s(config.snap.text.offsetY)"
             :fill="config.snap.text.fill"
-            :font-size="config.snap.text.fontSize"
+            :font-size="s(config.snap.text.fontSize)"
             :font-weight="config.snap.text.fontWeight"
             :transform="labelRotationTransform(points[0].x, points[0].y)"
           >
@@ -285,7 +272,7 @@ const { labelRotationTransform } = useToolViewport()
           :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
           :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2"
           :fill="config.preview.distance.fill"
-          :font-size="config.preview.distance.fontSize"
+          :font-size="s(config.preview.distance.fontSize)"
           text-anchor="middle"
           :transform="labelRotationTransform(((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2, ((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2)"
         >

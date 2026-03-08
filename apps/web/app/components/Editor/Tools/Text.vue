@@ -62,42 +62,21 @@ export type TextToolConfig = typeof TEXT_TOOL_DEFAULTS
 <script setup lang="ts">
 import type { TextAnnotation } from "#shared/types/annotations.types"
 
-// Props for export mode
 const props = defineProps<{
   annotations?: TextAnnotation[]
-  exportMode?: boolean
 }>()
 
 const config = TEXT_TOOL_DEFAULTS
+const tool = useTextToolState()!
 
-// Inject the tool state (only in interactive mode)
-const tool = props.exportMode ? null : useTextToolState()
-
-if (!tool && !props.exportMode) {
-  throw new Error("TextTool must be used within AnnotationLayer")
-}
-
-
-
-
-// Use passed annotations in export mode, otherwise from store
-const completed = computed(() => {
-  if (props.exportMode && props.annotations) {
-    return props.annotations
-  }
-  return tool?.completed.value ?? []
-})
-
-// Interactive-only state (not used in export mode)
-const editingId = computed(() => tool?.editingId.value ?? null)
+const completed = computed(() => props.annotations ?? tool.completed.value)
+const editingId = computed(() => tool.editingId.value)
 const editingContent = computed({
-  get: () => tool?.editingContent.value ?? "",
-  set: (val) => {
-    if (tool) tool.editingContent.value = val
-  }
+  get: () => tool.editingContent.value,
+  set: (val) => { tool.editingContent.value = val }
 })
-const finishEditing = tool?.finishEditing ?? (() => {})
-const deleteText = tool?.deleteText ?? (() => {})
+const finishEditing = tool.finishEditing
+const deleteText = tool.deleteText
 
 // Store ref to currently editing textarea
 const currentTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -209,12 +188,11 @@ function handleFinishEditing() {
       v-for="text in completed"
       :key="text.id"
       :annotation="text"
-      :export-mode="exportMode"
     >
       <!-- Custom content for text annotations -->
       <template #content="{ annotation, isSelected }">
         <!-- Non-editing mode: display text (or always in export mode) -->
-        <g v-if="exportMode || editingId !== annotation.id">
+        <g v-if="editingId !== annotation.id">
           <!-- Background for better readability -->
           <rect
             :x="annotation.x - config.background.padding.horizontal"
@@ -224,7 +202,8 @@ function handleFinishEditing() {
             :fill="config.background.fill"
             :opacity="config.background.opacity"
             :rx="config.background.borderRadius"
-            :class="{ 'text-background': !exportMode, selected: isSelected }"
+            :class="{ selected: isSelected }"
+            class="text-background"
           />
 
           <!-- Text content - use foreignObject for text wrapping -->
@@ -233,11 +212,11 @@ function handleFinishEditing() {
             :y="annotation.y + config.editor.borderWidth + config.editor.padding"
             :width="annotation.width - 2 * (config.editor.borderWidth + config.editor.padding)"
             :height="annotation.height - 2 * (config.editor.borderWidth + config.editor.padding)"
-            :class="{ 'text-foreign-object': !exportMode }"
+            class="text-foreign-object"
           >
             <div
               xmlns="http://www.w3.org/1999/xhtml"
-              :class="{ 'text-display': !exportMode }"
+              class="text-display"
               :style="{
                 fontSize: annotation.fontSize + 'px',
                 lineHeight: config.lineHeight,
@@ -253,9 +232,8 @@ function handleFinishEditing() {
             </div>
           </foreignObject>
 
-          <!-- Transparent hit area on top for reliable click/double-click events - interactive only -->
+          <!-- Transparent hit area on top for reliable click/double-click events -->
           <rect
-            v-if="!exportMode"
             :x="annotation.x - config.background.padding.horizontal"
             :y="annotation.y - config.background.padding.vertical"
             :width="annotation.width + config.background.padding.horizontal * 2"
@@ -264,8 +242,8 @@ function handleFinishEditing() {
             class="text-hit-area"
           />
 
-          <!-- Delete button (shown on hover) - interactive only -->
-          <g v-if="!exportMode" class="delete-button" @click.stop="deleteText(annotation.id)">
+          <!-- Delete button (shown on hover) -->
+          <g class="delete-button" @click.stop="deleteText(annotation.id)">
             <circle
               :cx="annotation.x + annotation.width + config.deleteButton.offset"
               :cy="annotation.y + annotation.height / 2"

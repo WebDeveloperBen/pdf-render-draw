@@ -100,42 +100,25 @@ export type PerimeterToolConfig = typeof PERIMETER_TOOL_DEFAULTS
 <script setup lang="ts">
 import type { Perimeter, Point } from "#shared/types/annotations.types"
 
-// Props for export mode
 const props = defineProps<{
   annotations?: Perimeter[]
-  exportMode?: boolean
 }>()
 
 const config = PERIMETER_TOOL_DEFAULTS
+const tool = usePerimeterToolState()!
 
-// Inject the tool state (only in interactive mode)
-const tool = props.exportMode ? null : usePerimeterToolState()
-
-if (!tool && !props.exportMode) {
-  throw new Error("PerimeterTool must be used within AnnotationLayer")
-}
-
-// Helper to convert points to SVG polygon format
 function toSvgPoints(pts: Point[]): string {
   return pts.map((p) => `${p.x},${p.y}`).join(" ")
 }
 
-// Use passed annotations in export mode, otherwise from store
-const completed = computed(() => {
-  if (props.exportMode && props.annotations) {
-    return props.annotations
-  }
-  return tool?.completed.value ?? []
-})
+const completed = computed(() => props.annotations ?? tool.completed.value)
+const isDrawing = computed(() => tool.isDrawing.value)
+const points = computed(() => tool.points.value)
+const tempEndPoint = computed(() => tool.tempEndPoint.value)
+const canSnapToClose = computed(() => tool.canSnapToClose.value)
+const previewSegments = computed(() => tool.previewSegments.value)
 
-// Interactive-only state (not used in export mode)
-const isDrawing = computed(() => tool?.isDrawing.value ?? false)
-const points = computed(() => tool?.points.value ?? [])
-const tempEndPoint = computed(() => tool?.tempEndPoint.value ?? null)
-const canSnapToClose = computed(() => tool?.canSnapToClose.value ?? false)
-const previewSegments = computed(() => tool?.previewSegments.value ?? [])
-
-const { labelRotationTransform } = useToolViewport()
+const { labelRotationTransform, s } = useToolViewport()
 </script>
 <template>
   <g class="perimeter-tool">
@@ -144,7 +127,6 @@ const { labelRotationTransform } = useToolViewport()
       v-for="perimeter in completed"
       :key="perimeter.id"
       :annotation="perimeter"
-      :export-mode="exportMode"
     >
       <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
@@ -154,7 +136,8 @@ const { labelRotationTransform } = useToolViewport()
           :fill-opacity="config.opacity"
           :stroke="config.strokeColor"
           :stroke-width="config.strokeWidth"
-          :class="{ 'selected-polygon': isSelected, 'perimeter-polygon': !exportMode }"
+          class="perimeter-polygon"
+          :class="{ 'selected-polygon': isSelected }"
         />
 
         <!-- Individual segment labels -->
@@ -179,7 +162,7 @@ const { labelRotationTransform } = useToolViewport()
             text-anchor="middle"
             dominant-baseline="middle"
             :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${segment.midpoint.x}, ${segment.midpoint.y})` : undefined"
-            :class="{ 'segment-label': !exportMode }"
+            class="segment-label"
           >
             {{ segment.length }}mm
           </text>
@@ -205,7 +188,7 @@ const { labelRotationTransform } = useToolViewport()
           text-anchor="middle"
           dominant-baseline="middle"
           :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
-          :class="{ 'total-label': !exportMode }"
+          class="total-label"
         >
           Total: {{ annotation.totalLength }}mm
         </text>
@@ -213,16 +196,16 @@ const { labelRotationTransform } = useToolViewport()
     </EditorAnnotation>
 
     <!-- Preview while drawing - interactive mode only -->
-    <g v-if="!exportMode && tempEndPoint" class="preview">
+    <g v-if="tempEndPoint" class="preview">
       <!-- Cursor indicator (before first click) -->
       <circle
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius"
+        :r="s(config.preview.cursorIndicator.radius)"
         fill="none"
         :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :stroke-width="s(config.preview.cursorIndicator.strokeWidth)"
         :opacity="config.preview.cursorIndicator.opacity"
       />
 
@@ -234,10 +217,10 @@ const { labelRotationTransform } = useToolViewport()
           :key="`point-${index}`"
           :cx="point.x"
           :cy="point.y"
-          :r="(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius)"
+          :r="s(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius)"
           :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
           :stroke="config.preview.pointMarkers.stroke"
-          :stroke-width="config.preview.pointMarkers.strokeWidth"
+          :stroke-width="s(config.preview.pointMarkers.strokeWidth)"
           class="point-marker"
         />
 
@@ -248,8 +231,9 @@ const { labelRotationTransform } = useToolViewport()
           :fill="config.fillColor"
           :fill-opacity="config.opacity * config.preview.polygon.opacityMultiplier"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
-          :stroke-dasharray="`${5},${5}`"
+          stroke-width="1"
+          vector-effect="non-scaling-stroke"
+          stroke-dasharray="5,5"
         />
 
         <!-- Preview segment labels -->
@@ -260,18 +244,19 @@ const { labelRotationTransform } = useToolViewport()
             :x2="segment.end.x"
             :y2="segment.end.y"
             :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth"
-            :stroke-dasharray="idx === previewSegments.length - 1 ? `${5},${5}` : '0'"
+            stroke-width="1"
+            vector-effect="non-scaling-stroke"
+            :stroke-dasharray="idx === previewSegments.length - 1 ? '5,5' : '0'"
           />
 
           <rect
-            :x="segment.midpoint.x - config.segmentLabel.background.offsetX / 2"
-            :y="segment.midpoint.y - config.segmentLabel.background.offsetY / 2"
-            :width="config.segmentLabel.background.width"
-            :height="config.segmentLabel.background.height"
+            :x="segment.midpoint.x - s(config.segmentLabel.background.offsetX) / 2"
+            :y="segment.midpoint.y - s(config.segmentLabel.background.offsetY) / 2"
+            :width="s(config.segmentLabel.background.width)"
+            :height="s(config.segmentLabel.background.height)"
             :fill="config.segmentLabel.background.fill"
             :opacity="config.segmentLabel.background.opacity"
-            :rx="config.segmentLabel.background.borderRadius"
+            :rx="s(config.segmentLabel.background.borderRadius)"
             :transform="labelRotationTransform(segment.midpoint.x, segment.midpoint.y)"
           />
 
@@ -279,7 +264,7 @@ const { labelRotationTransform } = useToolViewport()
             :x="segment.midpoint.x"
             :y="segment.midpoint.y"
             :fill="config.preview.segmentLabel.fill"
-            :font-size="config.preview.segmentLabel.fontSize"
+            :font-size="s(config.preview.segmentLabel.fontSize)"
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
@@ -294,18 +279,18 @@ const { labelRotationTransform } = useToolViewport()
           <circle
             :cx="points[0].x"
             :cy="points[0].y"
-            :r="config.snap.radius"
+            :r="s(config.snap.radius)"
             fill="none"
             :stroke="config.snap.stroke"
-            :stroke-width="config.snap.strokeWidth"
+            :stroke-width="s(config.snap.strokeWidth)"
             class="snap-indicator"
           />
           <text
-            :x="points[0].x + config.snap.text.offsetX"
-            :y="points[0].y - config.snap.text.offsetY"
+            :x="points[0].x + s(config.snap.text.offsetX)"
+            :y="points[0].y - s(config.snap.text.offsetY)"
             :fill="config.snap.text.fill"
             :transform="labelRotationTransform(points[0].x, points[0].y)"
-            :font-size="config.snap.text.fontSize"
+            :font-size="s(config.snap.text.fontSize)"
             :font-weight="config.snap.text.fontWeight"
           >
             Click to close

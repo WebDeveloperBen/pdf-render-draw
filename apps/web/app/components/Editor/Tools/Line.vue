@@ -48,52 +48,31 @@ export type LineToolConfig = typeof LINE_TOOL_DEFAULTS
 <script setup lang="ts">
 import type { Line, Point } from "#shared/types/annotations.types"
 
-// Props for export mode
 const props = defineProps<{
   annotations?: Line[]
-  exportMode?: boolean
 }>()
 
 const config = LINE_TOOL_DEFAULTS
+const tool = useLineToolState()!
 
-// Inject the tool state (only in interactive mode)
-const tool = props.exportMode ? null : useLineToolState()
-
-if (!tool && !props.exportMode) {
-  throw new Error("LineTool must be used within AnnotationLayer")
-}
-
-// Helper to convert points to SVG polyline format
 function toSvgPoints(pts: Point[]): string {
   return pts.map((p) => `${p.x},${p.y}`).join(" ")
 }
 
-// Use passed annotations in export mode, otherwise from store
-const completed = computed(() => {
-  if (props.exportMode && props.annotations) {
-    return props.annotations
-  }
-  return tool?.completed.value ?? []
-})
+const completed = computed(() => props.annotations ?? tool.completed.value)
+const isDrawing = computed(() => tool.isDrawing.value)
+const points = computed(() => tool.points.value)
+const tempEndPoint = computed(() => tool.tempEndPoint.value)
 
-// Interactive-only state (not used in export mode)
-const isDrawing = computed(() => tool?.isDrawing.value ?? false)
-const points = computed(() => tool?.points.value ?? [])
-const tempEndPoint = computed(() => tool?.tempEndPoint.value ?? null)
+const { s } = useToolViewport()
 
-
-
-
-// Debug: watch completed to see when it changes (only in interactive mode)
-if (!props.exportMode) {
-  watch(
-    completed,
-    (newVal) => {
-      console.log("[Line.vue] Completed lines changed:", newVal.length, newVal)
-    },
-    { immediate: true }
-  )
-}
+watch(
+  completed,
+  (newVal) => {
+    console.log("[Line.vue] Completed lines changed:", newVal.length, newVal)
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -103,12 +82,10 @@ if (!props.exportMode) {
       v-for="line in completed"
       :key="line.id"
       :annotation="line"
-      :export-mode="exportMode"
     >
       <template #content="{ annotation }">
-        <!-- Invisible wider hitbox for easier clicking - interactive mode only -->
+        <!-- Invisible wider hitbox for easier clicking -->
         <polyline
-          v-if="!exportMode"
           :points="toSvgPoints(annotation.points)"
           stroke="transparent"
           :stroke-width="config.hitArea.strokeWidth"
@@ -122,7 +99,7 @@ if (!props.exportMode) {
           :stroke="config.strokeColor"
           :stroke-width="config.strokeWidth"
           fill="none"
-          :class="{ 'line-path': !exportMode }"
+          class="line-path"
         />
 
         <!-- Start point marker -->
@@ -132,7 +109,7 @@ if (!props.exportMode) {
           :cy="annotation.points[0].y"
           :r="config.markers.radius"
           :fill="config.strokeColor"
-          :class="{ 'start-marker': !exportMode }"
+          class="start-marker"
         />
 
         <!-- End point marker -->
@@ -142,22 +119,22 @@ if (!props.exportMode) {
           :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
           :r="config.markers.radius"
           :fill="config.strokeColor"
-          :class="{ 'end-marker': !exportMode }"
+          class="end-marker"
         />
       </template>
     </EditorAnnotation>
 
     <!-- Preview while drawing - interactive mode only -->
-    <g v-if="!exportMode && tempEndPoint" class="preview">
+    <g v-if="tempEndPoint" class="preview">
       <!-- Cursor indicator (before first click) -->
       <circle
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius"
+        :r="s(config.preview.cursorIndicator.radius)"
         fill="none"
         :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth"
+        :stroke-width="s(config.preview.cursorIndicator.strokeWidth)"
         :opacity="config.preview.cursorIndicator.opacity"
       />
 
@@ -168,9 +145,10 @@ if (!props.exportMode) {
           v-if="points.length >= 1"
           :points="toSvgPoints([...points, tempEndPoint || points[points.length - 1]])"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
+          stroke-width="1"
+          vector-effect="non-scaling-stroke"
           fill="none"
-          :stroke-dasharray="`${5},${5}`"
+          stroke-dasharray="5,5"
           :opacity="config.preview.line.opacity"
         />
 
@@ -180,7 +158,7 @@ if (!props.exportMode) {
           :key="idx"
           :cx="point.x"
           :cy="point.y"
-          :r="config.preview.pointRadius"
+          :r="s(config.preview.pointRadius)"
           :fill="config.strokeColor"
         />
 
@@ -189,7 +167,7 @@ if (!props.exportMode) {
           v-if="tempEndPoint"
           :cx="tempEndPoint.x"
           :cy="tempEndPoint.y"
-          :r="config.preview.tempEndPoint.radius"
+          :r="s(config.preview.tempEndPoint.radius)"
           :fill="config.preview.tempEndPoint.fill"
           :opacity="config.preview.tempEndPoint.opacity"
         />

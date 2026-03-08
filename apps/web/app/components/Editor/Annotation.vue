@@ -8,27 +8,21 @@
  * - Rotation transforms
  *
  * Used by tool components to wrap their completed annotation SVG content.
- *
- * In export mode, renders a simple wrapper with just the rotation transform,
- * skipping all interactive features.
  */
 
 const props = defineProps<{
   annotation: T
-  exportMode?: boolean
 }>()
 
-// Only initialize interactive features when not in export mode
-const annotationStore = props.exportMode ? null : useAnnotationStore()
-const toolRegistry = props.exportMode ? null : useToolRegistry()
-const modifierKeys = props.exportMode ? null : useModifierKeys()
-const dragState = props.exportMode ? null : useEditorDragState()
-const bounds = props.exportMode ? null : useEditorBounds()
+const annotationStore = useAnnotationStore()
+const toolRegistry = useToolRegistry()
+const modifierKeys = useModifierKeys()
+const dragState = useEditorDragState()
+const bounds = useEditorBounds()
 
-// Check if this annotation is selected (always false in export mode)
+// Check if this annotation is selected
 const isSelected = computed(() => {
-  if (props.exportMode) return false
-  return annotationStore?.isAnnotationSelected(props.annotation.id) ?? false
+  return annotationStore.isAnnotationSelected(props.annotation.id)
 })
 
 // Track hover state for visual feedback
@@ -40,10 +34,8 @@ const CLICK_DELAY = 200 // ms to wait before executing single-click
 let lastClickTime = 0
 let clickTimeout: ReturnType<typeof setTimeout> | null = null
 
-// Handle selection logic (interactive mode only)
+// Handle selection logic
 function performSelection() {
-  if (!annotationStore || !modifierKeys || !bounds) return
-
   const tool = annotationStore.activeTool
 
   // Only handle selection in selection mode or when no tool is active
@@ -67,10 +59,8 @@ function performSelection() {
   }
 }
 
-// Handle double-click - delegate to tool's handler if registered (interactive mode only)
+// Handle double-click - delegate to tool's handler if registered
 function triggerDoubleClick() {
-  if (!toolRegistry || !annotationStore) return
-
   const tool = toolRegistry.getTool(props.annotation.type)
 
   if (tool?.onDoubleClick) {
@@ -80,10 +70,8 @@ function triggerDoubleClick() {
   }
 }
 
-// Handle context menu (interactive mode only)
+// Handle context menu
 function handleContextMenu(e: MouseEvent) {
-  if (!toolRegistry) return
-
   const tool = toolRegistry.getTool(props.annotation.type)
 
   if (tool?.onContextMenu) {
@@ -93,10 +81,8 @@ function handleContextMenu(e: MouseEvent) {
   }
 }
 
-// Handle click with manual double-click detection (interactive mode only)
+// Handle click with manual double-click detection
 function handleClick(e: MouseEvent) {
-  if (!dragState) return
-
   // Prevent selection changes if a drag just finished (click fires after drag ends)
   if (dragState.isDragJustFinished()) {
     return
@@ -130,50 +116,13 @@ function handleClick(e: MouseEvent) {
   }
 }
 
-// Get rotation transform - works in both modes
 function getRotationTransform(): string {
-  if (props.exportMode) {
-    // In export mode, calculate transform directly without store
-    const ann = props.annotation
-    if (!ann.rotation || ann.rotation === 0) return ""
-
-    // For annotations with explicit center (like Count, Fill, Text)
-    if ("x" in ann && "y" in ann && "width" in ann && "height" in ann) {
-      const centerX = (ann as any).x + (ann as any).width / 2
-      const centerY = (ann as any).y + (ann as any).height / 2
-      return `rotate(${ann.rotation} ${centerX} ${centerY})`
-    }
-
-    // For point-based annotations, use centroid of points
-    if ("points" in ann && Array.isArray((ann as any).points)) {
-      const points = (ann as any).points
-      if (points.length > 0) {
-        const sumX = points.reduce((sum: number, p: any) => sum + p.x, 0)
-        const sumY = points.reduce((sum: number, p: any) => sum + p.y, 0)
-        const centerX = sumX / points.length
-        const centerY = sumY / points.length
-        return `rotate(${ann.rotation} ${centerX} ${centerY})`
-      }
-    }
-
-    return ""
-  }
-
-  return annotationStore?.getRotationTransform(props.annotation) ?? ""
+  return annotationStore.getRotationTransform(props.annotation)
 }
 </script>
 
 <template>
-  <!-- Export mode: simple wrapper with just rotation transform -->
-  <g v-if="exportMode" :transform="getRotationTransform()">
-    <slot name="content" :annotation="annotation" :is-selected="false" :is-hovered="false">
-      <text x="0" y="0" fill="red">No content slot provided for {{ annotation.type }}</text>
-    </slot>
-  </g>
-
-  <!-- Interactive mode: full interactivity -->
   <g
-    v-else
     :data-annotation-id="annotation.id"
     :class="['annotation', { selected: isSelected, hovered: isHovered && !isSelected }]"
     :transform="getRotationTransform()"

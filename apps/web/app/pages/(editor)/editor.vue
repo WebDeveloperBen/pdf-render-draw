@@ -215,6 +215,8 @@ async function handleExport() {
   if (!pdfUrl.value) {
     return
   }
+  // Cancel any in-flight drawing tool before export
+  annotationStore.setActiveTool("selection")
   const exportFileName = fileName.value
     ? fileName.value.replace(/\.pdf$/i, "-annotated.pdf")
     : "annotated.pdf"

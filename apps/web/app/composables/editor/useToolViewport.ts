@@ -2,9 +2,11 @@
  * Shared viewport helpers for annotation tool components.
  *
  * Provides label rotation so preview text stays upright
- * regardless of PDF rotation. Safe to call in any context
- * (editor or export) — returns sensible defaults when
- * no active viewport exists.
+ * regardless of PDF rotation, and scale-compensation so
+ * preview markers/text stay a constant screen size.
+ *
+ * Safe to call in any context (editor or export) — returns
+ * sensible defaults when no active viewport exists.
  */
 export function useToolViewport() {
   const viewportStore = useViewportStore()
@@ -22,5 +24,16 @@ export function useToolViewport() {
     return r ? `rotate(${r}, ${cx}, ${cy})` : undefined
   }
 
-  return { labelRotation, labelRotationTransform }
+  /**
+   * Scale a value by inverse zoom so it stays constant in screen pixels.
+   * In export context (fresh Pinia, scale=1) this naturally returns the raw value.
+   *
+   * Usage in templates: `:r="s(6)"` instead of `:r="6 * inverseScale"`
+   */
+  const inverseScale = computed(() => viewportStore.getInverseScale)
+  function s(value: number): number {
+    return value * inverseScale.value
+  }
+
+  return { labelRotation, labelRotationTransform, inverseScale, s }
 }

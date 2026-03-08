@@ -38,29 +38,14 @@ import type { Fill } from "#shared/types/annotations.types"
 // Props for export mode
 const props = defineProps<{
   annotations?: Fill[]
-  exportMode?: boolean
 }>()
 
 const config = FILL_TOOL_DEFAULTS
+const tool = useFillToolState()!
 
-// Inject the tool state (only in interactive mode)
-const tool = props.exportMode ? null : useFillToolState()
-
-if (!tool && !props.exportMode) {
-  throw new Error("FillTool must be used within AnnotationLayer")
-}
-
-// Use passed annotations in export mode, otherwise from store
-const completed = computed(() => {
-  if (props.exportMode && props.annotations) {
-    return props.annotations
-  }
-  return tool?.completed.value ?? []
-})
-
-// Interactive-only state (not used in export mode)
-const isDrawing = computed(() => tool?.isDrawing.value ?? false)
-const currentRect = computed(() => tool?.currentRect.value ?? null)
+const completed = computed(() => props.annotations ?? tool.completed.value)
+const isDrawing = computed(() => tool.isDrawing.value)
+const currentRect = computed(() => tool.currentRect.value)
 
 
 
@@ -72,7 +57,6 @@ const currentRect = computed(() => tool?.currentRect.value ?? null)
       v-for="fill in completed"
       :key="fill.id"
       :annotation="fill"
-      :export-mode="exportMode"
     >
       <template #content="{ annotation, isSelected }">
         <!-- Filled rectangle -->
@@ -83,7 +67,7 @@ const currentRect = computed(() => tool?.currentRect.value ?? null)
           :height="annotation.height"
           :fill="annotation.color"
           :fill-opacity="annotation.opacity"
-          :class="{ 'fill-rect': !exportMode }"
+          class="fill-rect"
         />
 
         <!-- Border for visibility and selection state -->
@@ -96,14 +80,14 @@ const currentRect = computed(() => tool?.currentRect.value ?? null)
           :stroke="isSelected ? config.color : annotation.color"
           :stroke-width="(isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth)"
           :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
-          :class="{ 'fill-border': !exportMode }"
+          class="fill-border"
         />
       </template>
     </EditorAnnotation>
 
     <!-- Preview while drawing - interactive mode only -->
     <rect
-      v-if="!exportMode && isDrawing && currentRect"
+      v-if="isDrawing && currentRect"
       :x="currentRect.x"
       :y="currentRect.y"
       :width="currentRect.width"
@@ -111,8 +95,9 @@ const currentRect = computed(() => tool?.currentRect.value ?? null)
       :fill="config.color"
       :fill-opacity="config.preview.fillOpacity"
       :stroke="config.color"
-      :stroke-width="config.preview.strokeWidth"
-      :stroke-dasharray="`${5},${5}`"
+      stroke-width="2"
+      vector-effect="non-scaling-stroke"
+      stroke-dasharray="5,5"
       class="preview-rect"
       pointer-events="none"
     />
