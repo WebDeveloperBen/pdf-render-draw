@@ -89,7 +89,7 @@ const points = computed(() => tool.points.value)
 const tempEndPoint = computed(() => tool.tempEndPoint.value)
 const previewDistance = computed(() => tool.previewDistance.value)
 
-const { labelRotationTransform, s, screenTransform } = useToolViewport()
+const { labelRotationTransform, s, screenTransform, labelTransform } = useToolViewport()
 </script>
 
 <template>
@@ -108,17 +108,17 @@ const { labelRotationTransform, s, screenTransform } = useToolViewport()
           :class="{ 'selected-line': isSelected }" class="measurement-line" />
 
         <!-- Label background -->
-        <rect :x="annotation.midpoint.x - config.label.background.offsetX / 2"
-          :y="annotation.midpoint.y - config.label.background.offsetY / 2" :width="config.label.background.width"
+        <rect :x="-config.label.background.offsetX / 2"
+          :y="-config.label.background.offsetY / 2" :width="config.label.background.width"
           :height="config.label.background.height" :fill="config.label.background.fill"
           :opacity="config.label.background.opacity" :rx="config.label.background.borderRadius"
-          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.midpoint.x}, ${annotation.midpoint.y})` : undefined" />
+          :transform="labelTransform(annotation.midpoint.x, annotation.midpoint.y)" />
 
         <!-- Label text -->
-        <text :x="annotation.midpoint.x" :y="annotation.midpoint.y" :fill="config.labelColor"
+        <text x="0" y="0" :fill="config.labelColor"
           :font-size="config.labelSize" :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
           text-anchor="middle" dominant-baseline="middle"
-          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.midpoint.x}, ${annotation.midpoint.y})` : undefined"
+          :transform="labelTransform(annotation.midpoint.x, annotation.midpoint.y)"
           class="measurement-label">
           {{ annotation.distance }}mm
         </text>

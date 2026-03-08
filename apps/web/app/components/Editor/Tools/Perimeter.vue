@@ -118,7 +118,7 @@ const tempEndPoint = computed(() => tool.tempEndPoint.value)
 const canSnapToClose = computed(() => tool.canSnapToClose.value)
 const previewSegments = computed(() => tool.previewSegments.value)
 
-const { labelRotationTransform, s, screenTransform } = useToolViewport()
+const { labelRotationTransform, s, screenTransform, labelTransform } = useToolViewport()
 </script>
 <template>
   <g class="perimeter-tool">
@@ -143,25 +143,25 @@ const { labelRotationTransform, s, screenTransform } = useToolViewport()
         <!-- Individual segment labels -->
         <g v-for="(segment, idx) in annotation.segments" :key="idx">
           <rect
-            :x="segment.midpoint.x - config.segmentLabel.background.offsetX / 2"
-            :y="segment.midpoint.y - config.segmentLabel.background.offsetY / 2"
+            :x="-config.segmentLabel.background.offsetX / 2"
+            :y="-config.segmentLabel.background.offsetY / 2"
             :width="config.segmentLabel.background.width"
             :height="config.segmentLabel.background.height"
             :fill="config.segmentLabel.background.fill"
             :opacity="config.segmentLabel.background.opacity"
             :rx="config.segmentLabel.background.borderRadius"
-            :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${segment.midpoint.x}, ${segment.midpoint.y})` : undefined"
+            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
           />
 
           <text
-            :x="segment.midpoint.x"
-            :y="segment.midpoint.y"
+            x="0"
+            y="0"
             :fill="config.labelColor"
             :font-size="config.labelSize"
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
-            :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${segment.midpoint.x}, ${segment.midpoint.y})` : undefined"
+            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
             class="segment-label"
           >
             {{ segment.length }}mm
@@ -170,24 +170,24 @@ const { labelRotationTransform, s, screenTransform } = useToolViewport()
 
         <!-- Total perimeter label at center -->
         <rect
-          :x="annotation.center.x - config.totalLabel.background.offsetX / 2"
-          :y="annotation.center.y - config.totalLabel.background.offsetY / 2"
+          :x="-config.totalLabel.background.offsetX / 2"
+          :y="-config.totalLabel.background.offsetY / 2"
           :width="config.totalLabel.background.width"
           :height="config.totalLabel.background.height"
           :fill="config.totalLabel.background.fill"
           :opacity="config.totalLabel.background.opacity"
           :rx="config.totalLabel.background.borderRadius"
-          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
+          :transform="labelTransform(annotation.center.x, annotation.center.y)"
         />
         <text
-          :x="annotation.center.x"
-          :y="annotation.center.y"
+          x="0"
+          y="0"
           :fill="config.labelColor"
           :font-size="config.labelSize + config.totalLabel.fontSizeBonus"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
-          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
+          :transform="labelTransform(annotation.center.x, annotation.center.y)"
           class="total-label"
         >
           Total: {{ annotation.totalLength }}mm
@@ -257,7 +257,7 @@ const { labelRotationTransform, s, screenTransform } = useToolViewport()
             :fill="config.segmentLabel.background.fill"
             :opacity="config.segmentLabel.background.opacity"
             :rx="config.segmentLabel.background.borderRadius"
-            :transform="screenTransform(segment.midpoint.x, segment.midpoint.y)"
+            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
           />
 
           <text
@@ -268,7 +268,7 @@ const { labelRotationTransform, s, screenTransform } = useToolViewport()
             font-weight="bold"
             text-anchor="middle"
             dominant-baseline="middle"
-            :transform="screenTransform(segment.midpoint.x, segment.midpoint.y)"
+            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
           >
             {{ segment.length }}mm
           </text>

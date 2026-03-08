@@ -25,25 +25,51 @@ export function useToolViewport() {
   }
 
   /**
-   * Scale a value by inverse zoom so it stays constant in screen pixels.
-   * In export context (fresh Pinia, scale=1) this naturally returns the raw value.
-   *
-   * Usage in templates: `:r="s(6)"` instead of `:r="6 * inverseScale"`
+   * Raw inverse zoom factor — stays constant screen size at all zoom levels.
+   * Used for preview elements (cursors, point markers) that should always
+   * appear the same size regardless of zoom direction.
    */
   const inverseScale = computed(() => viewportStore.getInverseScale)
+
+  /**
+   * Scale a value so it stays constant in screen pixels at any zoom.
+   * Usage in templates: `:r="s(6)"` instead of `:r="6 * inverseScale"`
+   */
   function s(value: number): number {
     return value * inverseScale.value
   }
 
   /**
    * Build a transform that positions an element at (cx, cy) and scales it
-   * by inverseScale so it stays a constant screen size. Keeps SVG text crisp
-   * at any zoom level (unlike setting a tiny font-size directly).
+   * so it stays a constant screen size. Used for preview elements.
    */
   function screenTransform(cx: number, cy: number): string {
     const sc = inverseScale.value
     return `translate(${cx}, ${cy}) scale(${sc})`
   }
 
-  return { labelRotation, labelRotationTransform, inverseScale, s, screenTransform }
+  /**
+   * Clamped inverse scale — never goes above 1, so elements render at their
+   * natural PDF-space size when zoomed out but shrink-compensate when zoomed in.
+   * Used for completed annotation labels that should look "placed on the canvas".
+   */
+  const clampedInverseScale = computed(() => Math.min(1, inverseScale.value))
+
+  /**
+   * Like s() but clamped — won't enlarge beyond natural size when zoomed out.
+   */
+  function sc(value: number): number {
+    return value * clampedInverseScale.value
+  }
+
+  /**
+   * Like screenTransform() but clamped — labels stay at natural size when
+   * zoomed out, only compensate when zoomed in to prevent shrinking.
+   */
+  function labelTransform(cx: number, cy: number): string {
+    const scale = clampedInverseScale.value
+    return `translate(${cx}, ${cy}) scale(${scale})`
+  }
+
+  return { labelRotation, labelRotationTransform, inverseScale, s, screenTransform, clampedInverseScale, sc, labelTransform }
 }

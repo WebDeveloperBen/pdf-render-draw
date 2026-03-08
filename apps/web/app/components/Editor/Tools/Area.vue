@@ -108,7 +108,7 @@ const canSnapToClose = computed(() => tool.canSnapToClose.value)
 const previewArea = computed(() => tool.previewArea.value)
 const previewPolygon = computed(() => tool.previewPolygon.value)
 
-const { labelRotationTransform, s, screenTransform } = useToolViewport()
+const { labelRotationTransform, s, screenTransform, labelTransform } = useToolViewport()
 </script>
 <template>
   <g class="area-tool">
@@ -131,25 +131,25 @@ const { labelRotationTransform, s, screenTransform } = useToolViewport()
         />
 
         <rect
-          :x="annotation.center.x - config.label.background.offsetX / 2"
-          :y="annotation.center.y - config.label.background.offsetY / 2"
+          :x="-config.label.background.offsetX / 2"
+          :y="-config.label.background.offsetY / 2"
           :width="config.label.background.width"
           :height="config.label.background.height"
           :fill="config.label.background.fill"
           :opacity="config.label.background.opacity"
           :rx="config.label.background.borderRadius"
-          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
+          :transform="labelTransform(annotation.center.x, annotation.center.y)"
         />
 
         <text
-          :x="annotation.center.x"
-          :y="annotation.center.y"
+          x="0"
+          y="0"
           :fill="config.labelColor"
           :font-size="config.labelSize"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
-          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
+          :transform="labelTransform(annotation.center.x, annotation.center.y)"
           class="area-label"
         >
           {{ annotation.area }}m²

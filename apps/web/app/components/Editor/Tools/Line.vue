@@ -64,7 +64,7 @@ const isDrawing = computed(() => tool.isDrawing.value)
 const points = computed(() => tool.points.value)
 const tempEndPoint = computed(() => tool.tempEndPoint.value)
 
-const { s } = useToolViewport()
+const { s, sc } = useToolViewport()
 
 watch(
   completed,
@@ -98,6 +98,7 @@ watch(
           :points="toSvgPoints(annotation.points)"
           :stroke="config.strokeColor"
           :stroke-width="config.strokeWidth"
+          vector-effect="non-scaling-stroke"
           fill="none"
           class="line-path"
         />
@@ -107,7 +108,7 @@ watch(
           v-if="annotation.points[0]"
           :cx="annotation.points[0].x"
           :cy="annotation.points[0].y"
-          :r="config.markers.radius"
+          :r="sc(config.markers.radius)"
           :fill="config.strokeColor"
           class="start-marker"
         />
@@ -117,7 +118,7 @@ watch(
           v-if="annotation.points[annotation.points.length - 1]"
           :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
           :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
-          :r="config.markers.radius"
+          :r="sc(config.markers.radius)"
           :fill="config.strokeColor"
           class="end-marker"
         />
