@@ -1,0 +1,10 @@
+name = "pdf-annotator"
+main = ".output/server/index.mjs"
+compatibility_date = "2025-07-07"
+compatibility_flags = ["nodejs_compat"]
+assets = { directory = ".output/public/", binding = "ASSETS" }
+
+# R2 bucket binding
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "pdf-annotator-storage"

@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   future: { typescriptBundlerResolution: true, compatibilityVersion: 5 },
   devtools: { enabled: !isTauri },
   telemetry: false,
-  ssr: !isTauri,
+  ssr: false,
   css: ["./app/assets/css/tailwind.css", "~/assets/css/tailwind.css"],
   experimental: {
     viewTransition: true,
@@ -149,9 +149,6 @@ export default defineNuxtConfig({
     port: isTauri ? 3001 : 3000 // avoid cached service workers
   },
 
-  // Avoids error [unhandledRejection] EMFILE: too many open files, watch
-  ignore: ["**/src-tauri/**"],
-
   colorMode: {
     preference: "dark",
     fallback: "dark",
@@ -186,10 +183,20 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    preset: "node-server",
+    preset: process.env.NITRO_PRESET || "cloudflare-module",
     imports: { dirs: ["./shared/db/schema/"] },
     rollupConfig: {
       plugins: [vue()]
+    },
+    minify: false,
+    // For Cloudflare Workers: mock pg (prod uses @neondatabase/serverless)
+    // @react-email/render is an optional dep of resend (we use @vue-email/render)
+    unenv: process.env.NITRO_PRESET === "node-server" ? undefined : {
+      alias: {
+        "pg": "unenv/mock/proxy",
+        "@react-email/render": "unenv/mock/proxy",
+        "@aws-sdk/client-s3": "unenv/mock/proxy"
+      }
     },
     openAPI: {
       route: "/_docs/openapi.json",

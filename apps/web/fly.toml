@@ -5,6 +5,7 @@ app = "pdf-annotator"
 primary_region = "syd"
 
 [build]
+  dockerfile = "Dockerfile"
 
 [env]
   NODE_ENV = "production"

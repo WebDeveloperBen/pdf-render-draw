@@ -1,18 +1,22 @@
 # Stage 1: Build
+# Docker context should be the monorepo root: docker build -f apps/web/Dockerfile .
 FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Install dependencies
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Copy workspace config + lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json apps/web/
 
-# Copy source and build
-COPY . .
+# Install dependencies (workspace-aware)
+RUN pnpm install --frozen-lockfile --filter @pdf-annotator/web
+
+# Copy web app source
+COPY apps/web/ apps/web/
 ENV NODE_ENV=production
-RUN pnpm build
+RUN pnpm --filter @pdf-annotator/web build
 
 # Stage 2: Production
 FROM node:22-alpine AS runner
@@ -23,7 +27,7 @@ ENV NITRO_HOST=0.0.0.0
 ENV NITRO_PORT=3000
 
 # Copy built output
-COPY --from=builder /app/.output .output
+COPY --from=builder /app/apps/web/.output .output
 
 # Run as non-root
 RUN addgroup --system --gid 1001 nodejs && \

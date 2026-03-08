@@ -15,7 +15,7 @@ type DrizzleDB = ReturnType<typeof drizzleNeon<typeof schema>> | ReturnType<type
 let _db: DrizzleDB | null = null
 
 function createDb(): DrizzleDB {
-  const connectionString = process.env.DATABASE_URL
+  const connectionString = useRuntimeConfig().databaseUrl || process.env.DATABASE_URL
 
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is required")

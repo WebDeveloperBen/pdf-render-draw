@@ -6,6 +6,9 @@
 .cache
 dist
 
+# Turborepo
+.turbo
+
 # Node dependencies
 node_modules
 
@@ -24,4 +27,4 @@ logs
 !.env.example
 
 coverage/**
-app/tests/e2e/screenshots/**
+apps/web/app/tests/e2e/screenshots/**

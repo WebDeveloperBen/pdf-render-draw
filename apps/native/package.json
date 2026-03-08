@@ -1,0 +1,15 @@
+{
+  "name": "@pdf-annotator/native",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "build:ios": "tauri ios build",
+    "build:android": "tauri android build",
+    "dev:ios": "tauri ios dev",
+    "dev:android": "tauri android dev"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.9.4"
+  }
+}
