@@ -35,5 +35,15 @@ export function useToolViewport() {
     return value * inverseScale.value
   }
 
-  return { labelRotation, labelRotationTransform, inverseScale, s }
+  /**
+   * Build a transform that positions an element at (cx, cy) and scales it
+   * by inverseScale so it stays a constant screen size. Keeps SVG text crisp
+   * at any zoom level (unlike setting a tiny font-size directly).
+   */
+  function screenTransform(cx: number, cy: number): string {
+    const sc = inverseScale.value
+    return `translate(${cx}, ${cy}) scale(${sc})`
+  }
+
+  return { labelRotation, labelRotationTransform, inverseScale, s, screenTransform }
 }

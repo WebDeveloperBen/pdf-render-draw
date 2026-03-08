@@ -89,7 +89,7 @@ const points = computed(() => tool.points.value)
 const tempEndPoint = computed(() => tool.tempEndPoint.value)
 const previewDistance = computed(() => tool.previewDistance.value)
 
-const { labelRotationTransform, s } = useToolViewport()
+const { labelRotationTransform, s, screenTransform } = useToolViewport()
 </script>
 
 <template>
@@ -145,10 +145,13 @@ const { labelRotationTransform, s } = useToolViewport()
           :opacity="config.preview.line.opacity" />
 
         <!-- Preview distance -->
-        <text v-if="previewDistance" :x="(points[0].x + tempEndPoint.x) / 2"
-          :y="(points[0].y + tempEndPoint.y) / 2 - s(config.preview.distance.offsetY)"
-          :fill="config.preview.distance.fill" :font-size="s(config.preview.distance.fontSize)" text-anchor="middle"
-          :transform="labelRotationTransform((points[0].x + tempEndPoint.x) / 2, (points[0].y + tempEndPoint.y) / 2)">
+        <text v-if="previewDistance"
+          x="0"
+          :y="-config.preview.distance.offsetY"
+          :fill="config.preview.distance.fill"
+          :font-size="config.preview.distance.fontSize"
+          text-anchor="middle"
+          :transform="screenTransform((points[0].x + tempEndPoint.x) / 2, (points[0].y + tempEndPoint.y) / 2)">
           {{ previewDistance }}mm
         </text>
       </g>

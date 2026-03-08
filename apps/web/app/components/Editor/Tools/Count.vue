@@ -57,7 +57,7 @@ const completed = computed(() => props.annotations ?? tool.completed.value)
 const nextCountNumber = computed(() => tool.nextCountNumber.value)
 const cursorPosition = computed(() => tool.cursorPosition.value)
 
-const { labelRotationTransform, s } = useToolViewport()
+const { labelRotationTransform, s, screenTransform } = useToolViewport()
 
 const showPreview = computed(() => {
   return annotationStore.activeTool === "count" && cursorPosition.value
@@ -91,9 +91,9 @@ const showPreview = computed(() => {
       <circle :cx="cursorPosition.x" :cy="cursorPosition.y" :r="s(config.marker.radius)" :fill="config.marker.fill"
         :stroke="config.marker.stroke" :stroke-width="s(config.marker.strokeWidth)" :opacity="config.preview.opacity"
         class="preview-marker" />
-      <text :x="cursorPosition.x" :y="cursorPosition.y" text-anchor="middle" dominant-baseline="middle"
-        :font-size="s(config.text.fontSize)" :font-weight="config.text.fontWeight" :fill="config.text.fill"
-        :opacity="config.preview.opacity" :transform="labelRotationTransform(cursorPosition.x, cursorPosition.y)"
+      <text x="0" y="0" text-anchor="middle" dominant-baseline="middle"
+        :font-size="config.text.fontSize" :font-weight="config.text.fontWeight" :fill="config.text.fill"
+        :opacity="config.preview.opacity" :transform="screenTransform(cursorPosition.x, cursorPosition.y)"
         class="preview-number">
         {{ nextCountNumber }}
       </text>

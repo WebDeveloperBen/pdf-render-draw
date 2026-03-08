@@ -108,7 +108,7 @@ const canSnapToClose = computed(() => tool.canSnapToClose.value)
 const previewArea = computed(() => tool.previewArea.value)
 const previewPolygon = computed(() => tool.previewPolygon.value)
 
-const { labelRotationTransform, s } = useToolViewport()
+const { labelRotationTransform, s, screenTransform } = useToolViewport()
 </script>
 <template>
   <g class="area-tool">
@@ -256,12 +256,12 @@ const { labelRotationTransform, s } = useToolViewport()
             class="snap-indicator"
           />
           <text
-            :x="points[0].x + s(config.snap.text.offsetX)"
-            :y="points[0].y - s(config.snap.text.offsetY)"
+            :x="config.snap.text.offsetX"
+            :y="-config.snap.text.offsetY"
             :fill="config.snap.text.fill"
-            :font-size="s(config.snap.text.fontSize)"
+            :font-size="config.snap.text.fontSize"
             :font-weight="config.snap.text.fontWeight"
-            :transform="labelRotationTransform(points[0].x, points[0].y)"
+            :transform="screenTransform(points[0].x, points[0].y)"
           >
             Click to close
           </text>
@@ -269,12 +269,13 @@ const { labelRotationTransform, s } = useToolViewport()
 
         <text
           v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
-          :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
-          :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2"
+          x="0"
+          y="0"
           :fill="config.preview.distance.fill"
-          :font-size="s(config.preview.distance.fontSize)"
+          :font-size="config.preview.distance.fontSize"
           text-anchor="middle"
-          :transform="labelRotationTransform(((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2, ((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2)"
+          dominant-baseline="middle"
+          :transform="screenTransform(((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2, ((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2)"
         >
           {{ previewArea }}m²
         </text>
