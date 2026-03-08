@@ -3,172 +3,87 @@ import { toast } from "vue-sonner"
 import type { Annotation } from "#shared/types/annotations.types"
 
 interface ExportOptions {
-  /** URL to the original PDF file */
   pdfUrl: string
-  /** All annotations to embed in the PDF */
   annotations: Annotation[]
-  /** Optional filename for the download (defaults to 'annotated.pdf') */
   filename?: string
 }
 
 /**
  * Composable for exporting PDFs with annotations embedded as vectors.
  *
- * Uses Vue SSR to render annotations with the same tool components used in the editor,
- * then converts them to PDF vector commands using svg2pdf.js.
+ * Pipeline: Vue SSR → SVG string → svg2pdf → jsPDF → embed into original PDF
  */
 export function useExportPdf() {
   const isExporting = ref(false)
 
-  /**
-   * Render annotations to SVG string using Vue SSR.
-   * This uses the exact same tool components as the editor.
-   */
   async function renderAnnotationsToSvg(
     annotations: Annotation[],
     width: number,
     height: number
   ): Promise<SVGSVGElement> {
-    console.log(`[Export] Rendering ${annotations.length} annotations to SVG (${width}x${height})`)
-
-    // Dynamic imports for browser-only modules
     const { createSSRApp } = await import("vue")
     const { renderToString } = await import("vue/server-renderer")
+    const { createPinia } = await import("pinia")
     const AnnotationRenderer = (await import("~/components/Editor/AnnotationRenderer.vue")).default
 
-    // Dynamically import tool components for SSR
-    const [
-      ToolsMeasure,
-      ToolsCount,
-      ToolsArea,
-      ToolsPerimeter,
-      ToolsLine,
-      ToolsFill,
-      ToolsText
-    ] = await Promise.all([
-      import("~/components/Editor/Tools/Measure.vue").then((m) => m.default),
-      import("~/components/Editor/Tools/Count.vue").then((m) => m.default),
-      import("~/components/Editor/Tools/Area.vue").then((m) => m.default),
-      import("~/components/Editor/Tools/Perimeter.vue").then((m) => m.default),
-      import("~/components/Editor/Tools/Line.vue").then((m) => m.default),
-      import("~/components/Editor/Tools/Fill.vue").then((m) => m.default),
-      import("~/components/Editor/Tools/Text.vue").then((m) => m.default)
-    ])
+    const app = createSSRApp(AnnotationRenderer, { annotations, width, height })
+    app.use(createPinia())
 
-    // Create a mini Vue app with the AnnotationRenderer component
-    const app = createSSRApp(AnnotationRenderer, {
-      annotations,
-      width,
-      height
-    })
+    const raw = await renderToString(app)
+    const svg = parseSvg(cleanSvgString(raw))
 
-    // Register tool components globally for SSR
-    app.component("ToolsMeasure", ToolsMeasure)
-    app.component("ToolsCount", ToolsCount)
-    app.component("ToolsArea", ToolsArea)
-    app.component("ToolsPerimeter", ToolsPerimeter)
-    app.component("ToolsLine", ToolsLine)
-    app.component("ToolsFill", ToolsFill)
-    app.component("ToolsText", ToolsText)
-
-    // Render to string (works in browser!)
-    let svgString = await renderToString(app)
-
-    // Strip Vue scoped style attributes (data-v-xxxxxx) as they break XML parsing
-    // These are boolean attributes without values, which is invalid in XML/SVG
-    svgString = svgString.replace(/\s+data-v-[a-f0-9]+/g, "")
-
-    // Remove empty transform attributes (transform="" or just transform) which break XML parsing
-    svgString = svgString.replace(/\s+transform=""/g, "")
-    svgString = svgString.replace(/\s+transform(?=[\s>])/g, "")
-
-    // Remove empty class attributes (class="") for cleaner output
-    svgString = svgString.replace(/\s+class=""/g, "")
-
-    // Also remove Vue SSR comments that aren't needed
-    svgString = svgString.replace(/<!--\[-->/g, "").replace(/<!--\]-->/g, "")
-
-    console.log(`[Export] Generated SVG (${svgString.length} chars)`)
-
-    // Parse the SVG string to an element
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(svgString, "image/svg+xml")
-
-    // Check for parsing errors
-    const parserError = doc.querySelector("parsererror")
-    if (parserError) {
-      console.error("[Export] SVG parsing error:", parserError.textContent)
-      throw new Error(`SVG parsing failed: ${parserError.textContent}`)
-    }
-
-    return doc.documentElement as unknown as SVGSVGElement
+    console.log(`[Export] ${annotations.length} annotations → SVG (${raw.length} chars)`)
+    return svg
   }
 
-  /**
-   * Export PDF with all annotations embedded as vectors.
-   * Supports multi-page PDFs with annotations on different pages.
-   */
   async function exportWithAnnotations(options: ExportOptions): Promise<void> {
     if (isExporting.value) return
     isExporting.value = true
 
     try {
-      // Dynamic imports for browser-only PDF libraries
       const { jsPDF } = await import("jspdf")
-      const svg2pdfModule = await import("svg2pdf.js")
-      const svg2pdf = svg2pdfModule.default
+      const { svg2pdf } = await import("svg2pdf.js")
 
-      // 1. Fetch original PDF
       const pdfBytes = await fetch(options.pdfUrl).then((r) => r.arrayBuffer())
       const originalPdf = await PDFDocument.load(pdfBytes)
       const pages = originalPdf.getPages()
 
-      // 2. Group annotations by page
-      const annotationsByPage = new Map<number, Annotation[]>()
-      for (const ann of options.annotations) {
-        const pageAnns = annotationsByPage.get(ann.pageNum) || []
-        pageAnns.push(ann)
-        annotationsByPage.set(ann.pageNum, pageAnns)
-      }
+      const annotationsByPage = groupBy(options.annotations, (a) => a.pageNum)
 
-      // 3. For each page with annotations
       for (const [pageNum, pageAnnotations] of annotationsByPage) {
-        const pageIndex = pageNum - 1 // Convert to 0-indexed
-        if (pageIndex < 0 || pageIndex >= pages.length) continue
-
-        const page = pages[pageIndex]
+        const page = pages[pageNum - 1]
         if (!page) continue
 
-        const { width, height } = page.getSize()
+        // pdf-lib getSize() returns raw media box (ignores /Rotate).
+        // Annotations live in PDF.js viewport space which applies /Rotate.
+        const { width: mediaW, height: mediaH } = page.getSize()
+        const rot = page.getRotation().angle
+        const swapped = rot === 90 || rot === 270
+        const viewW = swapped ? mediaH : mediaW
+        const viewH = swapped ? mediaW : mediaH
 
-        // Render annotations to SVG using Vue SSR
-        const svgElement = await renderAnnotationsToSvg(pageAnnotations, width, height)
+        const svgElement = await renderAnnotationsToSvg(pageAnnotations, viewW, viewH)
 
-        // Create jsPDF for this page's annotations
+        // If page has /Rotate, counter-rotate annotations back to media box space
+        if (rot !== 0) {
+          applyRotationTransform(svgElement, rot, viewW, viewH, mediaW, mediaH)
+        }
+
         const annotationPdf = new jsPDF({
-          orientation: width > height ? "landscape" : "portrait",
+          orientation: mediaW > mediaH ? "landscape" : "portrait",
           unit: "pt",
-          format: [width, height]
+          format: [mediaW, mediaH]
         })
 
-        // Convert SVG to PDF vector commands
-        await svg2pdf(svgElement, annotationPdf, { x: 0, y: 0, width, height })
+        await svg2pdf(svgElement, annotationPdf, { x: 0, y: 0, width: mediaW, height: mediaH })
 
-        // Get the annotation PDF as bytes and embed into original
-        const annotationBytes = annotationPdf.output("arraybuffer")
-        const annotationPdfDoc = await PDFDocument.load(annotationBytes)
-        const embeddedPages = await originalPdf.embedPages(annotationPdfDoc.getPages())
-        const embeddedPage = embeddedPages[0]
-        if (!embeddedPage) continue
-
-        // Overlay on original page
-        page.drawPage(embeddedPage, { x: 0, y: 0, width, height })
+        const annotationPdfDoc = await PDFDocument.load(annotationPdf.output("arraybuffer"))
+        const [embeddedPage] = await originalPdf.embedPages(annotationPdfDoc.getPages())
+        if (embeddedPage) page.drawPage(embeddedPage, { x: 0, y: 0 })
       }
 
-      // 4. Save and download
       const modifiedPdfBytes = await originalPdf.save()
       downloadBlob(modifiedPdfBytes, options.filename || "annotated.pdf")
-
       toast.success("PDF exported successfully")
     } catch (error) {
       console.error("Export failed:", error)
@@ -179,47 +94,75 @@ export function useExportPdf() {
     }
   }
 
-  /**
-   * Export PDF from the editor (uses annotation store for annotations)
-   * @param pdfUrl - URL to the original PDF file
-   * @param filename - Optional filename for the download
-   */
   async function exportFromEditor(pdfUrl: string, filename?: string): Promise<void> {
     const annotationStore = useAnnotationStore()
-
     if (!pdfUrl) {
       toast.error("No PDF loaded")
       return
     }
-
     console.log(`[Export] Starting export: ${annotationStore.annotations.length} annotations`)
-
-    await exportWithAnnotations({
-      pdfUrl,
-      annotations: annotationStore.annotations,
-      filename
-    })
+    await exportWithAnnotations({ pdfUrl, annotations: annotationStore.annotations, filename })
   }
 
-  return {
-    exportWithAnnotations,
-    exportFromEditor,
-    isExporting
-  }
+  return { exportWithAnnotations, exportFromEditor, isExporting }
+}
+
+// ── Helpers ──
+
+/** Strip Vue SSR artifacts that break XML parsing */
+function cleanSvgString(s: string): string {
+  return s
+    .replace(/\s+data-v-[a-f0-9]+/g, "")  // scoped style attrs
+    .replace(/\s+transform=""/g, "")        // empty transforms
+    .replace(/\s+transform(?=[\s>])/g, "")  // bare transform attrs
+    .replace(/\s+class=""/g, "")            // empty classes
+    .replace(/<!--\[-->/g, "")              // Vue SSR comments
+    .replace(/<!--\]-->/g, "")
+}
+
+/** Parse an SVG string into a DOM element */
+function parseSvg(svgString: string): SVGSVGElement {
+  const doc = new DOMParser().parseFromString(svgString, "image/svg+xml")
+  const error = doc.querySelector("parsererror")
+  if (error) throw new Error(`SVG parsing failed: ${error.textContent}`)
+  return doc.documentElement as unknown as SVGSVGElement
 }
 
 /**
- * Helper to download a Uint8Array as a file
+ * Wrap SVG content in a <g> that counter-rotates from viewport space
+ * back to media box space, matching the PDF's /Rotate property.
  */
-function downloadBlob(bytes: Uint8Array, filename: string): void {
-  // Create blob from Uint8Array (cast to satisfy TS - pdf-lib returns Uint8Array<ArrayBufferLike>)
-  const blob = new Blob([bytes as BlobPart], { type: "application/pdf" })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+function applyRotationTransform(
+  svg: SVGSVGElement,
+  rotation: number,
+  viewW: number, viewH: number,
+  mediaW: number, mediaH: number
+): void {
+  const g = svg.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "g")
+  while (svg.firstChild) g.appendChild(svg.firstChild)
+
+  const transforms: Record<number, string> = {
+    90: `rotate(-90) translate(${-viewW}, 0)`,
+    180: `rotate(-180) translate(${-viewW}, ${-viewH})`,
+    270: `rotate(-270) translate(0, ${-viewH})`
+  }
+
+  g.setAttribute("transform", transforms[rotation] || "")
+  svg.appendChild(g)
+  svg.setAttribute("viewBox", `0 0 ${mediaW} ${mediaH}`)
+  svg.setAttribute("width", String(mediaW))
+  svg.setAttribute("height", String(mediaH))
 }
+
+/** Group items by key */
+function groupBy<T>(items: T[], keyFn: (item: T) => number): Map<number, T[]> {
+  const map = new Map<number, T[]>()
+  for (const item of items) {
+    const key = keyFn(item)
+    const list = map.get(key) || []
+    list.push(item)
+    map.set(key, list)
+  }
+  return map
+}
+

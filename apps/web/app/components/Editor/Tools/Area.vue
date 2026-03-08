@@ -124,9 +124,7 @@ const canSnapToClose = computed(() => tool?.canSnapToClose.value ?? false)
 const previewArea = computed(() => tool?.previewArea.value ?? null)
 const previewPolygon = computed(() => tool?.previewPolygon.value ?? null)
 
-// Get viewport-relative label rotation from renderer store
-const viewportStore = props.exportMode ? null : useViewportStore()
-const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
+const { labelRotationTransform } = useToolViewport()
 </script>
 <template>
   <g class="area-tool">
@@ -144,33 +142,31 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
           :fill="config.fillColor"
           :fill-opacity="config.opacity"
           :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth * inverseScale"
+          :stroke-width="config.strokeWidth"
           :class="{ 'selected-polygon': isSelected, 'area-polygon': !exportMode }"
         />
 
-        <!-- Label background with rotation -->
         <rect
-          :x="annotation.center.x - config.label.background.offsetX * inverseScale / 2"
-          :y="annotation.center.y - config.label.background.offsetY * inverseScale / 2"
-          :width="config.label.background.width * inverseScale"
-          :height="config.label.background.height * inverseScale"
+          :x="annotation.center.x - config.label.background.offsetX / 2"
+          :y="annotation.center.y - config.label.background.offsetY / 2"
+          :width="config.label.background.width"
+          :height="config.label.background.height"
           :fill="config.label.background.fill"
           :opacity="config.label.background.opacity"
-          :rx="config.label.background.borderRadius * inverseScale"
-          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
+          :rx="config.label.background.borderRadius"
+          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
         />
 
-        <!-- Label with rotation -->
         <text
           :x="annotation.center.x"
           :y="annotation.center.y"
           :fill="config.labelColor"
-          :font-size="config.labelSize * inverseScale"
+          :font-size="config.labelSize"
           font-weight="bold"
           text-anchor="middle"
           dominant-baseline="middle"
+          :transform="annotation.labelRotation ? `rotate(${annotation.labelRotation}, ${annotation.center.x}, ${annotation.center.y})` : undefined"
           :class="{ 'area-label': !exportMode }"
-          :transform="`rotate(${annotation.labelRotation} ${annotation.center.x} ${annotation.center.y})`"
         >
           {{ annotation.area }}m²
         </text>
@@ -184,10 +180,10 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
         v-if="!isDrawing"
         :cx="tempEndPoint.x"
         :cy="tempEndPoint.y"
-        :r="config.preview.cursorIndicator.radius * inverseScale"
+        :r="config.preview.cursorIndicator.radius"
         fill="none"
         :stroke="config.strokeColor"
-        :stroke-width="config.preview.cursorIndicator.strokeWidth * inverseScale"
+        :stroke-width="config.preview.cursorIndicator.strokeWidth"
         :opacity="config.preview.cursorIndicator.opacity"
       />
 
@@ -198,10 +194,10 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
           :key="`point-${index}`"
           :cx="point.x"
           :cy="point.y"
-          :r="(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius) * inverseScale"
+          :r="(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius)"
           :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
           :stroke="config.preview.pointMarkers.stroke"
-          :stroke-width="config.preview.pointMarkers.strokeWidth * inverseScale"
+          :stroke-width="config.preview.pointMarkers.strokeWidth"
           class="point-marker"
         />
 
@@ -216,8 +212,8 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
               :x2="points[index + 1]?.x ?? 0"
               :y2="points[index + 1]?.y ?? 0"
               :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth * inverseScale"
-              :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
+              :stroke-width="config.strokeWidth"
+              :stroke-dasharray="`${5},${5}`"
               :opacity="config.preview.lines.opacity"
             />
           </template>
@@ -231,8 +227,8 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
               :x2="tempEndPoint.x"
               :y2="tempEndPoint.y"
               :stroke="config.strokeColor"
-              :stroke-width="config.strokeWidth * inverseScale"
-              :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
+              :stroke-width="config.strokeWidth"
+              :stroke-dasharray="`${5},${5}`"
               :opacity="config.preview.lines.opacity"
             />
           </template>
@@ -245,8 +241,8 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
             :x2="points[0].x"
             :y2="points[0].y"
             :stroke="config.strokeColor"
-            :stroke-width="config.strokeWidth * inverseScale"
-            :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
+            :stroke-width="config.strokeWidth"
+            :stroke-dasharray="`${5},${5}`"
             :opacity="config.preview.lines.closingLineOpacity"
           />
         </g>
@@ -266,33 +262,32 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
           <circle
             :cx="points[0].x"
             :cy="points[0].y"
-            :r="config.snap.radius * inverseScale"
+            :r="config.snap.radius"
             fill="none"
             :stroke="config.snap.stroke"
-            :stroke-width="config.snap.strokeWidth * inverseScale"
+            :stroke-width="config.snap.strokeWidth"
             class="snap-indicator"
           />
           <text
-            :x="points[0].x + config.snap.text.offsetX * inverseScale"
-            :y="points[0].y - config.snap.text.offsetY * inverseScale"
+            :x="points[0].x + config.snap.text.offsetX"
+            :y="points[0].y - config.snap.text.offsetY"
             :fill="config.snap.text.fill"
-            :font-size="config.snap.text.fontSize * inverseScale"
+            :font-size="config.snap.text.fontSize"
             :font-weight="config.snap.text.fontWeight"
-            :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${points[0].x + config.snap.text.offsetX * inverseScale} ${points[0].y - config.snap.text.offsetY * inverseScale})`"
+            :transform="labelRotationTransform(points[0].x, points[0].y)"
           >
             Click to close
           </text>
         </g>
 
-        <!-- Preview area (viewport-relative rotation) -->
         <text
           v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
           :x="((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2"
           :y="((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2"
           :fill="config.preview.distance.fill"
-          :font-size="config.preview.distance.fontSize * inverseScale"
+          :font-size="config.preview.distance.fontSize"
           text-anchor="middle"
-          :transform="`rotate(${viewportStore?.getViewportLabelRotation} ${((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2} ${((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2})`"
+          :transform="labelRotationTransform(((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2, ((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2)"
         >
           {{ previewArea }}m²
         </text>

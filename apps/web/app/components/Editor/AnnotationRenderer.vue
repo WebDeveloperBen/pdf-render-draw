@@ -7,14 +7,7 @@
  * SVG strings via Vue SSR without needing the DOM.
  */
 
-// Import tool components directly
-import ToolsMeasure from "~/components/Editor/Tools/Measure.vue"
-import ToolsCount from "~/components/Editor/Tools/Count.vue"
-import ToolsArea from "~/components/Editor/Tools/Area.vue"
-import ToolsPerimeter from "~/components/Editor/Tools/Perimeter.vue"
-import ToolsLine from "~/components/Editor/Tools/Line.vue"
-import ToolsFill from "~/components/Editor/Tools/Fill.vue"
-import ToolsText from "~/components/Editor/Tools/Text.vue"
+import { toolComponents } from "~/components/Editor/Tools"
 import type { Annotation, ToolType } from "#shared/types/annotations.types"
 
 const props = defineProps<{
@@ -22,17 +15,6 @@ const props = defineProps<{
   width: number
   height: number
 }>()
-
-// Map of tool types to their components
-const toolComponents = {
-  measure: ToolsMeasure,
-  count: ToolsCount,
-  area: ToolsArea,
-  perimeter: ToolsPerimeter,
-  line: ToolsLine,
-  fill: ToolsFill,
-  text: ToolsText
-} as const
 
 // Group annotations by type for efficient rendering
 const annotationsByType = computed(() => {

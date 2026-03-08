@@ -62,8 +62,8 @@ const completed = computed(() => {
 const isDrawing = computed(() => tool?.isDrawing.value ?? false)
 const currentRect = computed(() => tool?.currentRect.value ?? null)
 
-const viewportStore = props.exportMode ? null : useViewportStore()
-const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
+
+
 </script>
 <template>
   <g class="fill-tool">
@@ -94,7 +94,7 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
           :height="annotation.height"
           fill="transparent"
           :stroke="isSelected ? config.color : annotation.color"
-          :stroke-width="(isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth) * inverseScale"
+          :stroke-width="(isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth)"
           :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
           :class="{ 'fill-border': !exportMode }"
         />
@@ -111,8 +111,8 @@ const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
       :fill="config.color"
       :fill-opacity="config.preview.fillOpacity"
       :stroke="config.color"
-      :stroke-width="config.preview.strokeWidth * inverseScale"
-      :stroke-dasharray="`${5 * inverseScale},${5 * inverseScale}`"
+      :stroke-width="config.preview.strokeWidth"
+      :stroke-dasharray="`${5},${5}`"
       class="preview-rect"
       pointer-events="none"
     />

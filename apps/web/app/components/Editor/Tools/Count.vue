@@ -72,10 +72,7 @@ const annotationStore = props.exportMode ? null : useAnnotationStore()
 const nextCountNumber = computed(() => tool?.nextCountNumber.value ?? 0)
 const cursorPosition = computed(() => tool?.cursorPosition.value ?? null)
 
-const viewportStore = props.exportMode ? null : useViewportStore()
-const inverseScale = computed(() => viewportStore?.getInverseScale ?? 1)
-// Counter-rotation for preview to appear upright in current viewport
-const previewCounterRotation = computed(() => viewportStore?.getViewportLabelRotation ?? 0)
+const { labelRotationTransform } = useToolViewport()
 
 // Only show preview when count tool is active (interactive mode only)
 const showPreview = computed(() => {
@@ -99,7 +96,7 @@ const showPreview = computed(() => {
           v-if="!exportMode"
           :cx="annotation.x + annotation.width / 2"
           :cy="annotation.y + annotation.height / 2"
-          :r="config.hitArea.radius * inverseScale"
+          :r="config.hitArea.radius"
           fill="transparent"
           class="count-hitbox"
         />
@@ -108,20 +105,19 @@ const showPreview = computed(() => {
         <circle
           :cx="annotation.x + annotation.width / 2"
           :cy="annotation.y + annotation.height / 2"
-          :r="config.marker.radius * inverseScale"
+          :r="config.marker.radius"
           :fill="config.marker.fill"
           :stroke="config.marker.stroke"
-          :stroke-width="config.marker.strokeWidth * inverseScale"
+          :stroke-width="config.marker.strokeWidth"
           :class="{ 'count-marker': !exportMode }"
         />
 
-        <!-- Count number text -->
         <text
           :x="annotation.x + annotation.width / 2"
           :y="annotation.y + annotation.height / 2"
           text-anchor="middle"
           dominant-baseline="middle"
-          :font-size="config.text.fontSize * inverseScale"
+          :font-size="config.text.fontSize"
           :font-weight="config.text.fontWeight"
           :fill="config.text.fill"
           :class="{ 'count-number': !exportMode }"
@@ -136,10 +132,10 @@ const showPreview = computed(() => {
       <circle
         :cx="cursorPosition.x"
         :cy="cursorPosition.y"
-        :r="config.marker.radius * inverseScale"
+        :r="config.marker.radius"
         :fill="config.marker.fill"
         :stroke="config.marker.stroke"
-        :stroke-width="config.marker.strokeWidth * inverseScale"
+        :stroke-width="config.marker.strokeWidth"
         :opacity="config.preview.opacity"
         class="preview-marker"
       />
@@ -148,11 +144,11 @@ const showPreview = computed(() => {
         :y="cursorPosition.y"
         text-anchor="middle"
         dominant-baseline="middle"
-        :font-size="config.text.fontSize * inverseScale"
+        :font-size="config.text.fontSize"
         :font-weight="config.text.fontWeight"
         :fill="config.text.fill"
         :opacity="config.preview.opacity"
-        :transform="`rotate(${previewCounterRotation} ${cursorPosition.x} ${cursorPosition.y})`"
+        :transform="labelRotationTransform(cursorPosition.x, cursorPosition.y)"
         class="preview-number"
       >
         {{ nextCountNumber }}

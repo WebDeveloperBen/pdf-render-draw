@@ -3,25 +3,7 @@ import { SELECTION } from "@/constants/ui"
 import { useSnapProvider } from "@/composables/editor/useSnapProvider"
 import { useRoomDetection } from "@/composables/editor/useRoomDetection"
 
-// Import tool components directly
-import ToolsMeasure from "~/components/Editor/Tools/Measure.vue"
-import ToolsCount from "~/components/Editor/Tools/Count.vue"
-import ToolsArea from "~/components/Editor/Tools/Area.vue"
-import ToolsPerimeter from "~/components/Editor/Tools/Perimeter.vue"
-import ToolsLine from "~/components/Editor/Tools/Line.vue"
-import ToolsFill from "~/components/Editor/Tools/Fill.vue"
-import ToolsText from "~/components/Editor/Tools/Text.vue"
-
-// Map of tool types to their components for direct rendering
-const toolComponents = {
-  measure: ToolsMeasure,
-  count: ToolsCount,
-  area: ToolsArea,
-  perimeter: ToolsPerimeter,
-  line: ToolsLine,
-  fill: ToolsFill,
-  text: ToolsText
-} as const
+import { toolComponents } from "~/components/Editor/Tools"
 
 const viewportStore = useViewportStore()
 const annotationStore = useAnnotationStore()

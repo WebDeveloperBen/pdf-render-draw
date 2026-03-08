@@ -25,12 +25,9 @@
     "db:seed-owner": "tsx scripts/seed-owner.ts",
     "db:setup": "drizzle-kit push && tsx scripts/seed-dev.ts",
     "auth:generate": "dlx @better-auth/cli@latest generate",
-    "fly:deploy": "fly deploy",
-    "fly:logs": "fly logs",
-    "fly:ssh": "fly ssh console",
-    "fly:status": "fly status",
     "cf:types": "wrangler types",
-    "cf:deploy": "wrangler deploy .output/server/index.mjs --assets .output/public",
+    "cf:preview": "nuxt build && wrangler dev .output/server/index.mjs --assets .output/public",
+    "cf:deploy": "nuxt build && wrangler deploy .output/server/index.mjs --assets .output/public",
     "clean": "rm -rf .nuxt .output dist"
   },
   "dependencies": {
@@ -66,6 +63,7 @@
     "jspdf": "^3.0.4",
     "jszip": "^3.10.1",
     "motion-v": "^1.7.4",
+    "nitro-cloudflare-dev": "^0.2.2",
     "nuxt": "^4.2.1",
     "orval": "^7.17.0",
     "pdf-lib": "^1.17.1",

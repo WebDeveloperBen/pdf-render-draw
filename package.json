@@ -27,7 +27,11 @@
     "native:ios": "pnpm --filter @pdf-annotator/native dev:ios",
     "native:android": "pnpm --filter @pdf-annotator/native dev:android",
 
-    "generate-api": "pnpm --filter @pdf-annotator/web generate-api"
+    "generate-api": "pnpm --filter @pdf-annotator/web generate-api",
+
+    "cf:types": "pnpm --filter @pdf-annotator/web cf:types",
+    "cf:preview": "pnpm --filter @pdf-annotator/web cf:preview",
+    "cf:deploy": "pnpm --filter @pdf-annotator/web cf:deploy"
   },
   "devDependencies": {
     "turbo": "^2.8.13"

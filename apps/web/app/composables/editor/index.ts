@@ -20,6 +20,6 @@ export * from "./useTransformBase"
 export * from "./useZoom"
 export * from "./useSnapProvider"
 export * from "./useRoomDetection"
-
+export * from "./useToolViewport"
 // Tools
 export * from "./tools"

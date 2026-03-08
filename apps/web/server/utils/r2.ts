@@ -1,9 +1,8 @@
 /**
  * Cloudflare R2 Storage Utilities
  *
- * Two modes:
- * - Cloudflare Workers: Uses native R2 bindings (zero SDK, fast)
- * - Node.js (local dev / MinIO): Uses AWS S3 SDK via S3-compatible API
+ * Files are stored in R2 and served via /storage/[...path] worker route.
+ * URLs stored in DB use the origin + /storage/ prefix (e.g. https://example.com/storage/pdfs/abc.pdf)
  */
 
 // ── Types ──
@@ -14,138 +13,87 @@ interface R2StorageClient {
   head(key: string): Promise<object | null>
 }
 
-// ── Cloudflare R2 Binding Adapter ──
+// ── Cloudflare R2 Binding ──
 
-function getCloudflareR2Bucket(): R2StorageClient | null {
+function getR2Bucket(): R2StorageClient {
+  // Try globalThis.__env__ (set by nitro-cloudflare-dev in dev, Workers runtime in prod)
   try {
     const env = (globalThis as Record<string, unknown>).__env__ as Cloudflare.Env | undefined
     if (env?.R2_BUCKET && typeof env.R2_BUCKET.put === "function") return env.R2_BUCKET as unknown as R2StorageClient
   } catch {}
 
+  // Try event.context.cloudflare.env (nitro-cloudflare-dev plugin)
   try {
     const event = useEvent()
     const env = event.context.cloudflare?.env as Cloudflare.Env | undefined
     if (env?.R2_BUCKET) return env.R2_BUCKET as unknown as R2StorageClient
   } catch {}
 
-  return null
-}
-
-// ── S3 SDK Adapter (for local dev / MinIO) ──
-
-let _s3Client: R2StorageClient | null = null
-
-async function getS3Client(): Promise<R2StorageClient> {
-  if (_s3Client) return _s3Client
-
-  // Dynamic import so the AWS SDK is tree-shaken out of the Cloudflare bundle
-  const { S3Client, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, HeadObjectCommand } =
-    await import("@aws-sdk/client-s3")
-
-  const accountId = process.env.R2_ACCOUNT_ID
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY
-  const bucketName = getBucketName()
-
-  if (!accessKeyId || !secretAccessKey) {
-    throw new Error("R2 credentials not configured. Set R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY")
-  }
-
-  // Support MinIO (S3_ENDPOINT env) or Cloudflare R2
-  const endpoint = process.env.S3_ENDPOINT || `https://${accountId}.r2.cloudflarestorage.com`
-
-  const client = new S3Client({
-    region: "auto",
-    endpoint,
-    credentials: { accessKeyId, secretAccessKey },
-    forcePathStyle: !!process.env.S3_ENDPOINT // MinIO needs path-style
-  })
-
-  _s3Client = {
-    async put(key, body, options) {
-      await client.send(new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: body,
-        ContentType: options?.httpMetadata?.contentType,
-        CacheControl: "public, max-age=31536000"
-      }))
-    },
-    async delete(key) {
-      if (Array.isArray(key)) {
-        await client.send(new DeleteObjectsCommand({
-          Bucket: bucketName,
-          Delete: { Objects: key.map(k => ({ Key: k })) }
-        }))
-      } else {
-        await client.send(new DeleteObjectCommand({ Bucket: bucketName, Key: key }))
-      }
-    },
-    async head(key) {
-      try {
-        await client.send(new HeadObjectCommand({ Bucket: bucketName, Key: key }))
-        return {}
-      } catch {
-        return null
-      }
-    }
-  }
-
-  return _s3Client
-}
-
-// ── Unified Client ──
-
-async function getStorageClient(): Promise<R2StorageClient> {
-  const cfBucket = getCloudflareR2Bucket()
-  if (cfBucket) return cfBucket
-  return getS3Client()
-}
-
-function getBucketName(): string {
-  const bucketName = process.env.R2_BUCKET_NAME
-  if (!bucketName) throw new Error("R2_BUCKET_NAME environment variable not set")
-  return bucketName
+  throw new Error("[R2] No R2 binding available. Ensure wrangler.toml has r2_buckets configured and nitro-cloudflare-dev is loaded.")
 }
 
 /**
- * Get the public URL for R2 assets
+ * Get the origin URL for building storage URLs.
+ * Uses the current request's origin so URLs work in any environment.
  */
-export function getR2PublicUrl(): string {
-  const publicUrl = process.env.R2_PUBLIC_URL
-  if (!publicUrl) throw new Error("R2_PUBLIC_URL environment variable not set")
-  return publicUrl.replace(/\/$/, "")
+function getStorageOrigin(): string {
+  try {
+    const event = useEvent()
+    const host = getRequestHost(event, { xForwardedHost: true })
+    const protocol = getRequestProtocol(event, { xForwardedProto: true })
+    return `${protocol}://${host}`
+  } catch {
+    // Fallback for non-request contexts
+    return process.env.BETTER_AUTH_URL || "http://localhost:3000"
+  }
+}
+
+/**
+ * Convert a storage URL back to an R2 key.
+ * Handles both /storage/ relative paths and full URLs.
+ */
+function urlToR2Key(url: string): string {
+  // Full URL: https://example.com/storage/pdfs/abc.pdf → pdfs/abc.pdf
+  const storageIdx = url.indexOf("/storage/")
+  if (storageIdx !== -1) return url.slice(storageIdx + "/storage/".length)
+  // Legacy full R2 public URL: https://pdf-dev.bens.digital/pdfs/abc.pdf
+  // Try stripping origin
+  try {
+    const parsed = new URL(url)
+    return parsed.pathname.replace(/^\//, "")
+  } catch {
+    return url
+  }
 }
 
 /**
  * Upload a file to R2
  */
 export async function uploadToR2(file: ArrayBuffer | Uint8Array, path: string, contentType: string): Promise<string> {
-  const client = await getStorageClient()
-  const publicUrl = getR2PublicUrl()
-  const body = file instanceof Uint8Array ? file : new Uint8Array(file)
+  const client = getR2Bucket()
+  const origin = getStorageOrigin()
+  // Ensure a plain Uint8Array (not Buffer subclass) — miniflare's proxy can't serialize Buffer
+  const body = new Uint8Array(file instanceof ArrayBuffer ? file : file.buffer, file instanceof ArrayBuffer ? 0 : file.byteOffset, file instanceof ArrayBuffer ? file.byteLength : file.byteLength)
 
   await client.put(path, body, { httpMetadata: { contentType } })
-  return `${publicUrl}/${path}`
+  return `${origin}/storage/${path}`
 }
 
 /**
  * Delete a file from R2
  */
 export async function deleteFromR2(url: string): Promise<void> {
-  const client = await getStorageClient()
-  const publicUrl = getR2PublicUrl()
-  const path = url.replace(`${publicUrl}/`, "")
-  await client.delete(path)
+  const client = getR2Bucket()
+  const key = urlToR2Key(url)
+  await client.delete(key)
 }
 
 /**
  * Delete multiple files from R2
  */
 export async function deleteMultipleFromR2(urls: string[]): Promise<void> {
-  const client = await getStorageClient()
-  const publicUrl = getR2PublicUrl()
-  const keys = urls.map(url => url.replace(`${publicUrl}/`, ""))
+  const client = getR2Bucket()
+  const keys = urls.map(urlToR2Key)
   await client.delete(keys)
 }
 
@@ -181,7 +129,7 @@ export async function uploadThumbnail(imageData: ArrayBuffer | Uint8Array, proje
  * Check if a file exists in R2
  */
 export async function existsInR2(path: string): Promise<boolean> {
-  const client = await getStorageClient()
+  const client = getR2Bucket()
   const result = await client.head(path)
   return result !== null
 }

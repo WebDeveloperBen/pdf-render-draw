@@ -52,8 +52,8 @@ export default defineNuxtConfig({
     azureOpenaiApiVersion: process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview",
     azureOpenaiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
     azureOpenaiDeployment: process.env.AZURE_OPENAI_DEPLOYMENT,
-    resendApiKey: process.env.RESEND_API_KEY,
-    emailFrom: process.env.EMAIL_FROM || "PDF Annotator <noreply@resend.dev>",
+    resendApiKey: "",
+    emailFrom: process.env.EMAIL_FROM || "noreply@bens.digital",
     // Public (exposed to client)
     public: {
       betterAuthUrl: process.env.BETTER_AUTH_URL,
@@ -92,6 +92,7 @@ export default defineNuxtConfig({
     "@nuxt/fonts",
     "reka-ui/nuxt",
     "@yuta-inoue-ph/nuxt-vcalendar",
+    "nitro-cloudflare-dev",
     "@vee-validate/nuxt",
     "vue-sonner/nuxt"
   ],

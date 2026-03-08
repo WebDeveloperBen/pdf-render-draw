@@ -5,6 +5,21 @@ compatibility_flags = ["nodejs_compat"]
 assets = { directory = ".output/public/", binding = "ASSETS" }
 
 # R2 bucket binding
+# Local dev: uses local storage persisted to .wrangler/state
+# Preview (--remote): uses pdf-annotator-storage-dev
+# Production: uses pdf-annotator-storage
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "pdf-annotator-storage"
+preview_bucket_name = "pdf-annotator-storage-dev"
+
+[dev]
+port = 3000
+
+# Local dev overrides — persisted to disk so files survive restarts
+[env.dev]
+name = "pdf-annotator-dev"
+
+[[env.dev.r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "pdf-annotator-storage-dev"

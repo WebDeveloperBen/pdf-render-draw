@@ -25,16 +25,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Not found" })
   }
 
-  // Set response headers from R2 metadata
-  const headers = new Headers()
-  object.writeHttpMetadata(headers)
-  headers.set("etag", object.httpEtag)
-  headers.set("cache-control", "public, max-age=31536000, immutable")
-
-  // Set headers on the Nitro response
-  for (const [key, value] of headers.entries()) {
-    setResponseHeader(event, key, value)
+  // Infer content-type from path extension (writeHttpMetadata doesn't work with miniflare proxy)
+  const ext = path.split(".").pop()?.toLowerCase()
+  const contentTypes: Record<string, string> = {
+    pdf: "application/pdf",
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    webp: "image/webp",
+    svg: "image/svg+xml"
   }
+
+  setResponseHeader(event, "content-type", contentTypes[ext || ""] || "application/octet-stream")
+  setResponseHeader(event, "cache-control", "public, max-age=31536000, immutable")
+  if (object.httpEtag) setResponseHeader(event, "etag", object.httpEtag)
 
   setResponseStatus(event, 200)
   return object.body

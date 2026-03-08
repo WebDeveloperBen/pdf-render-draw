@@ -57,6 +57,23 @@ export const useViewportStore = defineStore("viewport", () => {
 
   const getScale = computed(() => scale.value)
   const getInverseScale = computed(() => 1 / scale.value)
+
+  /**
+   * Build an SVG transform string that counter-scales an element around a given point.
+   * This keeps text/labels at constant screen size while preserving rendering quality
+   * (unlike scaling font-size directly which causes pixelation).
+   */
+  function getCounterScaleTransform(cx: number, cy: number, additionalRotation?: number): string {
+    const inv = 1 / scale.value
+    const parts: string[] = []
+    parts.push(`translate(${cx}, ${cy})`)
+    parts.push(`scale(${inv})`)
+    if (additionalRotation) {
+      parts.push(`rotate(${additionalRotation})`)
+    }
+    parts.push(`translate(${-cx}, ${-cy})`)
+    return parts.join(' ')
+  }
   const getRotation = computed(() => rotation.value)
   const getPdfScale = computed(() => pdfScale.value)
 
@@ -305,6 +322,7 @@ export const useViewportStore = defineStore("viewport", () => {
     scale,
     getScale,
     getInverseScale,
+    getCounterScaleTransform,
     setScale,
     zoomIn,
     zoomOut,
