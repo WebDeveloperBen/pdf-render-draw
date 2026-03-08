@@ -95,157 +95,83 @@ const canSnapToClose = computed(() => tool.canSnapToClose.value)
 const previewArea = computed(() => tool.previewArea.value)
 const previewPolygon = computed(() => tool.previewPolygon.value)
 
-const { labelRotationTransform, s, screenTransform, labelTransform } = useToolViewport()
+const { s, screenTransform, stampedTransform } = useToolViewport()
 </script>
 <template>
   <g class="area-tool">
     <!-- Completed annotations - single rendering path for both modes -->
-    <EditorAnnotation
-      v-for="area in completed"
-      :key="area.id"
-      :annotation="area"
-    >
+    <EditorAnnotation v-for="area in completed" :key="area.id" :annotation="area">
       <template #content="{ annotation, isSelected }">
         <!-- Polygon -->
-        <polygon
-          :points="toSvgPoints(annotation.points)"
-          :fill="config.fillColor"
-          :fill-opacity="config.opacity"
-          :stroke="config.strokeColor"
-          :stroke-width="config.strokeWidth"
-          class="area-polygon"
-          :class="{ 'selected-polygon': isSelected }"
-        />
+        <polygon :points="toSvgPoints(annotation.points)" :fill="config.fillColor" :fill-opacity="config.opacity"
+          :stroke="config.strokeColor" :stroke-width="config.strokeWidth" class="area-polygon"
+          :class="{ 'selected-polygon': isSelected }" />
 
-        <EditorToolLabel
-          :text="`${annotation.area}m²`"
-          :transform="labelTransform(annotation.center.x, annotation.center.y)"
-          :font-size="config.labelSize"
-          :fill="config.labelColor"
-        />
+        <EditorToolLabel :text="`${annotation.area}m²`"
+          :transform="stampedTransform(annotation.center.x, annotation.center.y, annotation.labelScale)" :font-size="config.labelSize"
+          :fill="config.labelColor" />
       </template>
     </EditorAnnotation>
 
     <!-- Preview while drawing - interactive mode only -->
     <g v-if="tempEndPoint" class="preview">
       <!-- Cursor indicator (before first click) -->
-      <circle
-        v-if="!isDrawing"
-        :cx="tempEndPoint.x"
-        :cy="tempEndPoint.y"
-        :r="s(config.preview.cursorIndicator.radius)"
-        fill="none"
-        :stroke="config.strokeColor"
-        :stroke-width="s(config.preview.cursorIndicator.strokeWidth)"
-        :opacity="config.preview.cursorIndicator.opacity"
-      />
+      <circle v-if="!isDrawing" :cx="tempEndPoint.x" :cy="tempEndPoint.y" :r="s(config.preview.cursorIndicator.radius)"
+        fill="none" :stroke="config.strokeColor" :stroke-width="s(config.preview.cursorIndicator.strokeWidth)"
+        :opacity="config.preview.cursorIndicator.opacity" />
 
       <!-- Placed point markers (after starting) -->
       <g v-if="isDrawing">
-        <circle
-          v-for="(point, index) in points"
-          :key="`point-${index}`"
-          :cx="point.x"
-          :cy="point.y"
+        <circle v-for="(point, index) in points" :key="`point-${index}`" :cx="point.x" :cy="point.y"
           :r="s(index === 0 ? config.preview.pointMarkers.firstRadius : config.preview.pointMarkers.otherRadius)"
           :fill="index === 0 ? config.preview.pointMarkers.firstFill : config.strokeColor"
-          :stroke="config.preview.pointMarkers.stroke"
-          :stroke-width="s(config.preview.pointMarkers.strokeWidth)"
-          class="point-marker"
-        />
+          :stroke="config.preview.pointMarkers.stroke" :stroke-width="s(config.preview.pointMarkers.strokeWidth)"
+          class="point-marker" />
 
         <!-- Draw lines between placed points -->
         <g v-if="points.length > 0">
           <!-- Lines connecting placed points -->
           <template v-for="(point, index) in points.slice(0, -1)" :key="`line-${index}`">
-            <line
-              v-if="points[index + 1]"
-              :x1="point.x"
-              :y1="point.y"
-              :x2="points[index + 1]?.x ?? 0"
-              :y2="points[index + 1]?.y ?? 0"
-              :stroke="config.strokeColor"
-              stroke-width="1"
-              vector-effect="non-scaling-stroke"
-              :stroke-dasharray="`5,5`"
-              :opacity="config.preview.lines.opacity"
-            />
+            <line v-if="points[index + 1]" :x1="point.x" :y1="point.y" :x2="points[index + 1]?.x ?? 0"
+              :y2="points[index + 1]?.y ?? 0" :stroke="config.strokeColor" stroke-width="1"
+              vector-effect="non-scaling-stroke" :stroke-dasharray="`5,5`" :opacity="config.preview.lines.opacity" />
           </template>
 
           <!-- Line from last point to cursor -->
           <template v-if="tempEndPoint && points.length > 0">
-            <line
-              v-if="points[points.length - 1]"
-              :x1="points[points.length - 1]?.x ?? 0"
-              :y1="points[points.length - 1]?.y ?? 0"
-              :x2="tempEndPoint.x"
-              :y2="tempEndPoint.y"
-              :stroke="config.strokeColor"
-              stroke-width="1"
-              vector-effect="non-scaling-stroke"
-              :stroke-dasharray="`5,5`"
-              :opacity="config.preview.lines.opacity"
-            />
+            <line v-if="points[points.length - 1]" :x1="points[points.length - 1]?.x ?? 0"
+              :y1="points[points.length - 1]?.y ?? 0" :x2="tempEndPoint.x" :y2="tempEndPoint.y"
+              :stroke="config.strokeColor" stroke-width="1" vector-effect="non-scaling-stroke" :stroke-dasharray="`5,5`"
+              :opacity="config.preview.lines.opacity" />
           </template>
 
           <!-- Preview closing line when hovering near start -->
-          <line
-            v-if="tempEndPoint && points.length >= 2 && points[0]"
-            :x1="tempEndPoint.x"
-            :y1="tempEndPoint.y"
-            :x2="points[0].x"
-            :y2="points[0].y"
-            :stroke="config.strokeColor"
-            stroke-width="1"
-            vector-effect="non-scaling-stroke"
-            :stroke-dasharray="`5,5`"
-            :opacity="config.preview.lines.closingLineOpacity"
-          />
+          <line v-if="tempEndPoint && points.length >= 2 && points[0]" :x1="tempEndPoint.x" :y1="tempEndPoint.y"
+            :x2="points[0].x" :y2="points[0].y" :stroke="config.strokeColor" stroke-width="1"
+            vector-effect="non-scaling-stroke" :stroke-dasharray="`5,5`"
+            :opacity="config.preview.lines.closingLineOpacity" />
         </g>
 
         <!-- Preview polygon fill -->
-        <polygon
-          v-if="previewPolygon"
-          :points="previewPolygon"
-          :fill="config.fillColor"
-          :fill-opacity="config.opacity * config.preview.polygonOpacityMultiplier"
-          fill-rule="evenodd"
-          pointer-events="none"
-        />
+        <polygon v-if="previewPolygon" :points="previewPolygon" :fill="config.fillColor"
+          :fill-opacity="config.opacity * config.preview.polygonOpacityMultiplier" fill-rule="evenodd"
+          pointer-events="none" />
 
         <!-- Snap to close indicator -->
         <g v-if="canSnapToClose && points.length > 0 && points[0]">
-          <circle
-            :cx="points[0].x"
-            :cy="points[0].y"
-            :r="s(config.snap.radius)"
-            fill="none"
-            :stroke="config.snap.stroke"
-            :stroke-width="s(config.snap.strokeWidth)"
-            class="snap-indicator"
-          />
-          <text
-            :x="config.snap.text.offsetX"
-            :y="-config.snap.text.offsetY"
-            :fill="config.snap.text.fill"
-            :font-size="config.snap.text.fontSize"
-            :font-weight="config.snap.text.fontWeight"
-            :transform="screenTransform(points[0].x, points[0].y)"
-          >
+          <circle :cx="points[0].x" :cy="points[0].y" :r="s(config.snap.radius)" fill="none"
+            :stroke="config.snap.stroke" :stroke-width="s(config.snap.strokeWidth)" class="snap-indicator" />
+          <text :x="config.snap.text.offsetX" :y="-config.snap.text.offsetY" :fill="config.snap.text.fill"
+            :font-size="config.snap.text.fontSize" :font-weight="config.snap.text.fontWeight"
+            :transform="screenTransform(points[0].x, points[0].y)">
             Click to close
           </text>
         </g>
 
-        <text
-          v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]"
-          x="0"
-          y="0"
-          :fill="config.preview.distance.fill"
-          :font-size="config.preview.distance.fontSize"
-          text-anchor="middle"
+        <text v-if="previewArea && points.length >= 2 && points[0] && points[points.length - 1]" x="0" y="0"
+          :fill="config.preview.distance.fill" :font-size="config.preview.distance.fontSize" text-anchor="middle"
           dominant-baseline="middle"
-          :transform="screenTransform(((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2, ((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2)"
-        >
+          :transform="screenTransform(((points[0]?.x ?? 0) + (points[points.length - 1]?.x ?? 0)) / 2, ((points[0]?.y ?? 0) + (points[points.length - 1]?.y ?? 0)) / 2)">
           {{ previewArea }}m²
         </text>
       </g>
@@ -291,5 +217,4 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
-
 </style>

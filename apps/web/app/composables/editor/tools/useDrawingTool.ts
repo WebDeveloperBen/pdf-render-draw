@@ -142,6 +142,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
       id: uuidv4(),
       type: config.type,
       pageNum: viewportStore.currentPage,
+      labelScale: viewportStore.getInverseScale,
       ...calculatedData
     } as T
 

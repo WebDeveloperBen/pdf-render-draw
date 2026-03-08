@@ -57,7 +57,7 @@ const completed = computed(() => props.annotations ?? tool.completed.value)
 const nextCountNumber = computed(() => tool.nextCountNumber.value)
 const cursorPosition = computed(() => tool.cursorPosition.value)
 
-const { labelRotationTransform, s, screenTransform, sc, labelTransform } = useToolViewport()
+const { s, screenTransform, stampedTransform, stamped } = useToolViewport()
 
 const showPreview = computed(() => {
   return annotationStore.activeTool === "count" && cursorPosition.value
@@ -71,16 +71,16 @@ const showPreview = computed(() => {
       <template #content="{ annotation }">
         <!-- Invisible hitbox -->
         <circle :cx="annotation.x + annotation.width / 2" :cy="annotation.y + annotation.height / 2"
-          :r="sc(config.hitArea.radius)" fill="transparent" class="count-hitbox" />
+          :r="stamped(config.hitArea.radius, annotation.labelScale)" fill="transparent" class="count-hitbox" />
 
         <!-- Count marker circle -->
         <circle :cx="annotation.x + annotation.width / 2" :cy="annotation.y + annotation.height / 2"
-          :r="sc(config.marker.radius)" :fill="config.marker.fill" :stroke="config.marker.stroke"
-          :stroke-width="sc(config.marker.strokeWidth)" class="count-marker" />
+          :r="stamped(config.marker.radius, annotation.labelScale)" :fill="config.marker.fill" :stroke="config.marker.stroke"
+          :stroke-width="stamped(config.marker.strokeWidth, annotation.labelScale)" class="count-marker" />
 
         <text x="0" y="0" text-anchor="middle"
           dominant-baseline="middle" :font-size="config.text.fontSize" :font-weight="config.text.fontWeight"
-          :fill="config.text.fill" :transform="labelTransform(annotation.x + annotation.width / 2, annotation.y + annotation.height / 2)" class="count-number">
+          :fill="config.text.fill" :transform="stampedTransform(annotation.x + annotation.width / 2, annotation.y + annotation.height / 2, annotation.labelScale)" class="count-number">
           {{ annotation.number }}
         </text>
       </template>

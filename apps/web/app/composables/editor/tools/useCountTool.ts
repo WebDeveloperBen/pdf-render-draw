@@ -50,6 +50,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
       id: uuidv4(),
       type: "count",
       pageNum: viewportStore.currentPage,
+      labelScale: inv,
       x: point.x - markerSize / 2, // x,y is top-left corner of bounding box
       y: point.y - markerSize / 2,
       width: markerSize,

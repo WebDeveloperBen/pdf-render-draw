@@ -76,7 +76,7 @@ const points = computed(() => tool.points.value)
 const tempEndPoint = computed(() => tool.tempEndPoint.value)
 const previewDistance = computed(() => tool.previewDistance.value)
 
-const { labelRotationTransform, s, screenTransform, labelTransform } = useToolViewport()
+const { s, screenTransform, stampedTransform } = useToolViewport()
 </script>
 
 <template>
@@ -95,13 +95,9 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
           :class="{ 'selected-line': isSelected }" class="measurement-line" />
 
         <!-- Label -->
-        <EditorToolLabel
-          :text="`${annotation.distance}mm`"
-          :transform="labelTransform(annotation.midpoint.x, annotation.midpoint.y)"
-          :font-size="config.labelSize"
-          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
-          :fill="config.labelColor"
-        />
+        <EditorToolLabel :text="`${annotation.distance}mm`"
+          :transform="stampedTransform(annotation.midpoint.x, annotation.midpoint.y, annotation.labelScale)" :font-size="config.labelSize"
+          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'" :fill="config.labelColor" />
       </template>
     </EditorAnnotation>
 
@@ -125,12 +121,8 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
           :opacity="config.preview.line.opacity" />
 
         <!-- Preview distance -->
-        <text v-if="previewDistance"
-          x="0"
-          :y="-config.preview.distance.offsetY"
-          :fill="config.preview.distance.fill"
-          :font-size="config.preview.distance.fontSize"
-          text-anchor="middle"
+        <text v-if="previewDistance" x="0" :y="-config.preview.distance.offsetY" :fill="config.preview.distance.fill"
+          :font-size="config.preview.distance.fontSize" text-anchor="middle"
           :transform="screenTransform((points[0].x + tempEndPoint.x) / 2, (points[0].y + tempEndPoint.y) / 2)">
           {{ previewDistance }}mm
         </text>

@@ -41,7 +41,10 @@ export function useToolViewport() {
 
   /**
    * Build a transform that positions an element at (cx, cy) and scales it
-   * so it stays a constant screen size. Used for preview elements.
+   * by inverseScale so it stays a constant screen size. Keeps SVG text crisp
+   * at any zoom level (unlike setting a tiny font-size directly).
+   *
+   * Used for preview elements during drawing.
    */
   function screenTransform(cx: number, cy: number): string {
     const sc = inverseScale.value
@@ -49,27 +52,24 @@ export function useToolViewport() {
   }
 
   /**
-   * Clamped inverse scale — never goes above 1, so elements render at their
-   * natural PDF-space size when zoomed out but shrink-compensate when zoomed in.
-   * Used for completed annotation labels that should look "placed on the canvas".
+   * Build a transform using a stored (stamped) scale value from an annotation.
+   * Completed annotations bake their labelScale at creation time so labels
+   * stay at the visual size they were placed at, regardless of later zoom changes.
+   *
+   * Falls back to live inverseScale if no labelScale is stored (backward compat).
    */
-  const clampedInverseScale = computed(() => Math.min(1, inverseScale.value))
-
-  /**
-   * Like s() but clamped — won't enlarge beyond natural size when zoomed out.
-   */
-  function sc(value: number): number {
-    return value * clampedInverseScale.value
+  function stampedTransform(cx: number, cy: number, labelScale?: number): string {
+    const sc = labelScale ?? inverseScale.value
+    return `translate(${cx}, ${cy}) scale(${sc})`
   }
 
   /**
-   * Like screenTransform() but clamped — labels stay at natural size when
-   * zoomed out, only compensate when zoomed in to prevent shrinking.
+   * Scale a value using a stored labelScale from an annotation.
+   * Falls back to live inverseScale if no labelScale is stored.
    */
-  function labelTransform(cx: number, cy: number): string {
-    const scale = clampedInverseScale.value
-    return `translate(${cx}, ${cy}) scale(${scale})`
+  function stamped(value: number, labelScale?: number): number {
+    return value * (labelScale ?? inverseScale.value)
   }
 
-  return { labelRotation, labelRotationTransform, inverseScale, s, screenTransform, clampedInverseScale, sc, labelTransform }
+  return { labelRotation, labelRotationTransform, inverseScale, s, screenTransform, stampedTransform, stamped }
 }

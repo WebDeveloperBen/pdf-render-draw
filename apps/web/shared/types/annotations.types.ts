@@ -20,6 +20,7 @@ export interface BaseAnnotation {
   type: ToolType
   pageNum: number
   rotation: number
+  labelScale?: number // Inverse viewport scale at creation time — stamps labels at visual size
   createdAt?: string
   updatedAt?: string
   _groupCenter?: Point

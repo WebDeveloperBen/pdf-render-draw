@@ -64,7 +64,7 @@ const isDrawing = computed(() => tool.isDrawing.value)
 const points = computed(() => tool.points.value)
 const tempEndPoint = computed(() => tool.tempEndPoint.value)
 
-const { s, sc } = useToolViewport()
+const { s, stamped } = useToolViewport()
 
 watch(
   completed,
@@ -108,7 +108,7 @@ watch(
           v-if="annotation.points[0]"
           :cx="annotation.points[0].x"
           :cy="annotation.points[0].y"
-          :r="sc(config.markers.radius)"
+          :r="stamped(config.markers.radius, annotation.labelScale)"
           :fill="config.strokeColor"
           class="start-marker"
         />
@@ -118,7 +118,7 @@ watch(
           v-if="annotation.points[annotation.points.length - 1]"
           :cx="annotation.points[annotation.points.length - 1]?.x ?? 0"
           :cy="annotation.points[annotation.points.length - 1]?.y ?? 0"
-          :r="sc(config.markers.radius)"
+          :r="stamped(config.markers.radius, annotation.labelScale)"
           :fill="config.strokeColor"
           class="end-marker"
         />
