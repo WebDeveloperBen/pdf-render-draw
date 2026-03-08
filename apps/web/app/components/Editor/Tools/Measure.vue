@@ -20,19 +20,6 @@ export const MEASURE_TOOL_DEFAULTS = {
     strokeWidth: 15
   },
 
-  // Label background styling
-  label: {
-    background: {
-      offsetX: 30,
-      offsetY: 10,
-      width: 60,
-      height: 20,
-      opacity: 0.9,
-      borderRadius: 3,
-      fill: "white"
-    }
-  },
-
   // Preview styling (while drawing)
   preview: {
     cursorIndicator: {
@@ -107,21 +94,14 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
           :y2="annotation.points[1].y" :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
           :class="{ 'selected-line': isSelected }" class="measurement-line" />
 
-        <!-- Label background -->
-        <rect :x="-config.label.background.offsetX / 2"
-          :y="-config.label.background.offsetY / 2" :width="config.label.background.width"
-          :height="config.label.background.height" :fill="config.label.background.fill"
-          :opacity="config.label.background.opacity" :rx="config.label.background.borderRadius"
-          :transform="labelTransform(annotation.midpoint.x, annotation.midpoint.y)" />
-
-        <!-- Label text -->
-        <text x="0" y="0" :fill="config.labelColor"
-          :font-size="config.labelSize" :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
-          text-anchor="middle" dominant-baseline="middle"
+        <!-- Label -->
+        <EditorToolLabel
+          :text="`${annotation.distance}mm`"
           :transform="labelTransform(annotation.midpoint.x, annotation.midpoint.y)"
-          class="measurement-label">
-          {{ annotation.distance }}mm
-        </text>
+          :font-size="config.labelSize"
+          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
+          :fill="config.labelColor"
+        />
       </template>
     </EditorAnnotation>
 
@@ -181,12 +161,6 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
 .measurement-line.selected-line {
   stroke: v-bind("config.states.selected.stroke");
   stroke-width: v-bind("config.states.selected.strokeWidth");
-}
-
-.measurement-label {
-  pointer-events: none;
-  user-select: none;
-  transition: font-weight 0.15s;
 }
 
 .point-marker {

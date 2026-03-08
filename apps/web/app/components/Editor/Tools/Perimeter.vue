@@ -16,30 +16,8 @@ export const PERIMETER_TOOL_DEFAULTS = {
   labelColor: "green",
   labelSize: 10,
 
-  // Segment label background styling
-  segmentLabel: {
-    background: {
-      offsetX: 25,
-      offsetY: 10,
-      width: 50,
-      height: 20,
-      opacity: 0.9,
-      borderRadius: 3,
-      fill: "white"
-    }
-  },
-
-  // Total label background styling
+  // Total label font size
   totalLabel: {
-    background: {
-      offsetX: 40,
-      offsetY: 12,
-      width: 80,
-      height: 24,
-      opacity: 0.95,
-      borderRadius: 4,
-      fill: "white"
-    },
     fontSizeBonus: 2 // Added to settings.labelSize for total
   },
 
@@ -141,57 +119,22 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
         />
 
         <!-- Individual segment labels -->
-        <g v-for="(segment, idx) in annotation.segments" :key="idx">
-          <rect
-            :x="-config.segmentLabel.background.offsetX / 2"
-            :y="-config.segmentLabel.background.offsetY / 2"
-            :width="config.segmentLabel.background.width"
-            :height="config.segmentLabel.background.height"
-            :fill="config.segmentLabel.background.fill"
-            :opacity="config.segmentLabel.background.opacity"
-            :rx="config.segmentLabel.background.borderRadius"
-            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
-          />
-
-          <text
-            x="0"
-            y="0"
-            :fill="config.labelColor"
-            :font-size="config.labelSize"
-            font-weight="bold"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
-            class="segment-label"
-          >
-            {{ segment.length }}mm
-          </text>
-        </g>
+        <EditorToolLabel
+          v-for="(segment, idx) in annotation.segments"
+          :key="idx"
+          :text="`${segment.length}mm`"
+          :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
+          :font-size="config.labelSize"
+          :fill="config.labelColor"
+        />
 
         <!-- Total perimeter label at center -->
-        <rect
-          :x="-config.totalLabel.background.offsetX / 2"
-          :y="-config.totalLabel.background.offsetY / 2"
-          :width="config.totalLabel.background.width"
-          :height="config.totalLabel.background.height"
-          :fill="config.totalLabel.background.fill"
-          :opacity="config.totalLabel.background.opacity"
-          :rx="config.totalLabel.background.borderRadius"
+        <EditorToolLabel
+          :text="`Total: ${annotation.totalLength}mm`"
           :transform="labelTransform(annotation.center.x, annotation.center.y)"
-        />
-        <text
-          x="0"
-          y="0"
-          :fill="config.labelColor"
           :font-size="config.labelSize + config.totalLabel.fontSizeBonus"
-          font-weight="bold"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          :transform="labelTransform(annotation.center.x, annotation.center.y)"
-          class="total-label"
-        >
-          Total: {{ annotation.totalLength }}mm
-        </text>
+          :fill="config.labelColor"
+        />
       </template>
     </EditorAnnotation>
 
@@ -249,29 +192,12 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
             :stroke-dasharray="idx === previewSegments.length - 1 ? '5,5' : '0'"
           />
 
-          <rect
-            :x="-config.segmentLabel.background.offsetX / 2"
-            :y="-config.segmentLabel.background.offsetY / 2"
-            :width="config.segmentLabel.background.width"
-            :height="config.segmentLabel.background.height"
-            :fill="config.segmentLabel.background.fill"
-            :opacity="config.segmentLabel.background.opacity"
-            :rx="config.segmentLabel.background.borderRadius"
-            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
-          />
-
-          <text
-            x="0"
-            y="0"
-            :fill="config.preview.segmentLabel.fill"
+          <EditorToolLabel
+            :text="`${segment.length}mm`"
+            :transform="screenTransform(segment.midpoint.x, segment.midpoint.y)"
             :font-size="config.preview.segmentLabel.fontSize"
-            font-weight="bold"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            :transform="labelTransform(segment.midpoint.x, segment.midpoint.y)"
-          >
-            {{ segment.length }}mm
-          </text>
+            :fill="config.preview.segmentLabel.fill"
+          />
         </g>
 
         <!-- Snap to close indicator -->
@@ -315,12 +241,6 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
 .perimeter-polygon.selected-polygon {
   stroke: v-bind("config.states.selected.stroke");
   stroke-width: v-bind("config.states.selected.strokeWidth");
-}
-
-.segment-label,
-.total-label {
-  pointer-events: none;
-  user-select: none;
 }
 
 .snap-indicator {

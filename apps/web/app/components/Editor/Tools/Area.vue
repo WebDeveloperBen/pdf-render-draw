@@ -16,19 +16,6 @@ export const AREA_TOOL_DEFAULTS = {
   labelColor: "black",
   labelSize: 10,
 
-  // Label background styling
-  label: {
-    background: {
-      offsetX: 40,
-      offsetY: 12,
-      width: 80,
-      height: 24,
-      opacity: 0.95,
-      borderRadius: 4,
-      fill: "white"
-    }
-  },
-
   // Preview styling (while drawing)
   preview: {
     cursorIndicator: {
@@ -130,30 +117,12 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
           :class="{ 'selected-polygon': isSelected }"
         />
 
-        <rect
-          :x="-config.label.background.offsetX / 2"
-          :y="-config.label.background.offsetY / 2"
-          :width="config.label.background.width"
-          :height="config.label.background.height"
-          :fill="config.label.background.fill"
-          :opacity="config.label.background.opacity"
-          :rx="config.label.background.borderRadius"
+        <EditorToolLabel
+          :text="`${annotation.area}m²`"
           :transform="labelTransform(annotation.center.x, annotation.center.y)"
-        />
-
-        <text
-          x="0"
-          y="0"
-          :fill="config.labelColor"
           :font-size="config.labelSize"
-          font-weight="bold"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          :transform="labelTransform(annotation.center.x, annotation.center.y)"
-          class="area-label"
-        >
-          {{ annotation.area }}m²
-        </text>
+          :fill="config.labelColor"
+        />
       </template>
     </EditorAnnotation>
 
@@ -323,8 +292,4 @@ const { labelRotationTransform, s, screenTransform, labelTransform } = useToolVi
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-.area-label {
-  pointer-events: none;
-  user-select: none;
-}
 </style>
