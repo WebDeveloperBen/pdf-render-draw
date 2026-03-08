@@ -36,7 +36,7 @@ const svgStyle = computed(() => {
     transformOrigin: "center center" as const,
     pointerEvents: "all" as const,
     zIndex: 1001,
-    willChange: "transform" as const
+    willChange: "auto" as const
   }
 })
 

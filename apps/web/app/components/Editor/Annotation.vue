@@ -145,14 +145,14 @@ function getRotationTransform(): string {
 <style scoped>
 .annotation {
   cursor: pointer;
-  transition: filter 0.15s ease-out;
+  transition: opacity 0.15s ease-out;
 }
 
 .annotation.hovered {
-  filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.3));
+  opacity: 0.85;
 }
 
 .annotation.selected {
-  filter: drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.4));
+  opacity: 1;
 }
 </style>

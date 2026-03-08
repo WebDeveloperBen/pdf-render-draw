@@ -30,8 +30,7 @@ const canvasStyle = computed(() => {
     left: "0",
     transform: viewportStore.getCanvasTransform,
     transformOrigin: "center center" as const,
-    // Use will-change for smooth scaling and rotation
-    willChange: "transform" as const
+    willChange: "auto" as const
   }
   debugLog("SimplePdfViewer", "canvasStyle updated:", {
     transform: style.transform,
