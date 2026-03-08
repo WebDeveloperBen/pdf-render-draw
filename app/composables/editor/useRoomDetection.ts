@@ -236,14 +236,9 @@ export function useRoomDetection() {
       const pageWidth = viewport.width
       const pageHeight = viewport.height
 
-      // Extract wall segments for wall-snapping (these are in viewport coords)
-      console.log(`[RoomOCR] Extracting wall segments for snapping...`)
-      const wallSegments = await extractWallSegments(page)
-      console.log(`[RoomOCR] Got ${wallSegments.length} wall segments for snapping`)
-
-      // Render at 2x scale for better OCR quality, capped at 2000px wide
-      const maxWidth = 2000
-      const renderScale = Math.min(2, maxWidth / pageWidth)
+      // Render at higher scale for better OCR quality, capped at 3000px wide
+      const maxWidth = 3000
+      const renderScale = Math.min(3, maxWidth / pageWidth)
       const renderViewport = page.getViewport({ scale: renderScale })
       const imageWidth = Math.round(renderViewport.width)
       const imageHeight = Math.round(renderViewport.height)
@@ -259,10 +254,6 @@ export function useRoomDetection() {
       ctx.fillRect(0, 0, imageWidth, imageHeight)
 
       await page.render({ canvas, canvasContext: ctx, viewport: renderViewport }).promise
-
-      const imageDataUrl = canvas.toDataURL("image/png")
-      canvas.width = 0
-      canvas.height = 0
 
       // Extract text labels with positions from the PDF (exact coordinates)
       const textContent = await page.getTextContent()
@@ -289,6 +280,31 @@ export function useRoomDetection() {
         textLabels.push({ text, pdfX: Math.round(vpX), pdfY: Math.round(vpY), pixelX, pixelY })
       }
 
+      // Draw crosshair markers at each text label position so the model has visual anchors
+      if (textLabels.length > 0) {
+        const markerSize = Math.max(8, Math.round(Math.min(imageWidth, imageHeight) * 0.008))
+        ctx.strokeStyle = "#FF0000"
+        ctx.lineWidth = 2
+        for (const label of textLabels) {
+          const { pixelX: px, pixelY: py } = label
+          // Crosshair
+          ctx.beginPath()
+          ctx.moveTo(px - markerSize, py)
+          ctx.lineTo(px + markerSize, py)
+          ctx.moveTo(px, py - markerSize)
+          ctx.lineTo(px, py + markerSize)
+          ctx.stroke()
+          // Small circle
+          ctx.beginPath()
+          ctx.arc(px, py, markerSize * 0.6, 0, Math.PI * 2)
+          ctx.stroke()
+        }
+      }
+
+      const imageDataUrl = canvas.toDataURL("image/png")
+      canvas.width = 0
+      canvas.height = 0
+
       console.log(`[RoomOCR] Page dimensions: PDF viewport=${pageWidth.toFixed(1)}x${pageHeight.toFixed(1)}, Image=${imageWidth}x${imageHeight}, renderScale=${renderScale.toFixed(2)}`)
       console.log(`[RoomOCR] Extracted ${textLabels.length} room text labels:`)
       for (const l of textLabels) {
@@ -306,13 +322,7 @@ export function useRoomDetection() {
           imageWidth,
           imageHeight,
           imageDataUrl,
-          textLabels,
-          wallSegments: wallSegments.map(s => ({
-            x1: Math.round(s.start.x * 10) / 10,
-            y1: Math.round(s.start.y * 10) / 10,
-            x2: Math.round(s.end.x * 10) / 10,
-            y2: Math.round(s.end.y * 10) / 10
-          }))
+          textLabels
         }
       })
 

@@ -86,24 +86,25 @@ export async function extractRoomLabels(
 
 /**
  * Prepare wall segments for ray-casting.
- * Filters by minimum length and classifies as horizontal/vertical.
+ * Filters by minimum length, classifies as horizontal/vertical,
+ * then merges collinear segments (walls interrupted by doors/windows).
  */
 function prepareWallSegments(segments: Segment[]): WallSegment[] {
-  const walls: WallSegment[] = []
+  const raw: WallSegment[] = []
 
   for (const seg of segments) {
     const dx = seg.end.x - seg.start.x
     const dy = seg.end.y - seg.start.y
     const length = Math.sqrt(dx * dx + dy * dy)
-    if (length < MIN_WALL_LENGTH) continue
+    if (length < 10) continue // keep shorter segments for merging
 
     const angle = Math.abs(Math.atan2(dy, dx))
-    const isHorizontal = angle < 0.25 || angle > Math.PI - 0.25 // ~15°
+    const isHorizontal = angle < 0.25 || angle > Math.PI - 0.25
     const isVertical = Math.abs(angle - Math.PI / 2) < 0.25
 
-    if (!isHorizontal && !isVertical) continue // skip diagonal segments
+    if (!isHorizontal && !isVertical) continue
 
-    walls.push({
+    raw.push({
       x1: seg.start.x,
       y1: seg.start.y,
       x2: seg.end.x,
@@ -114,11 +115,90 @@ function prepareWallSegments(segments: Segment[]): WallSegment[] {
     })
   }
 
-  return walls
+  // Merge collinear segments — walls are often split by doors/windows
+  const merged = mergeCollinearSegments(raw)
+  return merged.filter(w => w.length >= MIN_WALL_LENGTH)
+}
+
+/**
+ * Merge wall segments that are collinear (same orientation, same position,
+ * overlapping or close spans). Door gaps up to ~50pt are bridged.
+ */
+function mergeCollinearSegments(walls: WallSegment[]): WallSegment[] {
+  const POSITION_TOLERANCE = 8   // how close parallel walls must be to merge
+  const GAP_TOLERANCE = 50       // max gap between segments to bridge (door ~36pt)
+
+  // Separate horizontal and vertical
+  const horizontal = walls.filter(w => w.isHorizontal)
+  const vertical = walls.filter(w => w.isVertical)
+
+  function mergeGroup(group: WallSegment[], isHoriz: boolean): WallSegment[] {
+    if (group.length === 0) return []
+
+    // Sort by fixed-axis position, then by span start
+    const sorted = [...group].sort((a, b) => {
+      const posA = isHoriz ? (a.y1 + a.y2) / 2 : (a.x1 + a.x2) / 2
+      const posB = isHoriz ? (b.y1 + b.y2) / 2 : (b.x1 + b.x2) / 2
+      if (Math.abs(posA - posB) > POSITION_TOLERANCE) return posA - posB
+      const spanStartA = isHoriz ? Math.min(a.x1, a.x2) : Math.min(a.y1, a.y2)
+      const spanStartB = isHoriz ? Math.min(b.x1, b.x2) : Math.min(b.y1, b.y2)
+      return spanStartA - spanStartB
+    })
+
+    const result: WallSegment[] = []
+    let current = { ...sorted[0]! }
+
+    for (let i = 1; i < sorted.length; i++) {
+      const next = sorted[i]!
+      const currentPos = isHoriz ? (current.y1 + current.y2) / 2 : (current.x1 + current.x2) / 2
+      const nextPos = isHoriz ? (next.y1 + next.y2) / 2 : (next.x1 + next.x2) / 2
+
+      // Check if on the same line (same fixed-axis position)
+      if (Math.abs(currentPos - nextPos) > POSITION_TOLERANCE) {
+        result.push(current)
+        current = { ...next }
+        continue
+      }
+
+      // Check if spans overlap or are close enough to merge
+      const currentEnd = isHoriz ? Math.max(current.x1, current.x2) : Math.max(current.y1, current.y2)
+      const nextStart = isHoriz ? Math.min(next.x1, next.x2) : Math.min(next.y1, next.y2)
+
+      if (nextStart - currentEnd <= GAP_TOLERANCE) {
+        // Merge: extend current to cover both
+        const nextEnd = isHoriz ? Math.max(next.x1, next.x2) : Math.max(next.y1, next.y2)
+        if (isHoriz) {
+          current.x1 = Math.min(current.x1, current.x2, next.x1, next.x2)
+          current.x2 = Math.max(currentEnd, nextEnd)
+          current.y1 = (currentPos + nextPos) / 2
+          current.y2 = current.y1
+        } else {
+          current.y1 = Math.min(current.y1, current.y2, next.y1, next.y2)
+          current.y2 = Math.max(currentEnd, nextEnd)
+          current.x1 = (currentPos + nextPos) / 2
+          current.x2 = current.x1
+        }
+        const dx = current.x2 - current.x1
+        const dy = current.y2 - current.y1
+        current.length = Math.sqrt(dx * dx + dy * dy)
+      } else {
+        result.push(current)
+        current = { ...next }
+      }
+    }
+    result.push(current)
+    return result
+  }
+
+  return [
+    ...mergeGroup(horizontal, true),
+    ...mergeGroup(vertical, false)
+  ]
 }
 
 /**
  * Ray-cast from a point in 4 cardinal directions to find nearest wall segments.
+ * Uses merged wall segments so door/window gaps are bridged.
  * Returns a bounding rectangle { left, right, top, bottom } or null.
  */
 function rayCastFromPoint(
@@ -136,44 +216,43 @@ function rayCastFromPoint(
   let foundTop = false
   let foundBottom = false
 
+  // Tolerance for wall span check — walls don't need to fully span across our position
+  // after merging, most walls should span sufficiently
+  const SPAN_TOLERANCE = 40
+
   for (const wall of walls) {
     if (wall.isVertical) {
-      // Vertical wall — potential left/right boundary
       const wallX = (wall.x1 + wall.x2) / 2
       const minY = Math.min(wall.y1, wall.y2)
       const maxY = Math.max(wall.y1, wall.y2)
 
-      // Wall must span across our Y position (with tolerance for gaps)
-      const tolerance = 20
-      if (cy < minY - tolerance || cy > maxY + tolerance) continue
+      // Wall must span across our Y position (with tolerance)
+      if (cy < minY - SPAN_TOLERANCE || cy > maxY + SPAN_TOLERANCE) continue
 
       const dist = wallX - cx
-      if (dist < 0 && wallX > nearestLeft) {
+      if (dist < -2 && wallX > nearestLeft) {
         nearestLeft = wallX
         foundLeft = true
       }
-      if (dist > 0 && wallX < nearestRight) {
+      if (dist > 2 && wallX < nearestRight) {
         nearestRight = wallX
         foundRight = true
       }
     }
 
     if (wall.isHorizontal) {
-      // Horizontal wall — potential top/bottom boundary
       const wallY = (wall.y1 + wall.y2) / 2
       const minX = Math.min(wall.x1, wall.x2)
       const maxX = Math.max(wall.x1, wall.x2)
 
-      // Wall must span across our X position (with tolerance for gaps)
-      const tolerance = 20
-      if (cx < minX - tolerance || cx > maxX + tolerance) continue
+      if (cx < minX - SPAN_TOLERANCE || cx > maxX + SPAN_TOLERANCE) continue
 
       const dist = wallY - cy
-      if (dist < 0 && wallY > nearestTop) {
+      if (dist < -2 && wallY > nearestTop) {
         nearestTop = wallY
         foundTop = true
       }
-      if (dist > 0 && wallY < nearestBottom) {
+      if (dist > 2 && wallY < nearestBottom) {
         nearestBottom = wallY
         foundBottom = true
       }
@@ -274,10 +353,33 @@ export async function detectRoomsFromTextAndWalls(
   const rawSegments = await extractWallSegments(page, signal)
   if (signal?.aborted) return { rooms: [], nodeCount: 0, edgeCount: 0 }
 
-  const walls = prepareWallSegments(rawSegments)
-  console.log(`[TextWallDetect] ${rawSegments.length} raw segments → ${walls.length} wall segments (H/V, ≥${MIN_WALL_LENGTH}pt)`)
+  const allWalls = prepareWallSegments(rawSegments)
 
-  // 3. For each label, ray-cast to find enclosing walls
+  // 3. Compute floor plan region from label positions — filter out dimension lines
+  // The floor plan is where the room labels are. Walls outside this region are likely dimensions.
+  const PLAN_PADDING = 60 // pt padding around label bbox
+  let planMinX = Infinity, planMinY = Infinity, planMaxX = -Infinity, planMaxY = -Infinity
+  for (const l of labels) {
+    planMinX = Math.min(planMinX, l.x)
+    planMinY = Math.min(planMinY, l.y)
+    planMaxX = Math.max(planMaxX, l.x)
+    planMaxY = Math.max(planMaxY, l.y)
+  }
+  planMinX -= PLAN_PADDING
+  planMinY -= PLAN_PADDING
+  planMaxX += PLAN_PADDING
+  planMaxY += PLAN_PADDING
+
+  // Filter walls to those within the floor plan region
+  const walls = allWalls.filter(w => {
+    const midX = (w.x1 + w.x2) / 2
+    const midY = (w.y1 + w.y2) / 2
+    return midX >= planMinX && midX <= planMaxX && midY >= planMinY && midY <= planMaxY
+  })
+
+  console.log(`[TextWallDetect] ${rawSegments.length} raw → ${allWalls.length} merged → ${walls.length} in plan region (${Math.round(planMinX)},${Math.round(planMinY)})-(${Math.round(planMaxX)},${Math.round(planMaxY)})`)
+
+  // 4. For each label, ray-cast to find enclosing walls
   const rooms: DetectedRoom[] = []
 
   for (let i = 0; i < labels.length; i++) {

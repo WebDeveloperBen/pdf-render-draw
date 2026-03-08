@@ -14,13 +14,6 @@ const textLabelSchema = z.object({
   pixelY: z.number().int()
 })
 
-const wallSegmentSchema = z.object({
-  x1: z.number().finite(),
-  y1: z.number().finite(),
-  x2: z.number().finite(),
-  y2: z.number().finite()
-})
-
 const bodySchema = z.object({
   pageNum: z.number().int().min(1),
   pageWidth: z.number().positive(),
@@ -29,8 +22,7 @@ const bodySchema = z.object({
   imageHeight: z.number().int().positive(),
   imageDataUrl: z.string().min(1000),
   maxRooms: z.number().int().min(1).max(200).optional(),
-  textLabels: z.array(textLabelSchema).optional(),
-  wallSegments: z.array(wallSegmentSchema).optional()
+  textLabels: z.array(textLabelSchema).optional()
 })
 
 const providerRoomSchema = z.object({
@@ -161,90 +153,9 @@ function polygonCentroid(points: Point[]): Point {
   return { x: cx * factor, y: cy * factor }
 }
 
-/**
- * Ray-cast from a center point in 4 cardinal directions to find nearest wall segments.
- * Returns a rectangle defined by the nearest wall hit in each direction.
- */
-function snapToWalls(
-  center: Point,
-  modelBounds: { minX: number; minY: number; maxX: number; maxY: number },
-  segments: Array<{ x1: number; y1: number; x2: number; y2: number }>,
-  pageWidth: number,
-  pageHeight: number
-): Point[] | null {
-  const cx = center.x
-  const cy = center.y
-  // Start with the model's bounds as fallback limits
-  const modelW = modelBounds.maxX - modelBounds.minX
-  const modelH = modelBounds.maxY - modelBounds.minY
-  const maxReach = Math.max(modelW, modelH) * 0.8 // Don't search further than 80% of model size
-
-  let nearestLeft = cx - maxReach
-  let nearestRight = cx + maxReach
-  let nearestTop = cy - maxReach
-  let nearestBottom = cy + maxReach
-
-  for (const seg of segments) {
-    const dx = seg.x2 - seg.x1
-    const dy = seg.y2 - seg.y1
-    const len = Math.sqrt(dx * dx + dy * dy)
-    if (len < 5) continue // skip tiny segments
-
-    const isHorizontal = Math.abs(dy) < Math.abs(dx) * 0.3
-    const isVertical = Math.abs(dx) < Math.abs(dy) * 0.3
-
-    if (isVertical) {
-      // Vertical wall — potential left/right boundary
-      const wallX = (seg.x1 + seg.x2) / 2
-      const minY = Math.min(seg.y1, seg.y2)
-      const maxY = Math.max(seg.y1, seg.y2)
-
-      // Check if the wall spans across our y position (with tolerance)
-      const tolerance = 15
-      if (cy >= minY - tolerance && cy <= maxY + tolerance) {
-        if (wallX < cx && wallX > nearestLeft) {
-          nearestLeft = wallX // wall to the left
-        }
-        if (wallX > cx && wallX < nearestRight) {
-          nearestRight = wallX // wall to the right
-        }
-      }
-    }
-
-    if (isHorizontal) {
-      // Horizontal wall — potential top/bottom boundary
-      const wallY = (seg.y1 + seg.y2) / 2
-      const minX = Math.min(seg.x1, seg.x2)
-      const maxX = Math.max(seg.x1, seg.x2)
-
-      // Check if the wall spans across our x position (with tolerance)
-      const tolerance = 15
-      if (cx >= minX - tolerance && cx <= maxX + tolerance) {
-        if (wallY < cy && wallY > nearestTop) {
-          nearestTop = wallY // wall above
-        }
-        if (wallY > cy && wallY < nearestBottom) {
-          nearestBottom = wallY // wall below
-        }
-      }
-    }
-  }
-
-  // Validate we found reasonable boundaries
-  const width = nearestRight - nearestLeft
-  const height = nearestBottom - nearestTop
-  if (width < 15 || height < 15) return null
-  if (width > pageWidth * 0.5 || height > pageHeight * 0.5) return null
-
-  return [
-    { x: nearestLeft, y: nearestTop },
-    { x: nearestRight, y: nearestTop },
-    { x: nearestRight, y: nearestBottom },
-    { x: nearestLeft, y: nearestBottom }
-  ]
-}
-
 export default defineEventHandler(async (event) => {
+  requireFeature("roomAiDetect")
+
   const session = await auth.api.getSession({ headers: event.headers })
   if (!session) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
@@ -286,7 +197,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  console.log(`[RoomOCR] Text label hints: ${(body.textLabels ?? []).length}, wall segments: ${(body.wallSegments ?? []).length}`)
+  console.log(`[RoomOCR] Text label hints: ${(body.textLabels ?? []).length}`)
   for (const l of (body.textLabels ?? []).slice(0, 10)) {
     console.log(`[RoomOCR]   "${l.text}" at pixel (${l.pixelX}, ${l.pixelY}) / PDF (${l.pdfX}, ${l.pdfY})`)
   }
@@ -297,42 +208,58 @@ export default defineEventHandler(async (event) => {
   const providerUrlV1 = buildAzureV1ResponsesUrl(azureEndpoint)
   const providerUrlPreview = buildAzurePreviewResponsesUrl(azureEndpoint, azureApiVersion)
 
-  // Build text label hints section if available
   const textLabels = body.textLabels ?? []
+
   const labelHintsSection = textLabels.length > 0
     ? [
         "",
-        "ROOM LABEL POSITIONS (extracted from the PDF with exact coordinates):",
-        "These labels are text printed inside rooms. Use these pixel positions as anchors — the room polygon should SURROUND each label position.",
-        ...textLabels.map(l => `  - "${l.text}" is at pixel position (${l.pixelX}, ${l.pixelY})`),
+        "RED CROSSHAIR MARKERS:",
+        "Red crosshair markers (⊕) have been drawn on the image at the exact pixel locations of room labels extracted from the PDF.",
+        "Each marker shows where a room label is. The room polygon MUST contain its marker point.",
+        ...textLabels.map(l => `  - "${l.text}" → red marker at pixel (${l.pixelX}, ${l.pixelY})`),
         "",
-        "For each label above, find the wall boundaries of the room that CONTAINS that label position.",
-        "The label pixel coordinates are EXACT — your polygon for that room MUST contain that point.",
+        "Use these markers as precise anchor points. Start from each marker, then trace outward to find the enclosing walls.",
         ""
       ]
     : []
 
   const prompt = [
-    `You are analysing an architectural floor plan image that is exactly ${body.imageWidth}px wide and ${body.imageHeight}px tall.`,
+    `You are an expert architectural plan analyser. The image is a floor plan that is exactly ${body.imageWidth}px wide and ${body.imageHeight}px tall.`,
     "",
-    "Task: Return the PRECISE wall boundary polygon for every enclosed room in the floor plan.",
+    "YOUR TASK: Identify every enclosed room and return a precise polygon tracing each room's inner wall boundaries.",
     ...labelHintsSection,
-    "Rules for polygon coordinates:",
+    "STEP-BY-STEP APPROACH for each room:",
+    "1. Find a room — either by its text label (with red crosshair marker) or by identifying enclosed wall boundaries",
+    "2. Identify the thick black wall lines that form ALL sides of this room's boundary",
+    "3. For EACH wall segment, measure the EXACT pixel x,y where it starts and ends",
+    "4. Trace the polygon CLOCKWISE along the inner edge of each wall, placing vertices at wall corners/intersections",
+    "5. VERIFY: Does the polygon contain the room's label/marker? If not, adjust.",
+    "6. VERIFY: Do shared walls between adjacent rooms have IDENTICAL edge coordinates?",
+    "",
+    "CRITICAL ACCURACY RULES:",
+    "- Measure wall positions by looking at the actual pixel coordinates of the wall lines, not by estimating",
+    "- Walls are typically 8-20 pixels thick in the image. Trace the INNER face.",
+    "- Adjacent rooms share walls — ensure shared edges have identical coordinates",
+    "- Do NOT extend a room's boundary past its actual walls into neighboring rooms",
+    "- If a room is rectangular, it needs exactly 4 polygon points",
+    "- If a room is L-shaped, use 6 points. For more complex shapes, use more points as needed.",
+    "",
+    "COORDINATE RULES:",
     `- x: integer 0–${body.imageWidth}, y: integer 0–${body.imageHeight}`,
-    "- Origin (0,0) is top-left corner. X increases rightward, Y increases downward.",
-    "- Trace the INNER wall boundary of each room",
-    "- 4 points for rectangular rooms, up to 12 for L-shaped/irregular",
-    "- Each room has DIFFERENT dimensions — measure each independently",
+    "- Origin (0,0) is top-left. X increases right, Y increases down.",
     "",
-    "Room detection — be EXHAUSTIVE:",
-    "- Return EVERY room enclosed by walls, including small utility rooms",
-    "- Read the label text printed inside each room for the label field",
-    "- Do NOT return: title blocks, notes, legends, dimension strips, section views, exterior space",
+    "WHAT IS A WALL vs WHAT IS NOT:",
+    "- WALLS: Thick black/dark lines forming room boundaries (typically 8-20px thick)",
+    "- NOT WALLS: Dimension lines (thin lines with measurements like '3400'), dashed lines, annotation lines, furniture outlines",
     "",
-    "Scale detection:",
-    "- Find a dimension line with a measurement in mm (e.g. '3400') and measure its pixel length",
+    "WHAT TO DETECT:",
+    "- Every enclosed room: bedrooms, bathrooms, kitchen, living, family, garage, hallway, entry, laundry, study, robe/WIR, pantry, WC, store, linen, lounge, rumpus, ensuite, dressing room, alfresco, porch, mud room, etc.",
+    "- Small utility rooms too (store, linen, WC, powder room)",
+    "- Do NOT include: title blocks, dimension strips, notes, legends, section views, outdoor areas without walls",
     "",
-    `Return JSON only. Maximum ${maxRooms} rooms.`,
+    "SCALE: Find a dimension line with a measurement in mm and measure its pixel length.",
+    "",
+    `Return JSON. Maximum ${maxRooms} rooms.`,
     "",
     "Schema:",
     JSON.stringify({
@@ -350,10 +277,7 @@ export default defineEventHandler(async (event) => {
         role: "user",
         content: [
           { type: "input_text", text: prompt },
-          {
-            type: "input_image",
-            image_url: normalisedDataUrl
-          }
+          { type: "input_image", image_url: normalisedDataUrl }
         ]
       }
     ],
@@ -499,69 +423,13 @@ export default defineEventHandler(async (event) => {
     .slice(0, maxRooms)
     .map((room, index) => {
       // Convert [x, y] pixel pairs → {x, y} PDF viewport points, clamped to page bounds
-      let polygon = dedupePolygon(
+      const polygon = dedupePolygon(
         room.polygon.map((pair) => ({
           x: Math.max(0, Math.min(body.pageWidth, (pair[0] ?? 0) * scaleX)),
           y: Math.max(0, Math.min(body.pageHeight, (pair[1] ?? 0) * scaleY))
         }))
       )
       if (polygon.length < 3) return null
-
-      // Find matching text label for this room
-      let labelMatch: { pdfX: number; pdfY: number } | undefined
-      if (room.label && labelLookup.size > 0) {
-        const labelKey = room.label.toLowerCase().trim()
-        labelMatch = labelLookup.get(labelKey)
-        if (!labelMatch) {
-          const firstWord = labelKey.split(/[\s/]+/)[0]
-          if (firstWord) {
-            for (const [key, value] of labelLookup) {
-              if (key === firstWord || key.startsWith(firstWord) || firstWord.startsWith(key)) {
-                labelMatch = value
-                break
-              }
-            }
-          }
-        }
-      }
-
-      // Wall-snap: if we have a text label position AND wall segments, ray-cast to find actual walls
-      const wallSegs = body.wallSegments ?? []
-      if (labelMatch && wallSegs.length > 0) {
-        const modelBounds = polygonBounds(polygon)
-        const snappedPoly = snapToWalls(
-          { x: labelMatch.pdfX, y: labelMatch.pdfY },
-          modelBounds,
-          wallSegs,
-          body.pageWidth,
-          body.pageHeight
-        )
-        if (snappedPoly) {
-          const snappedBounds = polygonBounds(snappedPoly)
-          console.log(`[RoomOCR] Wall-snapped "${room.label}": (${snappedBounds.minX.toFixed(0)},${snappedBounds.minY.toFixed(0)})-(${snappedBounds.maxX.toFixed(0)},${snappedBounds.maxY.toFixed(0)}) from label at (${labelMatch.pdfX},${labelMatch.pdfY})`)
-          polygon = snappedPoly
-        } else if (labelMatch) {
-          // Fallback: shift polygon centroid to text label position
-          const centroid = polygonCentroid(polygon)
-          const dx = labelMatch.pdfX - centroid.x
-          const dy = labelMatch.pdfY - centroid.y
-          polygon = polygon.map(p => ({
-            x: Math.max(0, Math.min(body.pageWidth, p.x + dx)),
-            y: Math.max(0, Math.min(body.pageHeight, p.y + dy))
-          }))
-          console.log(`[RoomOCR] Shift-snapped "${room.label}": shifted by (${dx.toFixed(1)}, ${dy.toFixed(1)})`)
-        }
-      } else if (labelMatch) {
-        // No wall segments available — just shift to text label
-        const centroid = polygonCentroid(polygon)
-        const dx = labelMatch.pdfX - centroid.x
-        const dy = labelMatch.pdfY - centroid.y
-        polygon = polygon.map(p => ({
-          x: Math.max(0, Math.min(body.pageWidth, p.x + dx)),
-          y: Math.max(0, Math.min(body.pageHeight, p.y + dy))
-        }))
-        console.log(`[RoomOCR] Shift-snapped "${room.label}": shifted by (${dx.toFixed(1)}, ${dy.toFixed(1)})`)
-      }
 
       const area = Math.abs(signedArea(polygon))
       if (!Number.isFinite(area) || area < minArea) return null

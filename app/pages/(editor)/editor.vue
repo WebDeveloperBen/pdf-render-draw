@@ -2,6 +2,7 @@
 import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
 import { useRoomDetection } from "@/composables/editor/useRoomDetection"
+import { useFeatureFlags } from "@/composables/useFeatureFlags"
 
 definePageMeta({
   layout: "editor"
@@ -154,6 +155,9 @@ function closeSidebar() {
 // Tool registry for drawing tools
 const toolRegistry = useToolRegistry()
 const tools = computed(() => toolRegistry.getCompleteToolbarTools())
+
+// Feature flags
+const { flags } = useFeatureFlags()
 
 // Room detection
 const {
@@ -453,9 +457,10 @@ if (typeof window !== "undefined") {
               <span class="tool-name">Select</span>
             </button>
 
-            <div class="tool-divider" />
+            <div v-if="flags.roomDetection || flags.roomSmartDetect || flags.roomAiDetect || flags.roomDebugPlan" class="tool-divider" />
 
             <button
+              v-if="flags.roomDetection"
               :class="['tool-btn room-detect-btn', { active: roomLayerEnabled }]"
               :title="roomLayerEnabled ? 'Hide detected rooms' : 'Auto-detect rooms from plan'"
               :disabled="!viewportStore.isPdfLoaded"
@@ -467,6 +472,7 @@ if (typeof window !== "undefined") {
             </button>
 
             <button
+              v-if="flags.roomSmartDetect"
               class="tool-btn room-text-wall-btn"
               title="Detect rooms from PDF text labels + wall geometry (no AI)"
               :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
@@ -478,6 +484,7 @@ if (typeof window !== "undefined") {
             </button>
 
             <button
+              v-if="flags.roomAiDetect"
               class="tool-btn room-ocr-btn"
               title="Detect rooms using AI vision (OCR)"
               :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
@@ -489,6 +496,7 @@ if (typeof window !== "undefined") {
             </button>
 
             <button
+              v-if="flags.roomDebugPlan"
               :class="['tool-btn room-debug-btn', { active: debugLayerEnabled }]"
               :title="debugLayerEnabled ? 'Hide raw plan debug overlay' : 'Show raw edges/nodes debug overlay'"
               :disabled="!viewportStore.isPdfLoaded"
