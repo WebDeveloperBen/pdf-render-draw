@@ -5,6 +5,7 @@ import {
   apiKeyClient,
   magicLinkClient
 } from "better-auth/client/plugins"
+import { stripeClient } from "@better-auth/stripe/client"
 import { createAuthClient } from "better-auth/vue"
 import type { auth } from "@auth"
 import { ac, roles } from "@shared/auth/access-control"
@@ -18,7 +19,8 @@ export const authClient = createAuthClient({
     organizationClient({ ac, roles }),
     apiKeyClient(),
     platformAdminClient(),
-    magicLinkClient()
+    magicLinkClient(),
+    stripeClient({ subscription: true })
   ]
 })
 
@@ -34,3 +36,6 @@ export const adminClient$ = authClient.admin
 
 // Platform Admin client - for tiered platform admin management
 export const platformAdmin$ = authClient.platformAdmin
+
+// Stripe subscription client - for customer-facing billing flows
+export const subscriptionClient$ = authClient.subscription
