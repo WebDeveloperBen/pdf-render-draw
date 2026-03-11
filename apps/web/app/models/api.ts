@@ -45,6 +45,57 @@ import { computed, unref } from "vue"
 import type { MaybeRef } from "vue"
 
 import { customFetch } from "../utils/customFetch"
+export type GetApiAdminAuditLog200EntriesItem = { [key: string]: unknown }
+
+export type GetApiAdminAuditLog200Pagination = {
+  page?: number
+  limit?: number
+  total?: number
+  totalPages?: number
+}
+
+export type GetApiAdminAuditLog200 = {
+  entries?: GetApiAdminAuditLog200EntriesItem[]
+  pagination?: GetApiAdminAuditLog200Pagination
+  /** All distinct action types for filter dropdown */
+  actionTypes?: string[]
+}
+
+export type GetApiAdminBillingOverview200Statuses = {
+  active: number
+  trialing: number
+  pastDue: number
+  canceled: number
+  incomplete: number
+}
+
+export type GetApiAdminBillingOverview200 = {
+  totalOrganizations: number
+  statuses: GetApiAdminBillingOverview200Statuses
+  noSubscription: number
+  /** @nullable */
+  lastSyncedAt: string | null
+}
+
+export type PostApiAdminBillingSyncBodyMode =
+  (typeof PostApiAdminBillingSyncBodyMode)[keyof typeof PostApiAdminBillingSyncBodyMode]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostApiAdminBillingSyncBodyMode = {
+  full: "full"
+} as const
+
+export type PostApiAdminBillingSyncBody = {
+  mode?: PostApiAdminBillingSyncBodyMode
+}
+
+export type PostApiAdminBillingSync200 = {
+  synced: number
+  created: number
+  updated: number
+  errors: number
+}
+
 export type DeleteApiAdminOrganizationsIdBody = {
   /** Must be true to confirm deletion */
   confirmation: boolean
@@ -163,6 +214,51 @@ export type PatchApiAdminOrganizationsId200 = {
   _count: _PatchApiAdminOrganizationsId200Count
 }
 
+/**
+ * @nullable
+ */
+export type GetApiAdminOrganizationsIdBilling200Subscription = {
+  id: string
+  plan: string
+  status: string
+  /** @nullable */
+  periodEnd?: string | null
+  /** @nullable */
+  cancelAtPeriodEnd?: boolean | null
+  /** @nullable */
+  billingInterval?: string | null
+} | null
+
+export type GetApiAdminOrganizationsIdBilling200PlanTier =
+  (typeof GetApiAdminOrganizationsIdBilling200PlanTier)[keyof typeof GetApiAdminOrganizationsIdBilling200PlanTier]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminOrganizationsIdBilling200PlanTier = {
+  freemium: "freemium",
+  pro: "pro",
+  team: "team",
+  enterprise: "enterprise"
+} as const
+
+export type GetApiAdminOrganizationsIdBilling200BillingHealth =
+  (typeof GetApiAdminOrganizationsIdBilling200BillingHealth)[keyof typeof GetApiAdminOrganizationsIdBilling200BillingHealth]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminOrganizationsIdBilling200BillingHealth = {
+  healthy: "healthy",
+  at_risk: "at_risk",
+  action_needed: "action_needed",
+  inactive: "inactive"
+} as const
+
+export type GetApiAdminOrganizationsIdBilling200 = {
+  hasSubscription: boolean
+  /** @nullable */
+  subscription?: GetApiAdminOrganizationsIdBilling200Subscription
+  planTier: GetApiAdminOrganizationsIdBilling200PlanTier
+  billingHealth: GetApiAdminOrganizationsIdBilling200BillingHealth
+}
+
 export type GetApiAdminOrganizationsParams = {
   /**
    * Search organizations by name or slug
@@ -192,7 +288,7 @@ export type GetApiAdminOrganizationsParams = {
 export type GetApiAdminOrganizationsSortBy =
   (typeof GetApiAdminOrganizationsSortBy)[keyof typeof GetApiAdminOrganizationsSortBy]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminOrganizationsSortBy = {
   createdAt: "createdAt",
   name: "name"
@@ -201,7 +297,7 @@ export const GetApiAdminOrganizationsSortBy = {
 export type GetApiAdminOrganizationsSortOrder =
   (typeof GetApiAdminOrganizationsSortOrder)[keyof typeof GetApiAdminOrganizationsSortOrder]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminOrganizationsSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -265,6 +361,34 @@ export type PostApiAdminOrganizations201 = {
   projectCount: number
 }
 
+/**
+ * @nullable
+ */
+export type GetApiAdminPlans200PlansItemLimits = { [key: string]: unknown } | null
+
+export type GetApiAdminPlans200PlansItem = {
+  id: string
+  stripeProductId?: string
+  stripePriceId: string
+  name: string
+  /** @nullable */
+  description?: string | null
+  amount: number
+  currency: string
+  interval: string
+  active: boolean
+  /** @nullable */
+  limits?: GetApiAdminPlans200PlansItemLimits
+  /** @nullable */
+  trialDays?: number | null
+  /** @nullable */
+  group?: string | null
+}
+
+export type GetApiAdminPlans200 = {
+  plans: GetApiAdminPlans200PlansItem[]
+}
+
 export type GetApiAdminStats200Users = {
   total: number
   recentSignups: number
@@ -288,6 +412,240 @@ export type GetApiAdminStats200 = {
   organizations: GetApiAdminStats200Organizations
   projects: GetApiAdminStats200Projects
   sessions: GetApiAdminStats200Sessions
+}
+
+export type GetApiAdminSubscriptionsId200PlanTier =
+  (typeof GetApiAdminSubscriptionsId200PlanTier)[keyof typeof GetApiAdminSubscriptionsId200PlanTier]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminSubscriptionsId200PlanTier = {
+  freemium: "freemium",
+  pro: "pro",
+  team: "team",
+  enterprise: "enterprise"
+} as const
+
+/**
+ * @nullable
+ */
+export type GetApiAdminSubscriptionsId200PlanInfo = {
+  name: string
+  amount: number
+  currency: string
+  interval: string
+} | null
+
+export type GetApiAdminSubscriptionsId200BillingHealth =
+  (typeof GetApiAdminSubscriptionsId200BillingHealth)[keyof typeof GetApiAdminSubscriptionsId200BillingHealth]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminSubscriptionsId200BillingHealth = {
+  healthy: "healthy",
+  at_risk: "at_risk",
+  action_needed: "action_needed",
+  inactive: "inactive"
+} as const
+
+export type GetApiAdminSubscriptionsId200DataFreshness =
+  (typeof GetApiAdminSubscriptionsId200DataFreshness)[keyof typeof GetApiAdminSubscriptionsId200DataFreshness]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminSubscriptionsId200DataFreshness = {
+  fresh: "fresh",
+  stale: "stale",
+  unknown: "unknown"
+} as const
+
+export type GetApiAdminSubscriptionsId200AllowedActionsItem =
+  (typeof GetApiAdminSubscriptionsId200AllowedActionsItem)[keyof typeof GetApiAdminSubscriptionsId200AllowedActionsItem]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminSubscriptionsId200AllowedActionsItem = {
+  refresh: "refresh",
+  cancel_at_period_end: "cancel_at_period_end",
+  cancel_immediately: "cancel_immediately",
+  reactivate: "reactivate",
+  send_billing_portal_link: "send_billing_portal_link"
+} as const
+
+export type GetApiAdminSubscriptionsId200 = {
+  id: string
+  /** @nullable */
+  stripeSubscriptionId?: string | null
+  referenceId: string
+  organizationName: string
+  organizationSlug: string
+  /** @nullable */
+  organizationLogo?: string | null
+  /** @nullable */
+  stripeCustomerId?: string | null
+  plan: string
+  planTier: GetApiAdminSubscriptionsId200PlanTier
+  status: string
+  /** @nullable */
+  periodStart?: string | null
+  /** @nullable */
+  periodEnd?: string | null
+  /** @nullable */
+  cancelAtPeriodEnd?: boolean | null
+  /** @nullable */
+  cancelAt?: string | null
+  /** @nullable */
+  canceledAt?: string | null
+  /** @nullable */
+  endedAt?: string | null
+  /** @nullable */
+  trialStart?: string | null
+  /** @nullable */
+  trialEnd?: string | null
+  /** @nullable */
+  billingInterval?: string | null
+  /** @nullable */
+  seats?: number | null
+  /** @nullable */
+  stripeScheduleId?: string | null
+  organizationMemberCount: number
+  /** @nullable */
+  planInfo?: GetApiAdminSubscriptionsId200PlanInfo
+  billingHealth: GetApiAdminSubscriptionsId200BillingHealth
+  dataFreshness: GetApiAdminSubscriptionsId200DataFreshness
+  /** @nullable */
+  lastSyncedAt?: string | null
+  /** @nullable */
+  lastWebhookAt?: string | null
+  isEnterpriseManaged: boolean
+  allowedActions: GetApiAdminSubscriptionsId200AllowedActionsItem[]
+}
+
+export type GetApiAdminSubscriptionsIdActivityParams = {
+  limit?: number
+  offset?: number
+}
+
+/**
+ * @nullable
+ */
+export type GetApiAdminSubscriptionsIdActivity200ActivitiesItemMetadata = { [key: string]: unknown } | null
+
+export type GetApiAdminSubscriptionsIdActivity200ActivitiesItem = {
+  id: string
+  type: string
+  description: string
+  /** @nullable */
+  actorName?: string | null
+  /** @nullable */
+  actorEmail?: string | null
+  /** @nullable */
+  metadata?: GetApiAdminSubscriptionsIdActivity200ActivitiesItemMetadata
+  createdAt: string
+}
+
+export type GetApiAdminSubscriptionsIdActivity200 = {
+  activities: GetApiAdminSubscriptionsIdActivity200ActivitiesItem[]
+}
+
+export type PostApiAdminSubscriptionsIdCancelBodyMode =
+  (typeof PostApiAdminSubscriptionsIdCancelBodyMode)[keyof typeof PostApiAdminSubscriptionsIdCancelBodyMode]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostApiAdminSubscriptionsIdCancelBodyMode = {
+  at_period_end: "at_period_end",
+  immediately: "immediately"
+} as const
+
+export type PostApiAdminSubscriptionsIdCancelBody = {
+  mode: PostApiAdminSubscriptionsIdCancelBodyMode
+  reason: string
+}
+
+export type PostApiAdminSubscriptionsIdReactivateBody = {
+  reason: string
+}
+
+export type PostApiAdminSubscriptionsIdSendBillingPortalLink200 = {
+  url: string
+}
+
+export type GetApiAdminSubscriptionsParams = {
+  page?: number
+  limit?: number
+  search?: string
+  /**
+   * Comma-separated statuses
+   */
+  status?: string
+  plan?: string
+  sortBy?: GetApiAdminSubscriptionsSortBy
+  sortOrder?: GetApiAdminSubscriptionsSortOrder
+}
+
+export type GetApiAdminSubscriptionsSortBy =
+  (typeof GetApiAdminSubscriptionsSortBy)[keyof typeof GetApiAdminSubscriptionsSortBy]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminSubscriptionsSortBy = {
+  organizationName: "organizationName",
+  status: "status",
+  periodEnd: "periodEnd",
+  plan: "plan"
+} as const
+
+export type GetApiAdminSubscriptionsSortOrder =
+  (typeof GetApiAdminSubscriptionsSortOrder)[keyof typeof GetApiAdminSubscriptionsSortOrder]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminSubscriptionsSortOrder = {
+  asc: "asc",
+  desc: "desc"
+} as const
+
+export type GetApiAdminSubscriptions200SubscriptionsItemPlanTier =
+  (typeof GetApiAdminSubscriptions200SubscriptionsItemPlanTier)[keyof typeof GetApiAdminSubscriptions200SubscriptionsItemPlanTier]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiAdminSubscriptions200SubscriptionsItemPlanTier = {
+  freemium: "freemium",
+  pro: "pro",
+  team: "team",
+  enterprise: "enterprise"
+} as const
+
+export type GetApiAdminSubscriptions200SubscriptionsItem = {
+  id: string
+  /** @nullable */
+  stripeSubscriptionId?: string | null
+  referenceId: string
+  organizationName: string
+  organizationSlug: string
+  /** @nullable */
+  organizationLogo?: string | null
+  /** @nullable */
+  stripeCustomerId?: string | null
+  plan: string
+  planTier: GetApiAdminSubscriptions200SubscriptionsItemPlanTier
+  status: string
+  /** @nullable */
+  periodStart?: string | null
+  /** @nullable */
+  periodEnd?: string | null
+  /** @nullable */
+  cancelAtPeriodEnd?: boolean | null
+  /** @nullable */
+  billingInterval?: string | null
+  /** @nullable */
+  trialEnd?: string | null
+}
+
+export type GetApiAdminSubscriptions200Pagination = {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+export type GetApiAdminSubscriptions200 = {
+  subscriptions: GetApiAdminSubscriptions200SubscriptionsItem[]
+  pagination: GetApiAdminSubscriptions200Pagination
 }
 
 export type DeleteApiAdminUsersIdBody = {
@@ -380,7 +738,7 @@ export type GetApiAdminUsersParams = {
 
 export type GetApiAdminUsersSortBy = (typeof GetApiAdminUsersSortBy)[keyof typeof GetApiAdminUsersSortBy]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminUsersSortBy = {
   createdAt: "createdAt",
   name: "name",
@@ -389,7 +747,7 @@ export const GetApiAdminUsersSortBy = {
 
 export type GetApiAdminUsersSortOrder = (typeof GetApiAdminUsersSortOrder)[keyof typeof GetApiAdminUsersSortOrder]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminUsersSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -428,7 +786,7 @@ export type GetApiAdminUsers200 = {
 export type GetApiDashboardStats200RecentActivityItemType =
   (typeof GetApiDashboardStats200RecentActivityItemType)[keyof typeof GetApiDashboardStats200RecentActivityItemType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiDashboardStats200RecentActivityItemType = {
   project_updated: "project_updated"
 } as const
@@ -454,6 +812,176 @@ export type GetApiDashboardStats200 = {
   totalOrganizations: number
   totalShares: number
   recentActivity: GetApiDashboardStats200RecentActivityItem[]
+}
+
+export type GetApiFilesFileIdAnnotationsParams = {
+  /**
+   * Only return annotations modified after this timestamp (for incremental sync)
+   */
+  since?: string
+  /**
+   * Include soft-deleted annotations (for sync reconciliation)
+   */
+  includeDeleted?: boolean
+}
+
+/**
+ * Annotation data (type varies by annotation type)
+ */
+export type GetApiFilesFileIdAnnotations200AnnotationsItem = { [key: string]: unknown }
+
+export type GetApiFilesFileIdAnnotations200Meta = {
+  count: number
+  /** @nullable */
+  lastModified?: string | null
+  serverTime: string
+}
+
+/**
+ * User-specific viewport state
+ * @nullable
+ */
+export type GetApiFilesFileIdAnnotations200ViewportState = {
+  scale?: number
+  rotation?: number
+  scrollLeft?: number
+  scrollTop?: number
+  currentPage?: number
+} | null
+
+export type GetApiFilesFileIdAnnotations200 = {
+  annotations: GetApiFilesFileIdAnnotations200AnnotationsItem[]
+  meta: GetApiFilesFileIdAnnotations200Meta
+  /**
+   * User-specific viewport state
+   * @nullable
+   */
+  viewportState?: GetApiFilesFileIdAnnotations200ViewportState
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType =
+  (typeof PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType)[keyof typeof PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType = {
+  create: "create",
+  update: "update",
+  delete: "delete"
+} as const
+
+export type PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemAnnotation = { [key: string]: unknown }
+
+export type PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItem = {
+  type: PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType
+  annotation: PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemAnnotation
+  localVersion: number
+  timestamp: string
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBeaconBody = {
+  clientTime: string
+  /** @maxItems 50 */
+  operations: PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItem[]
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType =
+  (typeof PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType)[keyof typeof PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType = {
+  create: "create",
+  update: "update",
+  delete: "delete"
+} as const
+
+/**
+ * Annotation data (varies by type)
+ */
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotation = { [key: string]: unknown }
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItem = {
+  type: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType
+  /** Annotation data (varies by type) */
+  annotation: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotation
+  localVersion: number
+  timestamp: string
+}
+
+/**
+ * Optional viewport state to sync
+ */
+export type PostApiFilesFileIdAnnotationsSyncBodyViewportState = {
+  scale?: number
+  rotation?: number
+  scrollLeft?: number
+  scrollTop?: number
+  currentPage?: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBody = {
+  clientTime: string
+  lastSyncTime?: string
+  /** @maxItems 100 */
+  operations: PostApiFilesFileIdAnnotationsSyncBodyOperationsItem[]
+  /** Optional viewport state to sync */
+  viewportState?: PostApiFilesFileIdAnnotationsSyncBodyViewportState
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemReason =
+  (typeof PostApiFilesFileIdAnnotationsSync200ConflictsItemReason)[keyof typeof PostApiFilesFileIdAnnotationsSync200ConflictsItemReason]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostApiFilesFileIdAnnotationsSync200ConflictsItemReason = {
+  version_mismatch: "version_mismatch",
+  deleted: "deleted",
+  validation_error: "validation_error"
+} as const
+
+/**
+ * @nullable
+ */
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersion = { [key: string]: unknown } | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItem = {
+  annotationId: string
+  reason: PostApiFilesFileIdAnnotationsSync200ConflictsItemReason
+  /** @nullable */
+  serverVersion: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersion
+  message?: string
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItem = { [key: string]: unknown }
+
+export type PostApiFilesFileIdAnnotationsSync200Meta = {
+  serverTime: string
+  syncId: string
+}
+
+/**
+ * Current user viewport state after sync
+ * @nullable
+ */
+export type PostApiFilesFileIdAnnotationsSync200ViewportState = {
+  scale?: number
+  rotation?: number
+  scrollLeft?: number
+  scrollTop?: number
+  currentPage?: number
+} | null
+
+export type PostApiFilesFileIdAnnotationsSync200 = {
+  success: boolean
+  /** IDs of successfully applied operations */
+  applied: string[]
+  conflicts: PostApiFilesFileIdAnnotationsSync200ConflictsItem[]
+  /** Annotations changed by other clients since lastSyncTime */
+  serverUpdates: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItem[]
+  meta: PostApiFilesFileIdAnnotationsSync200Meta
+  /**
+   * Current user viewport state after sync
+   * @nullable
+   */
+  viewportState?: PostApiFilesFileIdAnnotationsSync200ViewportState
 }
 
 export type GetApiGuestSharesShareId200Share = {
@@ -811,6 +1339,18 @@ export type GetApiProjectsIdFilesFileId200Uploader = {
   image?: string | null
 }
 
+/**
+ * User-specific viewport preferences for this file
+ * @nullable
+ */
+export type GetApiProjectsIdFilesFileId200ViewportState = {
+  scale?: number
+  rotation?: number
+  scrollLeft?: number
+  scrollTop?: number
+  currentPage?: number
+} | null
+
 export type GetApiProjectsIdFilesFileId200 = {
   id: string
   projectId: string
@@ -825,6 +1365,11 @@ export type GetApiProjectsIdFilesFileId200 = {
   createdAt: string
   updatedAt: string
   uploader: GetApiProjectsIdFilesFileId200Uploader
+  /**
+   * User-specific viewport preferences for this file
+   * @nullable
+   */
+  viewportState?: GetApiProjectsIdFilesFileId200ViewportState
 }
 
 export type PatchApiProjectsIdFilesFileIdBody = {
@@ -967,7 +1512,7 @@ export type PatchApiProjectsIdSharesShareIdBody = {
 export type PatchApiProjectsIdSharesShareId200ShareType =
   (typeof PatchApiProjectsIdSharesShareId200ShareType)[keyof typeof PatchApiProjectsIdSharesShareId200ShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchApiProjectsIdSharesShareId200ShareType = {
   public: "public",
   private: "private"
@@ -1010,7 +1555,7 @@ export type PatchApiProjectsIdSharesShareId200 = {
 export type GetApiProjectsIdShares200ItemShareType =
   (typeof GetApiProjectsIdShares200ItemShareType)[keyof typeof GetApiProjectsIdShares200ItemShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiProjectsIdShares200ItemShareType = {
   public: "public",
   private: "private"
@@ -1081,7 +1626,7 @@ export type GetApiProjectsIdShares200Item = {
 export type PostApiProjectsIdSharesBodyShareType =
   (typeof PostApiProjectsIdSharesBodyShareType)[keyof typeof PostApiProjectsIdSharesBodyShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiProjectsIdSharesBodyShareType = {
   public: "public",
   private: "private"
@@ -1122,7 +1667,7 @@ export type PostApiProjectsIdSharesBody = {
 export type PostApiProjectsIdShares201ShareType =
   (typeof PostApiProjectsIdShares201ShareType)[keyof typeof PostApiProjectsIdShares201ShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiProjectsIdShares201ShareType = {
   public: "public",
   private: "private"
@@ -1199,7 +1744,7 @@ export type GetApiProjectsParams = {
 
 export type GetApiProjectsSortBy = (typeof GetApiProjectsSortBy)[keyof typeof GetApiProjectsSortBy]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiProjectsSortBy = {
   name: "name",
   createdAt: "createdAt",
@@ -1209,7 +1754,7 @@ export const GetApiProjectsSortBy = {
 
 export type GetApiProjectsSortOrder = (typeof GetApiProjectsSortOrder)[keyof typeof GetApiProjectsSortOrder]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiProjectsSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -1266,7 +1811,7 @@ export type GetApiProjects200Item = {
  */
 export type PostApiProjectsBodyPriority = (typeof PostApiProjectsBodyPriority)[keyof typeof PostApiProjectsBodyPriority]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiProjectsBodyPriority = {
   low: "low",
   normal: "normal",
@@ -1450,7 +1995,7 @@ export type GetApiShareToken200Organization = {
 export type GetApiShareToken200ShareShareType =
   (typeof GetApiShareToken200ShareShareType)[keyof typeof GetApiShareToken200ShareShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiShareToken200ShareShareType = {
   public: "public",
   private: "private"
@@ -1748,6 +2293,284 @@ export function useGetApiDevEmails<TData = Awaited<ReturnType<typeof getApiDevEm
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
 
   return query
+}
+
+/**
+ * Get paginated, filterable audit log entries for all platform actions
+ * @summary List Audit Log
+ */
+export type getApiAdminAuditLogResponse200 = {
+  data: GetApiAdminAuditLog200
+  status: 200
+}
+
+export type getApiAdminAuditLogResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiAdminAuditLogResponseSuccess = getApiAdminAuditLogResponse200 & {
+  headers: Headers
+}
+export type getApiAdminAuditLogResponseError = getApiAdminAuditLogResponse403 & {
+  headers: Headers
+}
+
+export type getApiAdminAuditLogResponse = getApiAdminAuditLogResponseSuccess | getApiAdminAuditLogResponseError
+
+export const getGetApiAdminAuditLogUrl = () => {
+  return `/api/admin/audit-log`
+}
+
+export const getApiAdminAuditLog = async (options?: RequestInit): Promise<getApiAdminAuditLogResponse> => {
+  return customFetch<getApiAdminAuditLogResponse>(getGetApiAdminAuditLogUrl(), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiAdminAuditLogQueryKey = () => {
+  return ["api", "admin", "audit-log"] as const
+}
+
+export const getGetApiAdminAuditLogQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAdminAuditLog>>,
+  TError = void
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminAuditLog>>, TError, TData>>
+  request?: SecondParameter<typeof customFetch>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiAdminAuditLogQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAdminAuditLog>>> = ({ signal }) =>
+    getApiAdminAuditLog({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAdminAuditLog>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiAdminAuditLogQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAdminAuditLog>>>
+export type GetApiAdminAuditLogQueryError = void
+
+/**
+ * @summary List Audit Log
+ */
+
+export function useGetApiAdminAuditLog<TData = Awaited<ReturnType<typeof getApiAdminAuditLog>>, TError = void>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminAuditLog>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiAdminAuditLogQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Get platform-wide billing and subscription metrics for admin dashboard
+ * @summary Get Billing Overview
+ */
+export type getApiAdminBillingOverviewResponse200 = {
+  data: GetApiAdminBillingOverview200
+  status: 200
+}
+
+export type getApiAdminBillingOverviewResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiAdminBillingOverviewResponseSuccess = getApiAdminBillingOverviewResponse200 & {
+  headers: Headers
+}
+export type getApiAdminBillingOverviewResponseError = getApiAdminBillingOverviewResponse403 & {
+  headers: Headers
+}
+
+export type getApiAdminBillingOverviewResponse =
+  | getApiAdminBillingOverviewResponseSuccess
+  | getApiAdminBillingOverviewResponseError
+
+export const getGetApiAdminBillingOverviewUrl = () => {
+  return `/api/admin/billing/overview`
+}
+
+export const getApiAdminBillingOverview = async (
+  options?: RequestInit
+): Promise<getApiAdminBillingOverviewResponse> => {
+  return customFetch<getApiAdminBillingOverviewResponse>(getGetApiAdminBillingOverviewUrl(), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiAdminBillingOverviewQueryKey = () => {
+  return ["api", "admin", "billing", "overview"] as const
+}
+
+export const getGetApiAdminBillingOverviewQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAdminBillingOverview>>,
+  TError = void
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminBillingOverview>>, TError, TData>>
+  request?: SecondParameter<typeof customFetch>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiAdminBillingOverviewQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAdminBillingOverview>>> = ({ signal }) =>
+    getApiAdminBillingOverview({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAdminBillingOverview>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiAdminBillingOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAdminBillingOverview>>>
+export type GetApiAdminBillingOverviewQueryError = void
+
+/**
+ * @summary Get Billing Overview
+ */
+
+export function useGetApiAdminBillingOverview<
+  TData = Awaited<ReturnType<typeof getApiAdminBillingOverview>>,
+  TError = void
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminBillingOverview>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiAdminBillingOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Pull all subscriptions and plans from Stripe into local database. Admin waits for result.
+ * @summary Sync from Stripe
+ */
+export type postApiAdminBillingSyncResponse200 = {
+  data: PostApiAdminBillingSync200
+  status: 200
+}
+
+export type postApiAdminBillingSyncResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postApiAdminBillingSyncResponseSuccess = postApiAdminBillingSyncResponse200 & {
+  headers: Headers
+}
+export type postApiAdminBillingSyncResponseError = postApiAdminBillingSyncResponse403 & {
+  headers: Headers
+}
+
+export type postApiAdminBillingSyncResponse =
+  | postApiAdminBillingSyncResponseSuccess
+  | postApiAdminBillingSyncResponseError
+
+export const getPostApiAdminBillingSyncUrl = () => {
+  return `/api/admin/billing/sync`
+}
+
+export const postApiAdminBillingSync = async (
+  postApiAdminBillingSyncBody: PostApiAdminBillingSyncBody,
+  options?: RequestInit
+): Promise<postApiAdminBillingSyncResponse> => {
+  return customFetch<postApiAdminBillingSyncResponse>(getPostApiAdminBillingSyncUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(postApiAdminBillingSyncBody)
+  })
+}
+
+export const getPostApiAdminBillingSyncMutationOptions = <TError = void, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAdminBillingSync>>,
+    TError,
+    { data: PostApiAdminBillingSyncBody },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAdminBillingSync>>,
+  TError,
+  { data: PostApiAdminBillingSyncBody },
+  TContext
+> => {
+  const mutationKey = ["postApiAdminBillingSync"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiAdminBillingSync>>,
+    { data: PostApiAdminBillingSyncBody }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return postApiAdminBillingSync(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiAdminBillingSyncMutationResult = NonNullable<Awaited<ReturnType<typeof postApiAdminBillingSync>>>
+export type PostApiAdminBillingSyncMutationBody = PostApiAdminBillingSyncBody
+export type PostApiAdminBillingSyncMutationError = void
+
+/**
+ * @summary Sync from Stripe
+ */
+export const usePostApiAdminBillingSync = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAdminBillingSync>>,
+      TError,
+      { data: PostApiAdminBillingSyncBody },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiAdminBillingSync>>,
+  TError,
+  { data: PostApiAdminBillingSyncBody },
+  TContext
+> => {
+  const mutationOptions = getPostApiAdminBillingSyncMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
 }
 
 /**
@@ -2107,6 +2930,104 @@ export const usePatchApiAdminOrganizationsId = <TError = void, TContext = unknow
 }
 
 /**
+ * Get billing summary for an organisation, used on the organisation detail page
+ * @summary Get Organisation Billing
+ */
+export type getApiAdminOrganizationsIdBillingResponse200 = {
+  data: GetApiAdminOrganizationsIdBilling200
+  status: 200
+}
+
+export type getApiAdminOrganizationsIdBillingResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiAdminOrganizationsIdBillingResponseSuccess = getApiAdminOrganizationsIdBillingResponse200 & {
+  headers: Headers
+}
+export type getApiAdminOrganizationsIdBillingResponseError = getApiAdminOrganizationsIdBillingResponse403 & {
+  headers: Headers
+}
+
+export type getApiAdminOrganizationsIdBillingResponse =
+  | getApiAdminOrganizationsIdBillingResponseSuccess
+  | getApiAdminOrganizationsIdBillingResponseError
+
+export const getGetApiAdminOrganizationsIdBillingUrl = (id: string) => {
+  return `/api/admin/organizations/${id}/billing`
+}
+
+export const getApiAdminOrganizationsIdBilling = async (
+  id: string,
+  options?: RequestInit
+): Promise<getApiAdminOrganizationsIdBillingResponse> => {
+  return customFetch<getApiAdminOrganizationsIdBillingResponse>(getGetApiAdminOrganizationsIdBillingUrl(id), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiAdminOrganizationsIdBillingQueryKey = (id?: MaybeRef<string>) => {
+  return ["api", "admin", "organizations", id, "billing"] as const
+}
+
+export const getGetApiAdminOrganizationsIdBillingQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAdminOrganizationsIdBilling>>,
+  TError = void
+>(
+  id: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminOrganizationsIdBilling>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiAdminOrganizationsIdBillingQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAdminOrganizationsIdBilling>>> = ({ signal }) =>
+    getApiAdminOrganizationsIdBilling(unref(id), { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: computed(() => !!unref(id)), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAdminOrganizationsIdBilling>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiAdminOrganizationsIdBillingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiAdminOrganizationsIdBilling>>
+>
+export type GetApiAdminOrganizationsIdBillingQueryError = void
+
+/**
+ * @summary Get Organisation Billing
+ */
+
+export function useGetApiAdminOrganizationsIdBilling<
+  TData = Awaited<ReturnType<typeof getApiAdminOrganizationsIdBilling>>,
+  TError = void
+>(
+  id: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminOrganizationsIdBilling>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiAdminOrganizationsIdBillingQueryOptions(id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
  * Get paginated list of organizations for admin management
  * @summary List Organizations
  */
@@ -2336,6 +3257,90 @@ export const usePostApiAdminOrganizations = <TError = void, TContext = unknown>(
 }
 
 /**
+ * Get cached plan list for filter dropdowns and display
+ * @summary List Plans
+ */
+export type getApiAdminPlansResponse200 = {
+  data: GetApiAdminPlans200
+  status: 200
+}
+
+export type getApiAdminPlansResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiAdminPlansResponseSuccess = getApiAdminPlansResponse200 & {
+  headers: Headers
+}
+export type getApiAdminPlansResponseError = getApiAdminPlansResponse403 & {
+  headers: Headers
+}
+
+export type getApiAdminPlansResponse = getApiAdminPlansResponseSuccess | getApiAdminPlansResponseError
+
+export const getGetApiAdminPlansUrl = () => {
+  return `/api/admin/plans`
+}
+
+export const getApiAdminPlans = async (options?: RequestInit): Promise<getApiAdminPlansResponse> => {
+  return customFetch<getApiAdminPlansResponse>(getGetApiAdminPlansUrl(), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiAdminPlansQueryKey = () => {
+  return ["api", "admin", "plans"] as const
+}
+
+export const getGetApiAdminPlansQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAdminPlans>>,
+  TError = void
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminPlans>>, TError, TData>>
+  request?: SecondParameter<typeof customFetch>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiAdminPlansQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAdminPlans>>> = ({ signal }) =>
+    getApiAdminPlans({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAdminPlans>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiAdminPlansQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAdminPlans>>>
+export type GetApiAdminPlansQueryError = void
+
+/**
+ * @summary List Plans
+ */
+
+export function useGetApiAdminPlans<TData = Awaited<ReturnType<typeof getApiAdminPlans>>, TError = void>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminPlans>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiAdminPlansQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
  * Get platform-wide statistics for admin dashboard
  * @summary Get Platform Stats
  */
@@ -2409,6 +3414,797 @@ export function useGetApiAdminStats<TData = Awaited<ReturnType<typeof getApiAdmi
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getGetApiAdminStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Get full subscription details including billing health, freshness, and allowed actions
+ * @summary Get Subscription Detail
+ */
+export type getApiAdminSubscriptionsIdResponse200 = {
+  data: GetApiAdminSubscriptionsId200
+  status: 200
+}
+
+export type getApiAdminSubscriptionsIdResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiAdminSubscriptionsIdResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getApiAdminSubscriptionsIdResponseSuccess = getApiAdminSubscriptionsIdResponse200 & {
+  headers: Headers
+}
+export type getApiAdminSubscriptionsIdResponseError = (
+  | getApiAdminSubscriptionsIdResponse403
+  | getApiAdminSubscriptionsIdResponse404
+) & {
+  headers: Headers
+}
+
+export type getApiAdminSubscriptionsIdResponse =
+  | getApiAdminSubscriptionsIdResponseSuccess
+  | getApiAdminSubscriptionsIdResponseError
+
+export const getGetApiAdminSubscriptionsIdUrl = (id: string) => {
+  return `/api/admin/subscriptions/${id}`
+}
+
+export const getApiAdminSubscriptionsId = async (
+  id: string,
+  options?: RequestInit
+): Promise<getApiAdminSubscriptionsIdResponse> => {
+  return customFetch<getApiAdminSubscriptionsIdResponse>(getGetApiAdminSubscriptionsIdUrl(id), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiAdminSubscriptionsIdQueryKey = (id?: MaybeRef<string>) => {
+  return ["api", "admin", "subscriptions", id] as const
+}
+
+export const getGetApiAdminSubscriptionsIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAdminSubscriptionsId>>,
+  TError = void
+>(
+  id: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminSubscriptionsId>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiAdminSubscriptionsIdQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAdminSubscriptionsId>>> = ({ signal }) =>
+    getApiAdminSubscriptionsId(unref(id), { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: computed(() => !!unref(id)), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAdminSubscriptionsId>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiAdminSubscriptionsIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAdminSubscriptionsId>>>
+export type GetApiAdminSubscriptionsIdQueryError = void
+
+/**
+ * @summary Get Subscription Detail
+ */
+
+export function useGetApiAdminSubscriptionsId<
+  TData = Awaited<ReturnType<typeof getApiAdminSubscriptionsId>>,
+  TError = void
+>(
+  id: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminSubscriptionsId>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiAdminSubscriptionsIdQueryOptions(id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Get billing activity timeline for a subscription
+ * @summary Get Subscription Activity
+ */
+export type getApiAdminSubscriptionsIdActivityResponse200 = {
+  data: GetApiAdminSubscriptionsIdActivity200
+  status: 200
+}
+
+export type getApiAdminSubscriptionsIdActivityResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiAdminSubscriptionsIdActivityResponseSuccess = getApiAdminSubscriptionsIdActivityResponse200 & {
+  headers: Headers
+}
+export type getApiAdminSubscriptionsIdActivityResponseError = getApiAdminSubscriptionsIdActivityResponse403 & {
+  headers: Headers
+}
+
+export type getApiAdminSubscriptionsIdActivityResponse =
+  | getApiAdminSubscriptionsIdActivityResponseSuccess
+  | getApiAdminSubscriptionsIdActivityResponseError
+
+export const getGetApiAdminSubscriptionsIdActivityUrl = (
+  id: string,
+  params?: GetApiAdminSubscriptionsIdActivityParams
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/subscriptions/${id}/activity?${stringifiedParams}`
+    : `/api/admin/subscriptions/${id}/activity`
+}
+
+export const getApiAdminSubscriptionsIdActivity = async (
+  id: string,
+  params?: GetApiAdminSubscriptionsIdActivityParams,
+  options?: RequestInit
+): Promise<getApiAdminSubscriptionsIdActivityResponse> => {
+  return customFetch<getApiAdminSubscriptionsIdActivityResponse>(getGetApiAdminSubscriptionsIdActivityUrl(id, params), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiAdminSubscriptionsIdActivityQueryKey = (
+  id?: MaybeRef<string>,
+  params?: MaybeRef<GetApiAdminSubscriptionsIdActivityParams>
+) => {
+  return ["api", "admin", "subscriptions", id, "activity", ...(params ? [params] : [])] as const
+}
+
+export const getGetApiAdminSubscriptionsIdActivityQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAdminSubscriptionsIdActivity>>,
+  TError = void
+>(
+  id: MaybeRef<string>,
+  params?: MaybeRef<GetApiAdminSubscriptionsIdActivityParams>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminSubscriptionsIdActivity>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiAdminSubscriptionsIdActivityQueryKey(id, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAdminSubscriptionsIdActivity>>> = ({ signal }) =>
+    getApiAdminSubscriptionsIdActivity(unref(id), unref(params), { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: computed(() => !!unref(id)), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAdminSubscriptionsIdActivity>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiAdminSubscriptionsIdActivityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiAdminSubscriptionsIdActivity>>
+>
+export type GetApiAdminSubscriptionsIdActivityQueryError = void
+
+/**
+ * @summary Get Subscription Activity
+ */
+
+export function useGetApiAdminSubscriptionsIdActivity<
+  TData = Awaited<ReturnType<typeof getApiAdminSubscriptionsIdActivity>>,
+  TError = void
+>(
+  id: MaybeRef<string>,
+  params?: MaybeRef<GetApiAdminSubscriptionsIdActivityParams>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminSubscriptionsIdActivity>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiAdminSubscriptionsIdActivityQueryOptions(id, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Cancel a subscription at period end or immediately. Requires admin tier for at_period_end, owner tier for immediately.
+ * @summary Cancel Subscription
+ */
+export type postApiAdminSubscriptionsIdCancelResponse200 = {
+  data: void
+  status: 200
+}
+
+export type postApiAdminSubscriptionsIdCancelResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postApiAdminSubscriptionsIdCancelResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postApiAdminSubscriptionsIdCancelResponseSuccess = postApiAdminSubscriptionsIdCancelResponse200 & {
+  headers: Headers
+}
+export type postApiAdminSubscriptionsIdCancelResponseError = (
+  | postApiAdminSubscriptionsIdCancelResponse403
+  | postApiAdminSubscriptionsIdCancelResponse404
+) & {
+  headers: Headers
+}
+
+export type postApiAdminSubscriptionsIdCancelResponse =
+  | postApiAdminSubscriptionsIdCancelResponseSuccess
+  | postApiAdminSubscriptionsIdCancelResponseError
+
+export const getPostApiAdminSubscriptionsIdCancelUrl = (id: string) => {
+  return `/api/admin/subscriptions/${id}/cancel`
+}
+
+export const postApiAdminSubscriptionsIdCancel = async (
+  id: string,
+  postApiAdminSubscriptionsIdCancelBody: PostApiAdminSubscriptionsIdCancelBody,
+  options?: RequestInit
+): Promise<postApiAdminSubscriptionsIdCancelResponse> => {
+  return customFetch<postApiAdminSubscriptionsIdCancelResponse>(getPostApiAdminSubscriptionsIdCancelUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(postApiAdminSubscriptionsIdCancelBody)
+  })
+}
+
+export const getPostApiAdminSubscriptionsIdCancelMutationOptions = <TError = void, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAdminSubscriptionsIdCancel>>,
+    TError,
+    { id: string; data: PostApiAdminSubscriptionsIdCancelBody },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdCancel>>,
+  TError,
+  { id: string; data: PostApiAdminSubscriptionsIdCancelBody },
+  TContext
+> => {
+  const mutationKey = ["postApiAdminSubscriptionsIdCancel"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiAdminSubscriptionsIdCancel>>,
+    { id: string; data: PostApiAdminSubscriptionsIdCancelBody }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return postApiAdminSubscriptionsIdCancel(id, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiAdminSubscriptionsIdCancelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdCancel>>
+>
+export type PostApiAdminSubscriptionsIdCancelMutationBody = PostApiAdminSubscriptionsIdCancelBody
+export type PostApiAdminSubscriptionsIdCancelMutationError = void
+
+/**
+ * @summary Cancel Subscription
+ */
+export const usePostApiAdminSubscriptionsIdCancel = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAdminSubscriptionsIdCancel>>,
+      TError,
+      { id: string; data: PostApiAdminSubscriptionsIdCancelBody },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdCancel>>,
+  TError,
+  { id: string; data: PostApiAdminSubscriptionsIdCancelBody },
+  TContext
+> => {
+  const mutationOptions = getPostApiAdminSubscriptionsIdCancelMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
+ * Reverse a scheduled cancellation (cancel_at_period_end). Requires admin tier.
+ * @summary Reactivate Subscription
+ */
+export type postApiAdminSubscriptionsIdReactivateResponse200 = {
+  data: void
+  status: 200
+}
+
+export type postApiAdminSubscriptionsIdReactivateResponse400 = {
+  data: void
+  status: 400
+}
+
+export type postApiAdminSubscriptionsIdReactivateResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postApiAdminSubscriptionsIdReactivateResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postApiAdminSubscriptionsIdReactivateResponseSuccess = postApiAdminSubscriptionsIdReactivateResponse200 & {
+  headers: Headers
+}
+export type postApiAdminSubscriptionsIdReactivateResponseError = (
+  | postApiAdminSubscriptionsIdReactivateResponse400
+  | postApiAdminSubscriptionsIdReactivateResponse403
+  | postApiAdminSubscriptionsIdReactivateResponse404
+) & {
+  headers: Headers
+}
+
+export type postApiAdminSubscriptionsIdReactivateResponse =
+  | postApiAdminSubscriptionsIdReactivateResponseSuccess
+  | postApiAdminSubscriptionsIdReactivateResponseError
+
+export const getPostApiAdminSubscriptionsIdReactivateUrl = (id: string) => {
+  return `/api/admin/subscriptions/${id}/reactivate`
+}
+
+export const postApiAdminSubscriptionsIdReactivate = async (
+  id: string,
+  postApiAdminSubscriptionsIdReactivateBody: PostApiAdminSubscriptionsIdReactivateBody,
+  options?: RequestInit
+): Promise<postApiAdminSubscriptionsIdReactivateResponse> => {
+  return customFetch<postApiAdminSubscriptionsIdReactivateResponse>(getPostApiAdminSubscriptionsIdReactivateUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(postApiAdminSubscriptionsIdReactivateBody)
+  })
+}
+
+export const getPostApiAdminSubscriptionsIdReactivateMutationOptions = <TError = void, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAdminSubscriptionsIdReactivate>>,
+    TError,
+    { id: string; data: PostApiAdminSubscriptionsIdReactivateBody },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdReactivate>>,
+  TError,
+  { id: string; data: PostApiAdminSubscriptionsIdReactivateBody },
+  TContext
+> => {
+  const mutationKey = ["postApiAdminSubscriptionsIdReactivate"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiAdminSubscriptionsIdReactivate>>,
+    { id: string; data: PostApiAdminSubscriptionsIdReactivateBody }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return postApiAdminSubscriptionsIdReactivate(id, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiAdminSubscriptionsIdReactivateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdReactivate>>
+>
+export type PostApiAdminSubscriptionsIdReactivateMutationBody = PostApiAdminSubscriptionsIdReactivateBody
+export type PostApiAdminSubscriptionsIdReactivateMutationError = void
+
+/**
+ * @summary Reactivate Subscription
+ */
+export const usePostApiAdminSubscriptionsIdReactivate = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAdminSubscriptionsIdReactivate>>,
+      TError,
+      { id: string; data: PostApiAdminSubscriptionsIdReactivateBody },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdReactivate>>,
+  TError,
+  { id: string; data: PostApiAdminSubscriptionsIdReactivateBody },
+  TContext
+> => {
+  const mutationOptions = getPostApiAdminSubscriptionsIdReactivateMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
+ * Refresh a single subscription from Stripe to update local data
+ * @summary Refresh Subscription
+ */
+export type postApiAdminSubscriptionsIdRefreshResponse200 = {
+  data: void
+  status: 200
+}
+
+export type postApiAdminSubscriptionsIdRefreshResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postApiAdminSubscriptionsIdRefreshResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postApiAdminSubscriptionsIdRefreshResponseSuccess = postApiAdminSubscriptionsIdRefreshResponse200 & {
+  headers: Headers
+}
+export type postApiAdminSubscriptionsIdRefreshResponseError = (
+  | postApiAdminSubscriptionsIdRefreshResponse403
+  | postApiAdminSubscriptionsIdRefreshResponse404
+) & {
+  headers: Headers
+}
+
+export type postApiAdminSubscriptionsIdRefreshResponse =
+  | postApiAdminSubscriptionsIdRefreshResponseSuccess
+  | postApiAdminSubscriptionsIdRefreshResponseError
+
+export const getPostApiAdminSubscriptionsIdRefreshUrl = (id: string) => {
+  return `/api/admin/subscriptions/${id}/refresh`
+}
+
+export const postApiAdminSubscriptionsIdRefresh = async (
+  id: string,
+  options?: RequestInit
+): Promise<postApiAdminSubscriptionsIdRefreshResponse> => {
+  return customFetch<postApiAdminSubscriptionsIdRefreshResponse>(getPostApiAdminSubscriptionsIdRefreshUrl(id), {
+    ...options,
+    method: "POST"
+  })
+}
+
+export const getPostApiAdminSubscriptionsIdRefreshMutationOptions = <TError = void, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAdminSubscriptionsIdRefresh>>,
+    TError,
+    { id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdRefresh>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["postApiAdminSubscriptionsIdRefresh"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiAdminSubscriptionsIdRefresh>>, { id: string }> = (
+    props
+  ) => {
+    const { id } = props ?? {}
+
+    return postApiAdminSubscriptionsIdRefresh(id, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiAdminSubscriptionsIdRefreshMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdRefresh>>
+>
+
+export type PostApiAdminSubscriptionsIdRefreshMutationError = void
+
+/**
+ * @summary Refresh Subscription
+ */
+export const usePostApiAdminSubscriptionsIdRefresh = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAdminSubscriptionsIdRefresh>>,
+      TError,
+      { id: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdRefresh>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getPostApiAdminSubscriptionsIdRefreshMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
+ * Generate a Stripe billing portal session URL for the subscription's customer. Requires support tier.
+ * @summary Generate Billing Portal Link
+ */
+export type postApiAdminSubscriptionsIdSendBillingPortalLinkResponse200 = {
+  data: PostApiAdminSubscriptionsIdSendBillingPortalLink200
+  status: 200
+}
+
+export type postApiAdminSubscriptionsIdSendBillingPortalLinkResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postApiAdminSubscriptionsIdSendBillingPortalLinkResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postApiAdminSubscriptionsIdSendBillingPortalLinkResponseSuccess =
+  postApiAdminSubscriptionsIdSendBillingPortalLinkResponse200 & {
+    headers: Headers
+  }
+export type postApiAdminSubscriptionsIdSendBillingPortalLinkResponseError = (
+  | postApiAdminSubscriptionsIdSendBillingPortalLinkResponse403
+  | postApiAdminSubscriptionsIdSendBillingPortalLinkResponse404
+) & {
+  headers: Headers
+}
+
+export type postApiAdminSubscriptionsIdSendBillingPortalLinkResponse =
+  | postApiAdminSubscriptionsIdSendBillingPortalLinkResponseSuccess
+  | postApiAdminSubscriptionsIdSendBillingPortalLinkResponseError
+
+export const getPostApiAdminSubscriptionsIdSendBillingPortalLinkUrl = (id: string) => {
+  return `/api/admin/subscriptions/${id}/send-billing-portal-link`
+}
+
+export const postApiAdminSubscriptionsIdSendBillingPortalLink = async (
+  id: string,
+  options?: RequestInit
+): Promise<postApiAdminSubscriptionsIdSendBillingPortalLinkResponse> => {
+  return customFetch<postApiAdminSubscriptionsIdSendBillingPortalLinkResponse>(
+    getPostApiAdminSubscriptionsIdSendBillingPortalLinkUrl(id),
+    {
+      ...options,
+      method: "POST"
+    }
+  )
+}
+
+export const getPostApiAdminSubscriptionsIdSendBillingPortalLinkMutationOptions = <
+  TError = void,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAdminSubscriptionsIdSendBillingPortalLink>>,
+    TError,
+    { id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdSendBillingPortalLink>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["postApiAdminSubscriptionsIdSendBillingPortalLink"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiAdminSubscriptionsIdSendBillingPortalLink>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {}
+
+    return postApiAdminSubscriptionsIdSendBillingPortalLink(id, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiAdminSubscriptionsIdSendBillingPortalLinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdSendBillingPortalLink>>
+>
+
+export type PostApiAdminSubscriptionsIdSendBillingPortalLinkMutationError = void
+
+/**
+ * @summary Generate Billing Portal Link
+ */
+export const usePostApiAdminSubscriptionsIdSendBillingPortalLink = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAdminSubscriptionsIdSendBillingPortalLink>>,
+      TError,
+      { id: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiAdminSubscriptionsIdSendBillingPortalLink>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getPostApiAdminSubscriptionsIdSendBillingPortalLinkMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
+ * List all subscriptions with pagination, search, and filters
+ * @summary List Subscriptions
+ */
+export type getApiAdminSubscriptionsResponse200 = {
+  data: GetApiAdminSubscriptions200
+  status: 200
+}
+
+export type getApiAdminSubscriptionsResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiAdminSubscriptionsResponseSuccess = getApiAdminSubscriptionsResponse200 & {
+  headers: Headers
+}
+export type getApiAdminSubscriptionsResponseError = getApiAdminSubscriptionsResponse403 & {
+  headers: Headers
+}
+
+export type getApiAdminSubscriptionsResponse =
+  | getApiAdminSubscriptionsResponseSuccess
+  | getApiAdminSubscriptionsResponseError
+
+export const getGetApiAdminSubscriptionsUrl = (params?: GetApiAdminSubscriptionsParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/api/admin/subscriptions?${stringifiedParams}` : `/api/admin/subscriptions`
+}
+
+export const getApiAdminSubscriptions = async (
+  params?: GetApiAdminSubscriptionsParams,
+  options?: RequestInit
+): Promise<getApiAdminSubscriptionsResponse> => {
+  return customFetch<getApiAdminSubscriptionsResponse>(getGetApiAdminSubscriptionsUrl(params), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiAdminSubscriptionsQueryKey = (params?: MaybeRef<GetApiAdminSubscriptionsParams>) => {
+  return ["api", "admin", "subscriptions", ...(params ? [params] : [])] as const
+}
+
+export const getGetApiAdminSubscriptionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAdminSubscriptions>>,
+  TError = void
+>(
+  params?: MaybeRef<GetApiAdminSubscriptionsParams>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminSubscriptions>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiAdminSubscriptionsQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAdminSubscriptions>>> = ({ signal }) =>
+    getApiAdminSubscriptions(unref(params), { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAdminSubscriptions>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiAdminSubscriptionsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAdminSubscriptions>>>
+export type GetApiAdminSubscriptionsQueryError = void
+
+/**
+ * @summary List Subscriptions
+ */
+
+export function useGetApiAdminSubscriptions<
+  TData = Awaited<ReturnType<typeof getApiAdminSubscriptions>>,
+  TError = void
+>(
+  params?: MaybeRef<GetApiAdminSubscriptionsParams>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAdminSubscriptions>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiAdminSubscriptionsQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -2882,6 +4678,798 @@ export function useGetApiDashboardStats<TData = Awaited<ReturnType<typeof getApi
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
 
   return query
+}
+
+export type getApiFeaturesResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getApiFeaturesResponseSuccess = getApiFeaturesResponse200 & {
+  headers: Headers
+}
+export type getApiFeaturesResponse = getApiFeaturesResponseSuccess
+
+export const getGetApiFeaturesUrl = () => {
+  return `/api/features`
+}
+
+export const getApiFeatures = async (options?: RequestInit): Promise<getApiFeaturesResponse> => {
+  return customFetch<getApiFeaturesResponse>(getGetApiFeaturesUrl(), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiFeaturesQueryKey = () => {
+  return ["api", "features"] as const
+}
+
+export const getGetApiFeaturesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiFeatures>>,
+  TError = unknown
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFeatures>>, TError, TData>>
+  request?: SecondParameter<typeof customFetch>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiFeaturesQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiFeatures>>> = ({ signal }) =>
+    getApiFeatures({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiFeatures>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiFeaturesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiFeatures>>>
+export type GetApiFeaturesQueryError = unknown
+
+export function useGetApiFeatures<TData = Awaited<ReturnType<typeof getApiFeatures>>, TError = unknown>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFeatures>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiFeaturesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Get all annotations for a file
+ * @summary Get Annotations
+ */
+export type getApiFilesFileIdAnnotationsResponse200 = {
+  data: GetApiFilesFileIdAnnotations200
+  status: 200
+}
+
+export type getApiFilesFileIdAnnotationsResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getApiFilesFileIdAnnotationsResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getApiFilesFileIdAnnotationsResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getApiFilesFileIdAnnotationsResponseSuccess = getApiFilesFileIdAnnotationsResponse200 & {
+  headers: Headers
+}
+export type getApiFilesFileIdAnnotationsResponseError = (
+  | getApiFilesFileIdAnnotationsResponse401
+  | getApiFilesFileIdAnnotationsResponse403
+  | getApiFilesFileIdAnnotationsResponse404
+) & {
+  headers: Headers
+}
+
+export type getApiFilesFileIdAnnotationsResponse =
+  | getApiFilesFileIdAnnotationsResponseSuccess
+  | getApiFilesFileIdAnnotationsResponseError
+
+export const getGetApiFilesFileIdAnnotationsUrl = (fileId: string, params?: GetApiFilesFileIdAnnotationsParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/files/${fileId}/annotations?${stringifiedParams}`
+    : `/api/files/${fileId}/annotations`
+}
+
+export const getApiFilesFileIdAnnotations = async (
+  fileId: string,
+  params?: GetApiFilesFileIdAnnotationsParams,
+  options?: RequestInit
+): Promise<getApiFilesFileIdAnnotationsResponse> => {
+  return customFetch<getApiFilesFileIdAnnotationsResponse>(getGetApiFilesFileIdAnnotationsUrl(fileId, params), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiFilesFileIdAnnotationsQueryKey = (
+  fileId?: MaybeRef<string>,
+  params?: MaybeRef<GetApiFilesFileIdAnnotationsParams>
+) => {
+  return ["api", "files", fileId, "annotations", ...(params ? [params] : [])] as const
+}
+
+export const getGetApiFilesFileIdAnnotationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiFilesFileIdAnnotations>>,
+  TError = void
+>(
+  fileId: MaybeRef<string>,
+  params?: MaybeRef<GetApiFilesFileIdAnnotationsParams>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFilesFileIdAnnotations>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiFilesFileIdAnnotationsQueryKey(fileId, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiFilesFileIdAnnotations>>> = ({ signal }) =>
+    getApiFilesFileIdAnnotations(unref(fileId), unref(params), { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: computed(() => !!unref(fileId)), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiFilesFileIdAnnotations>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiFilesFileIdAnnotationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiFilesFileIdAnnotations>>
+>
+export type GetApiFilesFileIdAnnotationsQueryError = void
+
+/**
+ * @summary Get Annotations
+ */
+
+export function useGetApiFilesFileIdAnnotations<
+  TData = Awaited<ReturnType<typeof getApiFilesFileIdAnnotations>>,
+  TError = void
+>(
+  fileId: MaybeRef<string>,
+  params?: MaybeRef<GetApiFilesFileIdAnnotationsParams>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFilesFileIdAnnotations>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiFilesFileIdAnnotationsQueryOptions(fileId, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Lightweight sync endpoint for beforeunload saves. Fire-and-forget, best effort.
+ * @summary Sync Annotations (Beacon)
+ */
+export type postApiFilesFileIdAnnotationsSyncBeaconResponse204 = {
+  data: void
+  status: 204
+}
+
+export type postApiFilesFileIdAnnotationsSyncBeaconResponse401 = {
+  data: void
+  status: 401
+}
+
+export type postApiFilesFileIdAnnotationsSyncBeaconResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postApiFilesFileIdAnnotationsSyncBeaconResponseSuccess =
+  postApiFilesFileIdAnnotationsSyncBeaconResponse204 & {
+    headers: Headers
+  }
+export type postApiFilesFileIdAnnotationsSyncBeaconResponseError = (
+  | postApiFilesFileIdAnnotationsSyncBeaconResponse401
+  | postApiFilesFileIdAnnotationsSyncBeaconResponse404
+) & {
+  headers: Headers
+}
+
+export type postApiFilesFileIdAnnotationsSyncBeaconResponse =
+  | postApiFilesFileIdAnnotationsSyncBeaconResponseSuccess
+  | postApiFilesFileIdAnnotationsSyncBeaconResponseError
+
+export const getPostApiFilesFileIdAnnotationsSyncBeaconUrl = (fileId: string) => {
+  return `/api/files/${fileId}/annotations/sync-beacon`
+}
+
+export const postApiFilesFileIdAnnotationsSyncBeacon = async (
+  fileId: string,
+  postApiFilesFileIdAnnotationsSyncBeaconBody: PostApiFilesFileIdAnnotationsSyncBeaconBody,
+  options?: RequestInit
+): Promise<postApiFilesFileIdAnnotationsSyncBeaconResponse> => {
+  return customFetch<postApiFilesFileIdAnnotationsSyncBeaconResponse>(
+    getPostApiFilesFileIdAnnotationsSyncBeaconUrl(fileId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(postApiFilesFileIdAnnotationsSyncBeaconBody)
+    }
+  )
+}
+
+export const getPostApiFilesFileIdAnnotationsSyncBeaconMutationOptions = <TError = void, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSyncBeacon>>,
+    TError,
+    { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBeaconBody },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSyncBeacon>>,
+  TError,
+  { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBeaconBody },
+  TContext
+> => {
+  const mutationKey = ["postApiFilesFileIdAnnotationsSyncBeacon"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSyncBeacon>>,
+    { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBeaconBody }
+  > = (props) => {
+    const { fileId, data } = props ?? {}
+
+    return postApiFilesFileIdAnnotationsSyncBeacon(fileId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBeaconMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSyncBeacon>>
+>
+export type PostApiFilesFileIdAnnotationsSyncBeaconMutationBody = PostApiFilesFileIdAnnotationsSyncBeaconBody
+export type PostApiFilesFileIdAnnotationsSyncBeaconMutationError = void
+
+/**
+ * @summary Sync Annotations (Beacon)
+ */
+export const usePostApiFilesFileIdAnnotationsSyncBeacon = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSyncBeacon>>,
+      TError,
+      { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBeaconBody },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSyncBeacon>>,
+  TError,
+  { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBeaconBody },
+  TContext
+> => {
+  const mutationOptions = getPostApiFilesFileIdAnnotationsSyncBeaconMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
+ * Batch sync annotations with conflict detection and resolution
+ * @summary Sync Annotations
+ */
+export type postApiFilesFileIdAnnotationsSyncResponse200 = {
+  data: PostApiFilesFileIdAnnotationsSync200
+  status: 200
+}
+
+export type postApiFilesFileIdAnnotationsSyncResponse401 = {
+  data: void
+  status: 401
+}
+
+export type postApiFilesFileIdAnnotationsSyncResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postApiFilesFileIdAnnotationsSyncResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postApiFilesFileIdAnnotationsSyncResponseSuccess = postApiFilesFileIdAnnotationsSyncResponse200 & {
+  headers: Headers
+}
+export type postApiFilesFileIdAnnotationsSyncResponseError = (
+  | postApiFilesFileIdAnnotationsSyncResponse401
+  | postApiFilesFileIdAnnotationsSyncResponse403
+  | postApiFilesFileIdAnnotationsSyncResponse404
+) & {
+  headers: Headers
+}
+
+export type postApiFilesFileIdAnnotationsSyncResponse =
+  | postApiFilesFileIdAnnotationsSyncResponseSuccess
+  | postApiFilesFileIdAnnotationsSyncResponseError
+
+export const getPostApiFilesFileIdAnnotationsSyncUrl = (fileId: string) => {
+  return `/api/files/${fileId}/annotations/sync`
+}
+
+export const postApiFilesFileIdAnnotationsSync = async (
+  fileId: string,
+  postApiFilesFileIdAnnotationsSyncBody: PostApiFilesFileIdAnnotationsSyncBody,
+  options?: RequestInit
+): Promise<postApiFilesFileIdAnnotationsSyncResponse> => {
+  return customFetch<postApiFilesFileIdAnnotationsSyncResponse>(getPostApiFilesFileIdAnnotationsSyncUrl(fileId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(postApiFilesFileIdAnnotationsSyncBody)
+  })
+}
+
+export const getPostApiFilesFileIdAnnotationsSyncMutationOptions = <TError = void, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSync>>,
+    TError,
+    { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBody },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSync>>,
+  TError,
+  { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBody },
+  TContext
+> => {
+  const mutationKey = ["postApiFilesFileIdAnnotationsSync"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSync>>,
+    { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBody }
+  > = (props) => {
+    const { fileId, data } = props ?? {}
+
+    return postApiFilesFileIdAnnotationsSync(fileId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiFilesFileIdAnnotationsSyncMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSync>>
+>
+export type PostApiFilesFileIdAnnotationsSyncMutationBody = PostApiFilesFileIdAnnotationsSyncBody
+export type PostApiFilesFileIdAnnotationsSyncMutationError = void
+
+/**
+ * @summary Sync Annotations
+ */
+export const usePostApiFilesFileIdAnnotationsSync = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSync>>,
+      TError,
+      { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBody },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiFilesFileIdAnnotationsSync>>,
+  TError,
+  { fileId: string; data: PostApiFilesFileIdAnnotationsSyncBody },
+  TContext
+> => {
+  const mutationOptions = getPostApiFilesFileIdAnnotationsSyncMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+export type patchApiFilesFileIdDetectedRoomsRoomIdResponse200 = {
+  data: void
+  status: 200
+}
+
+export type patchApiFilesFileIdDetectedRoomsRoomIdResponseSuccess =
+  patchApiFilesFileIdDetectedRoomsRoomIdResponse200 & {
+    headers: Headers
+  }
+export type patchApiFilesFileIdDetectedRoomsRoomIdResponse = patchApiFilesFileIdDetectedRoomsRoomIdResponseSuccess
+
+export const getPatchApiFilesFileIdDetectedRoomsRoomIdUrl = (fileId: string, roomId: string) => {
+  return `/api/files/${fileId}/detected-rooms/${roomId}`
+}
+
+export const patchApiFilesFileIdDetectedRoomsRoomId = async (
+  fileId: string,
+  roomId: string,
+  options?: RequestInit
+): Promise<patchApiFilesFileIdDetectedRoomsRoomIdResponse> => {
+  return customFetch<patchApiFilesFileIdDetectedRoomsRoomIdResponse>(
+    getPatchApiFilesFileIdDetectedRoomsRoomIdUrl(fileId, roomId),
+    {
+      ...options,
+      method: "PATCH"
+    }
+  )
+}
+
+export const getPatchApiFilesFileIdDetectedRoomsRoomIdMutationOptions = <
+  TError = unknown,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
+    TError,
+    { fileId: string; roomId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
+  TError,
+  { fileId: string; roomId: string },
+  TContext
+> => {
+  const mutationKey = ["patchApiFilesFileIdDetectedRoomsRoomId"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
+    { fileId: string; roomId: string }
+  > = (props) => {
+    const { fileId, roomId } = props ?? {}
+
+    return patchApiFilesFileIdDetectedRoomsRoomId(fileId, roomId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PatchApiFilesFileIdDetectedRoomsRoomIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>
+>
+
+export type PatchApiFilesFileIdDetectedRoomsRoomIdMutationError = unknown
+
+export const usePatchApiFilesFileIdDetectedRoomsRoomId = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
+      TError,
+      { fileId: string; roomId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
+  TError,
+  { fileId: string; roomId: string },
+  TContext
+> => {
+  const mutationOptions = getPatchApiFilesFileIdDetectedRoomsRoomIdMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+export type getApiFilesFileIdDetectedRoomsResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getApiFilesFileIdDetectedRoomsResponseSuccess = getApiFilesFileIdDetectedRoomsResponse200 & {
+  headers: Headers
+}
+export type getApiFilesFileIdDetectedRoomsResponse = getApiFilesFileIdDetectedRoomsResponseSuccess
+
+export const getGetApiFilesFileIdDetectedRoomsUrl = (fileId: string) => {
+  return `/api/files/${fileId}/detected-rooms`
+}
+
+export const getApiFilesFileIdDetectedRooms = async (
+  fileId: string,
+  options?: RequestInit
+): Promise<getApiFilesFileIdDetectedRoomsResponse> => {
+  return customFetch<getApiFilesFileIdDetectedRoomsResponse>(getGetApiFilesFileIdDetectedRoomsUrl(fileId), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiFilesFileIdDetectedRoomsQueryKey = (fileId?: MaybeRef<string>) => {
+  return ["api", "files", fileId, "detected-rooms"] as const
+}
+
+export const getGetApiFilesFileIdDetectedRoomsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>,
+  TError = unknown
+>(
+  fileId: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiFilesFileIdDetectedRoomsQueryKey(fileId)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>> = ({ signal }) =>
+    getApiFilesFileIdDetectedRooms(unref(fileId), { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: computed(() => !!unref(fileId)), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiFilesFileIdDetectedRoomsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>
+>
+export type GetApiFilesFileIdDetectedRoomsQueryError = unknown
+
+export function useGetApiFilesFileIdDetectedRooms<
+  TData = Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>,
+  TError = unknown
+>(
+  fileId: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiFilesFileIdDetectedRoomsQueryOptions(fileId, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+export type postApiFilesFileIdDetectedRoomsPocOcrDetectResponse200 = {
+  data: void
+  status: 200
+}
+
+export type postApiFilesFileIdDetectedRoomsPocOcrDetectResponseSuccess =
+  postApiFilesFileIdDetectedRoomsPocOcrDetectResponse200 & {
+    headers: Headers
+  }
+export type postApiFilesFileIdDetectedRoomsPocOcrDetectResponse =
+  postApiFilesFileIdDetectedRoomsPocOcrDetectResponseSuccess
+
+export const getPostApiFilesFileIdDetectedRoomsPocOcrDetectUrl = (fileId: string) => {
+  return `/api/files/${fileId}/detected-rooms/poc-ocr-detect`
+}
+
+export const postApiFilesFileIdDetectedRoomsPocOcrDetect = async (
+  fileId: string,
+  options?: RequestInit
+): Promise<postApiFilesFileIdDetectedRoomsPocOcrDetectResponse> => {
+  return customFetch<postApiFilesFileIdDetectedRoomsPocOcrDetectResponse>(
+    getPostApiFilesFileIdDetectedRoomsPocOcrDetectUrl(fileId),
+    {
+      ...options,
+      method: "POST"
+    }
+  )
+}
+
+export const getPostApiFilesFileIdDetectedRoomsPocOcrDetectMutationOptions = <
+  TError = unknown,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
+    TError,
+    { fileId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
+  TError,
+  { fileId: string },
+  TContext
+> => {
+  const mutationKey = ["postApiFilesFileIdDetectedRoomsPocOcrDetect"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
+    { fileId: string }
+  > = (props) => {
+    const { fileId } = props ?? {}
+
+    return postApiFilesFileIdDetectedRoomsPocOcrDetect(fileId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiFilesFileIdDetectedRoomsPocOcrDetectMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>
+>
+
+export type PostApiFilesFileIdDetectedRoomsPocOcrDetectMutationError = unknown
+
+export const usePostApiFilesFileIdDetectedRoomsPocOcrDetect = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
+      TError,
+      { fileId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
+  TError,
+  { fileId: string },
+  TContext
+> => {
+  const mutationOptions = getPostApiFilesFileIdDetectedRoomsPocOcrDetectMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+export type postApiFilesFileIdDetectedRoomsPocSaveResponse200 = {
+  data: void
+  status: 200
+}
+
+export type postApiFilesFileIdDetectedRoomsPocSaveResponseSuccess =
+  postApiFilesFileIdDetectedRoomsPocSaveResponse200 & {
+    headers: Headers
+  }
+export type postApiFilesFileIdDetectedRoomsPocSaveResponse = postApiFilesFileIdDetectedRoomsPocSaveResponseSuccess
+
+export const getPostApiFilesFileIdDetectedRoomsPocSaveUrl = (fileId: string) => {
+  return `/api/files/${fileId}/detected-rooms/poc-save`
+}
+
+export const postApiFilesFileIdDetectedRoomsPocSave = async (
+  fileId: string,
+  options?: RequestInit
+): Promise<postApiFilesFileIdDetectedRoomsPocSaveResponse> => {
+  return customFetch<postApiFilesFileIdDetectedRoomsPocSaveResponse>(
+    getPostApiFilesFileIdDetectedRoomsPocSaveUrl(fileId),
+    {
+      ...options,
+      method: "POST"
+    }
+  )
+}
+
+export const getPostApiFilesFileIdDetectedRoomsPocSaveMutationOptions = <
+  TError = unknown,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
+    TError,
+    { fileId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
+  TError,
+  { fileId: string },
+  TContext
+> => {
+  const mutationKey = ["postApiFilesFileIdDetectedRoomsPocSave"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
+    { fileId: string }
+  > = (props) => {
+    const { fileId } = props ?? {}
+
+    return postApiFilesFileIdDetectedRoomsPocSave(fileId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PostApiFilesFileIdDetectedRoomsPocSaveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>
+>
+
+export type PostApiFilesFileIdDetectedRoomsPocSaveMutationError = unknown
+
+export const usePostApiFilesFileIdDetectedRoomsPocSave = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
+      TError,
+      { fileId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
+  TError,
+  { fileId: string },
+  TContext
+> => {
+  const mutationOptions = getPostApiFilesFileIdDetectedRoomsPocSaveMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
 }
 
 /**
@@ -3702,7 +6290,7 @@ export const useDeleteApiProjectsIdFilesFileId = <TError = void, TContext = unkn
 }
 
 /**
- * Get a specific file from a project
+ * Get a specific file from a project with user-specific viewport state
  * @summary Get Project File
  */
 export type getApiProjectsIdFilesFileIdResponse200 = {
@@ -5457,6 +8045,74 @@ export const usePatchApiUserProfile = <TError = void, TContext = unknown>(
   const mutationOptions = getPatchApiUserProfileMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
+}
+
+export type getStoragePathResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getStoragePathResponseSuccess = getStoragePathResponse200 & {
+  headers: Headers
+}
+export type getStoragePathResponse = getStoragePathResponseSuccess
+
+export const getGetStoragePathUrl = (path: string) => {
+  return `/storage/${path}`
+}
+
+export const getStoragePath = async (path: string, options?: RequestInit): Promise<getStoragePathResponse> => {
+  return customFetch<getStoragePathResponse>(getGetStoragePathUrl(path), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetStoragePathQueryKey = (path?: MaybeRef<string>) => {
+  return ["storage", path] as const
+}
+
+export const getGetStoragePathQueryOptions = <TData = Awaited<ReturnType<typeof getStoragePath>>, TError = unknown>(
+  path: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoragePath>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetStoragePathQueryKey(path)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getStoragePath>>> = ({ signal }) =>
+    getStoragePath(unref(path), { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: computed(() => !!unref(path)), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStoragePath>>,
+    TError,
+    TData
+  >
+}
+
+export type GetStoragePathQueryResult = NonNullable<Awaited<ReturnType<typeof getStoragePath>>>
+export type GetStoragePathQueryError = unknown
+
+export function useGetStoragePath<TData = Awaited<ReturnType<typeof getStoragePath>>, TError = unknown>(
+  path: MaybeRef<string>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoragePath>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetStoragePathQueryOptions(path, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
 }
 
 export type getNuxtErrorResponse200 = {

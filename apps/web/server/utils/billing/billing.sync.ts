@@ -176,10 +176,7 @@ export const billingSyncService = {
 
       if (existing) {
         // Update only Stripe-sourced fields, preserve app-managed fields
-        await db
-          .update(schema.stripePlan)
-          .set(stripeValues)
-          .where(eq(schema.stripePlan.id, existing.id))
+        await db.update(schema.stripePlan).set(stripeValues).where(eq(schema.stripePlan.id, existing.id))
       } else {
         // New plan — create with Stripe fields, app-managed fields default to null
         await db.insert(schema.stripePlan).values({
@@ -235,9 +232,7 @@ export const billingSyncService = {
     })
 
     const item = stripeSub.items.data[0]
-    const plan = (item?.price?.product as Stripe.Product)?.name
-      ?? item?.price?.lookup_key
-      ?? "unknown"
+    const plan = (item?.price?.product as Stripe.Product)?.name ?? item?.price?.lookup_key ?? "unknown"
 
     const values = {
       plan,
@@ -256,14 +251,11 @@ export const billingSyncService = {
       trialStart: stripeSub.trial_start ? new Date(stripeSub.trial_start * 1000) : null,
       trialEnd: stripeSub.trial_end ? new Date(stripeSub.trial_end * 1000) : null,
       billingInterval: item?.price?.recurring?.interval ?? null,
-      stripeScheduleId: typeof stripeSub.schedule === "string" ? stripeSub.schedule : stripeSub.schedule?.id ?? null
+      stripeScheduleId: typeof stripeSub.schedule === "string" ? stripeSub.schedule : (stripeSub.schedule?.id ?? null)
     }
 
     if (existing) {
-      await db
-        .update(schema.subscription)
-        .set(values)
-        .where(eq(schema.subscription.id, existing.id))
+      await db.update(schema.subscription).set(values).where(eq(schema.subscription.id, existing.id))
       return "updated"
     } else {
       await db.insert(schema.subscription).values({

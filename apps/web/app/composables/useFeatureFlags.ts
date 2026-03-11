@@ -13,8 +13,12 @@ export function useFeatureFlags() {
   if (!fetched.value) {
     fetched.value = true
     $fetch<FeatureFlags>("/api/features")
-      .then((data) => { flags.value = data })
-      .catch((err) => { console.error("[FeatureFlags] Failed to fetch:", err) })
+      .then((data) => {
+        flags.value = data
+      })
+      .catch((err) => {
+        console.error("[FeatureFlags] Failed to fetch:", err)
+      })
   }
 
   return {

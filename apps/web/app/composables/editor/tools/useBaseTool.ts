@@ -52,9 +52,7 @@ export function useBaseTool(options: BaseToolOptions) {
     const dist = distance(tempEndPoint.value, firstPoint)
     // Scale-aware: convert screen-pixel threshold to PDF points
     const scale = viewportStore.getScale
-    const snapDist = options.snapDistance
-      ? options.snapDistance / scale
-      : SNAP.DISTANCE_PX / scale
+    const snapDist = options.snapDistance ? options.snapDistance / scale : SNAP.DISTANCE_PX / scale
     return dist < snapDist
   })
 
@@ -150,9 +148,10 @@ export function useBaseTool(options: BaseToolOptions) {
    * When given a Point, avoids redundant SVG coordinate conversion.
    */
   function getSnappedSvgPoint(cursorOrEvent: Point | MouseEvent, snapOpts: SnapPointOpts = {}): Point {
-    const raw = "x" in cursorOrEvent && "y" in cursorOrEvent && !("clientX" in cursorOrEvent)
-      ? cursorOrEvent as Point
-      : getSvgPoint(cursorOrEvent as MouseEvent)
+    const raw =
+      "x" in cursorOrEvent && "y" in cursorOrEvent && !("clientX" in cursorOrEvent)
+        ? (cursorOrEvent as Point)
+        : getSvgPoint(cursorOrEvent as MouseEvent)
     const result = getSnappedPoint(raw, snapOpts)
     return result.point
   }

@@ -1,12 +1,7 @@
 import { SNAP } from "@/constants/snap"
 import { SpatialGrid, SegmentGrid } from "@/utils/snap/SpatialGrid"
 import { extractPdfContent, nearestPointOnSegment } from "@/utils/snap/pdfContentExtractor"
-import type {
-  SnapResult,
-  SnapInfo,
-  SnapTarget,
-  Segment
-} from "@/types/snap"
+import type { SnapResult, SnapInfo, SnapTarget, Segment } from "@/types/snap"
 import type { PDFPageProxy } from "pdfjs-dist"
 
 /**
@@ -141,10 +136,20 @@ function _createSnapProvider() {
     }
 
     for (const pt of cached.endpoints) {
-      contentPointGrid.insert({ point: pt, type: "endpoint", source: "content", priority: SNAP.PRIORITY_CONTENT_ENDPOINT })
+      contentPointGrid.insert({
+        point: pt,
+        type: "endpoint",
+        source: "content",
+        priority: SNAP.PRIORITY_CONTENT_ENDPOINT
+      })
     }
     for (const pt of cached.intersections) {
-      contentPointGrid.insert({ point: pt, type: "intersection", source: "content", priority: SNAP.PRIORITY_CONTENT_INTERSECTION })
+      contentPointGrid.insert({
+        point: pt,
+        type: "intersection",
+        source: "content",
+        priority: SNAP.PRIORITY_CONTENT_INTERSECTION
+      })
     }
     for (const pt of cached.midpoints) {
       contentPointGrid.insert({ point: pt, type: "midpoint", source: "content", priority: SNAP.PRIORITY_MIDPOINT })
@@ -153,16 +158,22 @@ function _createSnapProvider() {
     contentSegmentGrid.insertAll(cached.segments)
     contentGridPage = pageNum
 
-    debugLog("SnapProvider", `Content grid rebuilt: ${contentPointGrid.size} point targets, ${contentSegmentGrid.size} edge segments`)
+    debugLog(
+      "SnapProvider",
+      `Content grid rebuilt: ${contentPointGrid.size} point targets, ${contentSegmentGrid.size} edge segments`
+    )
   }
 
   // --- Edge snapping ---
 
   // Debug: expose on window so you can run window._snapDebug() from console while hovering
   if (typeof window !== "undefined") {
-    (window as any)._snapDebug = () => {
+    ;(window as any)._snapDebug = () => {
       const cursor = viewportStore.lastCursorPosition
-      if (!cursor) { console.log("[SnapDebug] No cursor position"); return }
+      if (!cursor) {
+        console.log("[SnapDebug] No cursor position")
+        return
+      }
       const scale = viewportStore.getScale
       const threshold = (SNAP.DISTANCE_PX * SNAP.EDGE_DISTANCE_MULTIPLIER) / scale
       const candidates = contentSegmentGrid.findNear(cursor, threshold)
@@ -175,7 +186,7 @@ function _createSnapProvider() {
 
       if (allCandidates.length > 0) {
         const nearest = allCandidates
-          .map(seg => {
+          .map((seg) => {
             const proj = nearestPointOnSegment(cursor, seg)
             const rawDist = Math.hypot(proj.x - cursor.x, proj.y - cursor.y)
             return { seg, proj, rawDist }
@@ -185,15 +196,22 @@ function _createSnapProvider() {
 
         for (const { seg, proj, rawDist } of nearest) {
           const len = Math.hypot(seg.end.x - seg.start.x, seg.end.y - seg.start.y)
-          console.log(`[SnapDebug] Seg (${seg.start.x.toFixed(0)},${seg.start.y.toFixed(0)})→(${seg.end.x.toFixed(0)},${seg.end.y.toFixed(0)}) len=${len.toFixed(1)} dist=${rawDist.toFixed(1)} proj=${proj ? `(${proj.x.toFixed(1)},${proj.y.toFixed(1)})` : "null"}`)
+          console.log(
+            `[SnapDebug] Seg (${seg.start.x.toFixed(0)},${seg.start.y.toFixed(0)})→(${seg.end.x.toFixed(0)},${seg.end.y.toFixed(0)}) len=${len.toFixed(1)} dist=${rawDist.toFixed(1)} proj=${proj ? `(${proj.x.toFixed(1)},${proj.y.toFixed(1)})` : "null"}`
+          )
         }
       }
 
       const pointHit = contentPointGrid.findNearest(cursor, threshold)
-      console.log(`[SnapDebug] Nearest content point: ${pointHit ? `(${pointHit.point.x.toFixed(1)},${pointHit.point.y.toFixed(1)}) dist=${pointHit.dist.toFixed(1)} type=${pointHit.type}` : "none"}`)
+      console.log(
+        `[SnapDebug] Nearest content point: ${pointHit ? `(${pointHit.point.x.toFixed(1)},${pointHit.point.y.toFixed(1)}) dist=${pointHit.dist.toFixed(1)} type=${pointHit.type}` : "none"}`
+      )
 
       // Show bounding box of all segments in grid
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity
       let count = 0
       const allSegs = contentSegmentGrid.findNear({ x: 50000, y: 50000 }, 100000)
       for (const s of allSegs) {
@@ -203,8 +221,12 @@ function _createSnapProvider() {
         maxY = Math.max(maxY, s.start.y, s.end.y)
         count++
       }
-      console.log(`[SnapDebug] Segment grid bounds: (${minX.toFixed(0)},${minY.toFixed(0)})→(${maxX.toFixed(0)},${maxY.toFixed(0)}) [${count} segments]`)
-      console.log(`[SnapDebug] SVG viewBox: 0 0 ${viewportStore.getCanvasSize.width} ${viewportStore.getCanvasSize.height}`)
+      console.log(
+        `[SnapDebug] Segment grid bounds: (${minX.toFixed(0)},${minY.toFixed(0)})→(${maxX.toFixed(0)},${maxY.toFixed(0)}) [${count} segments]`
+      )
+      console.log(
+        `[SnapDebug] SVG viewBox: 0 0 ${viewportStore.getCanvasSize.width} ${viewportStore.getCanvasSize.height}`
+      )
     }
   }
 
@@ -223,7 +245,13 @@ function _createSnapProvider() {
     }
 
     if (!best) return null
-    return { point: best.point, type: "nearest-on-edge", source: "content", priority: SNAP.PRIORITY_NEAREST_ON_EDGE, dist: best.dist }
+    return {
+      point: best.point,
+      type: "nearest-on-edge",
+      source: "content",
+      priority: SNAP.PRIORITY_NEAREST_ON_EDGE,
+      dist: best.dist
+    }
   }
 
   // --- Snap resolution ---
@@ -291,7 +319,10 @@ function _createSnapProvider() {
     const data = await extractPdfContent(page, extractAbort.signal)
     if (extractAbort.signal.aborted) return
 
-    debugLog("SnapProvider", `Page ${pageNum} extracted: ${data.endpoints.length} endpoints, ${data.midpoints.length} midpoints, ${data.intersections.length} intersections, ${data.segments.length} segments`)
+    debugLog(
+      "SnapProvider",
+      `Page ${pageNum} extracted: ${data.endpoints.length} endpoints, ${data.midpoints.length} midpoints, ${data.intersections.length} intersections, ${data.segments.length} segments`
+    )
 
     pageCacheSet(pageNum, data)
     currentExtractedPage.value = pageNum
@@ -331,7 +362,11 @@ function _createSnapProvider() {
     // Best point hit (markup vs content)
     let pointHit = markupHit
     if (contentHit) {
-      if (!pointHit || contentHit.dist < pointHit.dist || (contentHit.dist === pointHit.dist && contentHit.priority < pointHit.priority)) {
+      if (
+        !pointHit ||
+        contentHit.dist < pointHit.dist ||
+        (contentHit.dist === pointHit.dist && contentHit.priority < pointHit.priority)
+      ) {
         pointHit = contentHit
       }
     }
@@ -388,10 +423,20 @@ function _createSnapProvider() {
     contentSegmentGrid.clear()
 
     for (const pt of data.endpoints ?? []) {
-      contentPointGrid.insert({ point: pt, type: "endpoint", source: "content", priority: SNAP.PRIORITY_CONTENT_ENDPOINT })
+      contentPointGrid.insert({
+        point: pt,
+        type: "endpoint",
+        source: "content",
+        priority: SNAP.PRIORITY_CONTENT_ENDPOINT
+      })
     }
     for (const pt of data.intersections ?? []) {
-      contentPointGrid.insert({ point: pt, type: "intersection", source: "content", priority: SNAP.PRIORITY_CONTENT_INTERSECTION })
+      contentPointGrid.insert({
+        point: pt,
+        type: "intersection",
+        source: "content",
+        priority: SNAP.PRIORITY_CONTENT_INTERSECTION
+      })
     }
     for (const pt of data.midpoints ?? []) {
       contentPointGrid.insert({ point: pt, type: "midpoint", source: "content", priority: SNAP.PRIORITY_MIDPOINT })

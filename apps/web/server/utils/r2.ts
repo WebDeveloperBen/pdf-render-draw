@@ -8,7 +8,11 @@
 // ── Types ──
 
 interface R2StorageClient {
-  put(key: string, body: Uint8Array, options?: { httpMetadata?: { contentType?: string }; customMetadata?: Record<string, string> }): Promise<void>
+  put(
+    key: string,
+    body: Uint8Array,
+    options?: { httpMetadata?: { contentType?: string }; customMetadata?: Record<string, string> }
+  ): Promise<void>
   delete(key: string | string[]): Promise<void>
   head(key: string): Promise<object | null>
 }
@@ -29,7 +33,9 @@ function getR2Bucket(): R2StorageClient {
     if (env?.R2_BUCKET) return env.R2_BUCKET as unknown as R2StorageClient
   } catch {}
 
-  throw new Error("[R2] No R2 binding available. Ensure wrangler.toml has r2_buckets configured and nitro-cloudflare-dev is loaded.")
+  throw new Error(
+    "[R2] No R2 binding available. Ensure wrangler.toml has r2_buckets configured and nitro-cloudflare-dev is loaded."
+  )
 }
 
 /**
@@ -73,7 +79,11 @@ export async function uploadToR2(file: ArrayBuffer | Uint8Array, path: string, c
   const client = getR2Bucket()
   const origin = getStorageOrigin()
   // Ensure a plain Uint8Array (not Buffer subclass) — miniflare's proxy can't serialize Buffer
-  const body = new Uint8Array(file instanceof ArrayBuffer ? file : file.buffer, file instanceof ArrayBuffer ? 0 : file.byteOffset, file instanceof ArrayBuffer ? file.byteLength : file.byteLength)
+  const body = new Uint8Array(
+    file instanceof ArrayBuffer ? file : file.buffer,
+    file instanceof ArrayBuffer ? 0 : file.byteOffset,
+    file instanceof ArrayBuffer ? file.byteLength : file.byteLength
+  )
 
   await client.put(path, body, { httpMetadata: { contentType } })
   return `${origin}/storage/${path}`

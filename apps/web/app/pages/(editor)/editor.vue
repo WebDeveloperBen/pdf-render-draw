@@ -133,7 +133,7 @@ onUnmounted(async () => {
 })
 
 // Sidebar state - persisted to localStorage
-const isSidebarOpen = useLocalStorage('editor-sidebar-open', false)
+const isSidebarOpen = useLocalStorage("editor-sidebar-open", false)
 
 // Sync status tooltip
 const syncTooltip = computed(() => {
@@ -217,9 +217,7 @@ async function handleExport() {
   }
   // Cancel any in-flight drawing tool before export
   annotationStore.setActiveTool("selection")
-  const exportFileName = fileName.value
-    ? fileName.value.replace(/\.pdf$/i, "-annotated.pdf")
-    : "annotated.pdf"
+  const exportFileName = fileName.value ? fileName.value.replace(/\.pdf$/i, "-annotated.pdf") : "annotated.pdf"
   await exportFromEditor(pdfUrl.value, exportFileName)
 }
 
@@ -400,33 +398,17 @@ if (typeof window !== "undefined") {
             >
               <Icon v-if="isExporting" name="svg-spinners:ring-resize" class="size-4" />
               <Icon v-else name="lucide:download" class="size-4" />
-              <span>{{ isExporting ? 'Exporting...' : 'Export' }}</span>
+              <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
             </button>
 
             <div class="divider" />
 
             <!-- Sync Status Indicator -->
             <div class="sync-status" :class="syncState" :title="syncTooltip">
-              <Icon
-                v-if="syncState === 'syncing'"
-                name="svg-spinners:ring-resize"
-                class="size-4"
-              />
-              <Icon
-                v-else-if="syncState === 'error'"
-                name="lucide:cloud-off"
-                class="size-4"
-              />
-              <Icon
-                v-else-if="syncState === 'offline'"
-                name="lucide:wifi-off"
-                class="size-4"
-              />
-              <Icon
-                v-else-if="hasPendingChanges"
-                name="lucide:cloud-upload"
-                class="size-4"
-              />
+              <Icon v-if="syncState === 'syncing'" name="svg-spinners:ring-resize" class="size-4" />
+              <Icon v-else-if="syncState === 'error'" name="lucide:cloud-off" class="size-4" />
+              <Icon v-else-if="syncState === 'offline'" name="lucide:wifi-off" class="size-4" />
+              <Icon v-else-if="hasPendingChanges" name="lucide:cloud-upload" class="size-4" />
               <Icon v-else name="lucide:cloud-check" class="size-4" />
               <span v-if="pendingCount > 0" class="pending-badge">
                 {{ pendingCount }}
@@ -465,7 +447,10 @@ if (typeof window !== "undefined") {
               <span class="tool-name">Select</span>
             </button>
 
-            <div v-if="flags.roomDetection || flags.roomSmartDetect || flags.roomAiDetect || flags.roomDebugPlan" class="tool-divider" />
+            <div
+              v-if="flags.roomDetection || flags.roomSmartDetect || flags.roomAiDetect || flags.roomDebugPlan"
+              class="tool-divider"
+            />
 
             <button
               v-if="flags.roomDetection"
@@ -476,7 +461,7 @@ if (typeof window !== "undefined") {
             >
               <Icon v-if="isDetectingRooms" name="svg-spinners:ring-resize" class="size-4" />
               <Icon v-else name="lucide:scan-line" class="size-4" />
-              <span class="tool-name">{{ roomLayerEnabled ? `Rooms (${detectedRooms.length})` : 'Detect Rooms' }}</span>
+              <span class="tool-name">{{ roomLayerEnabled ? `Rooms (${detectedRooms.length})` : "Detect Rooms" }}</span>
             </button>
 
             <button
@@ -512,7 +497,7 @@ if (typeof window !== "undefined") {
             >
               <Icon name="lucide:bug" class="size-4" />
               <span class="tool-name">
-                {{ debugLayerEnabled ? `Debug (${debugData?.nodes.length ?? 0} nodes)` : 'Debug Plan' }}
+                {{ debugLayerEnabled ? `Debug (${debugData?.nodes.length ?? 0} nodes)` : "Debug Plan" }}
               </span>
             </button>
 
@@ -525,7 +510,7 @@ if (typeof window !== "undefined") {
             >
               <Icon name="lucide:crosshair" class="size-4" />
               <span class="tool-name">
-                {{ snapDebugEnabled ? 'Hide Snap Debug' : 'Snap Debug' }}
+                {{ snapDebugEnabled ? "Hide Snap Debug" : "Snap Debug" }}
               </span>
             </button>
           </div>

@@ -200,7 +200,12 @@ describe("Scale Responsiveness", () => {
       viewportStore.setPdfScale("1:100")
       expect(calculatePolygonArea([])).toBe(0)
       expect(calculatePolygonArea([{ x: 0, y: 0 }])).toBe(0)
-      expect(calculatePolygonArea([{ x: 0, y: 0 }, { x: 1, y: 1 }])).toBe(0)
+      expect(
+        calculatePolygonArea([
+          { x: 0, y: 0 },
+          { x: 1, y: 1 }
+        ])
+      ).toBe(0)
     })
   })
 
@@ -216,7 +221,10 @@ describe("Scale Responsiveness", () => {
         id: "m1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
         distance: 0, // Will be recalculated
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
@@ -310,7 +318,10 @@ describe("Scale Responsiveness", () => {
         id: "l1",
         type: "line",
         pageNum: 1,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 100 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 100 }
+        ],
         rotation: 0
       }
 
@@ -323,7 +334,10 @@ describe("Scale Responsiveness", () => {
         id: "f1",
         type: "fill",
         pageNum: 1,
-        x: 0, y: 0, width: 100, height: 100,
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
         color: "#ff0000",
         opacity: 0.5,
         rotation: 0
@@ -346,7 +360,10 @@ describe("Scale Responsiveness", () => {
         id: "m1",
         type: "measure",
         pageNum: 1,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
         distance: calculateDistance({ x: 0, y: 0 }, { x: 100, y: 0 }),
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
@@ -358,7 +375,10 @@ describe("Scale Responsiveness", () => {
 
       // Update points (scaled up by 2x)
       annotationStore.updateAnnotation("m1", {
-        points: [{ x: 0, y: 0 }, { x: 200, y: 0 }]
+        points: [
+          { x: 0, y: 0 },
+          { x: 200, y: 0 }
+        ]
       })
 
       const updated = annotationStore.getAnnotationById("m1") as Measurement

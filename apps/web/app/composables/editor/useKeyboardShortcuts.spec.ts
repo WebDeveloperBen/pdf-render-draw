@@ -4,7 +4,6 @@ import { useKeyboardShortcuts } from "./useKeyboardShortcuts"
 import { useAnnotationStore } from "~/stores/annotations"
 import { useViewportStore } from "~/stores/viewport"
 
-
 describe("Keyboard Shortcuts", () => {
   beforeEach(() => {
     setActivePinia(createPinia())

@@ -43,7 +43,7 @@ const annotationsByType = computed(() => {
     <!-- Render each tool type's annotations using the same components as the editor -->
     <!-- Each tool type group contains correctly-typed annotations at runtime -->
     <template v-for="[type, anns] in annotationsByType" :key="type">
-      <component :is="toolComponents[type]" v-if="toolComponents[type]" :annotations="(anns as any)" />
+      <component :is="toolComponents[type]" v-if="toolComponents[type]" :annotations="anns as any" />
     </template>
   </svg>
 </template>

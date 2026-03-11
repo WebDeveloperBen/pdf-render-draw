@@ -96,18 +96,8 @@ watch(isOpen, (open) => {
 
       <!-- Footer with actions -->
       <UiDialogFooter class="mt-6 gap-3 sm:gap-2">
-        <UiButton
-          variant="outline"
-          :disabled="isDeleting"
-          @click="handleCancel"
-        >
-          Cancel
-        </UiButton>
-        <UiButton
-          variant="destructive"
-          :disabled="!canConfirm || isDeleting"
-          @click="handleConfirm"
-        >
+        <UiButton variant="outline" :disabled="isDeleting" @click="handleCancel"> Cancel </UiButton>
+        <UiButton variant="destructive" :disabled="!canConfirm || isDeleting" @click="handleConfirm">
           <Icon v-if="isDeleting" name="svg-spinners:ring-resize" class="size-4 mr-2" />
           <Icon v-else name="lucide:trash-2" class="size-4 mr-2" />
           {{ confirmText }}

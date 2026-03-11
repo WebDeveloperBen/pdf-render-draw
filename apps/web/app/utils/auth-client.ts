@@ -1,10 +1,5 @@
-import {
-  inferAdditionalFields,
-  adminClient,
-  organizationClient,
-  apiKeyClient,
-  magicLinkClient
-} from "better-auth/client/plugins"
+import { inferAdditionalFields, adminClient, organizationClient, magicLinkClient } from "better-auth/client/plugins"
+import { apiKeyClient } from "@better-auth/api-key/client"
 import { stripeClient } from "@better-auth/stripe/client"
 import { createAuthClient } from "better-auth/vue"
 import type { auth } from "@auth"

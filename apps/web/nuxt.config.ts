@@ -33,35 +33,30 @@ export default defineNuxtConfig({
   // Runtime configuration
   runtimeConfig: {
     // Server-only (not exposed to client)
-    databaseUrl: process.env.DATABASE_URL,
-    betterAuthSecret: process.env.BETTER_AUTH_SECRET,
+    databaseUrl: "",
+    betterAuthSecret: "",
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+      clientId: "",
+      clientSecret: ""
     },
     github: {
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET
+      clientId: "",
+      clientSecret: ""
     },
     stripe: {
-      secretKey: process.env.STRIPE_SECRET_KEY,
-      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET
+      secretKey: "",
+      webhookSecret: ""
     },
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-    azureOpenaiApiKey: process.env.AZURE_OPENAI_API_KEY,
-    azureOpenaiApiVersion: process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview",
-    azureOpenaiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
-    azureOpenaiDeployment: process.env.AZURE_OPENAI_DEPLOYMENT,
     resendApiKey: "",
     emailFrom: process.env.EMAIL_FROM || "noreply@bens.digital",
     // Public (exposed to client)
     public: {
-      betterAuthUrl: process.env.BETTER_AUTH_URL,
+      betterAuthUrl: "",
       // App branding (accessible on both client and server)
       app: {
-        name: "PDF Annotator",
+        name: "MetreMate",
         domain: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-        shortName: "PDF",
+        shortName: "MM",
         description: "Draw and measure PDF documents with precision",
         tagline: "Annotate with precision",
         brandColor: "#f97316",
@@ -195,13 +190,16 @@ export default defineNuxtConfig({
     minify: false,
     // For Cloudflare Workers: mock pg (prod uses @neondatabase/serverless)
     // @react-email/render is an optional dep of resend (we use @vue-email/render)
-    unenv: process.env.NITRO_PRESET === "node-server" ? undefined : {
-      alias: {
-        "pg": "unenv/mock/proxy",
-        "@react-email/render": "unenv/mock/proxy",
-        "@aws-sdk/client-s3": "unenv/mock/proxy"
-      }
-    },
+    unenv:
+      process.env.NITRO_PRESET === "node-server"
+        ? undefined
+        : {
+            alias: {
+              pg: "unenv/mock/proxy",
+              "@react-email/render": "unenv/mock/proxy",
+              "@aws-sdk/client-s3": "unenv/mock/proxy"
+            }
+          },
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,
@@ -248,6 +246,6 @@ API requests are subject to rate limiting. Contact support for higher limits.
     },
     experimental: {
       openAPI: true
-    },
+    }
   }
 })

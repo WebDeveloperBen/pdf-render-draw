@@ -5,11 +5,7 @@
  * snap provider and all drawing tools.
  */
 
-export type SnapTargetType =
-  | "endpoint"
-  | "intersection"
-  | "midpoint"
-  | "nearest-on-edge"
+export type SnapTargetType = "endpoint" | "intersection" | "midpoint" | "nearest-on-edge"
 
 export type SnapSource = "markup" | "content"
 

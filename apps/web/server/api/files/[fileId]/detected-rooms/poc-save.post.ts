@@ -78,9 +78,7 @@ export default defineEventHandler(async (event) => {
   const source = body.rooms[0]?.source ?? "poc-client"
 
   if (body.replaceExisting) {
-    await db
-      .delete(detectedRoom)
-      .where(and(eq(detectedRoom.fileId, fileId), eq(detectedRoom.pageNum, body.pageNum)))
+    await db.delete(detectedRoom).where(and(eq(detectedRoom.fileId, fileId), eq(detectedRoom.pageNum, body.pageNum)))
   }
 
   const insertRows = body.rooms.map((room) => ({

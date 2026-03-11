@@ -72,7 +72,7 @@ export const useViewportStore = defineStore("viewport", () => {
       parts.push(`rotate(${additionalRotation})`)
     }
     parts.push(`translate(${-cx}, ${-cy})`)
-    return parts.join(' ')
+    return parts.join(" ")
   }
   const getRotation = computed(() => rotation.value)
   const getPdfScale = computed(() => pdfScale.value)

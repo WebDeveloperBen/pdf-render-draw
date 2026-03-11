@@ -11,7 +11,7 @@ export const subscription = pgTable("subscription", {
   plan: text("plan").notNull(),
   referenceId: text("reference_id").notNull(),
   stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
   status: text("status").notNull(),
   periodStart: timestamp("period_start"),
   periodEnd: timestamp("period_end"),

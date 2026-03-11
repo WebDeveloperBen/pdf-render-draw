@@ -1,30 +1,9 @@
 import { eq } from "drizzle-orm"
-import { nanoid } from "nanoid"
 import { db } from "../drizzle"
 import * as schema from "@shared/db/schema"
 import { stripeClient } from "@auth"
 import { billingService } from "./billing.service"
-
-// Helper to log admin actions to the audit log
-async function logBillingAuditAction(params: {
-  adminId: string
-  actionType: string
-  targetOrgId?: string | null
-  metadata?: Record<string, unknown>
-  ipAddress?: string | null
-  userAgent?: string | null
-}) {
-  await db.insert(schema.adminAuditLog).values({
-    id: nanoid(),
-    adminId: params.adminId,
-    actionType: params.actionType,
-    targetOrgId: params.targetOrgId ?? null,
-    metadata: params.metadata ? JSON.stringify(params.metadata) : null,
-    ipAddress: params.ipAddress ?? null,
-    userAgent: params.userAgent ?? null,
-    createdAt: new Date()
-  })
-}
+import { logAdminAction } from "../audit"
 
 export const billingActionsService = {
   /**
@@ -67,7 +46,7 @@ export const billingActionsService = {
       })
       .where(eq(schema.subscription.id, localSub.id))
 
-    // Record activity
+    // Record billing activity
     await billingService.recordActivity({
       subscriptionId: localSub.id,
       type: "admin_action",
@@ -84,9 +63,9 @@ export const billingActionsService = {
     })
 
     // Audit log
-    await logBillingAuditAction({
+    await logAdminAction({
       adminId: params.adminId,
-      actionType: `billing.subscription.cancel`,
+      actionType: "billing.subscription.cancel",
       targetOrgId: localSub.referenceId,
       metadata: {
         subscriptionId: localSub.id,
@@ -137,7 +116,7 @@ export const billingActionsService = {
       })
       .where(eq(schema.subscription.id, localSub.id))
 
-    // Record activity
+    // Record billing activity
     await billingService.recordActivity({
       subscriptionId: localSub.id,
       type: "admin_action",
@@ -150,7 +129,7 @@ export const billingActionsService = {
     })
 
     // Audit log
-    await logBillingAuditAction({
+    await logAdminAction({
       adminId: params.adminId,
       actionType: "billing.subscription.reactivate",
       targetOrgId: localSub.referenceId,
@@ -187,7 +166,7 @@ export const billingActionsService = {
       return_url: params.returnUrl
     })
 
-    // Record activity
+    // Record billing activity
     await billingService.recordActivity({
       subscriptionId: localSub.id,
       type: "admin_action",
@@ -197,7 +176,7 @@ export const billingActionsService = {
     })
 
     // Audit log
-    await logBillingAuditAction({
+    await logAdminAction({
       adminId: params.adminId,
       actionType: "billing.portal_link_generated",
       targetOrgId: localSub.referenceId,

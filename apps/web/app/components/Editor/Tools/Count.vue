@@ -70,17 +70,42 @@ const showPreview = computed(() => {
     <EditorAnnotation v-for="count in completed" :key="count.id" :annotation="count">
       <template #content="{ annotation }">
         <!-- Invisible hitbox -->
-        <circle :cx="annotation.x + annotation.width / 2" :cy="annotation.y + annotation.height / 2"
-          :r="stamped(config.hitArea.radius, annotation.labelScale)" fill="transparent" class="count-hitbox" />
+        <circle
+          :cx="annotation.x + annotation.width / 2"
+          :cy="annotation.y + annotation.height / 2"
+          :r="stamped(config.hitArea.radius, annotation.labelScale)"
+          fill="transparent"
+          class="count-hitbox"
+        />
 
         <!-- Count marker circle -->
-        <circle :cx="annotation.x + annotation.width / 2" :cy="annotation.y + annotation.height / 2"
-          :r="stamped(config.marker.radius, annotation.labelScale)" :fill="config.marker.fill" :stroke="config.marker.stroke"
-          :stroke-width="stamped(config.marker.strokeWidth, annotation.labelScale)" class="count-marker" />
+        <circle
+          :cx="annotation.x + annotation.width / 2"
+          :cy="annotation.y + annotation.height / 2"
+          :r="stamped(config.marker.radius, annotation.labelScale)"
+          :fill="config.marker.fill"
+          :stroke="config.marker.stroke"
+          :stroke-width="stamped(config.marker.strokeWidth, annotation.labelScale)"
+          class="count-marker"
+        />
 
-        <text x="0" y="0" text-anchor="middle"
-          dominant-baseline="middle" :font-size="config.text.fontSize" :font-weight="config.text.fontWeight"
-          :fill="config.text.fill" :transform="stampedTransform(annotation.x + annotation.width / 2, annotation.y + annotation.height / 2, annotation.labelScale)" class="count-number">
+        <text
+          x="0"
+          y="0"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          :font-size="config.text.fontSize"
+          :font-weight="config.text.fontWeight"
+          :fill="config.text.fill"
+          :transform="
+            stampedTransform(
+              annotation.x + annotation.width / 2,
+              annotation.y + annotation.height / 2,
+              annotation.labelScale
+            )
+          "
+          class="count-number"
+        >
           {{ annotation.number }}
         </text>
       </template>
@@ -88,13 +113,28 @@ const showPreview = computed(() => {
 
     <!-- Preview marker - interactive mode only -->
     <g v-if="showPreview && cursorPosition" class="preview">
-      <circle :cx="cursorPosition.x" :cy="cursorPosition.y" :r="s(config.marker.radius)" :fill="config.marker.fill"
-        :stroke="config.marker.stroke" :stroke-width="s(config.marker.strokeWidth)" :opacity="config.preview.opacity"
-        class="preview-marker" />
-      <text x="0" y="0" text-anchor="middle" dominant-baseline="middle"
-        :font-size="config.text.fontSize" :font-weight="config.text.fontWeight" :fill="config.text.fill"
-        :opacity="config.preview.opacity" :transform="screenTransform(cursorPosition.x, cursorPosition.y)"
-        class="preview-number">
+      <circle
+        :cx="cursorPosition.x"
+        :cy="cursorPosition.y"
+        :r="s(config.marker.radius)"
+        :fill="config.marker.fill"
+        :stroke="config.marker.stroke"
+        :stroke-width="s(config.marker.strokeWidth)"
+        :opacity="config.preview.opacity"
+        class="preview-marker"
+      />
+      <text
+        x="0"
+        y="0"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        :font-size="config.text.fontSize"
+        :font-weight="config.text.fontWeight"
+        :fill="config.text.fill"
+        :opacity="config.preview.opacity"
+        :transform="screenTransform(cursorPosition.x, cursorPosition.y)"
+        class="preview-number"
+      >
         {{ nextCountNumber }}
       </text>
     </g>

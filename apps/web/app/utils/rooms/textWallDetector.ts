@@ -19,7 +19,8 @@ import type { DetectedRoom, RoomDetectionResult } from "@/types/rooms"
 import { extractWallSegments } from "./roomDetector"
 
 // Room label patterns — common residential/commercial room names
-const ROOM_LABEL_PATTERN = /^(bed\s*\d*|bath|ensuite|en-?suite|kitchen|living|family|dining|meals?|garage|hallway|hall|entry|foyer|laundry|l['']?dry|study|robe|wir|w\.?i\.?r|pantry|p['']?try|wc|w\.?c|toilet|store|linen|lounge|rumpus|theatre|media|office|nook|dressing|alfresco|patio|carport|porch|verandah|balcony|deck|mud\s*r?m?|butler|powder|p['']?dr|scullery|cellar|workshop|games?|sitting|retreat|master|walk.?in|brm?|ldry)/i
+const ROOM_LABEL_PATTERN =
+  /^(bed\s*\d*|bath|ensuite|en-?suite|kitchen|living|family|dining|meals?|garage|hallway|hall|entry|foyer|laundry|l['']?dry|study|robe|wir|w\.?i\.?r|pantry|p['']?try|wc|w\.?c|toilet|store|linen|lounge|rumpus|theatre|media|office|nook|dressing|alfresco|patio|carport|porch|verandah|balcony|deck|mud\s*r?m?|butler|powder|p['']?dr|scullery|cellar|workshop|games?|sitting|retreat|master|walk.?in|brm?|ldry)/i
 
 // Area label pattern — plans that use area measurements instead of names (e.g. "16.39m²", "73.50m²")
 const AREA_LABEL_PATTERN = /^\d+\.?\d*\s*m[²2]$/i
@@ -57,9 +58,7 @@ interface WallSegment {
 /**
  * Extract room-like text labels from a PDF page with their viewport positions.
  */
-export async function extractRoomLabels(
-  page: PDFPageProxy
-): Promise<TextLabel[]> {
+export async function extractRoomLabels(page: PDFPageProxy): Promise<TextLabel[]> {
   const viewport = page.getViewport({ scale: 1 })
   const textContent = await page.getTextContent()
   const labels: TextLabel[] = []
@@ -117,7 +116,7 @@ function prepareWallSegments(segments: Segment[]): WallSegment[] {
 
   // Merge collinear segments — walls are often split by doors/windows
   const merged = mergeCollinearSegments(raw)
-  return merged.filter(w => w.length >= MIN_WALL_LENGTH)
+  return merged.filter((w) => w.length >= MIN_WALL_LENGTH)
 }
 
 /**
@@ -125,12 +124,12 @@ function prepareWallSegments(segments: Segment[]): WallSegment[] {
  * overlapping or close spans). Door gaps up to ~50pt are bridged.
  */
 function mergeCollinearSegments(walls: WallSegment[]): WallSegment[] {
-  const POSITION_TOLERANCE = 8   // how close parallel walls must be to merge
-  const GAP_TOLERANCE = 50       // max gap between segments to bridge (door ~36pt)
+  const POSITION_TOLERANCE = 8 // how close parallel walls must be to merge
+  const GAP_TOLERANCE = 50 // max gap between segments to bridge (door ~36pt)
 
   // Separate horizontal and vertical
-  const horizontal = walls.filter(w => w.isHorizontal)
-  const vertical = walls.filter(w => w.isVertical)
+  const horizontal = walls.filter((w) => w.isHorizontal)
+  const vertical = walls.filter((w) => w.isVertical)
 
   function mergeGroup(group: WallSegment[], isHoriz: boolean): WallSegment[] {
     if (group.length === 0) return []
@@ -190,10 +189,7 @@ function mergeCollinearSegments(walls: WallSegment[]): WallSegment[] {
     return result
   }
 
-  return [
-    ...mergeGroup(horizontal, true),
-    ...mergeGroup(vertical, false)
-  ]
+  return [...mergeGroup(horizontal, true), ...mergeGroup(vertical, false)]
 }
 
 /**
@@ -289,7 +285,8 @@ function polygonArea(points: Point[]): number {
 
 function polygonCentroid(points: Point[]): Point {
   const n = points.length
-  let cx = 0, cy = 0
+  let cx = 0,
+    cy = 0
   for (const p of points) {
     cx += p.x
     cy += p.y
@@ -347,7 +344,10 @@ export async function detectRoomsFromTextAndWalls(
   if (signal?.aborted) return { rooms: [], nodeCount: 0, edgeCount: 0 }
 
   const labels = dedupeLabels(rawLabels)
-  console.log(`[TextWallDetect] Found ${labels.length} room labels:`, labels.map(l => `"${l.text}" @(${l.x.toFixed(0)},${l.y.toFixed(0)})`))
+  console.log(
+    `[TextWallDetect] Found ${labels.length} room labels:`,
+    labels.map((l) => `"${l.text}" @(${l.x.toFixed(0)},${l.y.toFixed(0)})`)
+  )
 
   // 2. Extract wall segments
   const rawSegments = await extractWallSegments(page, signal)
@@ -358,7 +358,10 @@ export async function detectRoomsFromTextAndWalls(
   // 3. Compute floor plan region from label positions — filter out dimension lines
   // The floor plan is where the room labels are. Walls outside this region are likely dimensions.
   const PLAN_PADDING = 60 // pt padding around label bbox
-  let planMinX = Infinity, planMinY = Infinity, planMaxX = -Infinity, planMaxY = -Infinity
+  let planMinX = Infinity,
+    planMinY = Infinity,
+    planMaxX = -Infinity,
+    planMaxY = -Infinity
   for (const l of labels) {
     planMinX = Math.min(planMinX, l.x)
     planMinY = Math.min(planMinY, l.y)
@@ -371,13 +374,15 @@ export async function detectRoomsFromTextAndWalls(
   planMaxY += PLAN_PADDING
 
   // Filter walls to those within the floor plan region
-  const walls = allWalls.filter(w => {
+  const walls = allWalls.filter((w) => {
     const midX = (w.x1 + w.x2) / 2
     const midY = (w.y1 + w.y2) / 2
     return midX >= planMinX && midX <= planMaxX && midY >= planMinY && midY <= planMaxY
   })
 
-  console.log(`[TextWallDetect] ${rawSegments.length} raw → ${allWalls.length} merged → ${walls.length} in plan region (${Math.round(planMinX)},${Math.round(planMinY)})-(${Math.round(planMaxX)},${Math.round(planMaxY)})`)
+  console.log(
+    `[TextWallDetect] ${rawSegments.length} raw → ${allWalls.length} merged → ${walls.length} in plan region (${Math.round(planMinX)},${Math.round(planMinY)})-(${Math.round(planMaxX)},${Math.round(planMaxY)})`
+  )
 
   // 4. For each label, ray-cast to find enclosing walls
   const rooms: DetectedRoom[] = []
@@ -401,7 +406,9 @@ export async function detectRoomsFromTextAndWalls(
     const area = polygonArea(polygon)
     const centroid = polygonCentroid(polygon)
 
-    console.log(`[TextWallDetect] "${label.text}": ${Math.round(bounds.right - bounds.left)}×${Math.round(bounds.bottom - bounds.top)}pt, area=${Math.round(area)}pt²`)
+    console.log(
+      `[TextWallDetect] "${label.text}": ${Math.round(bounds.right - bounds.left)}×${Math.round(bounds.bottom - bounds.top)}pt, area=${Math.round(area)}pt²`
+    )
 
     rooms.push({
       id: `tw-${page.pageNumber}-${i + 1}`,

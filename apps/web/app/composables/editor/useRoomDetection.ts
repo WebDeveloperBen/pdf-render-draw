@@ -54,18 +54,12 @@ function clearVisibleResults() {
   detectionStats.value = null
 }
 
-function applyResultToVisibleLayers(
-  result: RoomDetectionResult,
-  pageNum: number,
-  currentPage: number
-): boolean {
+function applyResultToVisibleLayers(result: RoomDetectionResult, pageNum: number, currentPage: number): boolean {
   if (currentPage !== pageNum) return false
 
   detectedRooms.value = roomLayerEnabled.value ? result.rooms : []
   debugData.value = debugLayerEnabled.value ? (result.debug ?? null) : null
-  detectionStats.value = shouldShowAnyLayer()
-    ? { nodeCount: result.nodeCount, edgeCount: result.edgeCount }
-    : null
+  detectionStats.value = shouldShowAnyLayer() ? { nodeCount: result.nodeCount, edgeCount: result.edgeCount } : null
 
   return true
 }
@@ -115,7 +109,10 @@ export function useRoomDetection() {
         `[RoomDetection] Page ${pageNum}: found ${result.rooms.length} rooms (${result.nodeCount} nodes, ${result.edgeCount} edges)`
       )
       if (result.rooms.length > 0) {
-        console.log("[RoomDetection] Room areas:", result.rooms.map((room) => Math.round(room.area)))
+        console.log(
+          "[RoomDetection] Room areas:",
+          result.rooms.map((room) => Math.round(room.area))
+        )
       }
 
       cacheSet(pageNum, result)
@@ -243,7 +240,9 @@ export function useRoomDetection() {
       const imageWidth = Math.round(renderViewport.width)
       const imageHeight = Math.round(renderViewport.height)
 
-      console.log(`[RoomOCR] Rendering page ${pageNum} at ${imageWidth}x${imageHeight} (scale ${renderScale.toFixed(2)})`)
+      console.log(
+        `[RoomOCR] Rendering page ${pageNum} at ${imageWidth}x${imageHeight} (scale ${renderScale.toFixed(2)})`
+      )
 
       // Render to offscreen canvas
       const canvas = document.createElement("canvas")
@@ -257,7 +256,8 @@ export function useRoomDetection() {
 
       // Extract text labels with positions from the PDF (exact coordinates)
       const textContent = await page.getTextContent()
-      const roomLabelPattern = /^(bed|bath|ensuite|kitchen|living|family|dining|meals|garage|hallway|hall|entry|foyer|laundry|study|robe|wir|w\.?i\.?r|pantry|wc|w\.?c|toilet|store|linen|lounge|rumpus|theatre|media|office|nook|dressing|alfresco|patio|carport|porch|verandah|balcony|deck|mud\s?room|butler)/i
+      const roomLabelPattern =
+        /^(bed|bath|ensuite|kitchen|living|family|dining|meals|garage|hallway|hall|entry|foyer|laundry|study|robe|wir|w\.?i\.?r|pantry|wc|w\.?c|toilet|store|linen|lounge|rumpus|theatre|media|office|nook|dressing|alfresco|patio|carport|porch|verandah|balcony|deck|mud\s?room|butler)/i
       const textLabels: Array<{ text: string; pdfX: number; pdfY: number; pixelX: number; pixelY: number }> = []
 
       for (const item of textContent.items) {
@@ -305,7 +305,9 @@ export function useRoomDetection() {
       canvas.width = 0
       canvas.height = 0
 
-      console.log(`[RoomOCR] Page dimensions: PDF viewport=${pageWidth.toFixed(1)}x${pageHeight.toFixed(1)}, Image=${imageWidth}x${imageHeight}, renderScale=${renderScale.toFixed(2)}`)
+      console.log(
+        `[RoomOCR] Page dimensions: PDF viewport=${pageWidth.toFixed(1)}x${pageHeight.toFixed(1)}, Image=${imageWidth}x${imageHeight}, renderScale=${renderScale.toFixed(2)}`
+      )
       console.log(`[RoomOCR] Extracted ${textLabels.length} room text labels:`)
       for (const l of textLabels) {
         console.log(`[RoomOCR]   "${l.text}" → PDF viewport (${l.pdfX}, ${l.pdfY}), pixel (${l.pixelX}, ${l.pixelY})`)
@@ -338,7 +340,10 @@ export function useRoomDetection() {
 
       console.log(`[RoomOCR] Page ${pageNum}: ${ocrRooms.length} rooms detected`)
       if (ocrRooms.length > 0) {
-        console.log("[RoomOCR] Rooms:", ocrRooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`))
+        console.log(
+          "[RoomOCR] Rooms:",
+          ocrRooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`)
+        )
       }
 
       const result: RoomDetectionResult = {
@@ -355,7 +360,9 @@ export function useRoomDetection() {
       // Log scale info if available
       const scale = (response as any).scale
       if (scale) {
-        console.log(`[RoomOCR] Scale detected: ${scale.realLengthMm}mm = ${scale.pdfPointsLength.toFixed(1)} PDF points`)
+        console.log(
+          `[RoomOCR] Scale detected: ${scale.realLengthMm}mm = ${scale.pdfPointsLength.toFixed(1)} PDF points`
+        )
       }
     } catch (err) {
       console.error("[RoomOCR] Detection failed:", err)
@@ -385,7 +392,10 @@ export function useRoomDetection() {
 
       console.log(`[TextWallDetect] Page ${pageNum}: ${result.rooms.length} rooms detected`)
       if (result.rooms.length > 0) {
-        console.log("[TextWallDetect] Rooms:", result.rooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`))
+        console.log(
+          "[TextWallDetect] Rooms:",
+          result.rooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`)
+        )
       }
 
       cacheSet(pageNum, result)

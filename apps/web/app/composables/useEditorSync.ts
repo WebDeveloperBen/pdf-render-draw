@@ -125,25 +125,30 @@ export function useEditorSync(options: EditorSyncOptions) {
         }
       })
 
-      const { applied, conflicts, serverUpdates, meta: responseMeta, viewportState: returnedViewportState } =
-        response as {
-          applied: string[]
-          conflicts: Array<{
-            annotationId: string
-            reason: string
-            serverVersion: Record<string, unknown> | null
-          }>
-          serverUpdates: Array<{
-            id: string
-            type: string
-            pageNum: number
-            version: number
-            deletedAt: string | null
-            [key: string]: unknown
-          }>
-          meta: { serverTime: string; syncId: string }
-          viewportState: ViewportState | null
-        }
+      const {
+        applied,
+        conflicts,
+        serverUpdates,
+        meta: responseMeta,
+        viewportState: returnedViewportState
+      } = response as {
+        applied: string[]
+        conflicts: Array<{
+          annotationId: string
+          reason: string
+          serverVersion: Record<string, unknown> | null
+        }>
+        serverUpdates: Array<{
+          id: string
+          type: string
+          pageNum: number
+          version: number
+          deletedAt: string | null
+          [key: string]: unknown
+        }>
+        meta: { serverTime: string; syncId: string }
+        viewportState: ViewportState | null
+      }
 
       // Handle viewport state
       if (viewportStateToSync) {
@@ -277,7 +282,11 @@ export function useEditorSync(options: EditorSyncOptions) {
           }
         })
 
-        const { annotations: serverAnnotations, meta: responseMeta, viewportState: serverViewport } = response as {
+        const {
+          annotations: serverAnnotations,
+          meta: responseMeta,
+          viewportState: serverViewport
+        } = response as {
           annotations: Array<{
             id: string
             type: string

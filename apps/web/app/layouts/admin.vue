@@ -47,6 +47,14 @@ const navManagement = [
   }
 ]
 
+const navBilling = [
+  {
+    title: "Subscriptions",
+    url: "/admin/subscriptions",
+    icon: "lucide:credit-card"
+  }
+]
+
 // Security section - includes owner-only items
 const navSecurity = computed(() => {
   const items = []
@@ -116,7 +124,7 @@ useSeoMeta({ title: `Admin - ${name}` })
                   </div>
                   <div class="grid flex-1 text-left text-sm leading-tight">
                     <span class="truncate font-semibold">{{ name }} Admin</span>
-                    <span class="truncate text-xs text-muted-foreground">Super Admin Panel</span>
+                    <span class="truncate text-xs text-muted-foreground">Platform Admin Panel</span>
                   </div>
                 </NuxtLink>
               </UiSidebarMenuButton>
@@ -145,6 +153,21 @@ useSeoMeta({ title: `Admin - ${name}` })
             <UiSidebarGroupLabel label="Management" />
             <UiSidebarMenu>
               <UiSidebarMenuItem v-for="item in navManagement" :key="item.url">
+                <UiSidebarMenuButton as-child :tooltip="item.title">
+                  <NuxtLink :to="item.url">
+                    <Icon :name="item.icon" class="size-4" />
+                    <span>{{ item.title }}</span>
+                  </NuxtLink>
+                </UiSidebarMenuButton>
+              </UiSidebarMenuItem>
+            </UiSidebarMenu>
+          </UiSidebarGroup>
+
+          <!-- Billing -->
+          <UiSidebarGroup>
+            <UiSidebarGroupLabel label="Billing" />
+            <UiSidebarMenu>
+              <UiSidebarMenuItem v-for="item in navBilling" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
                     <Icon :name="item.icon" class="size-4" />

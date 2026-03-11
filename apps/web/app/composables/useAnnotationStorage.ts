@@ -96,11 +96,7 @@ export function useAnnotationStorage() {
   /**
    * Save an annotation to local storage and queue sync operation
    */
-  async function saveToLocal(
-    fileId: string,
-    annotation: Annotation,
-    isNew: boolean = false
-  ): Promise<void> {
+  async function saveToLocal(fileId: string, annotation: Annotation, isNew: boolean = false): Promise<void> {
     const now = Date.now()
 
     // Get existing record to check version
@@ -185,9 +181,7 @@ export function useAnnotationStorage() {
    * Get all pending operations for a file
    */
   async function getPendingOperations(fileId: string): Promise<PendingOperation[]> {
-    return await database.pendingOperations
-      .where({ fileId })
-      .sortBy("createdAt")
+    return await database.pendingOperations.where({ fileId }).sortBy("createdAt")
   }
 
   /**
@@ -202,26 +196,17 @@ export function useAnnotationStorage() {
    */
   async function markSynced(annotationIds: string[]): Promise<void> {
     // Remove from pending operations
-    await database.pendingOperations
-      .where("annotationId")
-      .anyOf(annotationIds)
-      .delete()
+    await database.pendingOperations.where("annotationId").anyOf(annotationIds).delete()
 
     // Update sync status in annotations
-    await database.annotations
-      .where("id")
-      .anyOf(annotationIds)
-      .modify({ syncStatus: "synced" })
+    await database.annotations.where("id").anyOf(annotationIds).modify({ syncStatus: "synced" })
   }
 
   /**
    * Mark operations as failed (increment retry count)
    */
   async function markFailed(annotationIds: string[]): Promise<void> {
-    await database.annotations
-      .where("id")
-      .anyOf(annotationIds)
-      .modify({ syncStatus: "failed" })
+    await database.annotations.where("id").anyOf(annotationIds).modify({ syncStatus: "failed" })
 
     await database.pendingOperations
       .where("annotationId")
@@ -235,16 +220,11 @@ export function useAnnotationStorage() {
    * Remove failed operations that exceeded max retries
    */
   async function removeExhaustedOperations(maxRetries: number = 5): Promise<string[]> {
-    const exhausted = await database.pendingOperations
-      .filter((op) => op.retryCount >= maxRetries)
-      .toArray()
+    const exhausted = await database.pendingOperations.filter((op) => op.retryCount >= maxRetries).toArray()
 
     const ids = exhausted.map((op) => op.annotationId)
 
-    await database.pendingOperations
-      .where("annotationId")
-      .anyOf(ids)
-      .delete()
+    await database.pendingOperations.where("annotationId").anyOf(ids).delete()
 
     return ids
   }

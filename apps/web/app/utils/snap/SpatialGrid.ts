@@ -183,8 +183,7 @@ export function deduplicatePointsSpatial(points: Point[], tolerance: number): Po
 
     let isDupe = false
     // Check 3x3 neighborhood
-    outer:
-    for (let dx = -1; dx <= 1; dx++) {
+    outer: for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         const bucket = grid.get(`${cx + dx},${cy + dy}`)
         if (!bucket) continue

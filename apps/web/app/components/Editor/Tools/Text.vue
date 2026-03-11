@@ -73,7 +73,9 @@ const completed = computed(() => props.annotations ?? tool.completed.value)
 const editingId = computed(() => tool.editingId.value)
 const editingContent = computed({
   get: () => tool.editingContent.value,
-  set: (val) => { tool.editingContent.value = val }
+  set: (val) => {
+    tool.editingContent.value = val
+  }
 })
 const finishEditing = tool.finishEditing
 const deleteText = tool.deleteText
@@ -184,11 +186,7 @@ function handleFinishEditing() {
 <template>
   <g class="text-tool">
     <!-- Completed annotations - single rendering path for both modes -->
-    <EditorAnnotation
-      v-for="text in completed"
-      :key="text.id"
-      :annotation="text"
-    >
+    <EditorAnnotation v-for="text in completed" :key="text.id" :annotation="text">
       <!-- Custom content for text annotations -->
       <template #content="{ annotation, isSelected }">
         <!-- Non-editing mode: display text (or always in export mode) -->

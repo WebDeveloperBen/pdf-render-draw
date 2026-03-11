@@ -9,7 +9,7 @@ export const admin_audit_log = pgTable("admin_audit_log", {
   id: text("id").primaryKey(),
   adminId: text("admin_id")
     .notNull()
-    .references(() => user.id, { onDelete: "set null" }),
+    .references(() => user.id, { onDelete: "restrict" }),
   actionType: text("action_type").notNull(),
   targetUserId: text("target_user_id"),
   targetOrgId: text("target_org_id"),

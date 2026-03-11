@@ -185,11 +185,7 @@ describe("SegmentGrid", () => {
 
   describe("insertAll", () => {
     it("should insert all segments", () => {
-      const segs = [
-        makeSeg(0, 0, 10, 0),
-        makeSeg(50, 50, 60, 50),
-        makeSeg(100, 100, 110, 100)
-      ]
+      const segs = [makeSeg(0, 0, 10, 0), makeSeg(50, 50, 60, 50), makeSeg(100, 100, 110, 100)]
       grid.insertAll(segs)
       expect(grid.size).toBe(3)
     })
@@ -245,7 +241,7 @@ describe("deduplicatePointsSpatial", () => {
     const tolerance = 2
     const points: Point[] = [
       { x: 1.9, y: 0 },
-      { x: 2.1, y: 0 }  // different cell, but within tolerance
+      { x: 2.1, y: 0 } // different cell, but within tolerance
     ]
 
     const result = deduplicatePointsSpatial(points, tolerance)

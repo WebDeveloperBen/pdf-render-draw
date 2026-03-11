@@ -135,10 +135,16 @@ describe("extractPdfContent", () => {
   it("should emit closing segment on closePath", async () => {
     // Triangle: moveTo(0,0), lineTo(100,0), lineTo(50,100), closePath
     const buffer = new Float32Array([
-      0, 0, 0,       // moveTo(0, 0)
-      1, 100, 0,     // lineTo(100, 0)
-      1, 50, 100,    // lineTo(50, 100)
-      4              // closePath → segment from (50,100) back to (0,0)
+      0,
+      0,
+      0, // moveTo(0, 0)
+      1,
+      100,
+      0, // lineTo(100, 0)
+      1,
+      50,
+      100, // lineTo(50, 100)
+      4 // closePath → segment from (50,100) back to (0,0)
     ])
     const page = createMockPage([buffer])
 
@@ -166,10 +172,18 @@ describe("extractPdfContent", () => {
     // Two segments sharing an endpoint
     // moveTo(0,0), lineTo(100,0), moveTo(100,0.1), lineTo(200,0)
     const buffer = new Float32Array([
-      0, 0, 0,
-      1, 100, 0,
-      0, 100, 0.1, // near-duplicate of (100, 0)
-      1, 200, 0
+      0,
+      0,
+      0,
+      1,
+      100,
+      0,
+      0,
+      100,
+      0.1, // near-duplicate of (100, 0)
+      1,
+      200,
+      0
     ])
     const page = createMockPage([buffer])
 
@@ -182,10 +196,18 @@ describe("extractPdfContent", () => {
   it("should compute intersections for crossing segments", async () => {
     // Two crossing segments: horizontal (0,50)→(100,50) and vertical (50,0)→(50,100)
     const buffer = new Float32Array([
-      0, 0, 50,      // moveTo(0, 50)
-      1, 100, 50,    // lineTo(100, 50) — horizontal
-      0, 50, 0,      // moveTo(50, 0)
-      1, 50, 100     // lineTo(50, 100) — vertical
+      0,
+      0,
+      50, // moveTo(0, 50)
+      1,
+      100,
+      50, // lineTo(100, 50) — horizontal
+      0,
+      50,
+      0, // moveTo(50, 0)
+      1,
+      50,
+      100 // lineTo(50, 100) — vertical
     ])
     const page = createMockPage([buffer])
 
@@ -212,8 +234,16 @@ describe("extractPdfContent", () => {
   it("should discard subpaths containing cubic bezier curves", async () => {
     // parseWallSegments skips entire subpaths with curves — walls are straight lines
     const buffer = new Float32Array([
-      0, 0, 0,             // moveTo(0, 0)
-      2, 25, 50, 75, 50, 100, 0  // curveTo → discards this subpath
+      0,
+      0,
+      0, // moveTo(0, 0)
+      2,
+      25,
+      50,
+      75,
+      50,
+      100,
+      0 // curveTo → discards this subpath
     ])
     const page = createMockPage([buffer])
 
@@ -226,8 +256,14 @@ describe("extractPdfContent", () => {
   it("should discard subpaths containing quadratic bezier curves", async () => {
     // parseWallSegments skips entire subpaths with curves
     const buffer = new Float32Array([
-      0, 0, 0,          // moveTo(0, 0)
-      3, 50, 50, 100, 0 // quadraticCurveTo → discards this subpath
+      0,
+      0,
+      0, // moveTo(0, 0)
+      3,
+      50,
+      50,
+      100,
+      0 // quadraticCurveTo → discards this subpath
     ])
     const page = createMockPage([buffer])
 
@@ -300,10 +336,18 @@ describe("extractPdfContent", () => {
   it("should reject near-parallel segments when computing intersections", async () => {
     // Two nearly parallel horizontal segments — should NOT produce an intersection
     const buf = new Float32Array([
-      0, 0, 0,       // moveTo(0, 0)
-      1, 200, 0,     // lineTo(200, 0) — horizontal
-      0, 0, 10,      // moveTo(0, 10)
-      1, 200, 10.5   // lineTo(200, 10.5) — nearly horizontal (0.14° off)
+      0,
+      0,
+      0, // moveTo(0, 0)
+      1,
+      200,
+      0, // lineTo(200, 0) — horizontal
+      0,
+      0,
+      10, // moveTo(0, 10)
+      1,
+      200,
+      10.5 // lineTo(200, 10.5) — nearly horizontal (0.14° off)
     ])
     const page = createMockPage([buf])
 
@@ -337,9 +381,13 @@ describe("extractPdfContent", () => {
   it("should skip unknown DrawOPS commands without infinite loop", async () => {
     // Buffer with unknown command code 99 followed by valid data
     const buffer = new Float32Array([
-      0, 0, 0,       // moveTo(0, 0)
-      99,             // unknown command — should skip 1 element
-      1, 100, 0       // lineTo(100, 0)
+      0,
+      0,
+      0, // moveTo(0, 0)
+      99, // unknown command — should skip 1 element
+      1,
+      100,
+      0 // lineTo(100, 0)
     ])
     const page = createMockPage([buffer])
 

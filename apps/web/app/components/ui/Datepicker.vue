@@ -74,7 +74,8 @@ defineExpose({ datepickerRef })
     --vc-highlight-outline-bg: var(--color-primary);
     --vc-highlight-outline-border: var(--color-primary);
     --vc-highlight-outline-content-color: var(--color-primary-foreground);
-    --vc-highlight-light-bg: var(--vc-accent-200); /* Highlighted color between two dates */
+    --vc-highlight-light-bg: var(--vc-accent-200);
+    /* Highlighted color between two dates */
     --vc-highlight-light-content-color: var(--color-secondary-foreground);
     --vc-highlight-solid-bg: var(--color-primary);
     --vc-highlight-solid-content-color: var(--color-primary-foreground);
@@ -95,23 +96,29 @@ defineExpose({ datepickerRef })
     --vc-accent-500: --alpha(var(--color-primary) / 70%);
   }
 }
+
 .vc-disabled {
   @apply pointer-events-none line-through;
 }
+
 .vc-header .vc-title {
   @apply text-sm font-medium;
 }
+
 .vc-weekdays {
   @apply my-2 font-normal;
 }
+
 .vc-day-content,
 .vc-day,
 .vc-highlight {
   @apply size-9 rounded-md;
 }
+
 .vc-focus {
   @apply ring-ring/40 focus-within:shadow-none focus-visible:ring-2;
 }
+
 .vc-day {
   @apply mb-0.5;
 }
@@ -119,40 +126,54 @@ defineExpose({ datepickerRef })
 .vc-base-icon {
   @apply size-4 stroke-1;
 }
+
 .vc-header .vc-arrow,
 .vc-nav-arrow {
   @apply size-7 rounded-md;
   border: 1px solid var(--color-border);
 }
+
 .vc-header .vc-prev,
 .vc-header .vc-next {
   @apply border;
 }
+
 .weekday-position-1 .vc-highlights {
   @apply rounded-l-md;
 }
+
 .weekday-position-7 .vc-highlights {
   @apply rounded-r-md;
 }
+
 .vc-highlight-bg-light {
   @apply bg-accent;
 }
+
 .vc-nav-item {
   @apply font-medium;
 }
+
 .vc-header .vc-title-wrapper {
   @apply decoration-accent-foreground/60 underline-offset-2 hover:underline;
 }
+
 .vc-highlights + .vc-day-content {
   @apply hover:bg-accent/5;
 }
+.vc-popover-content-wrapper {
+  @apply !z-50;
+}
+
 .vc-time-header,
 .vc-time-select-group {
   @apply capitalize lining-nums slashed-zero tabular-nums;
 }
+
 .vc-expanded {
   .vc-day {
-    @apply h-[50px] w-full;
+    @apply h-12.5 w-full;
+
     .vc-day-content,
     .vc-highlight,
     .vc-highlights {

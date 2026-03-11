@@ -76,10 +76,7 @@ function computeComponentMetrics(nodes: GraphNode[]) {
  * Find the intersection point of two segments, if any.
  * Returns the parametric t values (0-1) for each segment and the point.
  */
-function segmentIntersection(
-  a: Segment,
-  b: Segment
-): { t: number; u: number; point: Point } | null {
+function segmentIntersection(a: Segment, b: Segment): { t: number; u: number; point: Point } | null {
   const dx1 = a.end.x - a.start.x
   const dy1 = a.end.y - a.start.y
   const dx2 = b.end.x - b.start.x
@@ -293,11 +290,7 @@ function detectDrawingArea(
   }
 }
 
-function filterWallSegments(
-  segments: Segment[],
-  pageWidth: number,
-  pageHeight: number
-): Segment[] {
+function filterWallSegments(segments: Segment[], pageWidth: number, pageHeight: number): Segment[] {
   const orthogonalTolerance = (ROOMS.WALL_ORTHOGONAL_TOLERANCE_DEG * Math.PI) / 180
 
   function isNearOrthogonal(seg: Segment): boolean {
@@ -323,16 +316,19 @@ function filterWallSegments(
   // Detect drawing area from density
   const bounds = detectDrawingArea(longSegments, pageWidth, pageHeight)
 
-  console.log(`[RoomDetector] Drawing area detected: (${Math.round(bounds.minX)},${Math.round(bounds.minY)}) → (${Math.round(bounds.maxX)},${Math.round(bounds.maxY)}) on ${Math.round(pageWidth)}×${Math.round(pageHeight)} page`)
+  console.log(
+    `[RoomDetector] Drawing area detected: (${Math.round(bounds.minX)},${Math.round(bounds.minY)}) → (${Math.round(bounds.maxX)},${Math.round(bounds.maxY)}) on ${Math.round(pageWidth)}×${Math.round(pageHeight)} page`
+  )
 
   // Second pass: only keep segments with at least one endpoint in the drawing area
   return longSegments.filter((seg) => {
     const startIn =
-      seg.start.x >= bounds.minX && seg.start.x <= bounds.maxX &&
-      seg.start.y >= bounds.minY && seg.start.y <= bounds.maxY
+      seg.start.x >= bounds.minX &&
+      seg.start.x <= bounds.maxX &&
+      seg.start.y >= bounds.minY &&
+      seg.start.y <= bounds.maxY
     const endIn =
-      seg.end.x >= bounds.minX && seg.end.x <= bounds.maxX &&
-      seg.end.y >= bounds.minY && seg.end.y <= bounds.maxY
+      seg.end.x >= bounds.minX && seg.end.x <= bounds.maxX && seg.end.y >= bounds.minY && seg.end.y <= bounds.maxY
     if (!(startIn || endIn)) return false
     return isNearOrthogonal(seg)
   })
@@ -340,7 +336,10 @@ function filterWallSegments(
 
 // --- Node merging ---
 
-function buildNodes(segments: Segment[], tolerance: number): {
+function buildNodes(
+  segments: Segment[],
+  tolerance: number
+): {
   nodes: GraphNode[]
   pointToNode: (p: Point) => number
 } {
@@ -727,7 +726,8 @@ function detectRectangularRoomsFromLines(
             minY <= edgeMargin ||
             maxX >= pageWidth - edgeMargin ||
             maxY >= pageHeight - edgeMargin
-          ) continue
+          )
+            continue
 
           const area = width * height
           if (area < minArea || area > maxArea) continue
@@ -742,7 +742,8 @@ function detectRectangularRoomsFromLines(
             bottomCoverage < ROOMS.RECT_SIDE_COVERAGE_RATIO ||
             leftCoverage < ROOMS.RECT_SIDE_COVERAGE_RATIO ||
             rightCoverage < ROOMS.RECT_SIDE_COVERAGE_RATIO
-          ) continue
+          )
+            continue
 
           candidates.push({ minX, minY, maxX, maxY, area })
         }
@@ -910,7 +911,11 @@ function buildStrokeRenderOps(OPS: Record<string, number>): Set<number> {
  * Skips curves entirely — walls are drawn with lineTo.
  */
 export async function extractWallSegments(
-  page: { getOperatorList: () => Promise<{ fnArray: number[]; argsArray: any[] }>; getViewport: (opts: { scale: number }) => any; pageNumber: number },
+  page: {
+    getOperatorList: () => Promise<{ fnArray: number[]; argsArray: any[] }>
+    getViewport: (opts: { scale: number }) => any
+    pageNumber: number
+  },
   signal?: AbortSignal
 ): Promise<Segment[]> {
   const OPS = await getOPS()
@@ -1035,7 +1040,9 @@ export async function detectRooms(
   // Step 1: Filter to wall-like segments (long enough, inside drawing area)
   const wallSegments = filterWallSegments(segments, pageWidth, pageHeight)
 
-  console.log(`[RoomDetector] ${segments.length} input → ${wallSegments.length} wall segments after length/bounds filter`)
+  console.log(
+    `[RoomDetector] ${segments.length} input → ${wallSegments.length} wall segments after length/bounds filter`
+  )
 
   if (wallSegments.length === 0) {
     if (includeDebug && empty.debug) {
@@ -1051,9 +1058,7 @@ export async function detectRooms(
   console.log(`[RoomDetector] ${wallSegments.length} → ${splitSegments.length} after intersection splitting`)
 
   // Filter out tiny sub-segments created by splitting
-  const validSegments = splitSegments.filter(
-    (s) => Math.hypot(s.end.x - s.start.x, s.end.y - s.start.y) >= 2
-  )
+  const validSegments = splitSegments.filter((s) => Math.hypot(s.end.x - s.start.x, s.end.y - s.start.y) >= 2)
 
   if (signal?.aborted) return empty
 
@@ -1111,10 +1116,7 @@ export async function detectRooms(
   const minArea = Math.max(ROOMS.MIN_AREA, pageArea * ROOMS.MIN_AREA_RATIO)
   const relaxedMinArea = Math.max(ROOMS.MIN_AREA, minArea * 0.5)
   const maxArea = pageArea * ROOMS.MAX_AREA_RATIO
-  const edgeMargin = Math.max(
-    ROOMS.PAGE_EDGE_MARGIN,
-    Math.min(pageWidth, pageHeight) * ROOMS.PAGE_EDGE_MARGIN_RATIO
-  )
+  const edgeMargin = Math.max(ROOMS.PAGE_EDGE_MARGIN, Math.min(pageWidth, pageHeight) * ROOMS.PAGE_EDGE_MARGIN_RATIO)
   const rooms: DetectedRoom[] = []
   const componentMetrics = computeComponentMetrics(nodes)
   const useComponentFilter = nodes.length >= ROOMS.COMPONENT_FILTER_MIN_NODES
@@ -1227,7 +1229,8 @@ export async function detectRooms(
         bounds.minY <= edgeMargin ||
         bounds.maxX >= pageWidth - edgeMargin ||
         bounds.maxY >= pageHeight - edgeMargin
-      ) continue
+      )
+        continue
       if (useComponentFilter) {
         const seedNodeId = face[0]
         if (seedNodeId === undefined) continue

@@ -46,8 +46,8 @@ describe("Label Scale Stamping", () => {
 
     it("should scale value by provided labelScale at different values", () => {
       const { stamped } = useToolViewport()
-      expect(stamped(10, 2)).toBe(20)   // Created at 0.5x zoom
-      expect(stamped(10, 1)).toBe(10)   // Created at 1x zoom
+      expect(stamped(10, 2)).toBe(20) // Created at 0.5x zoom
+      expect(stamped(10, 1)).toBe(10) // Created at 1x zoom
       expect(stamped(10, 0.25)).toBe(2.5) // Created at 4x zoom
     })
 
@@ -162,7 +162,10 @@ describe("Label Scale Stamping", () => {
         type: "measure",
         pageNum: 1,
         labelScale: viewportStore.getInverseScale,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
         distance: 100,
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
@@ -183,7 +186,10 @@ describe("Label Scale Stamping", () => {
           type: "measure" as const,
           pageNum: 1,
           labelScale: viewportStore.getInverseScale,
-          points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 0 }
+          ],
           distance: 100,
           midpoint: { x: 50, y: 0 },
           labelRotation: 0,
@@ -196,9 +202,9 @@ describe("Label Scale Stamping", () => {
       }
 
       // Verify each has the correct inverse scale
-      expect((annotationStore.getAnnotationById("m0") as Measurement).labelScale).toBe(2)    // 1/0.5
-      expect((annotationStore.getAnnotationById("m1") as Measurement).labelScale).toBe(1)    // 1/1
-      expect((annotationStore.getAnnotationById("m2") as Measurement).labelScale).toBe(0.5)  // 1/2
+      expect((annotationStore.getAnnotationById("m0") as Measurement).labelScale).toBe(2) // 1/0.5
+      expect((annotationStore.getAnnotationById("m1") as Measurement).labelScale).toBe(1) // 1/1
+      expect((annotationStore.getAnnotationById("m2") as Measurement).labelScale).toBe(0.5) // 1/2
       expect((annotationStore.getAnnotationById("m3") as Measurement).labelScale).toBe(0.25) // 1/4
     })
 
@@ -210,7 +216,10 @@ describe("Label Scale Stamping", () => {
         type: "measure",
         pageNum: 1,
         labelScale: viewportStore.getInverseScale,
-        points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ],
         distance: 100,
         midpoint: { x: 50, y: 0 },
         labelRotation: 0,
@@ -221,7 +230,10 @@ describe("Label Scale Stamping", () => {
 
       // Update points (which triggers derived recalculation)
       annotationStore.updateAnnotation("m1", {
-        points: [{ x: 0, y: 0 }, { x: 200, y: 0 }]
+        points: [
+          { x: 0, y: 0 },
+          { x: 200, y: 0 }
+        ]
       })
 
       const updated = annotationStore.getAnnotationById("m1") as Measurement

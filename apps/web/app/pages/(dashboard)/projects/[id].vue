@@ -541,11 +541,7 @@ onMounted(() => {
       <!-- Action Buttons -->
       <div class="flex items-center gap-2 ml-11 lg:ml-0">
         <!-- Primary CTA: Open Editor (when files exist) -->
-        <UiButton
-          v-if="files.length > 0"
-          size="lg"
-          @click="handleOpenEditor"
-        >
+        <UiButton v-if="files.length > 0" size="lg" @click="handleOpenEditor">
           <Icon name="lucide:pencil-ruler" class="size-5 mr-2" />
           Open Editor
         </UiButton>
@@ -658,7 +654,9 @@ onMounted(() => {
           <UiCardContent>
             <!-- Empty state with prominent CTA -->
             <div v-if="files.length === 0" class="text-center py-16">
-              <div class="mx-auto size-20 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+              <div
+                class="mx-auto size-20 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4"
+              >
                 <Icon name="lucide:file-plus" class="size-10 text-primary" />
               </div>
               <h3 class="font-semibold text-lg mb-1">No files yet</h3>
@@ -680,17 +678,24 @@ onMounted(() => {
                 @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
               >
                 <!-- Card header with PDF preview placeholder -->
-                <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
+                <div
+                  class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center"
+                >
                   <Icon name="lucide:file-text" class="size-16 text-slate-300 dark:text-slate-600" />
                   <!-- Overlay on hover -->
-                  <div class="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div
+                    class="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
                     <div class="text-center text-primary-foreground">
                       <Icon name="lucide:pencil-ruler" class="size-8 mx-auto mb-2" />
                       <span class="font-medium">Open in Editor</span>
                     </div>
                   </div>
                   <!-- Annotation badge -->
-                  <div v-if="file.annotationCount > 0" class="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium">
+                  <div
+                    v-if="file.annotationCount > 0"
+                    class="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium"
+                  >
                     <Icon name="lucide:pen-tool" class="size-3 text-primary" />
                     {{ file.annotationCount }}
                   </div>
@@ -700,7 +705,7 @@ onMounted(() => {
                 <div class="p-4">
                   <h4 class="font-medium truncate mb-1" :title="file.pdfFileName">{{ file.pdfFileName }}</h4>
                   <div class="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{{ file.pageCount }} {{ file.pageCount === 1 ? 'page' : 'pages' }}</span>
+                    <span>{{ file.pageCount }} {{ file.pageCount === 1 ? "page" : "pages" }}</span>
                     <span class="text-border">•</span>
                     <span>{{ formatFileSize(file.pdfFileSize) }}</span>
                   </div>
@@ -726,7 +731,11 @@ onMounted(() => {
                           :disabled="exportingFileId === file.id || downloadingFileId === file.id"
                           @click.stop
                         >
-                          <Icon v-if="exportingFileId === file.id || downloadingFileId === file.id" name="svg-spinners:ring-resize" class="size-4" />
+                          <Icon
+                            v-if="exportingFileId === file.id || downloadingFileId === file.id"
+                            name="svg-spinners:ring-resize"
+                            class="size-4"
+                          />
                           <Icon v-else name="lucide:download" class="size-4" />
                         </UiButton>
                       </UiDropdownMenuTrigger>
@@ -811,7 +820,10 @@ onMounted(() => {
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center gap-2 min-w-0">
                     <UiBadge :variant="share.shareType === 'private' ? 'default' : 'secondary'" class="shrink-0">
-                      <Icon :name="share.shareType === 'private' ? 'lucide:users' : 'lucide:globe'" class="size-3 mr-1" />
+                      <Icon
+                        :name="share.shareType === 'private' ? 'lucide:users' : 'lucide:globe'"
+                        class="size-3 mr-1"
+                      />
                       {{ share.shareType === "private" ? "Private" : "Public" }}
                     </UiBadge>
                     <span v-if="share.name" class="font-medium truncate">{{ share.name }}</span>
@@ -833,7 +845,10 @@ onMounted(() => {
                 </div>
 
                 <!-- Recipients row (for private shares) -->
-                <div v-if="share.shareType === 'private' && share.recipients?.length" class="flex items-center gap-2 mb-2">
+                <div
+                  v-if="share.shareType === 'private' && share.recipients?.length"
+                  class="flex items-center gap-2 mb-2"
+                >
                   <div class="flex -space-x-2">
                     <UiAvatar
                       v-for="(recipient, idx) in share.recipients.slice(0, 4)"
@@ -854,7 +869,12 @@ onMounted(() => {
                     </div>
                   </div>
                   <span class="text-xs text-muted-foreground truncate">
-                    {{ share.recipients.slice(0, 2).map((r) => r.user?.name || r.email.split("@")[0]).join(", ") }}
+                    {{
+                      share.recipients
+                        .slice(0, 2)
+                        .map((r) => r.user?.name || r.email.split("@")[0])
+                        .join(", ")
+                    }}
                     <span v-if="share.recipients.length > 2">, +{{ share.recipients.length - 2 }} more</span>
                   </span>
                 </div>
@@ -1267,11 +1287,15 @@ onMounted(() => {
               @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
             >
               <!-- PDF Preview Area -->
-              <div class="relative h-36 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
+              <div
+                class="relative h-36 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center"
+              >
                 <Icon name="lucide:file-text" class="size-14 text-slate-300 dark:text-slate-600" />
 
                 <!-- Hover Overlay -->
-                <div class="absolute inset-0 bg-primary/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+                <div
+                  class="absolute inset-0 bg-primary/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                >
                   <div class="size-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
                     <Icon name="lucide:pencil-ruler" class="size-7 text-primary-foreground" />
                   </div>
@@ -1279,15 +1303,20 @@ onMounted(() => {
                 </div>
 
                 <!-- Annotation Badge -->
-                <div v-if="file.annotationCount > 0" class="absolute top-3 right-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm">
+                <div
+                  v-if="file.annotationCount > 0"
+                  class="absolute top-3 right-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm"
+                >
                   <Icon name="lucide:pen-tool" class="size-3.5 text-primary" />
                   {{ file.annotationCount }}
                 </div>
 
                 <!-- Page Count Badge -->
-                <div class="absolute bottom-3 left-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm">
+                <div
+                  class="absolute bottom-3 left-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm"
+                >
                   <Icon name="lucide:layers" class="size-3.5 text-muted-foreground" />
-                  {{ file.pageCount }} {{ file.pageCount === 1 ? 'page' : 'pages' }}
+                  {{ file.pageCount }} {{ file.pageCount === 1 ? "page" : "pages" }}
                 </div>
               </div>
 
@@ -1311,7 +1340,10 @@ onMounted(() => {
               <!-- Bottom Action Bar -->
               <div class="px-4 py-3 border-t bg-muted/30 flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">Click to edit</span>
-                <Icon name="lucide:arrow-right" class="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                <Icon
+                  name="lucide:arrow-right"
+                  class="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all"
+                />
               </div>
             </button>
           </div>
@@ -1320,11 +1352,9 @@ onMounted(() => {
         <!-- Footer -->
         <div class="px-6 py-4 border-t bg-muted/30 flex items-center justify-between">
           <p class="text-sm text-muted-foreground">
-            {{ files.length }} {{ files.length === 1 ? 'file' : 'files' }} in this project
+            {{ files.length }} {{ files.length === 1 ? "file" : "files" }} in this project
           </p>
-          <UiButton variant="outline" @click="showFileSelector = false">
-            Cancel
-          </UiButton>
+          <UiButton variant="outline" @click="showFileSelector = false"> Cancel </UiButton>
         </div>
       </UiDialogContent>
     </UiDialog>

@@ -186,9 +186,7 @@ export default defineEventHandler(async (event) => {
       currentPage: userFileState.viewportCurrentPage
     })
     .from(userFileState)
-    .where(
-      and(eq(userFileState.userId, userId), eq(userFileState.fileId, fileId))
-    )
+    .where(and(eq(userFileState.userId, userId), eq(userFileState.fileId, fileId)))
 
   // Return annotations with their data field extracted
   return {

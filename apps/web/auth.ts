@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth/minimal"
 import { createAuthMiddleware } from "better-auth/api"
-import { admin, openAPI, apiKey, organization, magicLink } from "better-auth/plugins"
+import { admin, openAPI, organization, magicLink } from "better-auth/plugins"
+import { apiKey } from "@better-auth/api-key"
 import { stripe } from "@better-auth/stripe"
 import Stripe from "stripe"
 import { eq, and } from "drizzle-orm"
@@ -18,7 +19,7 @@ import {
 } from "./server/utils/email"
 
 // Stripe client for Better Auth plugin and admin billing service
-export const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder")
+export const stripeClient = new Stripe(process.env.NUXT_STRIPE_SECRET_KEY || "sk_test_placeholder")
 
 // Helper to log admin actions to audit log
 async function logAdminAction(params: {
@@ -132,7 +133,7 @@ export const auth = betterAuth({
       roles,
       teams: { enabled: true },
       async sendInvitationEmail({ email, organization, inviter, invitation }) {
-        const invitationUrl = `${process.env.BETTER_AUTH_URL}/invite/${invitation.id}`
+        const invitationUrl = `${process.env.NUXT_BETTER_AUTH_URL}/invite/${invitation.id}`
         await sendOrganizationInviteEmail(
           email,
           invitationUrl,
@@ -143,7 +144,7 @@ export const auth = betterAuth({
     }),
     stripe({
       stripeClient,
-      stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+      stripeWebhookSecret: process.env.NUXT_STRIPE_WEBHOOK_SECRET!,
       createCustomerOnSignUp: false,
       organization: {
         enabled: true
@@ -164,18 +165,13 @@ export const auth = betterAuth({
             lookupKey: plan.lookupKey ?? undefined,
             limits: (plan.limits as Record<string, number>) ?? undefined,
             group: plan.group ?? undefined,
-            ...(plan.trialDays
-              ? { freeTrial: { days: plan.trialDays } }
-              : {})
+            ...(plan.trialDays ? { freeTrial: { days: plan.trialDays } } : {})
           }))
         },
         authorizeReference: async ({ user, referenceId }) => {
           // Only org owners and admins can manage billing
           const orgMember = await db.query.member.findFirst({
-            where: and(
-              eq(schema.member.userId, user.id),
-              eq(schema.member.organizationId, referenceId)
-            )
+            where: and(eq(schema.member.userId, user.id), eq(schema.member.organizationId, referenceId))
           })
           return orgMember?.role === "owner" || orgMember?.role === "admin"
         }
@@ -188,11 +184,11 @@ export const auth = betterAuth({
           event.type === "invoice.payment_failed" ||
           event.type === "invoice.finalized"
         ) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const invoice = event.data.object as any
-          const subscriptionId = typeof invoice.subscription === "string"
-            ? invoice.subscription
-            : (invoice.subscription as { id?: string })?.id
+          const subscriptionId =
+            typeof invoice.subscription === "string"
+              ? invoice.subscription
+              : (invoice.subscription as { id?: string })?.id
 
           if (subscriptionId) {
             // Find our local subscription by Stripe subscription ID

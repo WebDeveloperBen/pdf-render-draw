@@ -13,13 +13,7 @@ vi.mock("pdfjs-dist", () => ({
   OPS: { constructPath: 91 }
 }))
 
-function addMeasurement(
-  store: ReturnType<typeof useAnnotationStore>,
-  id: string,
-  p1: Point,
-  p2: Point,
-  pageNum = 1
-) {
+function addMeasurement(store: ReturnType<typeof useAnnotationStore>, id: string, p1: Point, p2: Point, pageNum = 1) {
   store.addAnnotation({
     id,
     type: "measure",
@@ -101,10 +95,7 @@ describe("useSnapProvider", () => {
     it("should return shift-constrained point when no snap found", () => {
       const shiftConstrained = { x: 450, y: 400 }
 
-      const result = provider.getSnappedPoint(
-        { x: 500, y: 500 },
-        { shiftConstrained, shiftStart: { x: 300, y: 300 } }
-      )
+      const result = provider.getSnappedPoint({ x: 500, y: 500 }, { shiftConstrained, shiftStart: { x: 300, y: 300 } })
 
       expect(result.snapped).toBe(false)
       expect(result.point).toEqual(shiftConstrained)
@@ -628,7 +619,9 @@ describe("useSnapProvider", () => {
 
     it("should abort previous extraction when a new one starts", async () => {
       let resolveFirst: () => void
-      const firstPromise = new Promise<void>((r) => { resolveFirst = r })
+      const firstPromise = new Promise<void>((r) => {
+        resolveFirst = r
+      })
 
       const slowPage = {
         pageNumber: 1,

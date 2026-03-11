@@ -76,10 +76,8 @@ const labelFontSize = computed(() => 10 * inverseScale.value)
       font-family="sans-serif"
       font-weight="600"
     >
-      SNAP DEBUG | segments {{ snapDebugData.segments.length }} |
-      endpoints {{ snapDebugData.endpoints.length }} |
-      midpoints {{ snapDebugData.midpoints.length }} |
-      intersections {{ snapDebugData.intersections.length }}
+      SNAP DEBUG | segments {{ snapDebugData.segments.length }} | endpoints {{ snapDebugData.endpoints.length }} |
+      midpoints {{ snapDebugData.midpoints.length }} | intersections {{ snapDebugData.intersections.length }}
     </text>
   </g>
 </template>

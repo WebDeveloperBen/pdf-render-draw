@@ -85,45 +85,89 @@ const { s, screenTransform, stampedTransform } = useToolViewport()
     <EditorAnnotation v-for="measure in completed" :key="measure.id" :annotation="measure">
       <template #content="{ annotation, isSelected }">
         <!-- Invisible hit area -->
-        <line :x1="annotation.points[0].x" :y1="annotation.points[0].y" :x2="annotation.points[1].x"
-          :y2="annotation.points[1].y" stroke="transparent" :stroke-width="config.hitArea.strokeWidth"
-          class="measurement-hit-area" />
+        <line
+          :x1="annotation.points[0].x"
+          :y1="annotation.points[0].y"
+          :x2="annotation.points[1].x"
+          :y2="annotation.points[1].y"
+          stroke="transparent"
+          :stroke-width="config.hitArea.strokeWidth"
+          class="measurement-hit-area"
+        />
 
         <!-- Visible line -->
-        <line :x1="annotation.points[0].x" :y1="annotation.points[0].y" :x2="annotation.points[1].x"
-          :y2="annotation.points[1].y" :stroke="config.strokeColor" :stroke-width="config.strokeWidth"
-          :class="{ 'selected-line': isSelected }" class="measurement-line" />
+        <line
+          :x1="annotation.points[0].x"
+          :y1="annotation.points[0].y"
+          :x2="annotation.points[1].x"
+          :y2="annotation.points[1].y"
+          :stroke="config.strokeColor"
+          :stroke-width="config.strokeWidth"
+          :class="{ 'selected-line': isSelected }"
+          class="measurement-line"
+        />
 
         <!-- Label -->
-        <EditorToolLabel :text="`${annotation.distance}mm`"
-          :transform="stampedTransform(annotation.midpoint.x, annotation.midpoint.y, annotation.labelScale)" :font-size="config.labelSize"
-          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'" :fill="config.labelColor" />
+        <EditorToolLabel
+          :text="`${annotation.distance}mm`"
+          :transform="stampedTransform(annotation.midpoint.x, annotation.midpoint.y, annotation.labelScale)"
+          :font-size="config.labelSize"
+          :font-weight="config.labelStrokeStyle === 'bold' ? 'bold' : 'normal'"
+          :fill="config.labelColor"
+        />
       </template>
     </EditorAnnotation>
 
     <!-- Preview while drawing - interactive mode only -->
     <g v-if="tempEndPoint" class="preview">
       <!-- Cursor indicator (before first click) -->
-      <circle v-if="!isDrawing" :cx="tempEndPoint.x" :cy="tempEndPoint.y" :r="s(config.preview.cursorIndicator.radius)"
-        fill="none" :stroke="config.strokeColor" :stroke-width="s(config.preview.cursorIndicator.strokeWidth)"
-        :opacity="config.preview.cursorIndicator.opacity" />
+      <circle
+        v-if="!isDrawing"
+        :cx="tempEndPoint.x"
+        :cy="tempEndPoint.y"
+        :r="s(config.preview.cursorIndicator.radius)"
+        fill="none"
+        :stroke="config.strokeColor"
+        :stroke-width="s(config.preview.cursorIndicator.strokeWidth)"
+        :opacity="config.preview.cursorIndicator.opacity"
+      />
 
       <!-- After first click -->
       <g v-if="isDrawing && points.length === 1 && points[0] && tempEndPoint">
         <!-- Start point marker -->
-        <circle :cx="points[0].x" :cy="points[0].y" :r="s(config.preview.startMarker.radius)"
-          :fill="config.preview.startMarker.fill" :stroke="config.preview.startMarker.stroke"
-          :stroke-width="s(config.preview.startMarker.strokeWidth)" class="point-marker" />
+        <circle
+          :cx="points[0].x"
+          :cy="points[0].y"
+          :r="s(config.preview.startMarker.radius)"
+          :fill="config.preview.startMarker.fill"
+          :stroke="config.preview.startMarker.stroke"
+          :stroke-width="s(config.preview.startMarker.strokeWidth)"
+          class="point-marker"
+        />
 
         <!-- Temp line -->
-        <line :x1="points[0].x" :y1="points[0].y" :x2="tempEndPoint.x" :y2="tempEndPoint.y" :stroke="config.strokeColor"
-          stroke-width="1" vector-effect="non-scaling-stroke" stroke-dasharray="5,5"
-          :opacity="config.preview.line.opacity" />
+        <line
+          :x1="points[0].x"
+          :y1="points[0].y"
+          :x2="tempEndPoint.x"
+          :y2="tempEndPoint.y"
+          :stroke="config.strokeColor"
+          stroke-width="1"
+          vector-effect="non-scaling-stroke"
+          stroke-dasharray="5,5"
+          :opacity="config.preview.line.opacity"
+        />
 
         <!-- Preview distance -->
-        <text v-if="previewDistance" x="0" :y="-config.preview.distance.offsetY" :fill="config.preview.distance.fill"
-          :font-size="config.preview.distance.fontSize" text-anchor="middle"
-          :transform="screenTransform((points[0].x + tempEndPoint.x) / 2, (points[0].y + tempEndPoint.y) / 2)">
+        <text
+          v-if="previewDistance"
+          x="0"
+          :y="-config.preview.distance.offsetY"
+          :fill="config.preview.distance.fill"
+          :font-size="config.preview.distance.fontSize"
+          text-anchor="middle"
+          :transform="screenTransform((points[0].x + tempEndPoint.x) / 2, (points[0].y + tempEndPoint.y) / 2)"
+        >
           {{ previewDistance }}mm
         </text>
       </g>

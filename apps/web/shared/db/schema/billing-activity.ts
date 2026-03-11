@@ -9,7 +9,9 @@ import { subscription } from "./better-auth/subscription"
  */
 export const billingActivity = pgTable("billing_activity", {
   id: text("id").primaryKey(),
-  subscriptionId: text("subscription_id").notNull(),
+  subscriptionId: text("subscription_id")
+    .notNull()
+    .references(() => subscription.id, { onDelete: "cascade" }),
   type: text("type").notNull(), // "lifecycle" | "admin_action" | "sync" | "payment"
   description: text("description").notNull(),
   actorId: text("actor_id"), // Admin user ID for admin actions

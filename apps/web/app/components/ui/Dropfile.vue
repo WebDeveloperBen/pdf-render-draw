@@ -4,18 +4,27 @@
       <slot name="message">
         <div data-slot="dropfile-message" class="py-10 text-center">
           <slot name="icon">
-            <div v-if="icon" data-slot="dropfile-icon-wrapper"
+            <div
+              v-if="icon"
+              data-slot="dropfile-icon-wrapper"
               class="inline-flex items-center justify-center rounded-md border p-2 transition"
-              :class="[isOverDropZone && 'animate-bounce border-primary']">
-              <Icon data-slot="dropfile-icon" :name="icon" class="h-7 w-7 opacity-70"
-                :class="[isOverDropZone && 'text-primary']" />
+              :class="[isOverDropZone && 'animate-bounce border-primary']"
+            >
+              <Icon
+                data-slot="dropfile-icon"
+                :name="icon"
+                class="h-7 w-7 opacity-70"
+                :class="[isOverDropZone && 'text-primary']"
+              />
             </div>
           </slot>
           <slot name="title">
             <p v-if="title" data-slot="dropfile-title" class="mt-5 text-sm font-medium">{{ title }}</p>
           </slot>
           <slot name="subtext">
-            <p v-if="subtext" data-slot="dropfile-subtext" class="mt-1 text-sm text-muted-foreground/60">{{ subtext }}</p>
+            <p v-if="subtext" data-slot="dropfile-subtext" class="mt-1 text-sm text-muted-foreground/60">
+              {{ subtext }}
+            </p>
           </slot>
         </div>
       </slot>

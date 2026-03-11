@@ -28,7 +28,7 @@ const props = withDefaults(
     backgroundOpacity: 1,
     borderRadius: 3,
     paddingX: 6,
-    paddingY: 3,
+    paddingY: 3
   }
 )
 
@@ -54,7 +54,10 @@ function measure() {
 }
 
 onMounted(measure)
-watch(() => props.text, () => nextTick(measure))
+watch(
+  () => props.text,
+  () => nextTick(measure)
+)
 </script>
 
 <template>

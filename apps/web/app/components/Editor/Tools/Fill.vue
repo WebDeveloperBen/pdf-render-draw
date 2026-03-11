@@ -50,11 +50,7 @@ const currentRect = computed(() => tool.currentRect.value)
 <template>
   <g class="fill-tool">
     <!-- Completed annotations - single rendering path for both modes -->
-    <EditorAnnotation
-      v-for="fill in completed"
-      :key="fill.id"
-      :annotation="fill"
-    >
+    <EditorAnnotation v-for="fill in completed" :key="fill.id" :annotation="fill">
       <template #content="{ annotation, isSelected }">
         <!-- Filled rectangle -->
         <rect
@@ -75,7 +71,7 @@ const currentRect = computed(() => tool.currentRect.value)
           :height="annotation.height"
           fill="transparent"
           :stroke="isSelected ? config.color : annotation.color"
-          :stroke-width="(isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth)"
+          :stroke-width="isSelected ? config.border.strokeWidthSelected : config.border.strokeWidth"
           :stroke-opacity="isSelected ? config.border.strokeOpacitySelected : config.border.strokeOpacity"
           class="fill-border"
         />

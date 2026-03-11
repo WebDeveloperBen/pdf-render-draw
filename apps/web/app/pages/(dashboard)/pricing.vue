@@ -122,22 +122,25 @@ function toggleFaq(index: number) {
     <div class="text-center">
       <UiBadge variant="secondary" class="mb-4">Pricing</UiBadge>
       <h1 class="text-4xl font-bold tracking-tight">Simple, transparent pricing</h1>
-      <p class="mt-4 text-lg text-muted-foreground">
-        Start free, upgrade when you're ready. No hidden fees.
-      </p>
+      <p class="mt-4 text-lg text-muted-foreground">Start free, upgrade when you're ready. No hidden fees.</p>
     </div>
 
     <!-- Pricing Cards -->
     <div class="grid gap-6 md:grid-cols-3">
-      <div v-for="tier in tiers" :key="tier.name" :class="[
-        'relative flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm',
-        tier.highlighted
-          ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary'
-          : 'border-border'
-      ]">
+      <div
+        v-for="tier in tiers"
+        :key="tier.name"
+        :class="[
+          'relative flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm',
+          tier.highlighted ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary' : 'border-border'
+        ]"
+      >
         <!-- Badge -->
-        <UiBadge v-if="tier.badge" variant="default"
-          class="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+        <UiBadge
+          v-if="tier.badge"
+          variant="default"
+          class="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap"
+        >
           {{ tier.badge }}
         </UiBadge>
 
@@ -167,8 +170,10 @@ function toggleFaq(index: number) {
           <!-- Features -->
           <ul class="space-y-3">
             <li v-for="feature in tier.features" :key="feature.text" class="flex items-start gap-3">
-              <Icon :name="feature.included ? 'lucide:check' : 'lucide:x'"
-                :class="['size-4 mt-0.5 shrink-0', feature.included ? 'text-primary' : 'text-muted-foreground/50']" />
+              <Icon
+                :name="feature.included ? 'lucide:check' : 'lucide:x'"
+                :class="['size-4 mt-0.5 shrink-0', feature.included ? 'text-primary' : 'text-muted-foreground/50']"
+              />
               <span :class="['text-sm', !feature.included && 'text-muted-foreground/50']">
                 {{ feature.text }}
               </span>
@@ -259,8 +264,10 @@ function toggleFaq(index: number) {
 
             <!-- Section: Usage Limits -->
             <tr>
-              <td colspan="4"
-                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <td
+                colspan="4"
+                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 Usage Limits
               </td>
             </tr>
@@ -280,14 +287,17 @@ function toggleFaq(index: number) {
               <td class="py-3 pl-6 text-sm">Team members</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
-              <td class="px-4 py-3 pr-6 text-center text-sm">3 included<br /><span
-                  class="text-xs text-muted-foreground">+$10/seat</span></td>
+              <td class="px-4 py-3 pr-6 text-center text-sm">
+                3 included<br /><span class="text-xs text-muted-foreground">+$10/seat</span>
+              </td>
             </tr>
 
             <!-- Section: Annotation Tools -->
             <tr>
-              <td colspan="4"
-                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <td
+                colspan="4"
+                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 Annotation Tools
               </td>
             </tr>
@@ -318,8 +328,10 @@ function toggleFaq(index: number) {
 
             <!-- Section: Storage & Sync -->
             <tr>
-              <td colspan="4"
-                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <td
+                colspan="4"
+                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 Storage & Sync
               </td>
             </tr>
@@ -350,8 +362,10 @@ function toggleFaq(index: number) {
 
             <!-- Section: Collaboration -->
             <tr>
-              <td colspan="4"
-                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <td
+                colspan="4"
+                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 Collaboration
               </td>
             </tr>
@@ -394,8 +408,10 @@ function toggleFaq(index: number) {
 
             <!-- Section: Support -->
             <tr>
-              <td colspan="4"
-                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <td
+                colspan="4"
+                class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 Support
               </td>
             </tr>
@@ -427,10 +443,13 @@ function toggleFaq(index: number) {
         <div v-for="(faq, index) in faqs" :key="index" class="px-6">
           <button
             class="flex w-full items-center justify-between py-4 text-left font-medium transition-colors hover:text-primary"
-            @click="toggleFaq(index)">
+            @click="toggleFaq(index)"
+          >
             {{ faq.question }}
-            <Icon name="lucide:chevron-down"
-              :class="['size-4 shrink-0 transition-transform', openFaqIndex === index && 'rotate-180']" />
+            <Icon
+              name="lucide:chevron-down"
+              :class="['size-4 shrink-0 transition-transform', openFaqIndex === index && 'rotate-180']"
+            />
           </button>
           <div v-show="openFaqIndex === index" class="pb-4 text-sm text-muted-foreground">
             {{ faq.answer }}

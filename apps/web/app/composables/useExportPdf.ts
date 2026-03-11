@@ -112,11 +112,11 @@ export function useExportPdf() {
 /** Strip Vue SSR artifacts that break XML parsing */
 function cleanSvgString(s: string): string {
   return s
-    .replace(/\s+data-v-[a-f0-9]+/g, "")  // scoped style attrs
-    .replace(/\s+transform=""/g, "")        // empty transforms
-    .replace(/\s+transform(?=[\s>])/g, "")  // bare transform attrs
-    .replace(/\s+class=""/g, "")            // empty classes
-    .replace(/<!--\[-->/g, "")              // Vue SSR comments
+    .replace(/\s+data-v-[a-f0-9]+/g, "") // scoped style attrs
+    .replace(/\s+transform=""/g, "") // empty transforms
+    .replace(/\s+transform(?=[\s>])/g, "") // bare transform attrs
+    .replace(/\s+class=""/g, "") // empty classes
+    .replace(/<!--\[-->/g, "") // Vue SSR comments
     .replace(/<!--\]-->/g, "")
 }
 
@@ -135,8 +135,10 @@ function parseSvg(svgString: string): SVGSVGElement {
 function applyRotationTransform(
   svg: SVGSVGElement,
   rotation: number,
-  viewW: number, viewH: number,
-  mediaW: number, mediaH: number
+  viewW: number,
+  viewH: number,
+  mediaW: number,
+  mediaH: number
 ): void {
   const g = svg.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "g")
   while (svg.firstChild) g.appendChild(svg.firstChild)
@@ -165,4 +167,3 @@ function groupBy<T>(items: T[], keyFn: (item: T) => number): Map<number, T[]> {
   }
   return map
 }
-

@@ -85,14 +85,11 @@ watch(
 )
 
 // Detect when either overlay layer is enabled.
-watch(
-  [roomLayerEnabled, debugLayerEnabled],
-  ([roomsEnabled, debugEnabled]) => {
-    if (roomsEnabled || debugEnabled) {
-      detectCurrentPage()
-    }
+watch([roomLayerEnabled, debugLayerEnabled], ([roomsEnabled, debugEnabled]) => {
+  if (roomsEnabled || debugEnabled) {
+    detectCurrentPage()
   }
-)
+})
 
 // Extract PDF content for snapping when page changes or PDF finishes loading
 watch(
@@ -280,10 +277,18 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
 </script>
 
 <template>
-  <svg ref="svgRef" :viewBox="`0 0 ${pdfWidth} ${pdfHeight}`" :style="svgStyle"
+  <svg
+    ref="svgRef"
+    :viewBox="`0 0 ${pdfWidth} ${pdfHeight}`"
+    :style="svgStyle"
     :class="['svg-annotation-layer', { 'selection-mode': isSelectionMode(annotationStore.activeTool) }]"
-    preserveAspectRatio="xMidYMid meet" @click="handleClick" @mousedown="handleMouseDown" @mousemove="handleMove"
-    @mouseup="handleMouseUp" @mouseleave="handleMouseLeave">
+    preserveAspectRatio="xMidYMid meet"
+    @click="handleClick"
+    @mousedown="handleMouseDown"
+    @mousemove="handleMove"
+    @mouseup="handleMouseUp"
+    @mouseleave="handleMouseLeave"
+  >
     <!-- Raw plan debug overlay (edges/nodes) -->
     <EditorPlanDebugLayer />
 
@@ -295,17 +300,28 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
 
     <!-- Render all registered tool components dynamically -->
     <template v-for="toolDef in registeredTools" :key="toolDef.type">
-      <component :is="toolComponents[toolDef.type as keyof typeof toolComponents]" v-if="
-        annotationStore.activeTool === toolDef.type || annotationStore.getAnnotationsByType(toolDef.type).length > 0
-      " />
+      <component
+        :is="toolComponents[toolDef.type as keyof typeof toolComponents]"
+        v-if="
+          annotationStore.activeTool === toolDef.type || annotationStore.getAnnotationsByType(toolDef.type).length > 0
+        "
+      />
     </template>
 
     <!-- Selection marquee (drag-to-select rectangle) -->
-    <rect v-if="selectionMarquee.isMarqueeSelecting.value && selectionMarquee.marqueeBounds.value"
-      :x="selectionMarquee.marqueeBounds.value.x" :y="selectionMarquee.marqueeBounds.value.y"
-      :width="selectionMarquee.marqueeBounds.value.width" :height="selectionMarquee.marqueeBounds.value.height"
-      :fill="SELECTION.MARQUEE_FILL" :stroke="SELECTION.MARQUEE_STROKE" :stroke-width="SELECTION.MARQUEE_STROKE_WIDTH"
-      :stroke-dasharray="SELECTION.MARQUEE_DASH_ARRAY" class="selection-marquee" pointer-events="none" />
+    <rect
+      v-if="selectionMarquee.isMarqueeSelecting.value && selectionMarquee.marqueeBounds.value"
+      :x="selectionMarquee.marqueeBounds.value.x"
+      :y="selectionMarquee.marqueeBounds.value.y"
+      :width="selectionMarquee.marqueeBounds.value.width"
+      :height="selectionMarquee.marqueeBounds.value.height"
+      :fill="SELECTION.MARQUEE_FILL"
+      :stroke="SELECTION.MARQUEE_STROKE"
+      :stroke-width="SELECTION.MARQUEE_STROKE_WIDTH"
+      :stroke-dasharray="SELECTION.MARQUEE_DASH_ARRAY"
+      class="selection-marquee"
+      pointer-events="none"
+    />
 
     <!-- Snap indicator (rendered above annotations, below handles) -->
     <EditorSnapIndicator />

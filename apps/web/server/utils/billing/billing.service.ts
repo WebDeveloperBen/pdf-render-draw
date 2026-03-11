@@ -91,7 +91,7 @@ export interface SubscriptionListParams {
   sortOrder?: "asc" | "desc"
 }
 
-export interface PaginationInfo {
+export interface BillingPaginationInfo {
   page: number
   limit: number
   total: number
@@ -125,11 +125,7 @@ function computeDataFreshness(lastActivityAt: Date | null): DataFreshness {
   return "stale"
 }
 
-function computeAllowedActions(
-  status: string,
-  cancelAtPeriodEnd: boolean | null,
-  adminTier: string
-): AllowedAction[] {
+function computeAllowedActions(status: string, cancelAtPeriodEnd: boolean | null, adminTier: string): AllowedAction[] {
   const actions: AllowedAction[] = []
 
   // Support+ can refresh
@@ -221,7 +217,7 @@ export const billingService = {
    */
   async listSubscriptions(params: SubscriptionListParams): Promise<{
     subscriptions: SubscriptionListItem[]
-    pagination: PaginationInfo
+    pagination: BillingPaginationInfo
   }> {
     const page = params.page ?? 1
     const limit = Math.min(params.limit ?? 20, 100)
@@ -275,11 +271,16 @@ export const billingService = {
       .from(schema.subscription)
       .leftJoin(schema.organization, eq(schema.subscription.referenceId, schema.organization.id))
       .where(whereClause)
-      .orderBy(
-        params.sortOrder === "asc"
-          ? sql`${schema.subscription.periodEnd} asc nulls last`
-          : sql`${schema.subscription.periodEnd} desc nulls last`
-      )
+      .orderBy(() => {
+        const columnMap = {
+          periodEnd: schema.subscription.periodEnd,
+          organizationName: schema.organization.name,
+          status: schema.subscription.status,
+          plan: schema.subscription.plan
+        } as const
+        const col = columnMap[params.sortBy as keyof typeof columnMap] ?? schema.subscription.periodEnd
+        return params.sortOrder === "asc" ? sql`${col} asc nulls last` : sql`${col} desc nulls last`
+      })
       .limit(limit)
       .offset(offset)
 
@@ -344,10 +345,7 @@ export const billingService = {
 
     // Get last webhook activity specifically
     const lastWebhook = await db.query.billingActivity.findFirst({
-      where: and(
-        eq(schema.billingActivity.subscriptionId, sub.id),
-        eq(schema.billingActivity.type, "payment")
-      ),
+      where: and(eq(schema.billingActivity.subscriptionId, sub.id), eq(schema.billingActivity.type, "payment")),
       orderBy: desc(schema.billingActivity.createdAt)
     })
 

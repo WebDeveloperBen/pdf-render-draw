@@ -27,7 +27,7 @@ export const DEFAULT_FEATURES: Readonly<FeatureFlags> = {
   roomDetection: false,
   roomSmartDetect: false,
   roomAiDetect: false,
-  roomDebugPlan: true,
+  roomDebugPlan: true
 }
 
 /**
@@ -38,7 +38,7 @@ export const FEATURE_ENV_KEYS: Readonly<Record<keyof FeatureFlags, string>> = {
   roomDetection: "FEATURE_ROOM_DETECTION",
   roomSmartDetect: "FEATURE_ROOM_SMART_DETECT",
   roomAiDetect: "FEATURE_ROOM_AI_DETECT",
-  roomDebugPlan: "FEATURE_ROOM_DEBUG_PLAN",
+  roomDebugPlan: "FEATURE_ROOM_DEBUG_PLAN"
 }
 
 /** Resolve feature flags from environment variables (server-side) */

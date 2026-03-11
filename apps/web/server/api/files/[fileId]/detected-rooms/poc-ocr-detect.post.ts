@@ -33,10 +33,13 @@ const providerRoomSchema = z.object({
 
 const providerResponseSchema = z.object({
   rooms: z.array(providerRoomSchema).max(250),
-  scale: z.object({
-    pixel_length: z.number().positive(),
-    real_length_mm: z.number().positive()
-  }).nullable().optional()
+  scale: z
+    .object({
+      pixel_length: z.number().positive(),
+      real_length_mm: z.number().positive()
+    })
+    .nullable()
+    .optional()
 })
 
 interface OpenAiContentBlock {
@@ -124,7 +127,10 @@ function signedArea(points: Point[]): number {
 }
 
 function polygonBounds(points: Point[]): { minX: number; minY: number; maxX: number; maxY: number } {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity
   for (const point of points) {
     if (point.x < minX) minX = point.x
     if (point.y < minY) minY = point.y
@@ -140,7 +146,8 @@ function polygonCentroid(points: Point[]): Point {
     const sum = points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 })
     return { x: sum.x / points.length, y: sum.y / points.length }
   }
-  let cx = 0, cy = 0
+  let cx = 0,
+    cy = 0
   const n = points.length
   for (let i = 0; i < n; i++) {
     const p = points[i]!
@@ -210,18 +217,19 @@ export default defineEventHandler(async (event) => {
 
   const textLabels = body.textLabels ?? []
 
-  const labelHintsSection = textLabels.length > 0
-    ? [
-        "",
-        "RED CROSSHAIR MARKERS:",
-        "Red crosshair markers (⊕) have been drawn on the image at the exact pixel locations of room labels extracted from the PDF.",
-        "Each marker shows where a room label is. The room polygon MUST contain its marker point.",
-        ...textLabels.map(l => `  - "${l.text}" → red marker at pixel (${l.pixelX}, ${l.pixelY})`),
-        "",
-        "Use these markers as precise anchor points. Start from each marker, then trace outward to find the enclosing walls.",
-        ""
-      ]
-    : []
+  const labelHintsSection =
+    textLabels.length > 0
+      ? [
+          "",
+          "RED CROSSHAIR MARKERS:",
+          "Red crosshair markers (⊕) have been drawn on the image at the exact pixel locations of room labels extracted from the PDF.",
+          "Each marker shows where a room label is. The room polygon MUST contain its marker point.",
+          ...textLabels.map((l) => `  - "${l.text}" → red marker at pixel (${l.pixelX}, ${l.pixelY})`),
+          "",
+          "Use these markers as precise anchor points. Start from each marker, then trace outward to find the enclosing walls.",
+          ""
+        ]
+      : []
 
   const prompt = [
     `You are an expert architectural plan analyser. The image is a floor plan that is exactly ${body.imageWidth}px wide and ${body.imageHeight}px tall.`,
@@ -263,7 +271,18 @@ export default defineEventHandler(async (event) => {
     "",
     "Schema:",
     JSON.stringify({
-      rooms: [{ label: "string|null", confidence: 0.95, polygon: [[480, 650], [780, 650], [780, 920], [480, 920]] }],
+      rooms: [
+        {
+          label: "string|null",
+          confidence: 0.95,
+          polygon: [
+            [480, 650],
+            [780, 650],
+            [780, 920],
+            [480, 920]
+          ]
+        }
+      ],
       scale: { pixel_length: 150, real_length_mm: 3400 }
     })
   ].join("\n")
@@ -349,9 +368,10 @@ export default defineEventHandler(async (event) => {
       body: requestBody
     })
   } catch (primaryError: unknown) {
-    const statusCode = typeof primaryError === "object" && primaryError !== null
-      ? Number((primaryError as { statusCode?: number }).statusCode ?? (primaryError as { status?: number }).status)
-      : NaN
+    const statusCode =
+      typeof primaryError === "object" && primaryError !== null
+        ? Number((primaryError as { statusCode?: number }).statusCode ?? (primaryError as { status?: number }).status)
+        : NaN
 
     if (statusCode !== 404) throw primaryError
 
@@ -400,7 +420,7 @@ export default defineEventHandler(async (event) => {
   // Log raw pixel coordinates for debugging
   console.log(`[RoomOCR] Raw rooms from model: ${parsedRooms.rooms.length}`)
   for (const r of parsedRooms.rooms.slice(0, 5)) {
-    const coords = r.polygon.map(p => `(${p[0]},${p[1]})`).join(" ")
+    const coords = r.polygon.map((p) => `(${p[0]},${p[1]})`).join(" ")
     console.log(`[RoomOCR]   ${r.label ?? "?"}: ${coords}`)
   }
 
@@ -408,7 +428,9 @@ export default defineEventHandler(async (event) => {
   const scaleX = body.pageWidth / body.imageWidth
   const scaleY = body.pageHeight / body.imageHeight
 
-  console.log(`[RoomOCR] Mapping pixels (${body.imageWidth}x${body.imageHeight}) → PDF viewport (${body.pageWidth.toFixed(1)}x${body.pageHeight.toFixed(1)}), scale: ${scaleX.toFixed(4)}x${scaleY.toFixed(4)}`)
+  console.log(
+    `[RoomOCR] Mapping pixels (${body.imageWidth}x${body.imageHeight}) → PDF viewport (${body.pageWidth.toFixed(1)}x${body.pageHeight.toFixed(1)}), scale: ${scaleX.toFixed(4)}x${scaleY.toFixed(4)}`
+  )
 
   // Build a lookup of text labels by normalized name for snapping
   const labelLookup = new Map<string, { pdfX: number; pdfY: number }>()
@@ -463,7 +485,9 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  console.log(`[RoomOCR] Detected ${mappedRooms.length} rooms, scale: ${scaleReference ? `${scaleReference.realLengthMm}mm = ${scaleReference.pixelLength}px` : "not detected"}`)
+  console.log(
+    `[RoomOCR] Detected ${mappedRooms.length} rooms, scale: ${scaleReference ? `${scaleReference.realLengthMm}mm = ${scaleReference.pixelLength}px` : "not detected"}`
+  )
 
   return {
     pageNum: body.pageNum,

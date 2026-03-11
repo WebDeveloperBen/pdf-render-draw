@@ -35,8 +35,7 @@ defineRouteMeta({
   openAPI: {
     tags: ["Annotations"],
     summary: "Sync Annotations (Beacon)",
-    description:
-      "Lightweight sync endpoint for beforeunload saves. Fire-and-forget, best effort.",
+    description: "Lightweight sync endpoint for beforeunload saves. Fire-and-forget, best effort.",
     parameters: [
       {
         name: "fileId",

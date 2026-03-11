@@ -12,8 +12,7 @@ defineRouteMeta({
   openAPI: {
     tags: ["Project Files"],
     summary: "Get Project File",
-    description:
-      "Get a specific file from a project with user-specific viewport state",
+    description: "Get a specific file from a project with user-specific viewport state",
     parameters: [
       {
         name: "id",
@@ -187,12 +186,7 @@ export default defineEventHandler(async (event) => {
       currentPage: userFileState.viewportCurrentPage
     })
     .from(userFileState)
-    .where(
-      and(
-        eq(userFileState.userId, session.user.id),
-        eq(userFileState.fileId, fileId)
-      )
-    )
+    .where(and(eq(userFileState.userId, session.user.id), eq(userFileState.fileId, fileId)))
 
   return {
     ...file,

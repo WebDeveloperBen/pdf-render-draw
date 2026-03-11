@@ -9,12 +9,14 @@ const paramsSchema = z.object({
 
 const syncOperationSchema = z.object({
   type: z.enum(["create", "update", "delete"]),
-  annotation: z.object({
-    id: z.string().uuid(),
-    type: z.enum(["measure", "area", "perimeter", "line", "fill", "text", "count"]),
-    pageNum: z.number().int().min(1),
-    rotation: z.number().default(0)
-  }).passthrough(), // Allow additional fields for annotation data
+  annotation: z
+    .object({
+      id: z.string().uuid(),
+      type: z.enum(["measure", "area", "perimeter", "line", "fill", "text", "count"]),
+      pageNum: z.number().int().min(1),
+      rotation: z.number().default(0)
+    })
+    .passthrough(), // Allow additional fields for annotation data
   localVersion: z.number().int().min(0),
   timestamp: z.string().datetime()
 })
@@ -379,10 +381,7 @@ export default defineEventHandler(async (event) => {
   }> = []
 
   if (body.lastSyncTime) {
-    const conditions = [
-      eq(annotation.fileId, fileId),
-      gt(annotation.updatedAt, new Date(body.lastSyncTime))
-    ]
+    const conditions = [eq(annotation.fileId, fileId), gt(annotation.updatedAt, new Date(body.lastSyncTime))]
 
     // Exclude annotations we just processed
     const processedIds = body.operations.map((op) => op.annotation.id)
@@ -470,9 +469,7 @@ export default defineEventHandler(async (event) => {
         currentPage: userFileState.viewportCurrentPage
       })
       .from(userFileState)
-      .where(
-        and(eq(userFileState.userId, userId), eq(userFileState.fileId, fileId))
-      )
+      .where(and(eq(userFileState.userId, userId), eq(userFileState.fileId, fileId)))
 
     viewportStateResult = existing || null
   }

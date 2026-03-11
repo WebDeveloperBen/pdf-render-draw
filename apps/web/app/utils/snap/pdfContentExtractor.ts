@@ -173,10 +173,7 @@ export interface PdfContentData {
  * Coordinates are in viewport space (matching the SVG viewBox) so they are
  * zoom-independent and only need to be extracted once per page.
  */
-export async function extractPdfContent(
-  page: PDFPageProxy,
-  signal?: AbortSignal
-): Promise<PdfContentData> {
+export async function extractPdfContent(page: PDFPageProxy, signal?: AbortSignal): Promise<PdfContentData> {
   const allSegments = await extractWallSegments(page, signal)
   if (signal?.aborted) return { segments: [], endpoints: [], midpoints: [], intersections: [] }
 

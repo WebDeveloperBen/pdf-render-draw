@@ -85,8 +85,7 @@ async function main() {
     `)
 
     const hasDetectedRoom = Boolean(detectedRoomTable.rows[0]?.exists)
-    const isViewportRotationReal =
-      viewportRotationColumn.rows[0]?.data_type === "real"
+    const isViewportRotationReal = viewportRotationColumn.rows[0]?.data_type === "real"
 
     const entries = await loadJournalEntries()
     const latest = entries.at(-1)
@@ -97,9 +96,7 @@ async function main() {
     }
 
     const existing = existingMigration.rows[0]
-    const existingCreatedAt = existing?.created_at
-      ? Number(existing.created_at)
-      : null
+    const existingCreatedAt = existing?.created_at ? Number(existing.created_at) : null
 
     if (!accountTable.rows[0]?.exists) {
       console.log("No existing schema detected. Nothing to baseline.")
@@ -107,9 +104,7 @@ async function main() {
     }
 
     if (existingCreatedAt !== null && existingCreatedAt >= latest.when) {
-      console.log(
-        `Migration baseline already up to date (created_at=${existingCreatedAt}). Skipping.`
-      )
+      console.log(`Migration baseline already up to date (created_at=${existingCreatedAt}). Skipping.`)
       return
     }
 
@@ -117,22 +112,18 @@ async function main() {
     const needsPromotionToLatest = hasDetectedRoom && (isAtPrevious || existingCreatedAt === null)
 
     if (needsPromotionToLatest && !isViewportRotationReal) {
-      await client.query(
-        "alter table public.user_file_state alter column viewport_rotation type real"
-      )
+      await client.query("alter table public.user_file_state alter column viewport_rotation type real")
       console.log("Updated user_file_state.viewport_rotation to real.")
     }
 
     const baselineEntry =
-      needsPromotionToLatest || (hasDetectedRoom && isViewportRotationReal)
-        ? latest
-        : previous ?? latest
+      needsPromotionToLatest || (hasDetectedRoom && isViewportRotationReal) ? latest : (previous ?? latest)
 
     const hash = await sqlFileHash(baselineEntry.tag)
-    await client.query(
-      `insert into drizzle.__drizzle_migrations (hash, created_at) values ($1, $2)`,
-      [hash, baselineEntry.when]
-    )
+    await client.query(`insert into drizzle.__drizzle_migrations (hash, created_at) values ($1, $2)`, [
+      hash,
+      baselineEntry.when
+    ])
 
     console.log(`Baseline inserted at ${baselineEntry.tag} (created_at=${baselineEntry.when}).`)
     if (baselineEntry.tag !== latest.tag) {
