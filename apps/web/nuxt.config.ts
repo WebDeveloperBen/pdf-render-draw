@@ -51,7 +51,7 @@ export default defineNuxtConfig({
     emailFrom: process.env.EMAIL_FROM || "noreply@bens.digital",
     // Public (exposed to client)
     public: {
-      betterAuthUrl: "",
+      betterAuthUrl: process.env.BETTER_AUTH_URL,
       // App branding (accessible on both client and server)
       app: {
         name: "MetreMate",
@@ -194,12 +194,12 @@ export default defineNuxtConfig({
       process.env.NITRO_PRESET === "node-server"
         ? undefined
         : {
-            alias: {
-              pg: "unenv/mock/proxy",
-              "@react-email/render": "unenv/mock/proxy",
-              "@aws-sdk/client-s3": "unenv/mock/proxy"
-            }
-          },
+          alias: {
+            pg: "unenv/mock/proxy",
+            "@react-email/render": "unenv/mock/proxy",
+            "@aws-sdk/client-s3": "unenv/mock/proxy"
+          }
+        },
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,

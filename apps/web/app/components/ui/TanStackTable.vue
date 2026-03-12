@@ -150,7 +150,7 @@ import {
   getSortedRowModel,
   useVueTable
 } from "@tanstack/vue-table"
-import type { ColumnDef, SortingState, Table } from "@tanstack/vue-table"
+import type { ColumnDef, PaginationState, SortingState, Table } from "@tanstack/vue-table"
 import type { HTMLAttributes } from "vue"
 
 const props = withDefaults(
@@ -215,6 +215,26 @@ const props = withDefaults(
      * @default "Rows per page:"
      */
     rowsPerPageText?: string
+    /**
+     * Enable server-side pagination (disables client-side pagination/filtering).
+     */
+    manualPagination?: boolean
+    /**
+     * Enable server-side sorting (disables client-side sorting).
+     */
+    manualSorting?: boolean
+    /**
+     * Total page count from server (required when manualPagination is true).
+     */
+    pageCount?: number
+    /**
+     * Total row count from server (required when manualPagination is true).
+     */
+    rowCount?: number
+    /**
+     * Current page index (0-based) for controlled pagination.
+     */
+    pageIndex?: number
   }>(),
   {
     pageSizes: () => [10, 20, 30, 40, 50, 100],
@@ -226,7 +246,12 @@ const props = withDefaults(
     descIcon: "lucide:chevron-down",
     unsortedIcon: "lucide:chevrons-up-down",
     showPagination: true,
-    rowsPerPageText: "Rows per page:"
+    rowsPerPageText: "Rows per page:",
+    manualPagination: false,
+    manualSorting: false,
+    pageCount: undefined,
+    rowCount: undefined,
+    pageIndex: undefined
   }
 )
 
@@ -272,6 +297,9 @@ if (props.showSelect) {
 
 const emit = defineEmits<{
   ready: [table: Table<T>]
+  "update:sorting": [sorting: SortingState]
+  "update:pageIndex": [pageIndex: number]
+  "update:pageSize": [pageSize: number]
 }>()
 
 const localSorting = ref(props.sorting)
@@ -295,7 +323,8 @@ const table = useVueTable({
   },
   initialState: {
     pagination: {
-      pageSize: props.pageSize
+      pageSize: props.pageSize,
+      pageIndex: props.pageIndex ?? 0
     },
     rowSelection: rowSelection.value,
     globalFilter: props.search
@@ -312,21 +341,46 @@ const table = useVueTable({
     },
     get rowSelection() {
       return rowSelection.value
-    }
+    },
+    ...(props.manualPagination
+      ? {
+          get pagination(): PaginationState {
+            return {
+              pageIndex: props.pageIndex ?? 0,
+              pageSize: props.pageSize
+            }
+          }
+        }
+      : {})
   },
+  manualPagination: props.manualPagination,
+  manualSorting: props.manualSorting,
+  ...(props.manualPagination && props.pageCount != null ? { pageCount: props.pageCount } : {}),
+  ...(props.manualPagination && props.rowCount != null ? { rowCount: props.rowCount } : {}),
   onSortingChange: (updaterOrValue) => {
     localSorting.value = updateFn(updaterOrValue, localSorting)
+    if (props.manualSorting) {
+      emit("update:sorting", localSorting.value)
+    }
   },
   onGlobalFilterChange: (updaterOrValue) => {
     globalFilter.value = updateFn(updaterOrValue, globalFilter)
+  },
+  onPaginationChange: (updaterOrValue) => {
+    if (props.manualPagination) {
+      const current = { pageIndex: props.pageIndex ?? 0, pageSize: props.pageSize }
+      const next = typeof updaterOrValue === "function" ? updaterOrValue(current) : updaterOrValue
+      if (next.pageIndex !== current.pageIndex) emit("update:pageIndex", next.pageIndex)
+      if (next.pageSize !== current.pageSize) emit("update:pageSize", next.pageSize)
+    }
   },
   onRowSelectionChange: (updaterOrValue) => {
     rowSelection.value = updateFn(updaterOrValue, rowSelection)
   },
   getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
+  ...(!props.manualSorting ? { getSortedRowModel: getSortedRowModel() } : {}),
+  ...(!props.manualPagination ? { getPaginationRowModel: getPaginationRowModel() } : {}),
+  ...(!props.manualPagination ? { getFilteredRowModel: getFilteredRowModel() } : {}),
   enableRowSelection: () => !!props.showSelect
 })
 
@@ -340,10 +394,16 @@ function toggleColumnVisibility(column: any) {
 // eslint-disable-next-line vue/no-dupe-keys
 const pageSize = computed({
   get() {
+    if (props.manualPagination) return props.pageSize.toString()
     return table.getState().pagination.pageSize.toString()
   },
   set(value) {
-    table.setPageSize(Number(value))
+    if (props.manualPagination) {
+      emit("update:pageSize", Number(value))
+      emit("update:pageIndex", 0)
+    } else {
+      table.setPageSize(Number(value))
+    }
   }
 })
 

@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { keepPreviousData } from "@tanstack/vue-query"
 import { toast } from "vue-sonner"
-import { useDebounceFn } from "@vueuse/core"
+import type { ColumnDef } from "@tanstack/vue-table"
+import type { GetApiAdminSubscriptions200, GetApiAdminSubscriptions200SubscriptionsItem, GetApiAdminSubscriptionsParams } from "~/models/api"
+import { useGetApiAdminSubscriptions } from "~/models/api"
 
 definePageMeta({
   layout: "admin",
@@ -9,100 +12,62 @@ definePageMeta({
 
 useSeoMeta({ title: "Subscriptions - Admin" })
 
-// State
-interface SubscriptionListItem {
-  id: string
-  stripeSubscriptionId: string | null
-  referenceId: string
-  organizationName: string
-  organizationSlug: string
-  organizationLogo: string | null
-  stripeCustomerId: string | null
-  plan: string
-  planTier: string
-  status: string
-  periodStart: string | null
-  periodEnd: string | null
-  cancelAtPeriodEnd: boolean | null
-  billingInterval: string | null
-  trialEnd: string | null
-}
-
-interface PaginationInfo {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-}
-
-const subscriptions = ref<SubscriptionListItem[]>([])
-const pagination = ref<PaginationInfo>({ page: 1, limit: 20, total: 0, totalPages: 0 })
-const isLoading = ref(true)
-const search = ref("")
+// Filters
 const statusFilter = ref("")
 const planFilter = ref("")
-const sortBy = ref<"periodEnd" | "organizationName" | "status" | "plan">("periodEnd")
-const sortOrder = ref<"asc" | "desc">("desc")
 
-// Fetch subscriptions
-const fetchSubscriptions = async () => {
-  isLoading.value = true
-  try {
-    const response = await $fetch<{ subscriptions: SubscriptionListItem[]; pagination: PaginationInfo }>(
-      "/api/admin/subscriptions",
-      {
-        query: {
-          search: search.value || undefined,
-          status: statusFilter.value || undefined,
-          plan: planFilter.value || undefined,
-          page: pagination.value.page,
-          limit: pagination.value.limit,
-          sortBy: sortBy.value,
-          sortOrder: sortOrder.value
-        }
-      }
-    )
-    subscriptions.value = response.subscriptions
-    pagination.value = response.pagination
-  } catch (e: any) {
-    toast.error(e.data?.message || "Failed to load subscriptions")
-  } finally {
-    isLoading.value = false
-  }
+// Init: check for status query param (from dashboard card click)
+const route = useRoute()
+if (route.query.status) {
+  statusFilter.value = String(route.query.status)
 }
 
-// Debounced search
-const debouncedFetch = useDebounceFn(() => {
-  pagination.value.page = 1
-  fetchSubscriptions()
-}, 300)
-
-watch(search, () => debouncedFetch())
-watch([statusFilter, planFilter], () => {
-  pagination.value.page = 1
-  fetchSubscriptions()
+// Server-side pagination, sorting, search
+const {
+  page,
+  pageSize,
+  search,
+  debouncedSearch,
+  sorting,
+  sortBy,
+  sortOrder,
+  pageIndex,
+  onUpdatePageIndex,
+  onUpdatePageSize,
+  onUpdateSorting
+} = useAdminPagination({
+  defaultPageSize: 20,
+  defaultSort: { id: "periodEnd", desc: true }
 })
 
-// Sort
-const handleSort = (column: typeof sortBy.value) => {
-  if (sortBy.value === column) {
-    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc"
-  } else {
-    sortBy.value = column
-    sortOrder.value = "desc"
-  }
-  fetchSubscriptions()
-}
+// Reset page on filter change
+watch([statusFilter, planFilter], () => {
+  page.value = 1
+})
 
-// Pagination
-const handlePageChange = (page: number) => {
-  pagination.value.page = page
-  fetchSubscriptions()
-}
+const params = computed<GetApiAdminSubscriptionsParams>(() => ({
+  page: page.value,
+  limit: pageSize.value,
+  sortBy: sortBy.value as "organizationName" | "status" | "periodEnd" | "plan",
+  sortOrder: sortOrder.value,
+  search: debouncedSearch.value || undefined,
+  status: statusFilter.value || undefined,
+  plan: planFilter.value || undefined
+}))
+
+const { data, isLoading, isFetching, refetch } = useGetApiAdminSubscriptions(params, {
+  query: { placeholderData: keepPreviousData }
+})
+
+const response = computed(() => data.value?.data as GetApiAdminSubscriptions200 | undefined)
+const items = computed(() => response.value?.subscriptions ?? [])
+const pagination = computed(() => response.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
+const pageCount = computed(() => pagination.value.totalPages)
+const totalRows = computed(() => pagination.value.total)
 
 // Format date
-const formatDate = (date: string | null) => {
-  if (!date) return "—"
+const formatDate = (date: string | null | undefined) => {
+  if (!date) return "\u2014"
   return new Date(date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })
 }
 
@@ -136,7 +101,7 @@ const handleSync = async () => {
     toast.success(
       `Synced ${result.synced} subscriptions (${result.created} created, ${result.updated} updated${result.errors > 0 ? `, ${result.errors} errors` : ""})`
     )
-    await fetchSubscriptions()
+    await refetch()
   } catch (e: any) {
     toast.error(e.data?.message || "Sync failed")
   } finally {
@@ -144,14 +109,92 @@ const handleSync = async () => {
   }
 }
 
-// Init: check for status query param (from dashboard card click)
-const route = useRoute()
-onMounted(() => {
-  if (route.query.status) {
-    statusFilter.value = String(route.query.status)
+// Column definitions
+const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
+  {
+    accessorKey: "organizationName",
+    header: "Organisation",
+    cell: ({ row }) => {
+      const sub = row.original
+      return h("div", { class: "flex items-center gap-3" }, [
+        h(resolveComponent("UiAvatar"), { class: "size-10 rounded-lg" }, () => [
+          sub.organizationLogo
+            ? h(resolveComponent("UiAvatarImage"), { src: sub.organizationLogo, alt: sub.organizationName })
+            : null,
+          h(resolveComponent("UiAvatarFallback"), { class: "rounded-lg" }, () =>
+            sub.organizationName[0]?.toUpperCase()
+          )
+        ]),
+        h("div", {}, [
+          h("p", { class: "font-medium" }, sub.organizationName),
+          h("p", { class: "text-xs text-muted-foreground" }, `@${sub.organizationSlug}`)
+        ])
+      ])
+    }
+  },
+  {
+    accessorKey: "plan",
+    header: "Plan",
+    cell: ({ row }) => {
+      return h(resolveComponent("UiBadge"), { variant: "outline", class: "capitalize" }, () => row.original.plan)
+    }
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const sub = row.original
+      const config = getStatusConfig(sub.status)
+      const children = [
+        h(resolveComponent("UiBadge"), { variant: "outline", class: config.class }, () => config.label)
+      ]
+      if (sub.cancelAtPeriodEnd) {
+        children.push(h("span", { class: "block text-xs text-muted-foreground mt-1" }, "Cancelling"))
+      }
+      return h("div", {}, children)
+    }
+  },
+  {
+    accessorKey: "billingInterval",
+    header: "Interval",
+    cell: ({ row }) => {
+      return h(
+        "span",
+        { class: "text-muted-foreground capitalize" },
+        row.original.billingInterval || "\u2014"
+      )
+    }
+  },
+  {
+    accessorKey: "periodEnd",
+    header: "Current Period",
+    cell: ({ row }) => {
+      const sub = row.original
+      return h(
+        "span",
+        { class: "text-muted-foreground" },
+        `${formatDate(sub.periodStart)} \u2013 ${formatDate(sub.periodEnd)}`
+      )
+    }
+  },
+  {
+    id: "actions",
+    header: "",
+    enableSorting: false,
+    cell: ({ row }) => {
+      return h(
+        resolveComponent("UiButton"),
+        {
+          variant: "ghost",
+          size: "sm",
+          title: "View subscription details",
+          onClick: () => navigateTo(`/admin/subscriptions/${row.original.id}`)
+        },
+        () => h(resolveComponent("Icon"), { name: "lucide:eye", class: "size-4" })
+      )
+    }
   }
-  fetchSubscriptions()
-})
+]
 </script>
 
 <template>
@@ -167,7 +210,7 @@ onMounted(() => {
           <Icon name="lucide:refresh-cw" :class="['size-4 mr-2', { 'animate-spin': isSyncing }]" />
           Sync from Stripe
         </UiButton>
-        <UiButton variant="outline" size="sm" @click="fetchSubscriptions">
+        <UiButton variant="outline" size="sm" @click="refetch()">
           <Icon name="lucide:refresh-cw" class="size-4 mr-2" />
           Refresh
         </UiButton>
@@ -202,160 +245,44 @@ onMounted(() => {
       </select>
     </div>
 
-    <!-- Table -->
-    <UiCard>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left p-4 font-medium">
-                <button class="flex items-center gap-1 hover:text-primary" @click="handleSort('organizationName')">
-                  Organisation
-                  <Icon
-                    v-if="sortBy === 'organizationName'"
-                    :name="sortOrder === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down'"
-                    class="size-3"
-                  />
-                </button>
-              </th>
-              <th class="text-left p-4 font-medium">
-                <button class="flex items-center gap-1 hover:text-primary" @click="handleSort('plan')">
-                  Plan
-                  <Icon
-                    v-if="sortBy === 'plan'"
-                    :name="sortOrder === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down'"
-                    class="size-3"
-                  />
-                </button>
-              </th>
-              <th class="text-left p-4 font-medium">
-                <button class="flex items-center gap-1 hover:text-primary" @click="handleSort('status')">
-                  Status
-                  <Icon
-                    v-if="sortBy === 'status'"
-                    :name="sortOrder === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down'"
-                    class="size-3"
-                  />
-                </button>
-              </th>
-              <th class="text-left p-4 font-medium hidden lg:table-cell">Interval</th>
-              <th class="text-left p-4 font-medium hidden md:table-cell">
-                <button class="flex items-center gap-1 hover:text-primary" @click="handleSort('periodEnd')">
-                  Current Period
-                  <Icon
-                    v-if="sortBy === 'periodEnd'"
-                    :name="sortOrder === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down'"
-                    class="size-3"
-                  />
-                </button>
-              </th>
-              <th class="text-right p-4 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Loading -->
-            <template v-if="isLoading">
-              <tr v-for="i in 5" :key="i" class="border-b">
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="size-10 rounded-lg bg-muted animate-pulse" />
-                    <div class="h-4 w-32 bg-muted rounded animate-pulse" />
-                  </div>
-                </td>
-                <td class="p-4"><div class="h-4 w-16 bg-muted rounded animate-pulse" /></td>
-                <td class="p-4"><div class="h-6 w-16 bg-muted rounded-full animate-pulse" /></td>
-                <td class="p-4 hidden lg:table-cell"><div class="h-4 w-16 bg-muted rounded animate-pulse" /></td>
-                <td class="p-4 hidden md:table-cell"><div class="h-4 w-28 bg-muted rounded animate-pulse" /></td>
-                <td class="p-4 text-right"><div class="h-8 w-8 bg-muted rounded animate-pulse ml-auto" /></td>
-              </tr>
-            </template>
-
-            <!-- Empty -->
-            <tr v-else-if="subscriptions.length === 0">
-              <td colspan="6" class="p-8 text-center text-muted-foreground">
-                <Icon name="lucide:credit-card" class="size-12 mx-auto mb-4 opacity-50" />
-                <p>No subscriptions found</p>
-                <p v-if="search || statusFilter || planFilter" class="text-sm mt-1">Try adjusting your filters</p>
-              </td>
-            </tr>
-
-            <!-- Rows -->
-            <tr
-              v-for="sub in subscriptions"
-              v-else
-              :key="sub.id"
-              class="border-b hover:bg-muted/50 transition-colors cursor-pointer"
-              @click="navigateTo(`/admin/subscriptions/${sub.id}`)"
-            >
-              <td class="p-4">
-                <div class="flex items-center gap-3">
-                  <UiAvatar class="size-10 rounded-lg">
-                    <UiAvatarImage
-                      v-if="sub.organizationLogo"
-                      :src="sub.organizationLogo"
-                      :alt="sub.organizationName"
-                    />
-                    <UiAvatarFallback class="rounded-lg">{{ sub.organizationName[0]?.toUpperCase() }}</UiAvatarFallback>
-                  </UiAvatar>
-                  <div>
-                    <p class="font-medium">{{ sub.organizationName }}</p>
-                    <p class="text-xs text-muted-foreground">@{{ sub.organizationSlug }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="p-4">
-                <UiBadge variant="outline" class="capitalize">{{ sub.plan }}</UiBadge>
-              </td>
-              <td class="p-4">
-                <UiBadge variant="outline" :class="getStatusConfig(sub.status).class">
-                  {{ getStatusConfig(sub.status).label }}
-                </UiBadge>
-                <span v-if="sub.cancelAtPeriodEnd" class="block text-xs text-muted-foreground mt-1"> Cancelling </span>
-              </td>
-              <td class="p-4 text-muted-foreground capitalize hidden lg:table-cell">
-                {{ sub.billingInterval || "—" }}
-              </td>
-              <td class="p-4 text-muted-foreground hidden md:table-cell">
-                {{ formatDate(sub.periodStart) }} – {{ formatDate(sub.periodEnd) }}
-              </td>
-              <td class="p-4 text-right">
-                <UiButton variant="ghost" size="sm" @click.stop="navigateTo(`/admin/subscriptions/${sub.id}`)">
-                  <Icon name="lucide:eye" class="size-4" />
-                </UiButton>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <div v-if="pagination.totalPages > 1" class="flex items-center justify-between p-4 border-t">
-        <p class="text-sm text-muted-foreground">
-          Showing {{ (pagination.page - 1) * pagination.limit + 1 }} to
-          {{ Math.min(pagination.page * pagination.limit, pagination.total) }} of {{ pagination.total }} subscriptions
-        </p>
-        <div class="flex items-center gap-2">
-          <UiButton
-            variant="outline"
-            size="sm"
-            :disabled="pagination.page === 1"
-            @click="handlePageChange(pagination.page - 1)"
-          >
-            <Icon name="lucide:chevron-left" class="size-4" />
-            Previous
-          </UiButton>
-          <span class="text-sm text-muted-foreground">Page {{ pagination.page }} of {{ pagination.totalPages }}</span>
-          <UiButton
-            variant="outline"
-            size="sm"
-            :disabled="pagination.page === pagination.totalPages"
-            @click="handlePageChange(pagination.page + 1)"
-          >
-            Next
-            <Icon name="lucide:chevron-right" class="size-4" />
-          </UiButton>
+    <!-- Loading State -->
+    <UiCard v-if="isLoading">
+      <div class="p-4 space-y-4">
+        <div v-for="i in 5" :key="i" class="flex items-center gap-4">
+          <div class="size-10 rounded-lg bg-muted animate-pulse" />
+          <div class="flex-1 space-y-2">
+            <div class="h-4 w-32 bg-muted rounded animate-pulse" />
+            <div class="h-3 w-48 bg-muted rounded animate-pulse" />
+          </div>
         </div>
       </div>
+    </UiCard>
+
+    <!-- Subscriptions Table -->
+    <UiCard v-else class="p-4">
+      <UiTanStackTable
+        :data="items"
+        :columns="columns"
+        :search="search"
+        :sorting="sorting"
+        :manual-pagination="true"
+        :manual-sorting="true"
+        :page-count="pageCount"
+        :row-count="totalRows"
+        :page-index="pageIndex"
+        :page-size="pageSize"
+        @update:sorting="onUpdateSorting"
+        @update:page-index="onUpdatePageIndex"
+        @update:page-size="onUpdatePageSize"
+      >
+        <template #empty>
+          <div class="flex flex-col items-center py-8 text-muted-foreground">
+            <Icon name="lucide:credit-card" class="size-12 mb-4 opacity-50" />
+            <p>No subscriptions found</p>
+            <p v-if="search || statusFilter || planFilter" class="text-sm mt-1">Try adjusting your filters</p>
+          </div>
+        </template>
+      </UiTanStackTable>
     </UiCard>
   </div>
 </template>

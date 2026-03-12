@@ -5,6 +5,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { PlatformAdminTier, PlatformAdminListItem } from "@shared/auth/plugins/platform-admin.client"
 import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
+import type { ColumnDef } from "@tanstack/vue-table"
 
 definePageMeta({
   layout: "admin",
@@ -220,6 +221,79 @@ const getTierBadgeVariant = (tier: PlatformAdminTier) => {
   }
 }
 
+// Table columns
+const columns: ColumnDef<PlatformAdminListItem>[] = [
+  {
+    accessorKey: "user",
+    header: "User",
+    cell: ({ row }) => {
+      const admin = row.original
+      return h("div", { class: "flex items-center gap-3" }, [
+        h(resolveComponent("UiAvatar"), { class: "size-10" }, () => [
+          admin.user?.image
+            ? h(resolveComponent("UiAvatarImage"), { src: admin.user.image, alt: admin.user?.name || "User" })
+            : null,
+          h(resolveComponent("UiAvatarFallback"), {}, () =>
+            (admin.user?.name || admin.user?.email)?.[0]?.toUpperCase()
+          )
+        ]),
+        h("div", {}, [
+          h("p", { class: "font-medium" }, admin.user?.name || "Unknown"),
+          h("p", { class: "text-xs text-muted-foreground" }, admin.user?.email)
+        ])
+      ])
+    }
+  },
+  {
+    accessorKey: "tier",
+    header: "Tier",
+    cell: ({ row }) => {
+      return h(
+        resolveComponent("UiBadge"),
+        { variant: getTierBadgeVariant(row.original.tier) },
+        () => row.original.tier
+      )
+    }
+  },
+  {
+    accessorKey: "grantedBy",
+    header: "Granted By",
+    cell: ({ row }) => {
+      return h("span", { class: "text-muted-foreground" }, row.original.grantedBy?.name || "System")
+    }
+  },
+  {
+    accessorKey: "grantedAt",
+    header: "Granted At",
+    cell: ({ row }) => {
+      return h("span", { class: "text-muted-foreground" }, formatDate(row.original.grantedAt))
+    }
+  },
+  {
+    id: "actions",
+    header: "",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const admin = row.original
+      if (admin.tier !== "owner") {
+        return h("div", { class: "flex items-center justify-end gap-2" }, [
+          h(
+            resolveComponent("UiButton"),
+            { variant: "ghost", size: "sm", onClick: () => openUpdateDialog(admin) },
+            () => h(resolveComponent("Icon"), { name: "lucide:edit", class: "size-4" })
+          ),
+          h(
+            resolveComponent("UiButton"),
+            { variant: "ghost", size: "sm", class: "text-destructive", onClick: () => openRevokeDialog(admin) },
+            () => h(resolveComponent("Icon"), { name: "lucide:trash-2", class: "size-4" })
+          )
+        ])
+      }
+      return h("span", { class: "text-xs text-muted-foreground" }, "Protected")
+    }
+  }
+]
+
 // Redirect if not owner
 watch(
   isPlatformOwner,
@@ -268,87 +342,34 @@ onMounted(() => {
     <!-- Error state -->
     <UiAlert v-if="error" variant="destructive" icon="lucide:alert-circle" title="Error" :description="error" />
 
-    <!-- Admins Table -->
-    <UiCard>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left p-4 font-medium">User</th>
-              <th class="text-left p-4 font-medium">Tier</th>
-              <th class="text-left p-4 font-medium">Granted By</th>
-              <th class="text-left p-4 font-medium">Granted At</th>
-              <th class="text-right p-4 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Loading state -->
-            <template v-if="isLoading">
-              <tr v-for="i in 3" :key="i" class="border-b">
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="size-10 rounded-full bg-muted animate-pulse" />
-                    <div class="space-y-1">
-                      <div class="h-4 w-32 bg-muted rounded animate-pulse" />
-                      <div class="h-3 w-48 bg-muted rounded animate-pulse" />
-                    </div>
-                  </div>
-                </td>
-                <td class="p-4"><div class="h-6 w-20 bg-muted rounded animate-pulse" /></td>
-                <td class="p-4"><div class="h-4 w-32 bg-muted rounded animate-pulse" /></td>
-                <td class="p-4"><div class="h-4 w-24 bg-muted rounded animate-pulse" /></td>
-                <td class="p-4"><div class="h-8 w-16 bg-muted rounded animate-pulse ml-auto" /></td>
-              </tr>
-            </template>
-
-            <!-- Empty state -->
-            <tr v-else-if="admins.length === 0">
-              <td colspan="5" class="p-8 text-center text-muted-foreground">
-                <Icon name="lucide:shield" class="size-12 mx-auto mb-4 opacity-50" />
-                <p>No platform admins found</p>
-              </td>
-            </tr>
-
-            <!-- Admin rows -->
-            <tr v-for="admin in admins" v-else :key="admin.id" class="border-b hover:bg-muted/50 transition-colors">
-              <td class="p-4">
-                <div class="flex items-center gap-3">
-                  <UiAvatar class="size-10">
-                    <UiAvatarImage v-if="admin.user?.image" :src="admin.user.image" :alt="admin.user?.name" />
-                    <UiAvatarFallback>{{
-                      (admin.user?.name || admin.user?.email)?.[0]?.toUpperCase()
-                    }}</UiAvatarFallback>
-                  </UiAvatar>
-                  <div>
-                    <p class="font-medium">{{ admin.user?.name || "Unknown" }}</p>
-                    <p class="text-xs text-muted-foreground">{{ admin.user?.email }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="p-4">
-                <UiBadge :variant="getTierBadgeVariant(admin.tier)">{{ admin.tier }}</UiBadge>
-              </td>
-              <td class="p-4 text-muted-foreground">
-                {{ admin.grantedBy?.name || "System" }}
-              </td>
-              <td class="p-4 text-muted-foreground">
-                {{ formatDate(admin.grantedAt) }}
-              </td>
-              <td class="p-4 text-right">
-                <div v-if="admin.tier !== 'owner'" class="flex items-center justify-end gap-2">
-                  <UiButton variant="ghost" size="sm" @click="openUpdateDialog(admin)">
-                    <Icon name="lucide:edit" class="size-4" />
-                  </UiButton>
-                  <UiButton variant="ghost" size="sm" class="text-destructive" @click="openRevokeDialog(admin)">
-                    <Icon name="lucide:trash-2" class="size-4" />
-                  </UiButton>
-                </div>
-                <span v-else class="text-xs text-muted-foreground">Protected</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Loading State -->
+    <UiCard v-if="isLoading">
+      <div class="p-4 space-y-4">
+        <div v-for="i in 5" :key="i" class="flex items-center gap-4">
+          <div class="size-10 rounded-full bg-muted animate-pulse" />
+          <div class="flex-1 space-y-2">
+            <div class="h-4 w-32 bg-muted rounded animate-pulse" />
+            <div class="h-3 w-48 bg-muted rounded animate-pulse" />
+          </div>
+        </div>
       </div>
+    </UiCard>
+
+    <!-- Admins Table -->
+    <UiCard v-else class="p-4">
+      <UiTanStackTable
+        :data="admins"
+        :columns="columns"
+        :page-size="20"
+        :sorting="[{ id: 'grantedAt', desc: true }]"
+      >
+        <template #empty>
+          <div class="py-8 text-center text-muted-foreground">
+            <Icon name="lucide:shield" class="size-12 mx-auto mb-4 opacity-50" />
+            <p>No platform admins found</p>
+          </div>
+        </template>
+      </UiTanStackTable>
     </UiCard>
 
     <!-- Grant Dialog -->

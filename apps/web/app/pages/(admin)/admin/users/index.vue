@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { toast } from "vue-sonner"
+import { keepPreviousData } from "@tanstack/vue-query"
 import type { ColumnDef } from "@tanstack/vue-table"
-import type { AdminUser, AdminUsersResponse } from "@shared/types/admin.types"
+import type { GetApiAdminUsers200, GetApiAdminUsers200UsersItem, GetApiAdminUsersParams } from "~/models/api"
+import { useGetApiAdminUsers } from "~/models/api"
 
 definePageMeta({
   layout: "admin",
@@ -10,27 +11,44 @@ definePageMeta({
 
 useSeoMeta({ title: "Users - Admin" })
 
-// State
-const users = ref<AdminUser[]>([])
-const isLoading = ref(true)
-const search = ref("")
+// Pagination state
+const {
+  page,
+  pageSize,
+  search,
+  debouncedSearch,
+  sorting,
+  sortBy,
+  sortOrder,
+  pageIndex,
+  onUpdatePageIndex,
+  onUpdatePageSize,
+  onUpdateSorting
+} = useAdminPagination({
+  defaultPageSize: 20,
+  defaultSort: { id: 'createdAt', desc: true }
+})
 
-// Fetch all users (TanStack handles pagination/sorting client-side)
-const fetchUsers = async () => {
-  isLoading.value = true
-  try {
-    const response = await $fetch<AdminUsersResponse>("/api/admin/users", {
-      query: {
-        limit: 100 // API max limit
-      }
-    })
-    users.value = response.users
-  } catch (e: any) {
-    toast.error(e.data?.message || "Failed to load users")
-  } finally {
-    isLoading.value = false
-  }
-}
+// Orval query params
+const params = computed<GetApiAdminUsersParams>(() => ({
+  page: page.value,
+  limit: pageSize.value,
+  sortBy: sortBy.value as GetApiAdminUsersParams['sortBy'],
+  sortOrder: sortOrder.value,
+  search: debouncedSearch.value || undefined
+}))
+
+// Use Orval-generated hook
+const { data, isLoading, isFetching, refetch } = useGetApiAdminUsers(params, {
+  query: { placeholderData: keepPreviousData }
+})
+
+// Extract data from response wrapper
+const response = computed(() => data.value?.data as GetApiAdminUsers200 | undefined)
+const items = computed(() => response.value?.users ?? [])
+const pagination = computed(() => response.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
+const pageCount = computed(() => pagination.value.totalPages)
+const totalRows = computed(() => pagination.value.total)
 
 // Format date
 const formatDate = (date: Date | string) => {
@@ -42,7 +60,7 @@ const formatDate = (date: Date | string) => {
 }
 
 // Column definitions
-const columns: ColumnDef<AdminUser>[] = [
+const columns: ColumnDef<GetApiAdminUsers200UsersItem>[] = [
   {
     accessorKey: "name",
     header: "User",
@@ -115,10 +133,6 @@ const columns: ColumnDef<AdminUser>[] = [
     }
   }
 ]
-
-onMounted(() => {
-  fetchUsers()
-})
 </script>
 
 <template>
@@ -129,7 +143,7 @@ onMounted(() => {
         <h1 class="text-3xl font-bold">Users</h1>
         <p class="text-muted-foreground mt-1">Manage platform users</p>
       </div>
-      <UiButton variant="outline" size="sm" @click="fetchUsers">
+      <UiButton variant="outline" size="sm" @click="refetch()">
         <Icon name="lucide:refresh-cw" class="size-4 mr-2" />
         Refresh
       </UiButton>
@@ -159,11 +173,18 @@ onMounted(() => {
     <!-- Users Table -->
     <UiCard v-else class="p-4">
       <UiTanStackTable
-        :data="users"
+        :data="items"
         :columns="columns"
         :search="search"
-        :page-size="20"
-        :sorting="[{ id: 'createdAt', desc: true }]"
+        :manual-pagination="true"
+        :manual-sorting="true"
+        :page-count="pageCount"
+        :row-count="totalRows"
+        :page-index="pageIndex"
+        :page-size="pageSize"
+        @update:sorting="onUpdateSorting"
+        @update:page-index="onUpdatePageIndex"
+        @update:page-size="onUpdatePageSize"
       >
         <template #empty>
           <div class="flex flex-col items-center py-8 text-muted-foreground">

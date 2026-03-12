@@ -5,7 +5,7 @@ export default defineConfig({
   schema: "./shared/db/schema/index.ts",
   out: "./shared/db/migrations",
   dbCredentials: {
-    url: process.env.DATABASE_URL!
+    url: process.env.NUXT_DATABASE_URL!
   },
   casing: "snake_case"
 })
