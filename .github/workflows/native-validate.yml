@@ -1,0 +1,65 @@
+name: Native Validate
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/native-*.yml"
+      - "apps/native/**"
+      - "apps/web/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/native-*.yml"
+      - "apps/native/**"
+      - "apps/web/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check web app
+        run: pnpm --filter @pdf-annotator/web check
+
+      - name: Run web tests
+        run: pnpm --filter @pdf-annotator/web test --run
+
+      - name: Cargo check native shell
+        run: cargo check --manifest-path apps/native/src-tauri/Cargo.toml
+
+      - name: Validate native release readiness
+        run: pnpm --filter @pdf-annotator/native run release:validate -- --platform all

@@ -1,0 +1,182 @@
+name: Native Apple Release
+
+on:
+  push:
+    tags:
+      - "native-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semantic version to release. Leave blank when running from a native-v tag."
+        required: false
+        type: string
+      release_channel:
+        description: "Apple distribution channel"
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - testflight
+      publish:
+        description: "Upload artefacts to App Store Connect"
+        required: true
+        default: true
+        type: boolean
+      dry_run:
+        description: "Build and sign without uploading"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    environment: apple-production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin,aarch64-apple-ios
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve release context
+        id: release
+        run: pnpm --filter @pdf-annotator/native run release:context
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_RELEASE_CHANNEL: ${{ github.event.inputs.release_channel }}
+          INPUT_PUBLISH: ${{ github.event.inputs.publish }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+      - name: Validate Apple release readiness
+        run: pnpm --filter @pdf-annotator/native run release:validate -- --platform apple --strict --require-secrets
+        env:
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_PRIVATE_KEY_P8_BASE64: ${{ secrets.APPLE_API_PRIVATE_KEY_P8_BASE64 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64 }}
+          APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          APPLE_INSTALLER_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
+          APPLE_INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
+          APPLE_MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_PROVISION_PROFILE_BASE64 }}
+          APPLE_INSTALLER_SIGNING_IDENTITY: ${{ secrets.APPLE_INSTALLER_SIGNING_IDENTITY }}
+
+      - name: Prepare Apple signing material
+        shell: bash
+        env:
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_PRIVATE_KEY_P8_BASE64: ${{ secrets.APPLE_API_PRIVATE_KEY_P8_BASE64 }}
+          APPLE_MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_PROVISION_PROFILE_BASE64 }}
+          APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64 }}
+          APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          APPLE_INSTALLER_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
+          APPLE_INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$RUNNER_TEMP/apple-signing" apps/native/src-tauri
+
+          echo "$APPLE_API_PRIVATE_KEY_P8_BASE64" | base64 -D > "$RUNNER_TEMP/apple-signing/AuthKey_${APPLE_API_KEY_ID}.p8"
+          echo "$APPLE_MACOS_PROVISION_PROFILE_BASE64" | base64 -D > apps/native/src-tauri/embedded.provisionprofile
+          echo "$APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64" | base64 -D > "$RUNNER_TEMP/apple-signing/apple-distribution.p12"
+          echo "$APPLE_INSTALLER_CERTIFICATE_P12_BASE64" | base64 -D > "$RUNNER_TEMP/apple-signing/apple-installer.p12"
+
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          security create-keychain -p "$RUNNER_TEMP" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$RUNNER_TEMP" "$KEYCHAIN_PATH"
+          security import "$RUNNER_TEMP/apple-signing/apple-distribution.p12" -P "$APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security import "$RUNNER_TEMP/apple-signing/apple-installer.p12" -P "$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$RUNNER_TEMP" "$KEYCHAIN_PATH"
+
+      - name: Prepare Apple release config
+        run: pnpm --filter @pdf-annotator/native run release:prepare-config -- --platform apple --version "${{ steps.release.outputs.version }}" --output .tauri.release.apple.conf.json
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Build macOS App Store bundle
+        run: pnpm --filter @pdf-annotator/native exec tauri build --ci --config src-tauri/.tauri.release.apple.conf.json --target universal-apple-darwin --bundles app
+
+      - name: Package Mac App Store installer
+        id: package_macos
+        shell: bash
+        env:
+          APPLE_INSTALLER_SIGNING_IDENTITY: ${{ secrets.APPLE_INSTALLER_SIGNING_IDENTITY }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          APP_PATH="$(find apps/native/src-tauri/target -path '*bundle/macos/*.app' -print -quit)"
+          PKG_PATH="$RUNNER_TEMP/pdf-annotator-${RELEASE_VERSION}-macos-app-store.pkg"
+
+          if [[ -z "$APP_PATH" ]]; then
+            echo "Unable to locate built macOS .app bundle" >&2
+            exit 1
+          fi
+
+          xcrun productbuild --component "$APP_PATH" /Applications --sign "$APPLE_INSTALLER_SIGNING_IDENTITY" "$PKG_PATH"
+          echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Build iOS App Store archive
+        run: pnpm --filter @pdf-annotator/native exec tauri ios build --ci -c src-tauri/.tauri.release.apple.conf.json --build-number "${{ steps.release.outputs.build_number }}" --export-method app-store-connect
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_KEY_PATH: ${{ runner.temp }}/apple-signing/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+
+      - name: Locate Apple artefacts
+        id: artefacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          IPA_PATH="$(find apps/native/src-tauri -name '*.ipa' -print -quit)"
+          if [[ -z "$IPA_PATH" ]]; then
+            echo "Unable to locate built iOS .ipa" >&2
+            exit 1
+          fi
+
+          echo "ipa_path=$IPA_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Apple artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-apple-${{ steps.release.outputs.version }}
+          path: |
+            ${{ steps.package_macos.outputs.pkg_path }}
+            ${{ steps.artefacts.outputs.ipa_path }}
+          if-no-files-found: error
+
+      - name: Upload macOS package to App Store Connect
+        if: ${{ steps.release.outputs.publish == 'true' && steps.release.outputs.dry_run != 'true' }}
+        run: xcrun altool --upload-app --type osx --file "${{ steps.package_macos.outputs.pkg_path }}" --apiIssuer "${{ secrets.APPLE_API_ISSUER_ID }}" --apiKey "${{ secrets.APPLE_API_KEY_ID }}"
+
+      - name: Upload iOS package to App Store Connect
+        if: ${{ steps.release.outputs.publish == 'true' && steps.release.outputs.dry_run != 'true' }}
+        run: xcrun altool --upload-app --type ios --file "${{ steps.artefacts.outputs.ipa_path }}" --apiIssuer "${{ secrets.APPLE_API_ISSUER_ID }}" --apiKey "${{ secrets.APPLE_API_KEY_ID }}"

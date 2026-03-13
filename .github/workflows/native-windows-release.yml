@@ -1,0 +1,122 @@
+name: Native Windows Release
+
+on:
+  push:
+    tags:
+      - "native-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semantic version to release. Leave blank when running from a native-v tag."
+        required: false
+        type: string
+      publish:
+        description: "Attach the signed installer to the GitHub release"
+        required: true
+        default: true
+        type: boolean
+      dry_run:
+        description: "Build and sign without publishing"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    environment: windows-production
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve release context
+        id: release
+        run: pnpm --filter @pdf-annotator/native run release:context
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_PUBLISH: ${{ github.event.inputs.publish }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+      - name: Validate Windows release readiness
+        run: pnpm --filter @pdf-annotator/native run release:validate -- --platform windows --strict --require-secrets
+        env:
+          WINDOWS_CERTIFICATE_PFX_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+
+      - name: Prepare Windows release config
+        run: pnpm --filter @pdf-annotator/native run release:prepare-config -- --platform windows --version "${{ steps.release.outputs.version }}" --output .tauri.release.windows.conf.json
+
+      - name: Build Windows MSI
+        run: pnpm --filter @pdf-annotator/native exec tauri build --ci --config src-tauri/.tauri.release.windows.conf.json --target x86_64-pc-windows-msvc --no-sign
+
+      - name: Sign MSI
+        id: sign
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_PFX_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $msiPath = (Get-ChildItem -Path "apps/native/src-tauri/target" -Recurse -Filter *.msi | Select-Object -First 1).FullName
+
+          if (-not $msiPath) {
+            throw "Unable to locate built MSI installer."
+          }
+
+          $certPath = Join-Path $env:RUNNER_TEMP "windows-signing.pfx"
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_PFX_BASE64))
+
+          $signTool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signTool) {
+            throw "Unable to locate signtool.exe on the runner."
+          }
+
+          & $signTool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $certPath /p $env:WINDOWS_CERTIFICATE_PASSWORD $msiPath
+
+          "msi_path=$msiPath" >> $env:GITHUB_OUTPUT
+
+      - name: Upload Windows artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-windows-${{ steps.release.outputs.version }}
+          path: ${{ steps.sign.outputs.msi_path }}
+          if-no-files-found: error
+
+      - name: Attach installer to GitHub release
+        if: ${{ github.event_name == 'push' && steps.release.outputs.publish == 'true' && steps.release.outputs.dry_run != 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.sign.outputs.msi_path }}
+
+      - name: Report Microsoft Store hand-off
+        if: ${{ steps.release.outputs.publish == 'true' && steps.release.outputs.dry_run != 'true' }}
+        shell: pwsh
+        run: |
+          Write-Host "Signed MSI published. Complete the Partner Center submission using the hosted installer URL described in docs/features/native-apps/store-release-pipelines.md."
