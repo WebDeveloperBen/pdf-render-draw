@@ -21,10 +21,10 @@ const lastMouseAngle = ref(0)
 const accumulatedRotation = ref(0)
 
 // Set up event listeners with auto-cleanup
-useEventListener(window, "mousemove", handleRotate, { passive: false })
-useEventListener(window, "mouseup", endRotate)
+useEventListener(window, "pointermove", handleRotate, { passive: false })
+useEventListener(window, "pointerup", endRotate)
 
-function startRotate(e: MouseEvent, cornerIndex: number) {
+function startRotate(e: EditorInputEvent, cornerIndex: number) {
   isDragging.value = true
   activeCorner.value = cornerIndex
   startRotation.value = viewportStore.rotation
@@ -43,7 +43,7 @@ function startRotate(e: MouseEvent, cornerIndex: number) {
   e.stopPropagation()
 }
 
-function handleRotate(e: MouseEvent) {
+function handleRotate(e: EditorInputEvent) {
   if (!isDragging.value) return
 
   // Calculate current angle from center to mouse in screen space
@@ -108,7 +108,7 @@ function endRotate() {
           background: isDragging && activeCorner === index ? colorBlueDarker : 'white',
           border: `3px solid ${COLORS.SELECTION_BLUE}`
         }"
-        @mousedown.stop="startRotate($event, index)"
+        @pointerdown.stop="startRotate($event, index)"
       />
     </div>
   </Teleport>

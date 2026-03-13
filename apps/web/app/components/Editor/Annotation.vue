@@ -71,7 +71,7 @@ function triggerDoubleClick() {
 }
 
 // Handle context menu
-function handleContextMenu(e: MouseEvent) {
+function handleContextMenu(e: EditorInputEvent) {
   const tool = toolRegistry.getTool(props.annotation.type)
 
   if (tool?.onContextMenu) {
@@ -82,7 +82,7 @@ function handleContextMenu(e: MouseEvent) {
 }
 
 // Handle click with manual double-click detection
-function handleClick(e: MouseEvent) {
+function handleClick(e: EditorInputEvent) {
   // Prevent selection changes if a drag just finished (click fires after drag ends)
   if (dragState.isDragJustFinished()) {
     return

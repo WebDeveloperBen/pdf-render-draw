@@ -42,16 +42,11 @@ export const useEditorSelection = createSharedComposable(() => {
    * Select a single shape (replaces current selection)
    */
   function selectShape(shapeId: string) {
-    console.log("🎯 selectShape called:", shapeId, "current selection:", selectedIds.value)
-
     // If clicking the same shape that's already the only selection, do nothing
     // This prevents baking rotation when clicking on an already-selected shape
     if (selectedIds.value.length === 1 && selectedIds.value[0] === shapeId) {
-      console.log("   ↳ Same shape already selected, skipping")
       return
     }
-
-    console.log("   ↳ Changing selection, will bake rotation")
     // We're changing selection - bake rotation into previously selected annotations
     for (const annotation of selectedAnnotations.value) {
       bakeRotationIntoPoints(annotation)
@@ -98,8 +93,6 @@ export const useEditorSelection = createSharedComposable(() => {
    */
   function bakeRotationIntoPoints(annotation: Annotation) {
     if (!hasPointsArray(annotation) || annotation.rotation === 0) return
-
-    console.log("🔄 Baking rotation into points for annotation:", annotation.id, "rotation:", annotation.rotation)
 
     // Get center and rotate points
     const center = getAnnotationCenter(annotation)

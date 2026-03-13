@@ -10,7 +10,7 @@ export function useSvgCoordinates() {
    * @param svg SVG element to convert coordinates for
    * @returns Point in SVG coordinate space, or null if conversion fails
    */
-  function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point | null {
+  function getSvgPoint(e: EditorInputEvent, svg: SVGSVGElement): Point | null {
     const pt = svg.createSVGPoint()
     pt.x = e.clientX
     pt.y = e.clientY

@@ -35,9 +35,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
       }
     },
 
-    onCreate: async (measurement) => {
-      console.log("Measurement created:", measurement)
-    }
+    onCreate: () => {}
   })
 
   // Tool-specific computed properties

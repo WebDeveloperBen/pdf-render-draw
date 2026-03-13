@@ -18,9 +18,7 @@ const [useLineTool, useLineToolState] = createInjectionState(() => {
       rotation: 0
     }),
 
-    onCreate: async (line) => {
-      console.log("Line created:", line)
-    }
+    onCreate: () => {}
   })
 
   // Return composed tool (like extending multiple classes)

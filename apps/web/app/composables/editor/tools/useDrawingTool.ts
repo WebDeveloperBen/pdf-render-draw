@@ -37,7 +37,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
   })
 
   // Event handlers
-  function handleClick(e: MouseEvent) {
+  function handleClick(e: EditorInputEvent) {
     debugLog(`${config.type}Tool`, "handleClick called", {
       isDrawing: annotationStore.isDrawing,
       currentPoints: base.points.value.length
@@ -83,7 +83,7 @@ export function useDrawingTool<T extends Annotation>(config: DrawingToolConfig<T
     }
   }
 
-  function handleMove(e: MouseEvent) {
+  function handleMove(e: EditorInputEvent) {
     const lastPoint = base.points.value[base.points.value.length - 1]
     const rawPoint = base.getSvgPoint(e)
 

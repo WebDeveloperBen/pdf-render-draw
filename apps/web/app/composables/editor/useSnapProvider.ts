@@ -167,7 +167,7 @@ function _createSnapProvider() {
   // --- Edge snapping ---
 
   // Debug: expose on window so you can run window._snapDebug() from console while hovering
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && import.meta.env.DEV) {
     ;(window as any)._snapDebug = () => {
       const cursor = viewportStore.lastCursorPosition
       if (!cursor) {

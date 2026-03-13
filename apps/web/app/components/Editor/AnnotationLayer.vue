@@ -114,7 +114,7 @@ useKeyboardShortcuts()
 // Get all registered tools for dynamic rendering
 const registeredTools = computed(() => toolRegistry.getAllTools())
 
-function handleMouseDown(e: MouseEvent) {
+function handleMouseDown(e: EditorInputEvent) {
   const tool = annotationStore.activeTool
   const target = e.target as SVGElement
   const annotationId =
@@ -135,7 +135,7 @@ function handleMouseDown(e: MouseEvent) {
   }
 }
 
-function handleMouseUp(e: MouseEvent) {
+function handleMouseUp(e: EditorInputEvent) {
   // If marquee is active, don't process tool handlers
   // (marquee end is handled by global listeners in useEditorEventHandlers)
   if (selectionMarquee.isMarqueeSelecting.value) {
@@ -150,7 +150,7 @@ function handleMouseUp(e: MouseEvent) {
   }
 }
 
-function handleMouseLeave(e: MouseEvent) {
+function handleMouseLeave(e: EditorInputEvent) {
   // Clear snap indicator when cursor leaves the SVG
   clearIndicator()
 
@@ -168,7 +168,7 @@ function handleMouseLeave(e: MouseEvent) {
 }
 
 // Event routing
-function handleClick(e: MouseEvent) {
+function handleClick(e: EditorInputEvent) {
   const tool = annotationStore.activeTool
 
   // Check if clicking on an existing annotation to select it
@@ -217,22 +217,17 @@ function handleClick(e: MouseEvent) {
   }
 }
 
-function handleMove(e: MouseEvent) {
+function handleMove(e: EditorInputEvent) {
   const tool = annotationStore.activeTool
-  // debugLog("SVG Layer", "handleMove:", { tool, hasTarget: !!e.target })
 
   // Early return if SVG ref doesn't exist
   if (!svgRef.value) {
     return
   }
 
-  // Track cursor position for paste operations
-  const svg = svgRef.value
-  const pt = svg.createSVGPoint()
-  pt.x = e.clientX
-  pt.y = e.clientY
-  const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse())
-  viewportStore.setLastCursorPosition({ x: svgP.x, y: svgP.y })
+  // Track cursor position for paste operations (lightweight: store raw client coords,
+  // resolve to SVG space lazily via the store's getter)
+  viewportStore.setLastClientPosition(e.clientX, e.clientY)
 
   // If marquee is active, don't process tool handlers
   // (marquee update is handled by global listeners in useEditorEventHandlers)
@@ -244,8 +239,6 @@ function handleMove(e: MouseEvent) {
   const toolDef = toolRegistry.getTool(tool as ToolType)
   if (toolDef?.onMouseMove) {
     toolDef.onMouseMove(e)
-  } else if (hasActiveDrawingTool(tool)) {
-    debugLog("SVG Layer", "No onMouseMove handler for tool:", tool)
   }
 }
 
@@ -266,8 +259,8 @@ function handleKeyDown(e: KeyboardEvent) {
 // Keyboard event listener using VueUse for automatic cleanup
 useEventListener(window, "keydown", handleKeyDown)
 
-// Global mouseup listener to complete tool drawing even if released outside SVG
-useEventListener(window, "mouseup", (e: MouseEvent) => {
+// Global pointerup listener to complete tool drawing even if released outside SVG
+useEventListener(window, "pointerup", (e: EditorInputEvent) => {
   const tool = annotationStore.activeTool
   const toolDef = toolRegistry.getTool(tool as ToolType)
   if (toolDef?.onMouseUp) {
@@ -284,10 +277,10 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
     :class="['svg-annotation-layer', { 'selection-mode': isSelectionMode(annotationStore.activeTool) }]"
     preserveAspectRatio="xMidYMid meet"
     @click="handleClick"
-    @mousedown="handleMouseDown"
-    @mousemove="handleMove"
-    @mouseup="handleMouseUp"
-    @mouseleave="handleMouseLeave"
+    @pointerdown="handleMouseDown"
+    @pointermove="handleMove"
+    @pointerup="handleMouseUp"
+    @pointerleave="handleMouseLeave"
   >
     <!-- Raw plan debug overlay (edges/nodes) -->
     <EditorPlanDebugLayer />
@@ -334,6 +327,7 @@ useEventListener(window, "mouseup", (e: MouseEvent) => {
 <style scoped>
 .svg-annotation-layer {
   cursor: crosshair;
+  touch-action: none; /* Prevent browser gestures (scroll/zoom) from interfering with drawing */
 }
 
 .svg-annotation-layer.selection-mode {

@@ -28,7 +28,7 @@ export const useEditorScale = createSharedComposable(() => {
   /**
    * Start scaling
    */
-  function startScale(event: MouseEvent, handle: ScaleHandle) {
+  function startScale(event: EditorInputEvent, handle: ScaleHandle) {
     if (!selection.hasSelection.value || !bounds.selectionBounds.value) return
 
     const svg = getRootSVG(event.currentTarget)
@@ -76,7 +76,7 @@ export const useEditorScale = createSharedComposable(() => {
   /**
    * Update scale as mouse moves
    */
-  function updateScale(event: MouseEvent) {
+  function updateScale(event: EditorInputEvent) {
     if (!isScaling.value || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
@@ -271,11 +271,6 @@ export const useEditorScale = createSharedComposable(() => {
    */
   function endScale() {
     if (!isScaling.value) return
-
-    console.log("🚫 [endScale] Scale operation ended", {
-      hasFrozenBounds: !!bounds.frozenBounds.value,
-      selectionRotation: bounds.selectionRotation.value
-    })
 
     isScaling.value = false
     scaleHandle.value = null

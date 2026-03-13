@@ -24,31 +24,50 @@ export const useAnnotationStore = defineStore("annotations", () => {
   const currentFileId = ref<string | null>(null)
 
   // ============================================
-  // Getters
+  // Getters — indexed for O(1) lookups
   // ============================================
 
+  // Pre-computed indexes: rebuild once per annotations change, O(n) total instead of O(n) per call
+  const annotationIndex = computed(() => {
+    const byId = new Map<string, Annotation>()
+    const byPage = new Map<number, Annotation[]>()
+    const byType = new Map<string, Annotation[]>()
+    const byTypeAndPage = new Map<string, Annotation[]>()
+
+    for (const a of annotations.value) {
+      byId.set(a.id, a)
+
+      const pageArr = byPage.get(a.pageNum)
+      if (pageArr) pageArr.push(a)
+      else byPage.set(a.pageNum, [a])
+
+      const typeArr = byType.get(a.type)
+      if (typeArr) typeArr.push(a)
+      else byType.set(a.type, [a])
+
+      const key = `${a.type}:${a.pageNum}`
+      const tpArr = byTypeAndPage.get(key)
+      if (tpArr) tpArr.push(a)
+      else byTypeAndPage.set(key, [a])
+    }
+
+    return { byId, byPage, byType, byTypeAndPage }
+  })
+
   function getAnnotationsByPage(pageNum: number) {
-    return annotations.value.filter((a) => a.pageNum === pageNum)
+    return annotationIndex.value.byPage.get(pageNum) ?? []
   }
 
   function getAnnotationsByType(type: ToolType) {
-    return annotations.value.filter((a) => a.type === type)
+    return annotationIndex.value.byType.get(type) ?? []
   }
 
   function getAnnotationsByTypeAndPage(type: ToolType, pageNum: number) {
-    const result = annotations.value.filter((a) => a.type === type && a.pageNum === pageNum)
-    console.log(
-      `[AnnotationStore] getAnnotationsByTypeAndPage(${type}, ${pageNum}):`,
-      result.length,
-      "of",
-      annotations.value.length,
-      "total"
-    )
-    return result
+    return annotationIndex.value.byTypeAndPage.get(`${type}:${pageNum}`) ?? []
   }
 
   function getAnnotationById(id: string) {
-    return annotations.value.find((a) => a.id === id)
+    return annotationIndex.value.byId.get(id)
   }
 
   // Backwards compatible: returns first selected annotation (or null)
@@ -101,19 +120,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
           "_groupCenter" in annotation && annotation._groupCenter ? annotation._groupCenter : { x: 0, y: 0 } // Fallback
 
         const angleDeg = radiansToDegrees(rotation)
-        const transform = `rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`
-
-        if (annotation.type === "count") {
-          debugLog(`getRotationTransform - Count multi-select`, {
-            annotationId: annotation.id.slice(0, 8),
-            rotation: rotation,
-            angleDeg,
-            groupCenter,
-            transform
-          })
-        }
-
-        return transform
+        return `rotate(${angleDeg} ${groupCenter.x} ${groupCenter.y})`
       }
 
       // For point-based tools: no transform (points are updated directly)
@@ -128,21 +135,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
 
     const center = getAnnotationCenter(annotation)
     const angleDeg = radiansToDegrees(rotation)
-    const transform = `rotate(${angleDeg} ${center.x} ${center.y})`
-
-    if (annotation.type === "count") {
-      debugLog(`getRotationTransform - Count single-select`, {
-        annotationId: annotation.id.slice(0, 8),
-        storedRotation,
-        rotationDragDelta: rotationDragDelta.value,
-        totalRotation: rotation,
-        angleDeg,
-        center,
-        transform
-      })
-    }
-
-    return transform
+    return `rotate(${angleDeg} ${center.x} ${center.y})`
   }
 
   // ============================================
@@ -240,21 +233,6 @@ export const useAnnotationStore = defineStore("annotations", () => {
       return undefined
     }
 
-    const before = annotations.value[index]
-
-    // Log rotation updates specifically
-    if ("rotation" in updates) {
-      console.log("[AnnotationStore] updateAnnotation - rotation update", {
-        id,
-        type: before,
-        beforeRotation: (before as { rotation?: number }).rotation,
-        beforeRotationDeg: ((before as { rotation?: number }).rotation || 0) * (180 / Math.PI),
-        updateRotation: updates.rotation,
-        updateRotationDeg: (updates.rotation as number) * (180 / Math.PI),
-        allUpdates: Object.keys(updates)
-      })
-    }
-
     // Merge updates with existing annotation
     let updated = { ...annotations.value[index], ...updates }
 
@@ -270,15 +248,6 @@ export const useAnnotationStore = defineStore("annotations", () => {
     }
 
     annotations.value[index] = updated
-
-    // Log what was actually saved for rotation updates
-    if ("rotation" in updates) {
-      console.log("[AnnotationStore] updateAnnotation - after save", {
-        id,
-        savedRotation: (annotations.value[index] as { rotation?: number }).rotation,
-        savedRotationDeg: ((annotations.value[index] as { rotation?: number }).rotation || 0) * (180 / Math.PI)
-      })
-    }
 
     return updated as Annotation
   }
@@ -503,16 +472,16 @@ export const useAnnotationStore = defineStore("annotations", () => {
     isAnnotationSelected, // Check if ID is selected
     getRotationTransform,
 
-    // Debug: watch annotations for changes
-    ...(import.meta.client
+    // Debug: watch annotations for changes (dev only to avoid O(n) overhead per mutation)
+    ...(import.meta.env.DEV
       ? {
           _debug: watch(
             annotations,
             (newVal) => {
-              console.log(
-                "[AnnotationStore] Annotations changed! Count:",
-                newVal.length,
-                newVal.map((a) => a.type)
+              debugLog(
+                "AnnotationStore",
+                "Annotations changed! Count:",
+                newVal.length
               )
             },
             { deep: true }

@@ -31,7 +31,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
   // Track cursor position for preview
   const cursorPosition = computed(() => viewportStore.lastCursorPosition)
 
-  function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
+  function getSvgPoint(e: EditorInputEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
     pt.x = e.clientX
     pt.y = e.clientY
@@ -39,7 +39,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
     return { x: transformed.x, y: transformed.y }
   }
 
-  function handleClick(e: MouseEvent) {
+  function handleClick(e: EditorInputEvent) {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 

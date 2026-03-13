@@ -24,7 +24,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
   const editingId = textEditing.editingId
   const editingContent = textEditing.editingContent
 
-  function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
+  function getSvgPoint(e: EditorInputEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
     pt.x = e.clientX
     pt.y = e.clientY
@@ -32,7 +32,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     return { x: transformed.x, y: transformed.y }
   }
 
-  function handleClick(e: MouseEvent) {
+  function handleClick(e: EditorInputEvent) {
     const svg = e.currentTarget as SVGSVGElement
     const point = getSvgPoint(e, svg)
 

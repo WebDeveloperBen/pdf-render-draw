@@ -29,11 +29,11 @@ export interface ToolDefinition {
   onContextMenu?: (annotationId: string) => void
 
   /** Optional: Event handlers for SVG layer events */
-  onClick?: (event: MouseEvent) => void
-  onMouseDown?: (event: MouseEvent) => void
-  onMouseUp?: (event: MouseEvent) => void
-  onMouseMove?: (event: MouseEvent) => void
-  onMouseLeave?: (event: MouseEvent) => void
+  onClick?: (event: EditorInputEvent) => void
+  onMouseDown?: (event: EditorInputEvent) => void
+  onMouseUp?: (event: EditorInputEvent) => void
+  onMouseMove?: (event: EditorInputEvent) => void
+  onMouseLeave?: (event: EditorInputEvent) => void
   onKeyDown?: (event: KeyboardEvent) => void
 
   /** Optional: Method to clear preview state when mouse leaves */

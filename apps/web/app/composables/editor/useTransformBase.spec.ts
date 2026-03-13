@@ -278,10 +278,10 @@ describe("useTransformBase", () => {
       const startEvent = createMockMouseEvent(150, 150)
       transform.startDrag(startEvent, "top-left", "resize", bounds)
 
-      // Simulate mousemove to 200, 250
+      // Simulate pointermove to 200, 250
       transform.svgRef.value = createMockSvgWithCoords(200, 250)
       const moveEvent = createMockMouseEvent(200, 250)
-      window.dispatchEvent(new MouseEvent("mousemove", moveEvent as any))
+      window.dispatchEvent(new PointerEvent("pointermove", moveEvent as any))
 
       expect(onResize).toHaveBeenCalledWith(50, 100) // delta = (200-150, 250-150)
     })
@@ -305,10 +305,10 @@ describe("useTransformBase", () => {
       const startEvent = createMockMouseEvent(150, 150)
       transform.startDrag(startEvent, "rotation", "rotate", bounds)
 
-      // Simulate mousemove
+      // Simulate pointermove
       transform.svgRef.value = createMockSvgWithCoords(200, 250)
       const moveEvent = createMockMouseEvent(200, 250)
-      window.dispatchEvent(new MouseEvent("mousemove", moveEvent as any))
+      window.dispatchEvent(new PointerEvent("pointermove", moveEvent as any))
 
       expect(onRotate).toHaveBeenCalledWith(200, 250)
     })
@@ -332,10 +332,10 @@ describe("useTransformBase", () => {
       const startEvent = createMockMouseEvent(150, 150)
       transform.startDrag(startEvent, "center", "move", bounds)
 
-      // Simulate mousemove
+      // Simulate pointermove
       transform.svgRef.value = createMockSvgWithCoords(200, 250)
       const moveEvent = createMockMouseEvent(200, 250)
-      window.dispatchEvent(new MouseEvent("mousemove", moveEvent as any))
+      window.dispatchEvent(new PointerEvent("pointermove", moveEvent as any))
 
       expect(onMove).toHaveBeenCalledWith(50, 100)
     })
@@ -363,14 +363,14 @@ describe("useTransformBase", () => {
       // Small move (< 1 pixel)
       transform.svgRef.value = createMockSvgWithCoords(150.5, 150.5)
       const smallMoveEvent = createMockMouseEvent(150.5, 150.5)
-      window.dispatchEvent(new MouseEvent("mousemove", smallMoveEvent as any))
+      window.dispatchEvent(new PointerEvent("pointermove", smallMoveEvent as any))
 
       expect(transform.hasMoved.value).toBe(false)
 
       // Significant move (> 1 pixel)
       transform.svgRef.value = createMockSvgWithCoords(200, 250)
       const largeMoveEvent = createMockMouseEvent(200, 250)
-      window.dispatchEvent(new MouseEvent("mousemove", largeMoveEvent as any))
+      window.dispatchEvent(new PointerEvent("pointermove", largeMoveEvent as any))
 
       expect(transform.hasMoved.value).toBe(true)
     })
@@ -390,7 +390,7 @@ describe("useTransformBase", () => {
 
       // No drag started
       const moveEvent = createMockMouseEvent(200, 250)
-      window.dispatchEvent(new MouseEvent("mousemove", moveEvent as any))
+      window.dispatchEvent(new PointerEvent("pointermove", moveEvent as any))
 
       expect(handlers.onResize).not.toHaveBeenCalled()
       expect(handlers.onRotate).not.toHaveBeenCalled()
@@ -419,7 +419,7 @@ describe("useTransformBase", () => {
       expect(transform.isDragging.value).toBe(true)
 
       // Trigger mouseup
-      window.dispatchEvent(new MouseEvent("mouseup"))
+      window.dispatchEvent(new PointerEvent("pointerup"))
 
       expect(transform.isDragging.value).toBe(false)
     })
@@ -446,7 +446,7 @@ describe("useTransformBase", () => {
       transform.startDrag(startEvent, "rotation", "rotate", bounds)
 
       // Trigger mouseup
-      window.dispatchEvent(new MouseEvent("mouseup"))
+      window.dispatchEvent(new PointerEvent("pointerup"))
 
       expect(annotationStore.rotationDragDelta).toBe(0)
     })
@@ -473,10 +473,10 @@ describe("useTransformBase", () => {
       // Move significantly
       transform.svgRef.value = createMockSvgWithCoords(200, 250)
       const moveEvent = createMockMouseEvent(200, 250)
-      window.dispatchEvent(new MouseEvent("mousemove", moveEvent as any))
+      window.dispatchEvent(new PointerEvent("pointermove", moveEvent as any))
 
       // Trigger mouseup
-      window.dispatchEvent(new MouseEvent("mouseup"))
+      window.dispatchEvent(new PointerEvent("pointerup"))
 
       expect(onEndDrag).toHaveBeenCalledWith("move", true) // true because hasMoved
     })
@@ -500,7 +500,7 @@ describe("useTransformBase", () => {
       transform.startDrag(startEvent, "center", "move", bounds)
 
       // No mousemove, directly mouseup
-      window.dispatchEvent(new MouseEvent("mouseup"))
+      window.dispatchEvent(new PointerEvent("pointerup"))
 
       expect(onEndDrag).toHaveBeenCalledWith("move", false) // false because no movement
     })
@@ -523,7 +523,7 @@ describe("useTransformBase", () => {
       transform.startDrag(startEvent, "top-left", "resize", bounds)
 
       // Trigger mouseup
-      window.dispatchEvent(new MouseEvent("mouseup"))
+      window.dispatchEvent(new PointerEvent("pointerup"))
 
       expect(transform.activeHandle.value).toBeNull()
       expect(transform.dragMode.value).toBeNull()
@@ -549,7 +549,7 @@ describe("useTransformBase", () => {
       transform.setupEventListeners(handlers)
 
       // No drag started, just trigger mouseup
-      window.dispatchEvent(new MouseEvent("mouseup"))
+      window.dispatchEvent(new PointerEvent("pointerup"))
 
       expect(onEndDrag).not.toHaveBeenCalled()
     })

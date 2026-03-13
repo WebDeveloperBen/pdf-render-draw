@@ -1,7 +1,7 @@
 /**
  * Get SVG point from mouse event
  */
-export function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
+export function getSvgPoint(e: EditorInputEvent, svg: SVGSVGElement): Point {
   const pt = svg.createSVGPoint()
   pt.x = e.clientX
   pt.y = e.clientY

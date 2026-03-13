@@ -14,7 +14,7 @@ export const useEditorCoordinates = createSharedComposable(() => {
    * Convert mouse event coordinates to SVG coordinates
    * This accounts for all CSS transforms on the SVG element
    */
-  function convertToSvgPoint(event: MouseEvent, svg?: SVGSVGElement): Point | null {
+  function convertToSvgPoint(event: EditorInputEvent, svg?: SVGSVGElement): Point | null {
     const element = svg || cachedSvg.value
     if (!element) return null
 
@@ -25,7 +25,7 @@ export const useEditorCoordinates = createSharedComposable(() => {
    * Convert mouse event coordinates to PDF coordinates
    * Since our SVG viewBox matches PDF dimensions, this is the same as convertToSvgPoint
    */
-  function convertToPdfPoint(event: MouseEvent, svg?: SVGSVGElement): Point | null {
+  function convertToPdfPoint(event: EditorInputEvent, svg?: SVGSVGElement): Point | null {
     const element = svg || cachedSvg.value
     if (!element) return null
 

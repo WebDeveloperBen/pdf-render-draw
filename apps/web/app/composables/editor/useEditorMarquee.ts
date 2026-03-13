@@ -45,7 +45,7 @@ export const useEditorMarquee = createSharedComposable(() => {
   /**
    * Start marquee selection
    */
-  function startMarquee(event: MouseEvent) {
+  function startMarquee(event: EditorInputEvent) {
     // Don't start marquee if clicking on a shape, handle, or selection box
     const target = event.target as Element
     if (
@@ -82,7 +82,7 @@ export const useEditorMarquee = createSharedComposable(() => {
   /**
    * Update marquee as mouse moves
    */
-  function updateMarquee(event: MouseEvent) {
+  function updateMarquee(event: EditorInputEvent) {
     if (!isMarqueeSelecting.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)

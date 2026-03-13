@@ -23,7 +23,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
   const startPoint = ref<Point | null>(null)
   const currentRect = ref<{ x: number; y: number; width: number; height: number } | null>(null)
 
-  function getSvgPoint(e: MouseEvent, svg: SVGSVGElement): Point {
+  function getSvgPoint(e: EditorInputEvent, svg: SVGSVGElement): Point {
     const pt = svg.createSVGPoint()
     pt.x = e.clientX
     pt.y = e.clientY
@@ -31,7 +31,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     return { x: transformed.x, y: transformed.y }
   }
 
-  function handleMouseDown(e: MouseEvent) {
+  function handleMouseDown(e: EditorInputEvent) {
     // Only start drawing if NOT clicking on an existing annotation
     const target = e.target as SVGElement
     const annotationId =
@@ -54,7 +54,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     }
   }
 
-  function handleMouseMove(e: MouseEvent) {
+  function handleMouseMove(e: EditorInputEvent) {
     if (!isDrawing.value || !startPoint.value) return
 
     const svg = e.currentTarget as SVGSVGElement
@@ -68,7 +68,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
     currentRect.value = { x, y, width, height }
   }
 
-  function handleMouseUp(_e: MouseEvent) {
+  function handleMouseUp(_e: EditorInputEvent) {
     if (!isDrawing.value || !currentRect.value || currentRect.value.width === 0 || currentRect.value.height === 0) {
       // Cancel if no rectangle was drawn
       isDrawing.value = false

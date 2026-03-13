@@ -92,11 +92,11 @@ export function useRoomDetection() {
     isDetecting.value = true
 
     try {
-      console.log(`[RoomDetection] Extracting wall segments for page ${pageNum}...`)
+      debugLog("RoomDetection",`[RoomDetection] Extracting wall segments for page ${pageNum}...`)
       const wallSegments = await extractWallSegments(page, signal)
       if (signal.aborted || requestId !== activeDetectRequestId) return
 
-      console.log(`[RoomDetection] Extracted ${wallSegments.length} straight-line segments`)
+      debugLog("RoomDetection",`[RoomDetection] Extracted ${wallSegments.length} straight-line segments`)
 
       const viewport = page.getViewport({ scale: 1 })
       const pageWidth = viewport.width
@@ -105,11 +105,11 @@ export function useRoomDetection() {
       const result = await detectRooms(wallSegments, pageWidth, pageHeight, signal, { includeDebug })
       if (signal.aborted || requestId !== activeDetectRequestId) return
 
-      console.log(
+      debugLog("RoomDetection",
         `[RoomDetection] Page ${pageNum}: found ${result.rooms.length} rooms (${result.nodeCount} nodes, ${result.edgeCount} edges)`
       )
       if (result.rooms.length > 0) {
-        console.log(
+        debugLog("RoomDetection",
           "[RoomDetection] Room areas:",
           result.rooms.map((room) => Math.round(room.area))
         )
@@ -119,7 +119,7 @@ export function useRoomDetection() {
       applyResultToVisibleLayers(result, pageNum, viewportStore.getCurrentPage)
     } catch (err) {
       if (!signal.aborted && requestId === activeDetectRequestId) {
-        console.error("Room detection failed:", err)
+        debugError("RoomDetection","Room detection failed:", err)
       }
     } finally {
       if (requestId === activeDetectRequestId) {
@@ -188,7 +188,7 @@ export function useRoomDetection() {
       const page = await docProxy.getPage(pageNum)
       await detectForPage(page)
     } catch (err) {
-      console.error("Failed to get page for room detection:", err)
+      debugError("RoomDetection","Failed to get page for room detection:", err)
     }
   }
 
@@ -218,7 +218,7 @@ export function useRoomDetection() {
     const annotationStore = useAnnotationStore()
     const fileId = annotationStore.currentFileId
     if (!fileId) {
-      console.error("[RoomOCR] No file ID available")
+      debugError("RoomDetection","[RoomOCR] No file ID available")
       return
     }
 
@@ -240,7 +240,7 @@ export function useRoomDetection() {
       const imageWidth = Math.round(renderViewport.width)
       const imageHeight = Math.round(renderViewport.height)
 
-      console.log(
+      debugLog("RoomDetection",
         `[RoomOCR] Rendering page ${pageNum} at ${imageWidth}x${imageHeight} (scale ${renderScale.toFixed(2)})`
       )
 
@@ -305,14 +305,14 @@ export function useRoomDetection() {
       canvas.width = 0
       canvas.height = 0
 
-      console.log(
+      debugLog("RoomDetection",
         `[RoomOCR] Page dimensions: PDF viewport=${pageWidth.toFixed(1)}x${pageHeight.toFixed(1)}, Image=${imageWidth}x${imageHeight}, renderScale=${renderScale.toFixed(2)}`
       )
-      console.log(`[RoomOCR] Extracted ${textLabels.length} room text labels:`)
+      debugLog("RoomDetection",`[RoomOCR] Extracted ${textLabels.length} room text labels:`)
       for (const l of textLabels) {
-        console.log(`[RoomOCR]   "${l.text}" → PDF viewport (${l.pdfX}, ${l.pdfY}), pixel (${l.pixelX}, ${l.pixelY})`)
+        debugLog("RoomDetection",`[RoomOCR]   "${l.text}" → PDF viewport (${l.pdfX}, ${l.pdfY}), pixel (${l.pixelX}, ${l.pixelY})`)
       }
-      console.log(`[RoomOCR] Image size: ${Math.round(imageDataUrl.length / 1024)}KB, sending to API...`)
+      debugLog("RoomDetection",`[RoomOCR] Image size: ${Math.round(imageDataUrl.length / 1024)}KB, sending to API...`)
 
       // Call the OCR API
       const response = await $fetch(`/api/files/${fileId}/detected-rooms/poc-ocr-detect`, {
@@ -338,9 +338,9 @@ export function useRoomDetection() {
         confidence: r.confidence
       }))
 
-      console.log(`[RoomOCR] Page ${pageNum}: ${ocrRooms.length} rooms detected`)
+      debugLog("RoomDetection",`[RoomOCR] Page ${pageNum}: ${ocrRooms.length} rooms detected`)
       if (ocrRooms.length > 0) {
-        console.log(
+        debugLog("RoomDetection",
           "[RoomOCR] Rooms:",
           ocrRooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`)
         )
@@ -360,12 +360,12 @@ export function useRoomDetection() {
       // Log scale info if available
       const scale = (response as any).scale
       if (scale) {
-        console.log(
+        debugLog("RoomDetection",
           `[RoomOCR] Scale detected: ${scale.realLengthMm}mm = ${scale.pdfPointsLength.toFixed(1)} PDF points`
         )
       }
     } catch (err) {
-      console.error("[RoomOCR] Detection failed:", err)
+      debugError("RoomDetection","[RoomOCR] Detection failed:", err)
     } finally {
       isDetecting.value = false
     }
@@ -386,13 +386,13 @@ export function useRoomDetection() {
 
     try {
       const page = await docProxy.getPage(pageNum)
-      console.log(`[TextWallDetect] Starting detection for page ${pageNum}`)
+      debugLog("RoomDetection",`[TextWallDetect] Starting detection for page ${pageNum}`)
 
       const result = await detectRoomsFromTextAndWalls(page)
 
-      console.log(`[TextWallDetect] Page ${pageNum}: ${result.rooms.length} rooms detected`)
+      debugLog("RoomDetection",`[TextWallDetect] Page ${pageNum}: ${result.rooms.length} rooms detected`)
       if (result.rooms.length > 0) {
-        console.log(
+        debugLog("RoomDetection",
           "[TextWallDetect] Rooms:",
           result.rooms.map((r) => `${r.label ?? "(unlabeled)"} (${Math.round(r.area)} pt²)`)
         )
@@ -402,7 +402,7 @@ export function useRoomDetection() {
       detectedRooms.value = result.rooms
       detectionStats.value = { nodeCount: result.nodeCount, edgeCount: result.edgeCount }
     } catch (err) {
-      console.error("[TextWallDetect] Detection failed:", err)
+      debugError("RoomDetection","[TextWallDetect] Detection failed:", err)
     } finally {
       isDetecting.value = false
     }

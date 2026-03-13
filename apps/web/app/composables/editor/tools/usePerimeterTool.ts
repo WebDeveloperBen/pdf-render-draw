@@ -42,9 +42,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
       }
     },
 
-    onCreate: async (perimeter) => {
-      console.log("Perimeter created:", perimeter)
-    }
+    onCreate: () => {}
   })
 
   // Tool-specific computed properties

@@ -31,7 +31,7 @@ export const useEditorRotation = createSharedComposable(() => {
   /**
    * Start rotating
    */
-  function startRotation(event: MouseEvent) {
+  function startRotation(event: EditorInputEvent) {
     if (!selection.hasSelection.value || !bounds.selectionBounds.value) return
 
     const svg = getRootSVG(event.currentTarget)
@@ -89,7 +89,7 @@ export const useEditorRotation = createSharedComposable(() => {
   /**
    * Update rotation as mouse moves
    */
-  function updateRotation(event: MouseEvent) {
+  function updateRotation(event: EditorInputEvent) {
     if (!isRotating.value || !rotationCenter.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
@@ -217,12 +217,6 @@ export const useEditorRotation = createSharedComposable(() => {
    */
   function endRotation() {
     if (!isRotating.value) return
-
-    console.log("🚫 [endRotation] Rotation operation ended - KEEPING frozen bounds and rotation", {
-      hasFrozenBounds: !!bounds.frozenBounds.value,
-      selectionRotation: bounds.selectionRotation.value,
-      selectionRotationDeg: (bounds.selectionRotation.value * 180) / Math.PI
-    })
 
     isRotating.value = false
     rotationStartAngle.value = 0

@@ -19,7 +19,7 @@ export const useEditorEventHandlers = createSharedComposable(() => {
   /**
    * Handle shape click (with Shift support for multi-select)
    */
-  function handleShapeClick(shapeId: string, event: MouseEvent) {
+  function handleShapeClick(shapeId: string, event: EditorInputEvent) {
     event.stopPropagation()
 
     if (event.shiftKey) {
@@ -39,27 +39,26 @@ export const useEditorEventHandlers = createSharedComposable(() => {
    * Handle background click (deselect all)
    */
   function handleBackgroundClick() {
-    console.log("🎯 [handleBackgroundClick] Background clicked", {
-      isDragging: move.isDragging.value,
-      isRotating: rotation.isRotating.value,
-      isScaling: scale.isScaling.value,
-      justFinishedInteraction: justFinishedInteraction.value
-    })
-
     // Don't deselect if we just finished an interaction
     if (move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || justFinishedInteraction.value) {
-      console.log("🎯 [handleBackgroundClick] Ignoring click - operation in progress or just finished")
       return
     }
 
-    console.log("🎯 [handleBackgroundClick] Clearing selection")
     selection.clearSelection()
   }
 
-  /**
-   * Global mousemove handler (updates all active interactions)
-   */
-  function handleGlobalMouseMove(event: MouseEvent) {
+  // RAF batching: coalesce rapid pointermove events into a single frame update.
+  // On 120Hz+ displays, multiple pointermove events can fire between frames —
+  // only the latest event matters for each animation frame.
+  let pendingMoveEvent: EditorInputEvent | null = null
+  let moveRafId: number | null = null
+
+  function processMoveFrame() {
+    moveRafId = null
+    if (!pendingMoveEvent) return
+    const event = pendingMoveEvent
+    pendingMoveEvent = null
+
     move.updateDrag(event)
     rotation.updateRotation(event)
     scale.updateScale(event)
@@ -67,18 +66,30 @@ export const useEditorEventHandlers = createSharedComposable(() => {
   }
 
   /**
-   * Global mouseup handler (ends all active interactions)
+   * Global pointermove handler — batched via requestAnimationFrame
+   */
+  function handleGlobalMouseMove(event: EditorInputEvent) {
+    pendingMoveEvent = event
+    if (moveRafId === null) {
+      moveRafId = requestAnimationFrame(processMoveFrame)
+    }
+  }
+
+  /**
+   * Global pointerup handler (ends all active interactions)
    */
   function handleGlobalMouseUp() {
+    // Flush any pending move before ending interactions
+    if (pendingMoveEvent) {
+      if (moveRafId !== null) {
+        cancelAnimationFrame(moveRafId)
+        moveRafId = null
+      }
+      processMoveFrame()
+    }
+
     const wasInteracting =
       move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || marquee.isMarqueeSelecting.value
-
-    debugLog("⬆️ [handleGlobalMouseUp] Mouse up detected", {
-      wasInteracting,
-      isDragging: move.isDragging.value,
-      isRotating: rotation.isRotating.value,
-      isScaling: scale.isScaling.value
-    })
 
     move.endDrag()
     rotation.endRotation()
@@ -87,10 +98,8 @@ export const useEditorEventHandlers = createSharedComposable(() => {
 
     // Prevent accidental background clicks
     if (wasInteracting) {
-      console.log("⬆️ [handleGlobalMouseUp] Setting justFinishedInteraction flag for 100ms")
       justFinishedInteraction.value = true
       setTimeout(() => {
-        console.log("⏰ [handleGlobalMouseUp] Clearing justFinishedInteraction flag")
         justFinishedInteraction.value = false
       }, 100)
     }
@@ -102,8 +111,8 @@ export const useEditorEventHandlers = createSharedComposable(() => {
   function setupGlobalListeners() {
     if (typeof window === "undefined") return
 
-    window.addEventListener("mousemove", handleGlobalMouseMove)
-    window.addEventListener("mouseup", handleGlobalMouseUp)
+    window.addEventListener("pointermove", handleGlobalMouseMove)
+    window.addEventListener("pointerup", handleGlobalMouseUp)
   }
 
   /**
@@ -112,8 +121,15 @@ export const useEditorEventHandlers = createSharedComposable(() => {
   function cleanupGlobalListeners() {
     if (typeof window === "undefined") return
 
-    window.removeEventListener("mousemove", handleGlobalMouseMove)
-    window.removeEventListener("mouseup", handleGlobalMouseUp)
+    window.removeEventListener("pointermove", handleGlobalMouseMove)
+    window.removeEventListener("pointerup", handleGlobalMouseUp)
+
+    // Cancel any pending RAF
+    if (moveRafId !== null) {
+      cancelAnimationFrame(moveRafId)
+      moveRafId = null
+      pendingMoveEvent = null
+    }
   }
 
   return {

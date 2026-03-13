@@ -31,6 +31,8 @@ export function useKeyboardShortcuts() {
     if (!clipboard.value) return
 
     const original = clipboard.value
+    // Resolve raw client coords → SVG coords on demand (avoids CTM computation on every mousemove)
+    viewportStore.resolveLastCursorPosition()
     const cursorPos = viewportStore.lastCursorPosition
 
     // Calculate offset - either to cursor or default 20px offset
@@ -116,7 +118,6 @@ export function useKeyboardShortcuts() {
         if (annotationStore.selectedAnnotation) {
           e.preventDefault()
           clipboard.value = JSON.parse(JSON.stringify(annotationStore.selectedAnnotation))
-          console.log("Copied annotation to clipboard")
         }
       },
       description: "Copy"

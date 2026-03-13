@@ -9,8 +9,8 @@ const angleInput = ref(0)
 const startDragAngle = ref(0) // Track the angle offset when drag starts
 
 // Set up event listeners with auto-cleanup
-useEventListener(window, "mousemove", updateRotation, { passive: false })
-useEventListener(window, "mouseup", stopDrag)
+useEventListener(window, "pointermove", updateRotation, { passive: false })
+useEventListener(window, "pointerup", stopDrag)
 
 // Snap angles (common increments)
 const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315]
@@ -93,7 +93,7 @@ function applySnap(angle: number): number {
 }
 
 // Start dragging
-function startDrag(e: MouseEvent) {
+function startDrag(e: EditorInputEvent) {
   // Only respond to left click
   if (e.button !== 0) return
 
@@ -108,8 +108,8 @@ function startDrag(e: MouseEvent) {
 }
 
 // Update rotation while dragging
-function updateRotation(e: MouseEvent) {
-  if (!isDragging.value && e.type === "mousemove") return
+function updateRotation(e: EditorInputEvent) {
+  if (!isDragging.value && e.type === "pointermove") return
 
   // Calculate angle relative to the starting drag offset
   let angle = calculateAngle(e.clientX, e.clientY) - startDragAngle.value
@@ -193,7 +193,7 @@ defineExpose({
           stroke="#667eea"
           stroke-width="2"
           class="handle-dot"
-          @mousedown.stop="startDrag"
+          @pointerdown.stop="startDrag"
         />
       </g>
 

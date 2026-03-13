@@ -27,9 +27,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
       }
     },
 
-    onCreate: async (area) => {
-      console.log("Area created:", area)
-    }
+    onCreate: () => {}
   })
 
   // Tool-specific computed properties

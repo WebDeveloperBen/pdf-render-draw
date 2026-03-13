@@ -6,7 +6,6 @@
  * reads from the store instead of receiving a prop.
  */
 import { RENDERING } from "@/constants/rendering"
-import { ERROR_COLORS, BUTTON_COLORS } from "@/constants/ui"
 
 const viewportStore = useViewportStore()
 
@@ -19,25 +18,21 @@ const currentRenderTask = ref<{ cancel: () => void } | null>(null)
 const abortController = ref<AbortController | null>(null)
 const isRendering = ref(false)
 
+// Track last rendered page for cleanup (prevents PDF.js memory leaks)
+let lastRenderedPage: { cleanup: () => void } | null = null
+
 // Error handling state
 const renderError = ref<string | null>(null)
 const retryCount = ref(0)
 
-const canvasStyle = computed(() => {
-  const style = {
-    position: "absolute" as const,
-    top: "0",
-    left: "0",
-    transform: viewportStore.getCanvasTransform,
-    transformOrigin: "center center" as const,
-    willChange: "auto" as const
-  }
-  debugLog("SimplePdfViewer", "canvasStyle updated:", {
-    transform: style.transform,
-    rotation: viewportStore.rotation
-  })
-  return style
-})
+const canvasStyle = computed(() => ({
+  position: "absolute" as const,
+  top: "0",
+  left: "0",
+  transform: viewportStore.getCanvasTransform,
+  transformOrigin: "center center" as const,
+  willChange: "auto" as const
+}))
 
 async function renderPage(pageNum: number, renderScale?: number) {
   debugLog("SimplePdfViewer", "renderPage called:", {
@@ -88,6 +83,13 @@ async function renderPage(pageNum: number, renderScale?: number) {
     }
 
     debugLog("SimplePdfViewer", "Got PDF doc, getting page", pageNum)
+
+    // Clean up previous page to release PDF.js internal caches (operator lists, image data)
+    if (lastRenderedPage) {
+      lastRenderedPage.cleanup()
+      lastRenderedPage = null
+    }
+
     const page = await pdfDoc.getPage(pageNum)
 
     // Check if aborted
@@ -100,10 +102,10 @@ async function renderPage(pageNum: number, renderScale?: number) {
     const dpr = window.devicePixelRatio || RENDERING.DEFAULT_DEVICE_PIXEL_RATIO
     const currentScale = renderScale ?? viewportStore.getScale
 
-    // Render at higher resolution based on zoom level
+    // Render at higher resolution based on zoom level, capped to prevent GPU texture overflow
     // Note: We don't use viewport rotation here - rotation is applied via CSS transform
     // This keeps annotations in sync since they rotate with the CSS transform too
-    const renderDpr = dpr * currentScale
+    const renderDpr = Math.min(dpr * currentScale, RENDERING.MAX_RENDER_DPR)
     const viewport = page.getViewport({ scale: renderDpr })
 
     debugLog("SimplePdfViewer", "Viewport created:", {
@@ -159,6 +161,9 @@ async function renderPage(pageNum: number, renderScale?: number) {
 
     // Clear the render task when complete
     currentRenderTask.value = null
+
+    // Store page reference for cleanup on next render
+    lastRenderedPage = page
 
     // Reset retry count on success
     retryCount.value = 0
@@ -264,11 +269,30 @@ watch(
   }
 )
 
+// Re-render when devicePixelRatio changes (e.g. window moved between Retina/non-Retina monitors)
+let dprMediaQuery: MediaQueryList | null = null
+function setupDprListener() {
+  // matchMedia with resolution query fires exactly once when DPR changes,
+  // then we re-create for the new value
+  dprMediaQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+  dprMediaQuery.addEventListener("change", handleDprChange, { once: true })
+}
+function handleDprChange() {
+  debugLog("SimplePdfViewer", "DPR changed to:", window.devicePixelRatio)
+  if (pdf.value && canvasRef.value) {
+    renderPage(viewportStore.getCurrentPage)
+  }
+  // Re-listen for the next DPR change
+  setupDprListener()
+}
+
 onMounted(async () => {
   debugLog("SimplePdfViewer", "SimplePdfViewer mounted:", {
     hasPdf: !!pdf.value,
     hasCanvas: !!canvasRef.value
   })
+
+  setupDprListener()
 
   // If PDF is already loaded but canvas wasn't ready during watch, render now
   if (pdf.value && canvasRef.value) {
@@ -285,6 +309,16 @@ function handleRetry() {
 onUnmounted(() => {
   if (scaleDebounceTimer) {
     clearTimeout(scaleDebounceTimer)
+  }
+  // Remove DPR change listener
+  if (dprMediaQuery) {
+    dprMediaQuery.removeEventListener("change", handleDprChange)
+    dprMediaQuery = null
+  }
+  // Clean up last rendered page to release PDF.js memory
+  if (lastRenderedPage) {
+    lastRenderedPage.cleanup()
+    lastRenderedPage = null
   }
 })
 </script>
@@ -326,7 +360,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: v-bind("ERROR_COLORS.BACKGROUND");
+  background: rgba(0, 0, 0, 0.8);
   z-index: 1000;
 }
 
@@ -341,14 +375,14 @@ onUnmounted(() => {
 
 .error-message {
   margin: 0 0 16px 0;
-  color: v-bind("ERROR_COLORS.TEXT");
+  color: #d32f2f;
   font-size: 14px;
   line-height: 1.5;
 }
 
 .retry-btn {
   padding: 8px 24px;
-  background: v-bind("BUTTON_COLORS.PRIMARY");
+  background: #1976d2;
   color: white;
   border: none;
   border-radius: 4px;
@@ -359,6 +393,6 @@ onUnmounted(() => {
 }
 
 .retry-btn:hover {
-  background: v-bind("BUTTON_COLORS.PRIMARY_HOVER");
+  background: #1565c0;
 }
 </style>

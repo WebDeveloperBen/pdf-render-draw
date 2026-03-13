@@ -26,7 +26,7 @@ export const useEditorMove = createSharedComposable(() => {
   /**
    * Start dragging
    */
-  function startDrag(event: MouseEvent) {
+  function startDrag(event: EditorInputEvent) {
     if (!selection.hasSelection.value) return
 
     const svg = getRootSVG(event.currentTarget)
@@ -69,7 +69,7 @@ export const useEditorMove = createSharedComposable(() => {
   /**
    * Update drag as mouse moves
    */
-  function updateDrag(event: MouseEvent) {
+  function updateDrag(event: EditorInputEvent) {
     if (!isDragging.value || !dragStartPoint.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
@@ -132,11 +132,6 @@ export const useEditorMove = createSharedComposable(() => {
    */
   function endDrag() {
     if (!isDragging.value) return
-
-    console.log("🚫 [endDrag] Drag operation ended", {
-      hasFrozenBounds: !!bounds.frozenBounds.value,
-      selectionRotation: bounds.selectionRotation.value
-    })
 
     isDragging.value = false
     dragStartPoint.value = null

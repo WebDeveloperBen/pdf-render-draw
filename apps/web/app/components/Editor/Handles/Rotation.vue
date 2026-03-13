@@ -25,7 +25,7 @@ const rotationHandlePos = computed<Point | null>(() => {
   }
 })
 
-function handleRotateStart(event: MouseEvent) {
+function handleRotateStart(event: EditorInputEvent) {
   startRotation(event)
 }
 </script>
@@ -52,7 +52,7 @@ function handleRotateStart(event: MouseEvent) {
       :stroke-width="scaledStroke"
       class="rotation-handle"
       :class="{ rotating: isRotating }"
-      @mousedown="handleRotateStart"
+      @pointerdown="handleRotateStart"
     />
   </g>
 </template>

@@ -33,30 +33,31 @@ class AddAnnotationCommand implements Command {
 
 class UpdateAnnotationCommand implements Command {
   private annotationId: string
-  private oldState: any
-  private newUpdates: Partial<any>
+  private oldValues: Partial<any>
+  private newValues: Partial<any>
   private store: ReturnType<typeof useAnnotationStore>
   description: string
 
   constructor(
     annotationId: string,
-    oldState: any,
-    newUpdates: Partial<any>,
-    store: ReturnType<typeof useAnnotationStore>
+    oldValues: Partial<any>,
+    newValues: Partial<any>,
+    store: ReturnType<typeof useAnnotationStore>,
+    annotationType: string
   ) {
     this.annotationId = annotationId
-    this.oldState = oldState
-    this.newUpdates = newUpdates
+    this.oldValues = oldValues
+    this.newValues = newValues
     this.store = store
-    this.description = `Update ${oldState.type}`
+    this.description = `Update ${annotationType}`
   }
 
   execute() {
-    this.store.updateAnnotation(this.annotationId, this.newUpdates)
+    this.store.updateAnnotation(this.annotationId, this.newValues)
   }
 
   undo() {
-    this.store.setAnnotations(this.store.annotations.map((ann) => (ann.id === this.annotationId ? this.oldState : ann)))
+    this.store.updateAnnotation(this.annotationId, this.oldValues)
   }
 }
 
@@ -622,10 +623,10 @@ describe("History Store", () => {
 
       annotationStore.addAnnotation(text)
 
-      const oldState = annotationStore.getAnnotationById("text-1")!
+      const oldValues = { content: "Original" }
       const updates = { content: "Updated" }
 
-      const command = new UpdateAnnotationCommand("text-1", oldState, updates, annotationStore)
+      const command = new UpdateAnnotationCommand("text-1", oldValues, updates, annotationStore, "text")
       command.execute()
 
       const updated = annotationStore.getAnnotationById("text-1") as TextAnnotation
@@ -651,10 +652,10 @@ describe("History Store", () => {
 
       annotationStore.addAnnotation(text)
 
-      const oldState = annotationStore.getAnnotationById("text-1")!
+      const oldValues = { content: "Original" }
       const updates = { content: "Updated" }
 
-      const command = new UpdateAnnotationCommand("text-1", oldState, updates, annotationStore)
+      const command = new UpdateAnnotationCommand("text-1", oldValues, updates, annotationStore, "text")
       command.execute()
 
       command.undo()
@@ -682,10 +683,10 @@ describe("History Store", () => {
 
       annotationStore.addAnnotation(text)
 
-      const oldState = annotationStore.getAnnotationById("text-1")!
+      const oldValues = { content: "Original" }
       const updates = { content: "Updated" }
 
-      const command = new UpdateAnnotationCommand("text-1", oldState, updates, annotationStore)
+      const command = new UpdateAnnotationCommand("text-1", oldValues, updates, annotationStore, "text")
 
       expect(command.description).toBe("Update text")
     })
@@ -1234,12 +1235,9 @@ describe("History Store", () => {
       annotationStore.addAnnotation(measurement1)
       annotationStore.addAnnotation(measurement2)
 
-      const oldState1 = annotationStore.getAnnotationById("measure-1")!
-      const oldState2 = annotationStore.getAnnotationById("measure-2")!
-
       const commands = [
-        new UpdateAnnotationCommand("measure-1", oldState1, { rotation: 45 }, annotationStore),
-        new UpdateAnnotationCommand("measure-2", oldState2, { rotation: 45 }, annotationStore)
+        new UpdateAnnotationCommand("measure-1", { rotation: 0 }, { rotation: 45 }, annotationStore, "measure"),
+        new UpdateAnnotationCommand("measure-2", { rotation: 0 }, { rotation: 45 }, annotationStore, "measure")
       ]
 
       historyStore.executeBatchCommand(commands, "Rotate group")

@@ -30,7 +30,7 @@ export function useTransformBase() {
   const svgRef = ref<SVGGElement | null>(null)
 
   // Convert screen coordinates to SVG coordinates
-  function getSvgPoint(e: MouseEvent): Point | null {
+  function getSvgPoint(e: EditorInputEvent): Point | null {
     const svg = svgRef.value?.ownerSVGElement
     if (!svg) return null
     return getSvgPointUtil(e, svg)
@@ -38,7 +38,7 @@ export function useTransformBase() {
 
   // Generic drag handler that routes to specific handlers
   function createDragHandler(handlers: TransformHandlers) {
-    return (e: MouseEvent) => {
+    return (e: EditorInputEvent) => {
       if (!isDragging.value || !dragStart.value || !originalBounds.value) return
 
       const svgPoint = getSvgPoint(e)
@@ -128,8 +128,8 @@ export function useTransformBase() {
     const handleDrag = createDragHandler(handlers)
     const handleEndDrag = createEndDragHandler(handlers)
 
-    useEventListener(window, "mousemove", handleDrag, { passive: false })
-    useEventListener(window, "mouseup", handleEndDrag)
+    useEventListener(window, "pointermove", handleDrag, { passive: false })
+    useEventListener(window, "pointerup", handleEndDrag)
     useEventListener(window, "keydown", (e: KeyboardEvent) => {
       if (e.key === "Shift") isShiftPressed.value = true
     })
@@ -140,7 +140,7 @@ export function useTransformBase() {
 
   // Generic start drag
   function startDrag(
-    e: MouseEvent,
+    e: EditorInputEvent,
     handle: string,
     mode: "resize" | "rotate" | "move",
     bounds: Bounds,

@@ -21,7 +21,7 @@
  * @param svg - SVG element to convert coordinates for
  * @returns Point in SVG viewBox coordinates (= PDF logical coordinates)
  */
-export function screenToSvgPoint(event: MouseEvent, svg: SVGSVGElement): Point | null {
+export function screenToSvgPoint(event: EditorInputEvent, svg: SVGSVGElement): Point | null {
   try {
     const pt = svg.createSVGPoint()
     pt.x = event.clientX
@@ -70,7 +70,7 @@ export function pdfToSvgPoint(pdfPoint: Point): Point {
  * @param svg - SVG overlay element
  * @returns Point in PDF logical coordinates, or null if conversion fails
  */
-export function screenToPdfPoint(event: MouseEvent, svg: SVGSVGElement): Point | null {
+export function screenToPdfPoint(event: EditorInputEvent, svg: SVGSVGElement): Point | null {
   const svgPoint = screenToSvgPoint(event, svg)
   if (!svgPoint) return null
   return svgToPdfPoint(svgPoint)

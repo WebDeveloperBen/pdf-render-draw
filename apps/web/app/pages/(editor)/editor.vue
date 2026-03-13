@@ -233,7 +233,7 @@ function handleWheel(e: WheelEvent) {
 }
 
 // Handle canvas panning (like Figma)
-function handleMouseDown(e: MouseEvent) {
+function handleMouseDown(e: EditorInputEvent) {
   // Pan with space+click, middle mouse, or right mouse
   if (spacePressed.value || e.button === 1 || e.button === 2) {
     e.preventDefault()
@@ -242,7 +242,7 @@ function handleMouseDown(e: MouseEvent) {
   }
 }
 
-function handleMouseMove(e: MouseEvent) {
+function handleMouseMove(e: EditorInputEvent) {
   if (isPanning.value) {
     const deltaX = e.clientX - panStart.value.x
     const deltaY = e.clientY - panStart.value.y
@@ -521,9 +521,9 @@ if (typeof window !== "undefined") {
           class="editor-container"
           :class="{ panning: isPanning, 'space-pressed': spacePressed }"
           @wheel="handleWheel"
-          @mousedown="handleMouseDown"
-          @mousemove="handleMouseMove"
-          @mouseup="handleMouseUp"
+          @pointerdown="handleMouseDown"
+          @pointermove="handleMouseMove"
+          @pointerup="handleMouseUp"
           @mouseleave="handleMouseUp"
           @contextmenu.prevent
         >

@@ -49,6 +49,11 @@ export const useViewportStore = defineStore("viewport", () => {
   const currentPage = shallowRef(1) //first page of the pdf
   const pdfInitialised = shallowRef(false)
   const lastCursorPosition = ref<{ x: number; y: number } | null>(null) // Last known cursor position in SVG coords for paste operations
+
+  // Cheap client-space cursor tracking (no CTM computation per mousemove)
+  let _lastClientX = 0
+  let _lastClientY = 0
+  let _hasClientPos = false
   const pdfScale = ref<string>("1:100") // Drawing scale (e.g., "1:100" means 1mm on paper = 100mm in reality)
 
   /**
@@ -193,7 +198,16 @@ export const useViewportStore = defineStore("viewport", () => {
 
   const resetPageScale = () => (scale.value = 1)
   const resetRotation = () => (rotation.value = 0)
-  const resetState = () => {
+  const resetState = async () => {
+    // Destroy PDF document to release worker-side memory
+    if (DocumentProxy.value) {
+      await DocumentProxy.value.destroy()
+      DocumentProxy.value = undefined
+    }
+    pdfLoadingTask.value = null
+    pdfLoadingState.value = "idle"
+    loadingProgress.value = 0
+    loadError.value = null
     resetPageScale()
     resetRotation()
     setCanvasPos({ scrollTop: 0, scrollLeft: 0 })
@@ -243,6 +257,31 @@ export const useViewportStore = defineStore("viewport", () => {
   }
   const setPdfInitialised = (init: boolean) => (pdfInitialised.value = init)
   const setLastCursorPosition = (pos: { x: number; y: number } | null) => (lastCursorPosition.value = pos)
+
+  /** Store raw client coordinates cheaply (called on every mousemove, no CTM computation) */
+  const setLastClientPosition = (clientX: number, clientY: number) => {
+    _lastClientX = clientX
+    _lastClientY = clientY
+    _hasClientPos = true
+  }
+
+  /**
+   * Resolve last client position to SVG coordinates on demand.
+   * Call this before reading lastCursorPosition when you need fresh SVG coords (e.g. paste).
+   * Queries the annotation SVG layer from the DOM to perform the CTM conversion.
+   */
+  const resolveLastCursorPosition = () => {
+    if (!_hasClientPos) return
+    const svgEl = document.querySelector<SVGSVGElement>(".svg-annotation-layer")
+    if (!svgEl) return
+    const pt = svgEl.createSVGPoint()
+    pt.x = _lastClientX
+    pt.y = _lastClientY
+    const ctm = svgEl.getScreenCTM()
+    if (!ctm) return
+    const svgP = pt.matrixTransform(ctm.inverse())
+    lastCursorPosition.value = { x: svgP.x, y: svgP.y }
+  }
   const setPdfScale = (scaleString: string) => (pdfScale.value = scaleString)
 
   /**
@@ -358,6 +397,8 @@ export const useViewportStore = defineStore("viewport", () => {
     setPdfInitialised,
     lastCursorPosition,
     setLastCursorPosition,
+    setLastClientPosition,
+    resolveLastCursorPosition,
     pdfScale,
     getPdfScale,
     setPdfScale,

@@ -93,7 +93,7 @@ export function useBaseTool(options: BaseToolOptions) {
    * @param e - MouseEvent with clientX/clientY in screen coordinates
    * @returns Point in SVG coordinate space (PDF points)
    */
-  function getSvgPoint(e: MouseEvent): Point {
+  function getSvgPoint(e: EditorInputEvent): Point {
     const svg = e.currentTarget as SVGSVGElement
     const pt = svg.createSVGPoint()
     pt.x = e.clientX

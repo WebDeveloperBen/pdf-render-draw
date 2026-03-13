@@ -24,12 +24,12 @@ const selectionTransform = computed(() => {
   return `rotate(${angleDeg} ${centerX} ${centerY})`
 })
 
-function handleDragStart(event: MouseEvent) {
+function handleDragStart(event: EditorInputEvent) {
   startDrag(event)
 }
 
 // Handle double-click to edit single selected annotation
-function handleDoubleClick(event: MouseEvent) {
+function handleDoubleClick(event: EditorInputEvent) {
   event.preventDefault()
   event.stopPropagation()
 
@@ -62,7 +62,7 @@ function handleDoubleClick(event: MouseEvent) {
       :stroke-dasharray="`${4 * inverseScale} ${4 * inverseScale}`"
       class="selection-box"
       :class="{ dragging: isDragging }"
-      @mousedown="handleDragStart"
+      @pointerdown="handleDragStart"
       @dblclick="handleDoubleClick"
     />
 

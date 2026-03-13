@@ -11,8 +11,10 @@ export const RENDERING = {
   /** Maximum number of retry attempts for failed renders */
   MAX_RETRIES: 3,
 
-  /** Debounce delay for scale changes (milliseconds) */
-  SCALE_DEBOUNCE_MS: 100,
+  /** Debounce delay for scale changes (milliseconds).
+   *  During continuous zoom, CSS transform handles scaling instantly (GPU-composited).
+   *  Canvas only re-renders at full resolution after zoom settles. */
+  SCALE_DEBOUNCE_MS: 250,
 
   /** Maximum zoom scale factor (5x = 500%) */
   MAX_SCALE: 5,
@@ -28,6 +30,9 @@ export const RENDERING = {
 
   /** Device pixel ratio fallback if window.devicePixelRatio unavailable */
   DEFAULT_DEVICE_PIXEL_RATIO: 1,
+
+  /** Maximum effective DPR for canvas rendering (caps buffer size at high zoom to prevent GPU texture overflow) */
+  MAX_RENDER_DPR: 4,
 
   /** Distance threshold for snap-to-close in PDF points */
   TOOL_SNAP_DISTANCE: 25

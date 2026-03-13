@@ -12,7 +12,7 @@ const handleSize = computed(() => 8 * inverseScale.value)
 const handleOffset = computed(() => 4 * inverseScale.value)
 const handleStroke = computed(() => 2 * inverseScale.value)
 
-function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
+function handleScaleStart(event: EditorInputEvent, handle: ScaleHandle) {
   startScale(event, handle)
 }
 </script>
@@ -28,7 +28,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle nwse-resize"
-      @mousedown="handleScaleStart($event, 'nw')"
+      @pointerdown="handleScaleStart($event, 'nw')"
     />
     <rect
       :x="selectionBounds.x + selectionBounds.width - handleOffset"
@@ -39,7 +39,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle nesw-resize"
-      @mousedown="handleScaleStart($event, 'ne')"
+      @pointerdown="handleScaleStart($event, 'ne')"
     />
     <rect
       :x="selectionBounds.x + selectionBounds.width - handleOffset"
@@ -50,7 +50,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle nwse-resize"
-      @mousedown="handleScaleStart($event, 'se')"
+      @pointerdown="handleScaleStart($event, 'se')"
     />
     <rect
       :x="selectionBounds.x - handleOffset"
@@ -61,7 +61,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle nesw-resize"
-      @mousedown="handleScaleStart($event, 'sw')"
+      @pointerdown="handleScaleStart($event, 'sw')"
     />
 
     <!-- Edge handles -->
@@ -74,7 +74,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle ns-resize"
-      @mousedown="handleScaleStart($event, 'n')"
+      @pointerdown="handleScaleStart($event, 'n')"
     />
     <rect
       :x="selectionBounds.x + selectionBounds.width - handleOffset"
@@ -85,7 +85,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle ew-resize"
-      @mousedown="handleScaleStart($event, 'e')"
+      @pointerdown="handleScaleStart($event, 'e')"
     />
     <rect
       :x="selectionBounds.x + selectionBounds.width / 2 - handleOffset"
@@ -96,7 +96,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle ns-resize"
-      @mousedown="handleScaleStart($event, 's')"
+      @pointerdown="handleScaleStart($event, 's')"
     />
     <rect
       :x="selectionBounds.x - handleOffset"
@@ -107,7 +107,7 @@ function handleScaleStart(event: MouseEvent, handle: ScaleHandle) {
       stroke="#3b82f6"
       :stroke-width="handleStroke"
       class="scale-handle ew-resize"
-      @mousedown="handleScaleStart($event, 'w')"
+      @pointerdown="handleScaleStart($event, 'w')"
     />
   </g>
 </template>
