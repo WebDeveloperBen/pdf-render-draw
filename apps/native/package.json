@@ -7,7 +7,10 @@
     "build:ios": "tauri ios build",
     "build:android": "tauri android build",
     "dev:ios": "tauri ios dev",
-    "dev:android": "tauri android dev"
+    "dev:android": "tauri android dev",
+    "release:context": "node scripts/release/resolve-release-context.mjs",
+    "release:prepare-config": "node scripts/release/prepare-tauri-release-config.mjs",
+    "release:validate": "node scripts/release/validate-release-readiness.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.9.4"

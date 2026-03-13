@@ -1,0 +1,13 @@
+{
+  "bundle": {
+    "targets": [
+      "app"
+    ],
+    "macOS": {
+      "files": {
+        "embedded.provisionprofile": "embedded.provisionprofile"
+      },
+      "infoPlistPath": "Info.appstore.plist"
+    }
+  }
+}

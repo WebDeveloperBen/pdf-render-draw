@@ -1,8 +1,8 @@
 {
   "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "pdf-rend",
+  "productName": "MetreMate",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.metremate.app",
   "build": {
     "frontendDist": "../../web/.output/public",
     "devUrl": "http://localhost:3001",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "pdf-rend",
+        "title": "MetreMate",
         "width": 800,
         "height": 600,
         "resizable": true,

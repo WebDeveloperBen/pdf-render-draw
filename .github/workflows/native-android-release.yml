@@ -1,0 +1,149 @@
+name: Native Android Release
+
+on:
+  push:
+    tags:
+      - "native-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semantic version to release. Leave blank when running from a native-v tag."
+        required: false
+        type: string
+      release_channel:
+        description: "Google Play track"
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - internal
+          - alpha
+          - beta
+      publish:
+        description: "Upload artefacts to Google Play"
+        required: true
+        default: true
+        type: boolean
+      dry_run:
+        description: "Build and sign without publishing"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: google-play-production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve release context
+        id: release
+        run: pnpm --filter @pdf-annotator/native run release:context
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_RELEASE_CHANNEL: ${{ github.event.inputs.release_channel }}
+          INPUT_PUBLISH: ${{ github.event.inputs.publish }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+      - name: Validate Android release readiness
+        run: pnpm --filter @pdf-annotator/native run release:validate -- --platform android --strict --require-secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
+
+      - name: Prepare Android keystore
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p apps/native/src-tauri/gen/android
+
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > apps/native/src-tauri/gen/android/release.keystore
+
+          cat > apps/native/src-tauri/gen/android/keystore.properties <<EOF
+          password=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=release.keystore
+          keyPassword=$ANDROID_KEY_PASSWORD
+          EOF
+
+      - name: Prepare Android release config
+        run: pnpm --filter @pdf-annotator/native run release:prepare-config -- --platform android --version "${{ steps.release.outputs.version }}" --android-version-code "${{ steps.release.outputs.android_version_code }}" --output .tauri.release.android.conf.json
+
+      - name: Build Android App Bundle
+        run: pnpm --filter @pdf-annotator/native exec tauri android build --ci -c src-tauri/.tauri.release.android.conf.json --aab true --apk false
+
+      - name: Locate Android artefact
+        id: artefact
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAB_PATH="$(find apps/native/src-tauri -name '*.aab' -print -quit)"
+
+          if [[ -z "$AAB_PATH" ]]; then
+            echo "Unable to locate built Android App Bundle" >&2
+            exit 1
+          fi
+
+          echo "aab_path=$AAB_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Android artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-android-${{ steps.release.outputs.version }}
+          path: ${{ steps.artefact.outputs.aab_path }}
+          if-no-files-found: error
+
+      - name: Publish Android release to Google Play
+        if: ${{ steps.release.outputs.publish == 'true' && steps.release.outputs.dry_run != 'true' }}
+        run: node apps/native/scripts/release/publish-google-play.mjs --bundle "${{ steps.artefact.outputs.aab_path }}" --package-name "${{ vars.ANDROID_PACKAGE_NAME }}" --track "${{ steps.release.outputs.release_channel }}" --release-name "PDF Annotator ${{ steps.release.outputs.version }}"
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
