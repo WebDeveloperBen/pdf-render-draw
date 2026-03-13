@@ -5,6 +5,7 @@ import { FILL_TOOL_DEFAULTS } from "~/components/Editor/Tools/Fill.vue"
 const [useFillTool, useFillToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
+  const historyStore = useHistoryStore()
   const viewportStore = useViewportStore()
 
   const completed = computed(
@@ -89,7 +90,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
       rotation: 0
     }
 
-    base.annotationStore.addAnnotation(fill)
+    historyStore.addAnnotationWithHistory(fill)
 
     // Reset drawing state
     isDrawing.value = false

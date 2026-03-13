@@ -13,12 +13,14 @@ export const useEditorMove = createSharedComposable(() => {
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
   const dragState = useEditorDragState()
+  const transformFinalise = useEditorTransformFinalise()
 
   // Drag state
   const isDragging = ref(false)
   const dragStartPoint = ref<Point | null>(null)
   const dragOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
   const dragOriginalPoints = ref<Map<string, Point[]>>(new Map())
+  const dragOriginalAnnotations = ref<Map<string, Annotation>>(new Map())
   const dragOriginalLockedBounds = ref<Bounds | null>(null)
 
   /**
@@ -41,11 +43,13 @@ export const useEditorMove = createSharedComposable(() => {
     // Store original positions/points of all selected annotations
     dragOriginalPositions.value.clear()
     dragOriginalPoints.value.clear()
+    dragOriginalAnnotations.value.clear()
 
     for (const annotation of selection.selectedAnnotations.value) {
+      dragOriginalAnnotations.value.set(annotation.id, structuredClone(toRaw(annotation)))
       // Point-based annotations - store points array
       if (hasPointsArray(annotation)) {
-        dragOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
+        dragOriginalPoints.value.set(annotation.id, structuredClone(toRaw(annotation.points)))
       }
       // Positioned rectangle annotations - store x, y
       else if (hasPositionedRect(annotation)) {
@@ -58,6 +62,7 @@ export const useEditorMove = createSharedComposable(() => {
       dragOriginalLockedBounds.value = { ...bounds.frozenBounds.value }
     }
 
+    annotationStore.setPersistenceSuppressed(true)
     event.stopPropagation()
   }
 
@@ -140,6 +145,12 @@ export const useEditorMove = createSharedComposable(() => {
     dragOriginalLockedBounds.value = null
     cursor.reset()
     coordinates.clearSvgCache()
+
+    transformFinalise.finaliseTransformGesture({
+      originalAnnotations: dragOriginalAnnotations.value,
+      annotations: selection.selectedAnnotations.value,
+      description: "Move selection"
+    })
 
     // Mark drag end to prevent click from clearing selection
     dragState.markDragEnd()

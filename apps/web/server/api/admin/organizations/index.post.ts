@@ -13,7 +13,7 @@ const bodySchema = z.object({
     .max(50, "Slug must be at most 50 characters")
     .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   logo: z.string().url().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   userId: z.string().min(1, "User ID is required")
 })
 
@@ -102,7 +102,7 @@ export default defineEventHandler(async (event) => {
         name: body.name,
         slug: body.slug,
         logo: body.logo,
-        metadata: body.metadata ? JSON.stringify(body.metadata) : undefined,
+        metadata: body.metadata,
         userId: body.userId
       }
     })
@@ -126,9 +126,12 @@ export default defineEventHandler(async (event) => {
       memberCount: memberCount?.count ?? 0,
       projectCount: projectCount?.count ?? 0
     }
-  } catch (error) {
+  } catch (error: unknown) {
     // Handle slug conflicts
-    if (error.message?.includes("slug") || error.statusCode === 409) {
+    if (
+      (error instanceof Error && error.message.includes("slug"))
+      || (typeof error === "object" && error !== null && "statusCode" in error && error.statusCode === 409)
+    ) {
       throw createError({
         statusCode: 409,
         statusMessage: "Organization slug already exists"

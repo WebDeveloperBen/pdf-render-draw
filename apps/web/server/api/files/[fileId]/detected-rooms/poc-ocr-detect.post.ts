@@ -191,10 +191,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
-  const azureApiKey = config.azureOpenaiApiKey
-  const azureApiVersion = config.azureOpenaiApiVersion
-  const azureEndpoint = config.azureOpenaiEndpoint
-  const azureDeployment = config.azureOpenaiDeployment
+  const azureApiKey = typeof config.azureOpenaiApiKey === "string" ? config.azureOpenaiApiKey : undefined
+  const azureApiVersion = typeof config.azureOpenaiApiVersion === "string" ? config.azureOpenaiApiVersion : undefined
+  const azureEndpoint = typeof config.azureOpenaiEndpoint === "string" ? config.azureOpenaiEndpoint : undefined
+  const azureDeployment = typeof config.azureOpenaiDeployment === "string" ? config.azureOpenaiDeployment : undefined
 
   if (!azureApiKey || !azureApiVersion || !azureEndpoint || !azureDeployment) {
     throw createError({

@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { eq, and } from "drizzle-orm"
 import { auth } from "@auth"
+import { hashSharePassword } from "@shared/utils/project-share"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" }),
@@ -47,13 +48,11 @@ defineRouteMeta({
             properties: {
               name: {
                 type: "string",
-                maxLength: 100,
                 nullable: true,
                 description: "Share name"
               },
               message: {
                 type: "string",
-                maxLength: 500,
                 nullable: true,
                 description: "Share message"
               },
@@ -65,7 +64,6 @@ defineRouteMeta({
               },
               password: {
                 type: "string",
-                minLength: 4,
                 nullable: true,
                 description: "Password for public shares"
               },
@@ -211,7 +209,7 @@ export default defineEventHandler(async (event) => {
   if (body.name !== undefined) updateData.name = body.name
   if (body.message !== undefined) updateData.message = body.message
   if (body.expiresAt !== undefined) updateData.expiresAt = body.expiresAt
-  if (body.password !== undefined) updateData.password = body.password
+  if (body.password !== undefined) updateData.password = hashSharePassword(body.password)
   if (body.allowDownload !== undefined) updateData.allowDownload = body.allowDownload
   if (body.allowNotes !== undefined) updateData.allowNotes = body.allowNotes
 

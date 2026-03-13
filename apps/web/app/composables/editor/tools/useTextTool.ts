@@ -5,6 +5,7 @@ import { TEXT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Text.vue"
 const [useTextTool, useTextToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
+  const historyStore = useHistoryStore()
   const viewportStore = useViewportStore()
 
   // Use global text editing state (singleton composable)
@@ -63,7 +64,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
       rotation: degreesToRadians(-viewportStore.rotation) // Counter-rotate to appear upright in viewport
     }
 
-    base.annotationStore.addAnnotation(text)
+    historyStore.addAnnotationWithHistory(text)
     textEditing.startEditing(text.id)
   }
 
@@ -72,7 +73,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
   }
 
   function updateText(id: string, content: string) {
-    base.annotationStore.updateAnnotation(id, { content })
+    historyStore.updateAnnotationWithHistory(id, { content })
     textEditing.cancelEditing()
   }
 
@@ -81,7 +82,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
   }
 
   function deleteText(id: string) {
-    base.annotationStore.deleteAnnotation(id)
+    historyStore.deleteAnnotationWithHistory(id)
   }
 
   /**
@@ -97,26 +98,19 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
     const { fontSize, content } = textAnnotation
     const { lineHeight, fontFamily, editor, minHeight: configMinHeight } = TEXT_TOOL_DEFAULTS
 
-    // Measure text width using a hidden element
-    const div = document.createElement("div")
-    div.style.cssText = `
-      position: absolute;
-      visibility: hidden;
-      white-space: pre;
-      font-size: ${fontSize}px;
-      font-family: ${fontFamily};
-      line-height: ${lineHeight};
-    `
+    const canvas = document.createElement("canvas")
+    const context = canvas.getContext("2d")
+    if (!context) {
+      return { width: 10, height: 10 }
+    }
 
-    // Measure each line and find the widest
+    context.font = `${fontSize}px ${fontFamily}`
+
     const lines = content.split("\n")
     let maxLineWidth = 0
 
     for (const line of lines) {
-      div.textContent = line || " "
-      document.body.appendChild(div)
-      maxLineWidth = Math.max(maxLineWidth, div.offsetWidth)
-      document.body.removeChild(div)
+      maxLineWidth = Math.max(maxLineWidth, context.measureText(line || " ").width)
     }
 
     // Add buffer for sub-pixel rendering + editor border/padding

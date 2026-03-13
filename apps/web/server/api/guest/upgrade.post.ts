@@ -22,12 +22,10 @@ defineRouteMeta({
             properties: {
               firstName: {
                 type: "string",
-                minLength: 1,
                 description: "User's first name"
               },
               lastName: {
                 type: "string",
-                minLength: 1,
                 description: "User's last name"
               }
             },

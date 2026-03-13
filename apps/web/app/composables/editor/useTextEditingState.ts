@@ -12,6 +12,7 @@ const editingContent = ref<string>("")
 
 export const useTextEditingState = () => {
   const annotationStore = useAnnotationStore()
+  const historyStore = useHistoryStore()
 
   function startEditing(id: string) {
     const annotation = annotationStore.getAnnotationById(id)
@@ -29,7 +30,7 @@ export const useTextEditingState = () => {
       if (dimensions?.width) updates.width = dimensions.width
       if (dimensions?.height) updates.height = dimensions.height
 
-      annotationStore.updateAnnotation(editingId.value, updates)
+      historyStore.updateAnnotationWithHistory(editingId.value, updates)
     }
     editingId.value = null
     editingContent.value = ""

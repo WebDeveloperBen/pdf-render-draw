@@ -14,6 +14,7 @@ export const useEditorScale = createSharedComposable(() => {
   const annotationStore = useAnnotationStore()
   const dragState = useEditorDragState()
   const toolRegistry = useToolRegistry()
+  const transformFinalise = useEditorTransformFinalise()
 
   // Scaling state
   const isScaling = ref(false)
@@ -22,6 +23,7 @@ export const useEditorScale = createSharedComposable(() => {
   const scaleOriginalBounds = ref<Bounds | null>(null)
   const scaleOriginalShapes = ref<Map<string, { x: number; y: number; width: number; height: number }>>(new Map())
   const scaleOriginalPoints = ref<Map<string, Point[]>>(new Map())
+  const scaleOriginalAnnotations = ref<Map<string, Annotation>>(new Map())
 
   /**
    * Start scaling
@@ -48,11 +50,13 @@ export const useEditorScale = createSharedComposable(() => {
     // Store original annotation data
     scaleOriginalShapes.value.clear()
     scaleOriginalPoints.value.clear()
+    scaleOriginalAnnotations.value.clear()
 
     for (const annotation of selection.selectedAnnotations.value) {
+      scaleOriginalAnnotations.value.set(annotation.id, structuredClone(toRaw(annotation)))
       // Annotations with points array - store points
       if (hasPointsArray(annotation)) {
-        scaleOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
+        scaleOriginalPoints.value.set(annotation.id, structuredClone(toRaw(annotation.points)))
       }
       // Positioned rectangle annotations - store x, y, width, height
       else if (hasPositionedRect(annotation)) {
@@ -65,6 +69,7 @@ export const useEditorScale = createSharedComposable(() => {
       }
     }
 
+    annotationStore.setPersistenceSuppressed(true)
     event.stopPropagation()
   }
 
@@ -280,6 +285,12 @@ export const useEditorScale = createSharedComposable(() => {
     scaleOriginalPoints.value.clear()
     cursor.reset()
     coordinates.clearSvgCache()
+
+    transformFinalise.finaliseTransformGesture({
+      originalAnnotations: scaleOriginalAnnotations.value,
+      annotations: selection.selectedAnnotations.value,
+      description: "Resize selection"
+    })
 
     // Mark drag end to prevent click from clearing selection
     dragState.markDragEnd()

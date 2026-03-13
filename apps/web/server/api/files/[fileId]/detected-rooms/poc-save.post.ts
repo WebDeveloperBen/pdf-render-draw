@@ -103,19 +103,7 @@ export default defineEventHandler(async (event) => {
   const savedRows =
     insertRows.length === 0
       ? []
-      : await db.insert(detectedRoom).values(insertRows).returning({
-          id: detectedRoom.id,
-          pageNum: detectedRoom.pageNum,
-          polygon: detectedRoom.polygon,
-          bounds: detectedRoom.bounds,
-          area: detectedRoom.area,
-          centroidX: detectedRoom.centroidX,
-          centroidY: detectedRoom.centroidY,
-          roomLabel: detectedRoom.roomLabel,
-          confidence: detectedRoom.confidence,
-          source: detectedRoom.source,
-          visible: detectedRoom.visible
-        })
+      : await db.insert(detectedRoom).values(insertRows).returning()
 
   return {
     savedCount: savedRows.length,

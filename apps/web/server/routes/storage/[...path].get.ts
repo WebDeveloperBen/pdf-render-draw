@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get R2 bucket from Cloudflare binding
-  const env = (event.context.cloudflare?.env ?? (globalThis as Record<string, unknown>).__env__) as
+  const env = (event.context.cloudflare?.env ?? (globalThis as Record<string, unknown>).__env__) as unknown as
     | Cloudflare.Env
     | undefined
   const bucket = env?.R2_BUCKET

@@ -196,7 +196,9 @@ export const billingService = {
       .select({ count: sql<number>`count(distinct ${schema.subscription.referenceId})` })
       .from(schema.subscription)
 
-    const noSubscription = orgCount.count - Number(orgsWithSub.count)
+    const totalOrganizations = orgCount?.count ?? 0
+    const orgsWithSubscriptions = Number(orgsWithSub?.count ?? 0)
+    const noSubscription = totalOrganizations - orgsWithSubscriptions
 
     // Get last sync timestamp
     const lastSync = await db.query.billingSyncLog.findFirst({
@@ -205,7 +207,7 @@ export const billingService = {
     })
 
     return {
-      totalOrganizations: orgCount.count,
+      totalOrganizations,
       statuses,
       noSubscription: Math.max(0, noSubscription),
       lastSyncedAt: lastSync?.completedAt?.toISOString() ?? null
@@ -256,7 +258,7 @@ export const billingService = {
       .leftJoin(schema.organization, eq(schema.subscription.referenceId, schema.organization.id))
       .where(whereClause)
 
-    const total = totalResult.count
+    const total = totalResult?.count ?? 0
 
     // Fetch subscriptions with org data
     const rows = await db
@@ -373,7 +375,7 @@ export const billingService = {
       billingInterval: sub.billingInterval,
       seats: sub.seats,
       stripeScheduleId: sub.stripeScheduleId,
-      organizationMemberCount: memberCount.count,
+      organizationMemberCount: memberCount?.count ?? 0,
       planInfo: planInfo
         ? {
             name: planInfo.name,

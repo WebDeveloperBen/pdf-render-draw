@@ -99,9 +99,10 @@ export function useAnnotationStorage() {
   async function saveToLocal(fileId: string, annotation: Annotation, isNew: boolean = false): Promise<void> {
     const now = Date.now()
 
-    // Get existing record to check version
+    // Keep the last confirmed server version until sync succeeds.
+    // Multiple local edits before sync should still compare against the same base version.
     const existing = await database.annotations.get(annotation.id)
-    const version = existing ? existing.version + 1 : 1
+    const version = existing?.version ?? (isNew ? 0 : 1)
 
     // Convert to raw object to avoid Vue reactivity proxies that can't be cloned
     const rawAnnotation = JSON.parse(JSON.stringify(toRaw(annotation))) as Annotation
@@ -129,7 +130,7 @@ export function useAnnotationStorage() {
     if (!existing) return
 
     const now = Date.now()
-    const version = existing.version + 1
+    const version = existing.version
 
     // Mark as deleted (soft delete)
     await database.annotations.update(annotationId, {
@@ -195,11 +196,23 @@ export function useAnnotationStorage() {
    * Mark operations as synced (remove from pending queue)
    */
   async function markSynced(annotationIds: string[]): Promise<void> {
+    const operations = await database.pendingOperations.where("annotationId").anyOf(annotationIds).toArray()
+    const operationByAnnotationId = new Map(operations.map((operation) => [operation.annotationId, operation]))
+
     // Remove from pending operations
     await database.pendingOperations.where("annotationId").anyOf(annotationIds).delete()
 
-    // Update sync status in annotations
-    await database.annotations.where("id").anyOf(annotationIds).modify({ syncStatus: "synced" })
+    // Update sync status and advance to the confirmed server version.
+    await database.annotations.where("id").anyOf(annotationIds).modify((record) => {
+      const operation = operationByAnnotationId.get(record.id)
+      if (!operation) {
+        record.syncStatus = "synced"
+        return
+      }
+
+      record.syncStatus = "synced"
+      record.version = Math.max(record.version, operation.localVersion + 1)
+    })
   }
 
   /**

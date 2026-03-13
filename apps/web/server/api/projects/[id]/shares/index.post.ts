@@ -53,7 +53,6 @@ defineRouteMeta({
             properties: {
               name: {
                 type: "string",
-                maxLength: 100,
                 description: "Share name"
               },
               shareType: {
@@ -64,7 +63,6 @@ defineRouteMeta({
               },
               message: {
                 type: "string",
-                maxLength: 500,
                 description: "Share message"
               },
               recipients: {
@@ -74,7 +72,6 @@ defineRouteMeta({
               },
               password: {
                 type: "string",
-                minLength: 4,
                 nullable: true,
                 description: "Password for public shares"
               },

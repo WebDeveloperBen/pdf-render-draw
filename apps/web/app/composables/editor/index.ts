@@ -21,6 +21,7 @@ export * from "./useZoom"
 export * from "./useSnapProvider"
 export * from "./useRoomDetection"
 export * from "./useToolViewport"
+export * from "./useEditorTransformFinalise"
 
 // Tools
 export * from "./tools"

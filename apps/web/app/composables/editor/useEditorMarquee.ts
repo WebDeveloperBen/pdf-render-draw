@@ -11,6 +11,7 @@ export const useEditorMarquee = createSharedComposable(() => {
   const bounds = useEditorBounds()
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
+  const viewportStore = useViewportStore()
 
   // Marquee state
   const isMarqueeSelecting = ref(false)
@@ -101,6 +102,7 @@ export const useEditorMarquee = createSharedComposable(() => {
     const intersectingIds: string[] = []
 
     for (const shape of selection.shapes.value) {
+      if (shape.pageNum !== viewportStore.getCurrentPage) continue
       // Simple AABB intersection test
       const shapeBounds = bounds.calculateShapeBounds(shape)
 

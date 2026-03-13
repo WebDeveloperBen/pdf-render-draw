@@ -279,9 +279,11 @@ function _createSnapProvider() {
   const debouncedMarkupRebuild = useDebounceFn(() => rebuildMarkupGrid(), 80)
 
   const stopMarkupWatch = watch(
-    [() => annotationStore.annotations.length, snapEnabled],
-    () => debouncedMarkupRebuild(),
-    { immediate: true }
+    [() => annotationStore.annotations, () => viewportStore.getCurrentPage, snapEnabled],
+    () => {
+      if (!annotationStore.persistenceSuppressed) debouncedMarkupRebuild()
+    },
+    { immediate: true, deep: true }
   )
 
   const stopContentWatch = watch(

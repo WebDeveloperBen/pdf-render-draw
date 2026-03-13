@@ -435,9 +435,15 @@ export function useEditorSync(options: EditorSyncOptions) {
       if (name === "addAnnotation" && result) {
         persistAnnotation(result as Annotation, true)
       } else if (name === "updateAnnotation" && result) {
+        if (annotationStore.persistenceSuppressed) return
         persistAnnotation(result as Annotation, false)
       } else if (name === "deleteAnnotation" && args[0]) {
         persistDeletion(args[0] as string)
+      } else if (name === "flushPersistence") {
+        const annotations = result as Annotation[]
+        for (const annotation of annotations) {
+          persistAnnotation(annotation, false)
+        }
       }
     })
   })

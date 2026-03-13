@@ -3,6 +3,12 @@ import { defineVitestProject } from "@nuxt/test-utils/config"
 
 export default defineConfig({
   test: {
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      include: ["app/composables/**/*.ts", "app/stores/**/*.ts", "app/utils/**/*.ts", "app/components/**/*.ts"],
+      exclude: ["app/**/*.spec.ts", "app/**/*.test.ts", "node_modules/**"]
+    },
     projects: [
       await defineVitestProject({
         test: {
@@ -17,12 +23,6 @@ export default defineConfig({
                 indexedDb: true
               }
             }
-          },
-          coverage: {
-            provider: "v8",
-            reporter: ["text", "json", "html"],
-            include: ["app/composables/**/*.ts", "app/stores/**/*.ts", "app/utils/**/*.ts", "app/components/**/*.ts"],
-            exclude: ["app/**/*.spec.ts", "app/**/*.test.ts", "node_modules/**"]
           },
           globals: true,
           setupFiles: ["./test/setup.ts"]

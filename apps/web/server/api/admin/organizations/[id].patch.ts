@@ -18,7 +18,7 @@ const bodySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens")
     .optional(),
   logo: z.string().url().nullable().optional(),
-  metadata: z.record(z.unknown()).nullable().optional()
+  metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 
 // OpenAPI metadata for Orval type generation
@@ -45,15 +45,10 @@ defineRouteMeta({
             properties: {
               name: {
                 type: "string",
-                minLength: 2,
-                maxLength: 100,
                 description: "Organization name"
               },
               slug: {
                 type: "string",
-                minLength: 2,
-                maxLength: 50,
-                pattern: "^[a-z0-9-]+$",
                 description: "Organization slug (lowercase, numbers, hyphens only)"
               },
               logo: {

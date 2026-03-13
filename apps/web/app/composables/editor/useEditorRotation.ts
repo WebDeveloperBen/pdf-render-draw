@@ -14,6 +14,7 @@ export const useEditorRotation = createSharedComposable(() => {
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
   const dragState = useEditorDragState()
+  const transformFinalise = useEditorTransformFinalise()
 
   // Rotation state
   const isRotating = ref(false)
@@ -25,6 +26,7 @@ export const useEditorRotation = createSharedComposable(() => {
   const rotationOriginalAngles = ref<Map<string, number>>(new Map())
   const rotationOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
   const rotationOriginalPoints = ref<Map<string, Point[]>>(new Map())
+  const rotationOriginalAnnotations = ref<Map<string, Annotation>>(new Map())
 
   /**
    * Start rotating
@@ -61,13 +63,15 @@ export const useEditorRotation = createSharedComposable(() => {
     rotationOriginalAngles.value.clear()
     rotationOriginalPositions.value.clear()
     rotationOriginalPoints.value.clear()
+    rotationOriginalAnnotations.value.clear()
 
     for (const annotation of selection.selectedAnnotations.value) {
+      rotationOriginalAnnotations.value.set(annotation.id, structuredClone(toRaw(annotation)))
       rotationOriginalAngles.value.set(annotation.id, annotation.rotation)
 
       // For point-based annotations, store points for orbit
       if (hasPointsArray(annotation)) {
-        rotationOriginalPoints.value.set(annotation.id, JSON.parse(JSON.stringify(annotation.points)))
+        rotationOriginalPoints.value.set(annotation.id, structuredClone(toRaw(annotation.points)))
       }
       // For positioned annotations, store x,y for orbit
       else if ("x" in annotation && "y" in annotation) {
@@ -76,6 +80,7 @@ export const useEditorRotation = createSharedComposable(() => {
     }
 
     isRotating.value = true
+    annotationStore.setPersistenceSuppressed(true)
     cursor.set("grabbing")
 
     event.stopPropagation()
@@ -227,6 +232,12 @@ export const useEditorRotation = createSharedComposable(() => {
     rotationCenter.value = null
     cursor.reset()
     coordinates.clearSvgCache()
+
+    transformFinalise.finaliseTransformGesture({
+      originalAnnotations: rotationOriginalAnnotations.value,
+      annotations: selection.selectedAnnotations.value,
+      description: "Rotate selection"
+    })
 
     // Mark drag end to prevent click from clearing selection
     dragState.markDragEnd()

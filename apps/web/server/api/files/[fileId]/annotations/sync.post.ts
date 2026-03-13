@@ -2,6 +2,7 @@ import { z } from "zod"
 import { eq, and, isNull, gt, or, inArray } from "drizzle-orm"
 import { auth } from "@auth"
 import { randomUUID } from "crypto"
+import { buildConflictServerVersion, isAnnotationScopedToFile } from "@shared/utils/annotation-sync"
 
 const paramsSchema = z.object({
   fileId: z.uuid({ message: "Invalid file ID" })
@@ -265,14 +266,17 @@ export default defineEventHandler(async (event) => {
         const [existing] = await db
           .select({
             id: annotation.id,
+            fileId: annotation.fileId,
+            type: annotation.type,
+            pageNum: annotation.pageNum,
             version: annotation.version,
             deletedAt: annotation.deletedAt,
             data: annotation.data
           })
           .from(annotation)
-          .where(eq(annotation.id, clientAnnotation.id))
+          .where(and(eq(annotation.id, clientAnnotation.id), eq(annotation.fileId, fileId)))
 
-        if (!existing) {
+        if (!existing || !isAnnotationScopedToFile(existing, fileId)) {
           conflicts.push({
             annotationId: clientAnnotation.id,
             reason: "validation_error",
@@ -298,11 +302,7 @@ export default defineEventHandler(async (event) => {
           conflicts.push({
             annotationId: clientAnnotation.id,
             reason: "version_mismatch",
-            serverVersion: {
-              ...existing.data,
-              id: existing.id,
-              version: existing.version
-            } as Record<string, unknown>
+            serverVersion: buildConflictServerVersion(existing) as Record<string, unknown>
           })
           continue
         }
@@ -328,13 +328,14 @@ export default defineEventHandler(async (event) => {
         const [existing] = await db
           .select({
             id: annotation.id,
+            fileId: annotation.fileId,
             version: annotation.version,
             deletedAt: annotation.deletedAt
           })
           .from(annotation)
-          .where(eq(annotation.id, clientAnnotation.id))
+          .where(and(eq(annotation.id, clientAnnotation.id), eq(annotation.fileId, fileId)))
 
-        if (!existing) {
+        if (!existing || !isAnnotationScopedToFile(existing, fileId)) {
           // Already doesn't exist - treat as success (idempotent)
           applied.push(clientAnnotation.id)
           continue

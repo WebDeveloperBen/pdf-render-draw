@@ -13,6 +13,11 @@ interface Command {
   description: string // For debugging/history UI
 }
 
+interface ExecutedAnnotationChange {
+  before: Annotation
+  after: Annotation
+}
+
 /**
  * Add Annotation Command
  */
@@ -152,22 +157,29 @@ export const useHistoryStore = defineStore("history", () => {
   // Actions
   // ============================================
 
+  function pushCommand(command: Command) {
+    undoStack.value.push(command)
+    redoStack.value = []
+
+    if (undoStack.value.length > maxHistorySize.value) {
+      undoStack.value.shift()
+    }
+  }
+
   /**
    * Execute a command and add to history
    */
   function executeCommand(command: Command) {
     command.execute()
+    pushCommand(command)
+  }
 
-    // Add to undo stack
-    undoStack.value.push(command)
-
-    // Clear redo stack (new action invalidates redo history)
-    redoStack.value = []
-
-    // Enforce max history size
-    if (undoStack.value.length > maxHistorySize.value) {
-      undoStack.value.shift() // Remove oldest
-    }
+  /**
+   * Record a command that has already been applied outside the history store.
+   * Used by drag/rotate/scale interactions that preview state live and commit on mouseup.
+   */
+  function recordExecutedCommand(command: Command) {
+    pushCommand(command)
   }
 
   /**
@@ -254,6 +266,24 @@ export const useHistoryStore = defineStore("history", () => {
     executeCommand(batchCommand)
   }
 
+  /**
+   * Record a batch of already-applied annotation changes as a single undo step.
+   */
+  function recordExecutedBatchUpdate(changes: ExecutedAnnotationChange[], description: string) {
+    const commands = changes
+      .filter(({ before, after }) => JSON.stringify(before) !== JSON.stringify(after))
+      .map(({ before, after }) => {
+        const clonedBefore = structuredClone(toRaw(before))
+        const clonedAfter = structuredClone(toRaw(after))
+        const { id: _id, ...afterState } = clonedAfter
+        return new UpdateAnnotationCommand(before.id, clonedBefore, afterState, annotationStore)
+      })
+
+    if (commands.length === 0) return
+
+    recordExecutedCommand(new BatchCommand(commands, description))
+  }
+
   return {
     // State
     undoStack,
@@ -271,12 +301,14 @@ export const useHistoryStore = defineStore("history", () => {
     undo,
     redo,
     clearHistory,
+    recordExecutedCommand,
 
     // Convenience methods
     addAnnotationWithHistory,
     updateAnnotationWithHistory,
     deleteAnnotationWithHistory,
     executeBatchCommand,
+    recordExecutedBatchUpdate,
 
     // Export command classes for advanced usage
     AddAnnotationCommand,

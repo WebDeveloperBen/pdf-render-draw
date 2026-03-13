@@ -55,10 +55,7 @@ export default defineEventHandler(async (event) => {
       updatedAt: new Date()
     })
     .where(and(eq(detectedRoom.id, roomId), eq(detectedRoom.fileId, fileId)))
-    .returning({
-      id: detectedRoom.id,
-      visible: detectedRoom.visible
-    })
+    .returning()
 
   if (!updated) {
     throw createError({
@@ -67,5 +64,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return updated
+  return {
+    id: updated.id,
+    visible: updated.visible
+  }
 })

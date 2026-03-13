@@ -41,19 +41,15 @@ defineRouteMeta({
             properties: {
               name: {
                 type: "string",
-                minLength: 3,
-                maxLength: 100,
                 description: "Project name"
               },
               description: {
                 type: "string",
-                maxLength: 500,
                 nullable: true,
                 description: "Project description"
               },
               annotationCount: {
                 type: "integer",
-                minimum: 0,
                 description: "Number of annotations in the project"
               },
               lastViewedAt: {

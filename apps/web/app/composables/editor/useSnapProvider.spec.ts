@@ -1,6 +1,7 @@
 import { setActivePinia, createPinia } from "pinia"
 import { useSnapProvider } from "./useSnapProvider"
 import type { SnapInfo } from "@/types/snap"
+import { nextTick } from "vue"
 
 // Mock debug utils
 vi.mock("~/utils/debug", () => ({
@@ -256,6 +257,67 @@ describe("useSnapProvider", () => {
 
       result = provider.getSnappedPoint({ x: 51, y: 51 })
       expect(result.snapped).toBe(true)
+    })
+
+    it("should rebuild the markup grid when annotation geometry changes", async () => {
+      vi.useFakeTimers()
+      addMeasurement(annotationStore, "move-1", { x: 50, y: 50 }, { x: 150, y: 50 })
+      rebuildMarkup()
+
+      annotationStore.updateAnnotation("move-1", {
+        points: [
+          { x: 200, y: 200 },
+          { x: 300, y: 200 }
+        ]
+      })
+
+      await nextTick()
+      vi.advanceTimersByTime(100)
+      await nextTick()
+
+      expect(provider.getSnappedPoint({ x: 201, y: 201 }).point).toEqual({ x: 200, y: 200 })
+      expect(provider.getSnappedPoint({ x: 51, y: 51 }).snapped).toBe(false)
+
+      vi.useRealTimers()
+    })
+
+    it("should not rebuild the markup grid while persistenceSuppressed is true", async () => {
+      vi.useFakeTimers()
+      addMeasurement(annotationStore, "drag-1", { x: 50, y: 50 }, { x: 150, y: 50 })
+      rebuildMarkup()
+
+      // Suppress persistence (simulates drag start)
+      annotationStore.setPersistenceSuppressed(true)
+
+      annotationStore.updateAnnotation("drag-1", {
+        points: [
+          { x: 200, y: 200 },
+          { x: 300, y: 200 }
+        ]
+      })
+
+      // Allow watcher + debounce to fire
+      await nextTick()
+      vi.advanceTimersByTime(100)
+      await nextTick()
+
+      // Grid should still have the OLD snap target since rebuild was suppressed
+      const oldResult = provider.getSnappedPoint({ x: 51, y: 51 })
+      const newResult = provider.getSnappedPoint({ x: 201, y: 201 })
+      expect(oldResult.snapped).toBe(true)
+      expect(newResult.snapped).toBe(false)
+
+      // Un-suppress (simulates drag end) — watcher should now fire rebuild
+      annotationStore.setPersistenceSuppressed(false)
+
+      // Force rebuild since the deep watch may not detect the flag change alone
+      rebuildMarkup()
+
+      // Now the grid should have rebuilt with the new position
+      expect(provider.getSnappedPoint({ x: 201, y: 201 }).point).toEqual({ x: 200, y: 200 })
+      expect(provider.getSnappedPoint({ x: 51, y: 51 }).snapped).toBe(false)
+
+      vi.useRealTimers()
     })
 
     it("should skip non-point annotations (Count)", () => {

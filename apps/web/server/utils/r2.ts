@@ -22,14 +22,14 @@ interface R2StorageClient {
 function getR2Bucket(): R2StorageClient {
   // Try globalThis.__env__ (set by nitro-cloudflare-dev in dev, Workers runtime in prod)
   try {
-    const env = (globalThis as Record<string, unknown>).__env__ as Cloudflare.Env | undefined
+    const env = (globalThis as Record<string, unknown>).__env__ as unknown as Cloudflare.Env | undefined
     if (env?.R2_BUCKET && typeof env.R2_BUCKET.put === "function") return env.R2_BUCKET as unknown as R2StorageClient
   } catch {}
 
   // Try event.context.cloudflare.env (nitro-cloudflare-dev plugin)
   try {
     const event = useEvent()
-    const env = event.context.cloudflare?.env as Cloudflare.Env | undefined
+    const env = event.context.cloudflare?.env as unknown as Cloudflare.Env | undefined
     if (env?.R2_BUCKET) return env.R2_BUCKET as unknown as R2StorageClient
   } catch {}
 

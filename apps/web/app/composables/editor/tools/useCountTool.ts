@@ -5,6 +5,7 @@ import { COUNT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Count.vue"
 const [useCountTool, useCountToolState] = createInjectionState(() => {
   // Inherit base functionality
   const base = useCreateBaseTool()
+  const historyStore = useHistoryStore()
   const viewportStore = useViewportStore()
 
   const completed = computed(
@@ -59,15 +60,15 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
       rotation: degreesToRadians(-viewportStore.rotation) // Counter-rotate to appear upright at creation time
     }
 
-    base.annotationStore.addAnnotation(count)
+    historyStore.addAnnotationWithHistory(count)
   }
 
   function deleteCount(id: string) {
-    base.annotationStore.deleteAnnotation(id)
+    historyStore.deleteAnnotationWithHistory(id)
   }
 
   function updateCount(id: string, updates: Partial<Pick<Count, "number" | "label">>) {
-    base.annotationStore.updateAnnotation(id, updates)
+    historyStore.updateAnnotationWithHistory(id, updates)
   }
 
   // Keyboard shortcut handler (optional)

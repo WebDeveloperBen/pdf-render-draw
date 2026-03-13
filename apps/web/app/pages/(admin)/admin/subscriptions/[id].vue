@@ -6,8 +6,8 @@ definePageMeta({
   middleware: ["admin"]
 })
 
-const route = useRoute()
-const subscriptionId = computed(() => route.params.id as string)
+const route = useRoute("admin-subscriptions-id")
+const subscriptionId = computed(() => route.params.id)
 
 // State
 const isLoading = ref(true)

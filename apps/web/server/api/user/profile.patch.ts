@@ -24,20 +24,14 @@ defineRouteMeta({
             properties: {
               name: {
                 type: "string",
-                minLength: 1,
-                maxLength: 100,
                 description: "Full display name"
               },
               firstName: {
                 type: "string",
-                minLength: 1,
-                maxLength: 50,
                 description: "First name"
               },
               lastName: {
                 type: "string",
-                minLength: 1,
-                maxLength: 50,
                 description: "Last name"
               },
               image: {

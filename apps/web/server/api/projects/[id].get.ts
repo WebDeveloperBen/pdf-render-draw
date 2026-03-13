@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
+import { sanitiseProjectSharesForProjectResponse } from "@shared/utils/project-share"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
@@ -251,6 +252,7 @@ export default defineEventHandler(async (event) => {
 
   // Get shares for this project
   const shares = await db.select().from(projectShare).where(eq(projectShare.projectId, projectId))
+  const safeShares = sanitiseProjectSharesForProjectResponse(shares)
 
   // Update lastViewedAt
   await db.update(project).set({ lastViewedAt: new Date() }).where(eq(project.id, projectId))
@@ -258,9 +260,9 @@ export default defineEventHandler(async (event) => {
   return {
     ...projectData,
     files,
-    shares,
+    shares: safeShares,
     _count: {
-      shares: shares.length,
+      shares: safeShares.length,
       files: files.length
     }
   }

@@ -18,7 +18,7 @@ const fetchApiKeys = async () => {
   try {
     const result = await authClient.apiKey.list()
     if (result.data) {
-      apiKeys.value = result.data
+      apiKeys.value = result.data.apiKeys
     }
   } catch (error: any) {
     toast.error("Failed to load API keys")

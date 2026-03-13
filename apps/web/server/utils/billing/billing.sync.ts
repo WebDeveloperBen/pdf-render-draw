@@ -67,8 +67,9 @@ export const billingSyncService = {
         }
 
         hasMore = stripeSubscriptions.has_more
-        if (stripeSubscriptions.data.length > 0) {
-          startingAfter = stripeSubscriptions.data[stripeSubscriptions.data.length - 1].id
+        const lastSubscription = stripeSubscriptions.data.at(-1)
+        if (lastSubscription) {
+          startingAfter = lastSubscription.id
         }
       }
 

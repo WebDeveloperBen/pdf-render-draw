@@ -15,6 +15,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
   const activeTool = ref<ToolType | "selection" | "rotate" | "">("measure")
   const selectedAnnotationIds = ref<string[]>([]) // Multi-select support
   const isDrawing = ref(false)
+  const persistenceSuppressed = ref(false)
 
   // Temporary rotation delta during drag (added to stored rotation)
   const rotationDragDelta = ref(0)
@@ -412,6 +413,17 @@ export const useAnnotationStore = defineStore("annotations", () => {
     isDrawing.value = false
   }
 
+  function setPersistenceSuppressed(suppressed: boolean) {
+    persistenceSuppressed.value = suppressed
+  }
+
+  function flushPersistence(annotationIds?: string[]): Annotation[] {
+    const ids = annotationIds ?? annotations.value.map((annotation) => annotation.id)
+    return ids
+      .map((id) => getAnnotationById(id))
+      .filter((annotation): annotation is Annotation => annotation !== undefined)
+  }
+
   /**
    * Set all annotations (replaces current set)
    * @throws {Error} If any annotation is invalid
@@ -477,6 +489,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
     selectedAnnotationIds, // Multi-select array
     selectedAnnotationId, // Backwards compat: first selected or null
     isDrawing,
+    persistenceSuppressed,
     rotationDragDelta,
     currentFileId: readonly(currentFileId),
 
@@ -520,6 +533,8 @@ export const useAnnotationStore = defineStore("annotations", () => {
     deselectAll, // Clear selection
     clearAnnotations,
     setAnnotations,
+    setPersistenceSuppressed,
+    flushPersistence,
 
     // Export/Import
     exportToJSON,

@@ -85,9 +85,9 @@ export const platformAdminClient = () => {
               ? Awaited<ReturnType<typeof $fetch<PlatformAdminStatus>>>
               : UseFetchReturn<PlatformAdminStatus>
           }
-          return $fetch<PlatformAdminStatus>("/platform-admin/me", {
+          return (await $fetch<PlatformAdminStatus>("/platform-admin/me", {
             method: "GET"
-          }) as F extends undefined
+          })) as unknown as F extends undefined
             ? Awaited<ReturnType<typeof $fetch<PlatformAdminStatus>>>
             : UseFetchReturn<PlatformAdminStatus>
         },

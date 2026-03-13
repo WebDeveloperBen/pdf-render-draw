@@ -1073,6 +1073,131 @@ describe("History Store", () => {
     })
   })
 
+  describe("recordExecutedBatchUpdate", () => {
+    it("should record already-applied changes as a single undoable step", () => {
+      const historyStore = useHistoryStore()
+      const annotationStore = useAnnotationStore()
+
+      const fill: Fill = {
+        id: "fill-1",
+        type: "fill",
+        pageNum: 1,
+        x: 10,
+        y: 10,
+        width: 50,
+        height: 50,
+        color: "#000",
+        opacity: 0.5,
+        rotation: 0
+      }
+
+      annotationStore.addAnnotation(fill)
+
+      const before = { ...fill }
+      // Simulate an already-applied move
+      annotationStore.updateAnnotation("fill-1", { x: 80, y: 80 })
+      const after = { ...annotationStore.getAnnotationById("fill-1")! }
+
+      historyStore.recordExecutedBatchUpdate([{ before, after }], "Move selection")
+
+      expect(historyStore.canUndo).toBe(true)
+      expect(historyStore.undoDescription).toBe("Move selection")
+
+      historyStore.undo()
+      expect(annotationStore.getAnnotationById("fill-1")).toMatchObject({ x: 10, y: 10 })
+
+      historyStore.redo()
+      expect(annotationStore.getAnnotationById("fill-1")).toMatchObject({ x: 80, y: 80 })
+    })
+
+    it("should skip no-op changes where before and after are identical", () => {
+      const historyStore = useHistoryStore()
+      const annotationStore = useAnnotationStore()
+
+      const fill: Fill = {
+        id: "fill-1",
+        type: "fill",
+        pageNum: 1,
+        x: 10,
+        y: 10,
+        width: 50,
+        height: 50,
+        color: "#000",
+        opacity: 0.5,
+        rotation: 0
+      }
+
+      annotationStore.addAnnotation(fill)
+
+      const snapshot = { ...fill }
+      historyStore.recordExecutedBatchUpdate(
+        [{ before: snapshot, after: { ...snapshot } }],
+        "No-op move"
+      )
+
+      // No history entry should be created for identical before/after
+      expect(historyStore.canUndo).toBe(false)
+    })
+
+    it("should handle multi-annotation batch undo/redo", () => {
+      const historyStore = useHistoryStore()
+      const annotationStore = useAnnotationStore()
+
+      const fill1: Fill = {
+        id: "fill-1",
+        type: "fill",
+        pageNum: 1,
+        x: 0,
+        y: 0,
+        width: 20,
+        height: 20,
+        color: "#000",
+        opacity: 0.5,
+        rotation: 0
+      }
+
+      const fill2: Fill = {
+        id: "fill-2",
+        type: "fill",
+        pageNum: 1,
+        x: 100,
+        y: 100,
+        width: 20,
+        height: 20,
+        color: "#f00",
+        opacity: 0.5,
+        rotation: 0
+      }
+
+      annotationStore.addAnnotation(fill1)
+      annotationStore.addAnnotation(fill2)
+
+      const before1 = { ...fill1 }
+      const before2 = { ...fill2 }
+
+      annotationStore.updateAnnotation("fill-1", { x: 50, y: 50 })
+      annotationStore.updateAnnotation("fill-2", { x: 150, y: 150 })
+
+      historyStore.recordExecutedBatchUpdate(
+        [
+          { before: before1, after: { ...annotationStore.getAnnotationById("fill-1")! } },
+          { before: before2, after: { ...annotationStore.getAnnotationById("fill-2")! } }
+        ],
+        "Move group"
+      )
+
+      // Single undo restores both
+      historyStore.undo()
+      expect(annotationStore.getAnnotationById("fill-1")).toMatchObject({ x: 0, y: 0 })
+      expect(annotationStore.getAnnotationById("fill-2")).toMatchObject({ x: 100, y: 100 })
+
+      // Single redo re-applies both
+      historyStore.redo()
+      expect(annotationStore.getAnnotationById("fill-1")).toMatchObject({ x: 50, y: 50 })
+      expect(annotationStore.getAnnotationById("fill-2")).toMatchObject({ x: 150, y: 150 })
+    })
+  })
+
   describe("Group Operations with Batch Commands", () => {
     it("should handle group rotation as a batch command", () => {
       const historyStore = useHistoryStore()

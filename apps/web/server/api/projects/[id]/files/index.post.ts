@@ -2,6 +2,7 @@ import { z } from "zod"
 import { randomUUID } from "crypto"
 import { eq } from "drizzle-orm"
 import { auth } from "@auth"
+import { requirePermission } from "../../../../utils/permissions"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
@@ -43,17 +44,14 @@ defineRouteMeta({
               },
               pdfFileName: {
                 type: "string",
-                minLength: 1,
                 description: "Original PDF file name"
               },
               pdfFileSize: {
                 type: "number",
-                minimum: 1,
                 description: "PDF file size in bytes"
               },
               pageCount: {
                 type: "integer",
-                minimum: 1,
                 default: 1,
                 description: "Number of pages in the PDF"
               }
@@ -128,6 +126,8 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Unauthorized"
     })
   }
+
+  await requirePermission(event, { project: ["update"] })
 
   // Validate route params and body
   const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
