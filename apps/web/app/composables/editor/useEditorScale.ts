@@ -12,12 +12,9 @@ export const useEditorScale = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
-  const dragState = useEditorDragState()
+  const interactionMode = useInteractionMode()
   const toolRegistry = useToolRegistry()
   const transformFinalise = useEditorTransformFinalise()
-
-  // Scaling state
-  const isScaling = ref(false)
   const scaleHandle = ref<ScaleHandle | null>(null)
   const scaleStartPoint = ref<Point | null>(null)
   const scaleOriginalBounds = ref<Bounds | null>(null)
@@ -38,7 +35,7 @@ export const useEditorScale = createSharedComposable(() => {
     const svgPoint = coordinates.convertToSvgPoint(event, svg)
     if (!svgPoint) return
 
-    isScaling.value = true
+    if (!interactionMode.transition("scaling")) return
     scaleHandle.value = handle
     scaleStartPoint.value = svgPoint
     cursor.set("grabbing")
@@ -77,7 +74,7 @@ export const useEditorScale = createSharedComposable(() => {
    * Update scale as mouse moves
    */
   function updateScale(event: EditorInputEvent) {
-    if (!isScaling.value || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
+    if (!interactionMode.isMode("scaling") || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
     if (!svgPoint) return
@@ -270,9 +267,8 @@ export const useEditorScale = createSharedComposable(() => {
    * End scaling
    */
   function endScale() {
-    if (!isScaling.value) return
+    if (!interactionMode.isMode("scaling")) return
 
-    isScaling.value = false
     scaleHandle.value = null
     scaleStartPoint.value = null
     scaleOriginalBounds.value = null
@@ -287,13 +283,11 @@ export const useEditorScale = createSharedComposable(() => {
       description: "Resize selection"
     })
 
-    // Mark drag end to prevent click from clearing selection
-    dragState.markDragEnd()
+    interactionMode.endInteraction("selected")
   }
 
   return {
     // State
-    isScaling: readonly(isScaling),
     scaleHandle: readonly(scaleHandle),
 
     // Methods

@@ -12,11 +12,8 @@ export const useEditorMove = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
-  const dragState = useEditorDragState()
+  const interactionMode = useInteractionMode()
   const transformFinalise = useEditorTransformFinalise()
-
-  // Drag state
-  const isDragging = ref(false)
   const dragStartPoint = ref<Point | null>(null)
   const dragOriginalPositions = ref<Map<string, { x: number; y: number }>>(new Map())
   const dragOriginalPoints = ref<Map<string, Point[]>>(new Map())
@@ -36,7 +33,7 @@ export const useEditorMove = createSharedComposable(() => {
     const svgPoint = coordinates.convertToSvgPoint(event, svg)
     if (!svgPoint) return
 
-    isDragging.value = true
+    if (!interactionMode.transition("dragging")) return
     dragStartPoint.value = svgPoint
     cursor.set("grabbing")
 
@@ -70,7 +67,7 @@ export const useEditorMove = createSharedComposable(() => {
    * Update drag as mouse moves
    */
   function updateDrag(event: EditorInputEvent) {
-    if (!isDragging.value || !dragStartPoint.value) return
+    if (!interactionMode.isMode("dragging") || !dragStartPoint.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
     if (!svgPoint) return
@@ -131,9 +128,8 @@ export const useEditorMove = createSharedComposable(() => {
    * End dragging
    */
   function endDrag() {
-    if (!isDragging.value) return
+    if (!interactionMode.isMode("dragging")) return
 
-    isDragging.value = false
     dragStartPoint.value = null
     dragOriginalPositions.value.clear()
     dragOriginalPoints.value.clear()
@@ -147,14 +143,10 @@ export const useEditorMove = createSharedComposable(() => {
       description: "Move selection"
     })
 
-    // Mark drag end to prevent click from clearing selection
-    dragState.markDragEnd()
+    interactionMode.endInteraction("selected")
   }
 
   return {
-    // State
-    isDragging: readonly(isDragging),
-
     // Methods
     startDrag,
     updateDrag,

@@ -13,11 +13,8 @@ export const useEditorRotation = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const annotationStore = useAnnotationStore()
-  const dragState = useEditorDragState()
+  const interactionMode = useInteractionMode()
   const transformFinalise = useEditorTransformFinalise()
-
-  // Rotation state
-  const isRotating = ref(false)
   const rotationStartAngle = ref(0)
   const rotationStartSelectionAngle = ref(0)
   const rotationCenter = ref<Point | null>(null)
@@ -79,7 +76,7 @@ export const useEditorRotation = createSharedComposable(() => {
       }
     }
 
-    isRotating.value = true
+    if (!interactionMode.transition("rotating")) return
     annotationStore.setPersistenceSuppressed(true)
     cursor.set("grabbing")
 
@@ -90,7 +87,7 @@ export const useEditorRotation = createSharedComposable(() => {
    * Update rotation as mouse moves
    */
   function updateRotation(event: EditorInputEvent) {
-    if (!isRotating.value || !rotationCenter.value) return
+    if (!interactionMode.isMode("rotating") || !rotationCenter.value) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
     if (!svgPoint) return
@@ -216,9 +213,8 @@ export const useEditorRotation = createSharedComposable(() => {
    * End rotation
    */
   function endRotation() {
-    if (!isRotating.value) return
+    if (!interactionMode.isMode("rotating")) return
 
-    isRotating.value = false
     rotationStartAngle.value = 0
     rotationOriginalAngles.value.clear()
     rotationOriginalPositions.value.clear()
@@ -233,16 +229,12 @@ export const useEditorRotation = createSharedComposable(() => {
       description: "Rotate selection"
     })
 
-    // Mark drag end to prevent click from clearing selection
-    dragState.markDragEnd()
+    interactionMode.endInteraction("selected")
 
     // Keep frozen bounds and selection rotation until selection changes
   }
 
   return {
-    // State
-    isRotating: readonly(isRotating),
-
     // Methods
     startRotation,
     updateRotation,

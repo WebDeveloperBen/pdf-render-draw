@@ -4,7 +4,8 @@ const props = defineProps<{
 }>()
 
 const rotation = useEditorRotation()
-const { isRotating, startRotation } = rotation
+const interactionMode = useInteractionMode()
+const { startRotation } = rotation
 const viewportStore = useViewportStore()
 
 const inverseScale = computed(() => viewportStore.getInverseScale)
@@ -51,7 +52,7 @@ function handleRotateStart(event: EditorInputEvent) {
       stroke="#3b82f6"
       :stroke-width="scaledStroke"
       class="rotation-handle"
-      :class="{ rotating: isRotating }"
+      :class="{ rotating: interactionMode.isMode('rotating') }"
       @pointerdown="handleRotateStart"
     />
   </g>

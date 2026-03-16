@@ -6,7 +6,8 @@ const toolRegistry = useToolRegistry()
 const viewportStore = useViewportStore()
 
 const { selectionBounds, selectionRotation } = bounds
-const { isDragging, startDrag } = move
+const interactionMode = useInteractionMode()
+const { startDrag } = move
 
 const inverseScale = computed(() => viewportStore.getInverseScale)
 
@@ -61,7 +62,7 @@ function handleDoubleClick(event: EditorInputEvent) {
       :stroke-width="2 * inverseScale"
       :stroke-dasharray="`${4 * inverseScale} ${4 * inverseScale}`"
       class="selection-box"
-      :class="{ dragging: isDragging }"
+      :class="{ dragging: interactionMode.isMode('dragging') }"
       @pointerdown="handleDragStart"
       @dblclick="handleDoubleClick"
     />

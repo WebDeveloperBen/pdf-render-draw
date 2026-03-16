@@ -11,7 +11,7 @@ const svgRef = ref<SVGSVGElement>()
 
 // Helper function to check if we should update the selection marquee during dragging
 function shouldUpdateSelectionMarquee(tool: string) {
-  return selectionMarquee.isMarqueeSelecting.value && isSelectionMode(tool) && !!svgRef.value
+  return interactionMode.isMode("marquee") && isSelectionMode(tool) && !!svgRef.value
 }
 
 // Helper function to check if we have an active drawing tool (not selection mode)
@@ -50,7 +50,7 @@ useTextTool()!
 useFillTool()!
 
 const selectionMarquee = useEditorMarquee()
-const dragState = useEditorDragState()
+const interactionMode = useInteractionMode()
 const toolRegistry = useToolRegistry()
 
 // Initialise snap provider (sets up reactive watches)
@@ -138,7 +138,7 @@ function handleMouseDown(e: EditorInputEvent) {
 function handleMouseUp(e: EditorInputEvent) {
   // If marquee is active, don't process tool handlers
   // (marquee end is handled by global listeners in useEditorEventHandlers)
-  if (selectionMarquee.isMarqueeSelecting.value) {
+  if (interactionMode.isMode("marquee")) {
     return
   }
 
@@ -190,10 +190,7 @@ function handleClick(e: EditorInputEvent) {
   if (
     !annotationId &&
     !isTransformHandle &&
-    !selectionMarquee.isMarqueeSelecting.value &&
-    !selectionMarquee.isMarqueeJustFinished() &&
-    !annotationStore.isDrawing &&
-    !dragState.isDragJustFinished()
+    !interactionMode.shouldSuppressClick.value
   ) {
     annotationStore.selectAnnotation(null)
     // Don't return - allow drawing tools to continue processing the click
@@ -303,7 +300,7 @@ useEventListener(window, "pointerup", (e: EditorInputEvent) => {
 
     <!-- Selection marquee (drag-to-select rectangle) -->
     <rect
-      v-if="selectionMarquee.isMarqueeSelecting.value && selectionMarquee.marqueeBounds.value"
+      v-if="interactionMode.isMode('marquee') && selectionMarquee.marqueeBounds.value"
       :x="selectionMarquee.marqueeBounds.value.x"
       :y="selectionMarquee.marqueeBounds.value.y"
       :width="selectionMarquee.marqueeBounds.value.width"

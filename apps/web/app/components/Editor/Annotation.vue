@@ -17,7 +17,7 @@ const props = defineProps<{
 const annotationStore = useAnnotationStore()
 const toolRegistry = useToolRegistry()
 const modifierKeys = useModifierKeys()
-const dragState = useEditorDragState()
+const interactionMode = useInteractionMode()
 const bounds = useEditorBounds()
 
 // Check if this annotation is selected
@@ -83,8 +83,8 @@ function handleContextMenu(e: EditorInputEvent) {
 
 // Handle click with manual double-click detection
 function handleClick(e: EditorInputEvent) {
-  // Prevent selection changes if a drag just finished (click fires after drag ends)
-  if (dragState.isDragJustFinished()) {
+  // Prevent selection changes if an interaction just finished (click fires after drag ends)
+  if (interactionMode.isLocked.value) {
     return
   }
 

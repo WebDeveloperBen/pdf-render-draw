@@ -12,9 +12,7 @@ export const useEditorEventHandlers = createSharedComposable(() => {
   const scale = useEditorScale()
   const move = useEditorMove()
   const marquee = useEditorMarquee()
-
-  // Prevent background clicks immediately after drag/rotate/scale ends
-  const justFinishedInteraction = ref(false)
+  const interactionMode = useInteractionMode()
 
   /**
    * Handle shape click (with Shift support for multi-select)
@@ -39,11 +37,7 @@ export const useEditorEventHandlers = createSharedComposable(() => {
    * Handle background click (deselect all)
    */
   function handleBackgroundClick() {
-    // Don't deselect if we just finished an interaction
-    if (move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || justFinishedInteraction.value) {
-      return
-    }
-
+    if (interactionMode.isLocked.value) return
     selection.clearSelection()
   }
 
@@ -88,21 +82,10 @@ export const useEditorEventHandlers = createSharedComposable(() => {
       processMoveFrame()
     }
 
-    const wasInteracting =
-      move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || marquee.isMarqueeSelecting.value
-
     move.endDrag()
     rotation.endRotation()
     scale.endScale()
     marquee.endMarquee()
-
-    // Prevent accidental background clicks
-    if (wasInteracting) {
-      justFinishedInteraction.value = true
-      setTimeout(() => {
-        justFinishedInteraction.value = false
-      }, 100)
-    }
   }
 
   /**

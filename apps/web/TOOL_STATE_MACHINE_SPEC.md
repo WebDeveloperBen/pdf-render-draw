@@ -1,380 +1,579 @@
-# Tool State Machine — Design Spec
+# Interaction State Machine — Design Spec
 
-> Architectural refactor proposal for replacing independent boolean flags with a
-> unified state machine for editor tool modes.
+> Coordination layer for editor interactions (drag, rotate, scale, marquee).
+> Does NOT touch the tool drawing system — that stays composable.
+
+---
+
+## Scope
+
+This state machine governs **interaction mode only** — the thing that answers
+"is the user currently dragging, rotating, scaling, marquee-selecting, or idle?"
+
+### What it owns
+
+The 4 interaction boolean flags and 3 timing hacks that currently live across
+6 composables:
+
+| Current flag | Current location | Becomes |
+|---|---|---|
+| `isDragging` | `useEditorMove.ts` | `mode === "dragging"` |
+| `isRotating` | `useEditorRotation.ts` | `mode === "rotating"` |
+| `isScaling` | `useEditorScale.ts` | `mode === "scaling"` |
+| `isMarqueeSelecting` | `useEditorMarquee.ts` | `mode === "marquee"` |
+| `justFinishedDragging` | `useEditorDragState.ts` | `mode === "cooldown"` |
+| `justFinishedInteraction` | `useEditorEventHandlers.ts` | `mode === "cooldown"` |
+| `marqueeJustFinished` | `useEditorMarquee.ts` | `mode === "cooldown"` |
+
+### What it does NOT own
+
+These stay exactly where they are:
+
+| State | Location | Why it stays |
+|---|---|---|
+| `activeTool` | `annotations.ts` store | Tool identity, not interaction mode |
+| `isDrawing` | `useBaseTool.ts` | Tool drawing lifecycle — composable pattern |
+| `points`, `tempEndPoint` | `useBaseTool.ts` | Tool-specific drawing state |
+| `selectedAnnotationIds` | `annotations.ts` store | Selection model, not interaction mode |
+| `frozenBounds`, `selectionRotation` | `useEditorBounds.ts` | Persistent UI state that survives across interactions |
+| `editingId` | `useTextEditingState.ts` | Tool-specific inline editing |
+| `persistenceSuppressed` | `annotations.ts` store | Save coordination |
+| `dragStartPoint`, `rotationCenter`, etc. | Each interaction composable | Interaction-specific data (see below) |
+
+**Key principle:** Adding a new drawing tool (e.g., `useStampTool`) should require
+0 changes to the state machine. The tool composes `useBaseTool` + `useDrawingTool`
+and registers via `useToolRegistry`. The state machine doesn't know it exists.
 
 ---
 
 ## Problem Statement
 
-The editor tracks interaction state across **11+ independent boolean/string flags** spread
-across 6 composables and 1 Pinia store. These flags can theoretically reach impossible
-combinations (e.g., `isDragging=true` AND `isRotating=true` simultaneously), and the
-codebase relies on scattered defensive checks to prevent this.
+The interaction layer has 4 boolean flags across 4 composables plus 3 timeout-based
+`justFinished*` flags across 3 more composables. This causes:
 
-### Current flags
+1. **Compound guard conditions** — `useEditorEventHandlers.handleBackgroundClick()`
+   checks `move.isDragging || rotation.isRotating || scale.isScaling || justFinishedInteraction`.
+   `AnnotationLayer.vue` click handler checks 6 flags. Every new interaction type
+   means updating these conditions.
 
-| Flag | Location | Purpose |
-|---|---|---|
-| `activeTool` | `annotations.ts` (store) | Which tool is selected (`"measure"`, `"selection"`, `""`, etc.) |
-| `isDrawing` | `annotations.ts` (store) | Mid-drawing with a tool (clicking points) |
-| `selectedAnnotationIds` | `annotations.ts` (store) | Currently selected annotations |
-| `rotationDragDelta` | `annotations.ts` (store) | Accumulated rotation during drag |
-| `persistenceSuppressed` | `annotations.ts` (store) | Prevents auto-save during transforms |
-| `isDragging` | `useEditorMove.ts` | Move drag in progress |
-| `isRotating` | `useEditorRotation.ts` | Rotation drag in progress |
-| `isScaling` | `useEditorScale.ts` | Resize drag in progress |
-| `isMarqueeSelecting` | `useEditorMarquee.ts` | Drag-to-select rectangle active |
-| `justFinishedDragging` | `useEditorDragState.ts` | 150ms window after drag ends |
-| `justFinishedInteraction` | `useEditorEventHandlers.ts` | 100ms window after any interaction ends |
-| `marqueeJustFinished` | `useEditorMarquee.ts` | 100ms window after marquee ends |
-| `frozenBounds` | `useEditorBounds.ts` | Locked bounds during rotation |
-| `selectionRotation` | `useEditorBounds.ts` | Accumulated rotation for transform handles |
-| `editingId` | `useTextEditingState.ts` | Text annotation being inline-edited |
+2. **Three inconsistent cooldown timeouts** — `justFinishedDragging` (150ms),
+   `justFinishedInteraction` (100ms), `marqueeJustFinished` (100ms). Three separate
+   `setTimeout` calls doing the same job with different durations. Race-prone.
 
-### Why this is a problem
+3. **Implicit mutual exclusion** — Nothing in the type system prevents
+   `isDragging=true && isRotating=true`. It works today because browser event ordering
+   prevents it, but it's not enforced.
 
-1. **Impossible states are possible.** Nothing prevents `isDragging=true` and `isRotating=true`
-   at the same time except implicit event ordering assumptions.
-
-2. **Defensive checks are scattered.** Background click prevention alone requires checking
-   6 flags in a compound condition across 2 files (`useEditorEventHandlers.ts` line 43,
-   `AnnotationLayer.vue` lines 190-197).
-
-3. **Timeout-based state transitions.** Three separate `setTimeout` calls (100ms, 100ms, 150ms)
-   create `justFinished*` windows to prevent click events from firing after drag/rotate/scale.
-   These are race-condition-prone and inconsistent in duration.
-
-4. **Auto-switching is implicit.** `setActiveTool()` auto-clears selection. Selecting an
-   annotation auto-switches `activeTool` to `"selection"`. These side effects are buried in
-   store actions and easy to break.
-
-5. **New tool/interaction additions require updating guards everywhere.** Adding a new interaction
-   type means updating every compound condition that checks `isDragging || isRotating || isScaling`.
+4. **Adding a new interaction is error-prone** — If you add `isPanning`, you need to
+   find and update every compound guard, add another `justFinished*` flag, wire up
+   another timeout, and hope you didn't miss a check.
 
 ---
 
-## Current State Transitions (Observed)
+## Architecture: Where the State Machine Fits
 
 ```
-                    ┌────────────────────────────────────────────────┐
-                    │                    IDLE                         │
-                    │  activeTool = "selection" | ""                  │
-                    │  isDrawing = false                              │
-                    │  no interaction flags set                       │
-                    └──┬──────────┬──────────┬──────────┬────────────┘
-                       │          │          │          │
-              click    │  click   │  click   │  drag    │  select
-              on SVG   │  annot.  │  handle  │  bg      │  tool
-                       │          │          │          │
-                       ▼          ▼          ▼          ▼
-                   DRAWING    SELECTED    TRANSFORM   TOOL_ACTIVE
-                   isDrawing  selected    isDragging  activeTool
-                   = true     Ids=[id]    |isRotating = "measure"
-                              activeTool  |isScaling   isDrawing
-                              = selection = true       = false
-                              auto                     (ready)
-                                  │
-                                  │ drag handle
-                                  ▼
-                              TRANSFORM
-                              (isDragging|isRotating|isScaling)
-                              persistenceSuppressed = true
-                                  │
-                                  │ pointerup
-                                  ▼
-                              COOLDOWN
-                              justFinished* = true
-                              100-150ms timeout
-                                  │
-                                  │ timeout expires
-                                  ▼
-                                IDLE / SELECTED
+┌──────────────────────────────────────────────────────────────────┐
+│                        Tool Layer (UNCHANGED)                     │
+│                                                                   │
+│  useBaseTool ──► useDrawingTool ──► useMeasureTool               │
+│                                 ──► useAreaTool                   │
+│                                 ──► useCountTool                  │
+│                                 ──► ... (add new tools here)      │
+│                                                                   │
+│  Owns: points, tempEndPoint, isDrawing, getSvgPoint              │
+│  Pattern: compose useBaseTool + config object                     │
+│  Registers via: useToolRegistry                                   │
+└──────────────────────────────────────────────────────────────────┘
+                              │
+                    onClick / onMouseDown / onMouseUp
+                              │
+┌──────────────────────────────────────────────────────────────────┐
+│                   Interaction Layer (THIS SPEC)                    │
+│                                                                   │
+│  useInteractionMode (NEW) ◄── single source of truth              │
+│    mode: idle | selected | dragging | rotating | scaling |        │
+│          marquee | cooldown                                       │
+│    TRANSITIONS map: defines all legal state changes               │
+│                                                                   │
+│  useEditorMove         ──► owns drag data, calls mode.transition  │
+│  useEditorRotation     ──► owns rotation data, calls transition   │
+│  useEditorScale        ──► owns scale data, calls transition      │
+│  useEditorMarquee      ──► owns marquee data, calls transition    │
+│  useEditorEventHandlers ──► reads mode, routes events             │
+│                                                                   │
+│  DELETED: useEditorDragState (replaced by cooldown mode)          │
+└──────────────────────────────────────────────────────────────────┘
+                              │
+                    selection changes / bounds updates
+                              │
+┌──────────────────────────────────────────────────────────────────┐
+│                     Selection & Bounds (UNCHANGED)                │
+│                                                                   │
+│  useEditorSelection    ──► selectShape, toggleShape, clear        │
+│  useEditorBounds       ──► frozenBounds, selectionRotation        │
+│  annotations.ts store  ──► selectedAnnotationIds, activeTool      │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Proposed Solution: Discriminated Union State
+## Design
 
-Replace the scattered flags with a single reactive state object using a TypeScript
-discriminated union. Each state variant carries only the data relevant to that state.
-
-### State definition
+### Interaction modes
 
 ```typescript
-type EditorState =
-  | { mode: "idle" }
-  | { mode: "tool-ready"; tool: ToolType }
-  | { mode: "drawing"; tool: ToolType; points: Point[]; tempEndPoint: Point | null }
-  | { mode: "selected"; annotationIds: string[] }
-  | { mode: "dragging"; annotationIds: string[]; startPoint: Point; originalPositions: Map<string, Point> }
-  | { mode: "rotating"; annotationIds: string[]; center: Point; startAngle: number; currentDelta: number }
-  | { mode: "scaling"; annotationIds: string[]; handle: ScaleHandle; startPoint: Point; originalBounds: Bounds }
-  | { mode: "marquee"; startPoint: Point; currentPoint: Point }
-  | { mode: "text-editing"; annotationId: string; content: string }
-  | { mode: "cooldown"; previousMode: "dragging" | "rotating" | "scaling" | "marquee"; returnTo: EditorState }
+// Derived from the transition map — add a mode here, TS catches every unhandled case
+const TRANSITIONS = {
+  "idle":      ["selected", "marquee"],
+  "selected":  ["dragging", "rotating", "scaling", "marquee", "idle"],
+  "dragging":  ["cooldown"],
+  "rotating":  ["cooldown"],
+  "scaling":   ["cooldown"],
+  "marquee":   ["cooldown", "selected"],
+  "cooldown":  ["idle", "selected"],
+} as const satisfies Record<string, readonly InteractionMode[]>
+
+type InteractionMode = keyof typeof TRANSITIONS
 ```
 
-### Benefits
+Note: `"idle"` and `"selected"` are the only modes you can start an interaction from.
+The distinction matters — `"selected"` means annotations are highlighted and transform
+handles are visible, so drag/rotate/scale can begin. `"idle"` means nothing is selected,
+so only marquee is available.
 
-1. **Impossible states are unrepresentable.** You can't be `dragging` and `rotating` at the
-   same time — the discriminant `mode` only has one value.
-
-2. **All guards become simple mode checks.** Instead of:
-   ```typescript
-   if (move.isDragging.value || rotation.isRotating.value || scale.isScaling.value || justFinishedInteraction.value)
-   ```
-   You write:
-   ```typescript
-   if (state.mode === "dragging" || state.mode === "rotating" || state.mode === "scaling" || state.mode === "cooldown")
-   ```
-   Or better, define a helper:
-   ```typescript
-   const isInteracting = computed(() => ["dragging", "rotating", "scaling", "marquee"].includes(state.mode))
-   ```
-
-3. **Transitions are explicit.** A `transition(event)` function handles all state changes
-   in one place, making it easy to audit what can happen from each state.
-
-4. **Cooldown is a proper state**, not a timeout-based flag that might race.
-
-5. **Data is colocated with state.** `startPoint`, `originalPositions`, etc. live inside the
-   state variant, not in separate refs that might go stale.
-
----
-
-## Implementation Approaches
-
-### Option A: Plain Reactive Ref + Transition Functions
-
-Simplest approach — a single `ref<EditorState>` with pure functions that transition between states.
+### The composable
 
 ```typescript
-// composables/editor/useEditorStateMachine.ts
-export const useEditorStateMachine = createSharedComposable(() => {
-  const state = ref<EditorState>({ mode: "idle" })
+// composables/editor/useInteractionMode.ts
+export const useInteractionMode = createSharedComposable(() => {
+  const mode = ref<InteractionMode>("idle")
 
-  // Computed helpers
-  const isInteracting = computed(() =>
-    ["dragging", "rotating", "scaling", "marquee"].includes(state.value.mode)
-  )
-  const isIdle = computed(() => state.value.mode === "idle" || state.value.mode === "selected")
-  const selectedIds = computed(() =>
-    "annotationIds" in state.value ? state.value.annotationIds : []
+  // --- Computed helpers ---
+
+  /** True during any active pointer interaction (drag/rotate/scale/marquee/etc.)
+   *  Derived from the transition map — new interaction modes are included automatically */
+  const PASSIVE_MODES: ReadonlySet<InteractionMode> = new Set(["idle", "selected", "cooldown"])
+  const isInteracting = computed(() => !PASSIVE_MODES.has(mode.value))
+
+  /** True when interactions are blocked (active interaction or cooldown) */
+  const isLocked = computed(() => isInteracting.value || mode.value === "cooldown")
+
+  /** True when a new interaction can begin */
+  const canStartInteraction = computed(() =>
+    mode.value === "idle" || mode.value === "selected"
   )
 
-  // Transition functions
-  function startDrag(annotationIds: string[], startPoint: Point, originalPositions: Map<string, Point>) {
-    if (!isIdle.value) return // Can only start drag from idle/selected
-    state.value = { mode: "dragging", annotationIds, startPoint, originalPositions }
+  /** True when click-to-select should be suppressed.
+   *  Single DRY guard for AnnotationLayer / Annotation click handlers.
+   *  Combines interaction-layer lock with tool-layer isDrawing. */
+  const shouldSuppressClick = computed(() =>
+    isLocked.value || useAnnotationStore().isDrawing
+  )
+
+  // --- Transition ---
+
+  function transition(to: InteractionMode): boolean {
+    const from = mode.value
+    const allowed = TRANSITIONS[from] as readonly InteractionMode[]
+    if (!allowed.includes(to)) {
+      if (import.meta.env.DEV) {
+        debugLog("InteractionMode", `Blocked transition: ${from} → ${to}`)
+      }
+      return false
+    }
+    mode.value = to
+    return true
   }
 
-  function endInteraction() {
-    const prev = state.value.mode
-    if (prev === "dragging" || prev === "rotating" || prev === "scaling" || prev === "marquee") {
-      const returnTo = "annotationIds" in state.value
-        ? { mode: "selected" as const, annotationIds: state.value.annotationIds }
-        : { mode: "idle" as const }
-      state.value = { mode: "cooldown", previousMode: prev, returnTo }
-      setTimeout(() => {
-        if (state.value.mode === "cooldown") {
-          state.value = state.value.returnTo
+  // --- Cooldown ---
+  // Replaces all 3 justFinished* timeouts with a single proper state
+
+  let cooldownTimer: ReturnType<typeof setTimeout> | null = null
+
+  function enterCooldown() {
+    if (cooldownTimer) clearTimeout(cooldownTimer)
+    mode.value = "cooldown"
+    cooldownTimer = setTimeout(() => {
+      cooldownTimer = null
+      // Return to selected or idle based on whether annotations are selected
+      // The caller passes this context via exitCooldown, or we read from store
+      if (mode.value === "cooldown") {
+        mode.value = "idle" // Default — callers can override via transition()
+      }
+    }, 100)
+  }
+
+  /** End an interaction and enter cooldown.
+   *  returnTo controls where cooldown exits to (default: idle) */
+  function endInteraction(returnTo: "idle" | "selected" = "idle") {
+    if (!isInteracting.value) return
+    enterCooldown()
+    // Override the default cooldown exit
+    if (cooldownTimer && returnTo === "selected") {
+      clearTimeout(cooldownTimer)
+      cooldownTimer = setTimeout(() => {
+        cooldownTimer = null
+        if (mode.value === "cooldown") {
+          mode.value = "selected"
         }
       }, 100)
     }
   }
 
-  return { state: readonly(state), isInteracting, isIdle, selectedIds, startDrag, endInteraction, /* ... */ }
-})
-```
-
-**Pros:** No dependencies. Uses standard Vue reactivity. Easy to understand.
-**Cons:** Transition validation is manual. No formal transition graph.
-
-### Option B: XState (Formal State Machine Library)
-
-Use [XState](https://xstate.js.org/) for a formally defined state machine with visual tooling.
-
-```typescript
-import { createMachine, interpret } from "xstate"
-
-const editorMachine = createMachine({
-  id: "editor",
-  initial: "idle",
-  states: {
-    idle: {
-      on: {
-        SELECT_TOOL: "toolReady",
-        SELECT_ANNOTATION: "selected",
-      }
-    },
-    toolReady: {
-      on: {
-        CLICK_CANVAS: "drawing",
-        SELECT_ANNOTATION: "selected",
-      }
-    },
-    drawing: {
-      on: {
-        ADD_POINT: { actions: "addPoint" },
-        COMPLETE: "idle",
-        CANCEL: "toolReady",
-      }
-    },
-    selected: {
-      on: {
-        DRAG_START: "dragging",
-        ROTATE_START: "rotating",
-        SCALE_START: "scaling",
-        MARQUEE_START: "marquee",
-        DESELECT: "idle",
-        SELECT_TOOL: "toolReady",
-      }
-    },
-    dragging: {
-      on: { POINTER_UP: "cooldown" }
-    },
-    rotating: {
-      on: { POINTER_UP: "cooldown" }
-    },
-    scaling: {
-      on: { POINTER_UP: "cooldown" }
-    },
-    marquee: {
-      on: { POINTER_UP: "cooldown" }
-    },
-    cooldown: {
-      after: { 100: "selected" } // Auto-transition after 100ms
-    },
-    textEditing: {
-      on: {
-        COMMIT: "selected",
-        CANCEL: "selected",
-      }
+  // Cleanup
+  function dispose() {
+    if (cooldownTimer) {
+      clearTimeout(cooldownTimer)
+      cooldownTimer = null
     }
   }
-})
-```
 
-**Pros:** Formal model — impossible transitions are rejected. Visual state chart tooling
-for debugging. `after` transitions handle cooldown natively.
-**Cons:** Adds ~15KB dependency. Learning curve. Integrating with Vue reactivity requires
-`@xstate/vue`. Context management for carrying data between states adds boilerplate.
-
-### Option C: Hybrid — Discriminated Union + Transition Map
-
-Define allowed transitions as a lookup table, but keep implementation in plain Vue.
-
-```typescript
-const TRANSITIONS: Record<EditorMode, EditorMode[]> = {
-  "idle":          ["tool-ready", "selected", "marquee"],
-  "tool-ready":    ["drawing", "selected", "idle"],
-  "drawing":       ["tool-ready", "idle"],
-  "selected":      ["dragging", "rotating", "scaling", "marquee", "text-editing", "idle", "tool-ready"],
-  "dragging":      ["cooldown"],
-  "rotating":      ["cooldown"],
-  "scaling":       ["cooldown"],
-  "marquee":       ["cooldown", "selected"],
-  "cooldown":      ["idle", "selected"],
-  "text-editing":  ["selected"],
-}
-
-function transition(to: EditorMode, data?: Partial<EditorState>) {
-  const from = state.value.mode
-  if (!TRANSITIONS[from]?.includes(to)) {
-    console.warn(`Invalid transition: ${from} → ${to}`)
-    return false
+  return {
+    mode: readonly(mode),
+    isInteracting,
+    isLocked,
+    canStartInteraction,
+    shouldSuppressClick,
+    transition,
+    endInteraction,
+    dispose,
   }
-  state.value = { mode: to, ...data } as EditorState
-  return true
-}
-```
-
-**Pros:** Self-documenting transition rules. No external dependency. Validates transitions
-at runtime with clear error messages. Easy to extend.
-**Cons:** Slightly more code than Option A. Transition map must be kept in sync manually.
-
----
-
-## Recommendation
-
-**Option C (Hybrid)** is the best fit for this codebase:
-
-1. **No new dependencies** — the project already has significant dependency surface. XState
-   adds bundle weight and API complexity for a problem that doesn't need full actor-model
-   capabilities.
-
-2. **Explicit transition map** — makes it obvious which state changes are legal. New developers
-   (or future Claude sessions) can read the map and understand the full system without tracing
-   event handlers.
-
-3. **Vue-native** — works with standard `ref()` and `computed()`. No adapter layer needed.
-
-4. **Incremental adoption** — can be introduced alongside existing flags, with a migration
-   path that moves one interaction at a time:
-   - Phase 1: Introduce `useEditorStateMachine`, have it track `mode` alongside existing flags
-   - Phase 2: Move `isDragging` / `isRotating` / `isScaling` into state machine
-   - Phase 3: Move `isDrawing` and tool lifecycle into state machine
-   - Phase 4: Remove old flags, update all guards to use `state.mode`
-
----
-
-## Migration Strategy
-
-### Phase 1 — Shadow Mode (Non-Breaking)
-
-Create `useEditorStateMachine.ts` that mirrors existing flags into a unified state.
-Existing code continues working. State machine is read-only, used for debugging/logging.
-
-```typescript
-// Derive mode from existing flags (read-only mirror)
-const derivedMode = computed<EditorMode>(() => {
-  if (move.isDragging.value) return "dragging"
-  if (rotation.isRotating.value) return "rotating"
-  if (scale.isScaling.value) return "scaling"
-  if (marquee.isMarqueeSelecting.value) return "marquee"
-  if (annotationStore.isDrawing) return "drawing"
-  if (textEditState.editingId.value) return "text-editing"
-  if (annotationStore.selectedAnnotationIds.length > 0) return "selected"
-  if (annotationStore.activeTool && annotationStore.activeTool !== "selection") return "tool-ready"
-  return "idle"
 })
 ```
 
-This immediately surfaces impossible states in dev tools without changing any behavior.
+### How interaction composables change
 
-### Phase 2 — Replace Transform Flags
+Each composable keeps its own interaction data (start points, original positions, etc.)
+but **delegates mode tracking** to `useInteractionMode`. The pattern is the same across
+all four:
 
-Replace `isDragging` / `isRotating` / `isScaling` / `isMarqueeSelecting` with state machine
-transitions. These are the most tightly coupled flags and the source of most compound guards.
+**Before (useEditorMove.ts):**
+```typescript
+const isDragging = ref(false)
 
-### Phase 3 — Replace Drawing + Tool Lifecycle
+function startDrag(event) {
+  if (!selection.hasSelection) return
+  isDragging.value = true
+  // ... cache start data ...
+}
 
-Move `isDrawing`, `activeTool`, and the drawing point accumulation into state machine states.
+function updateDrag(event) {
+  if (!isDragging.value) return
+  // ... apply delta ...
+}
 
-### Phase 4 — Remove Cooldown Timeouts
+function endDrag() {
+  if (!isDragging.value) return
+  isDragging.value = false
+  dragState.markDragEnd() // 150ms timeout hack
+  // ... finalize ...
+}
+```
 
-Replace `justFinished*` timeout flags with a proper `cooldown` state that auto-transitions.
+**After:**
+```typescript
+const interactionMode = useInteractionMode()
+
+function startDrag(event) {
+  if (!selection.hasSelection) return
+  if (!interactionMode.transition("dragging")) return // ← single guard
+  // ... cache start data (unchanged) ...
+}
+
+function updateDrag(event) {
+  if (interactionMode.mode.value !== "dragging") return // ← reads from mode
+  // ... apply delta (unchanged) ...
+}
+
+function endDrag() {
+  if (interactionMode.mode.value !== "dragging") return
+  interactionMode.endInteraction("selected") // ← replaces isDragging=false + markDragEnd()
+  // ... finalize (unchanged) ...
+}
+```
+
+The interaction-specific data (`dragStartPoint`, `dragOriginalPositions`, etc.) stays
+in `useEditorMove`. Only the boolean flag moves out.
+
+### How event handlers simplify
+
+**Before (useEditorEventHandlers.ts):**
+```typescript
+function handleBackgroundClick() {
+  if (
+    move.isDragging.value ||
+    rotation.isRotating.value ||
+    scale.isScaling.value ||
+    justFinishedInteraction.value
+  ) {
+    return
+  }
+  selection.clearSelection()
+}
+```
+
+**After:**
+```typescript
+function handleBackgroundClick() {
+  if (interactionMode.isLocked.value) return  // ← one check
+  selection.clearSelection()
+}
+```
+
+**Before (AnnotationLayer.vue click handler):**
+```typescript
+if (
+  !annotationId &&
+  !isTransformHandle &&
+  !selectionMarquee.isMarqueeSelecting.value &&
+  !selectionMarquee.isMarqueeJustFinished() &&
+  !annotationStore.isDrawing &&
+  !dragState.isDragJustFinished()
+) {
+  annotationStore.selectAnnotation(null)
+}
+```
+
+**After:**
+```typescript
+if (
+  !annotationId &&
+  !isTransformHandle &&
+  !interactionMode.shouldSuppressClick.value
+) {
+  annotationStore.selectAnnotation(null)
+}
+```
+
+`shouldSuppressClick` is a single computed on `useInteractionMode` that combines
+`isLocked` (interaction-layer) with `isDrawing` (tool-layer). Every click guard
+in the codebase reads from this one property — no ad-hoc multi-flag checks.
+
+### What gets deleted
+
+- **`useEditorDragState.ts`** — Entire file. `justFinishedDragging` + `isDragJustFinished()`
+  replaced by `mode === "cooldown"` / `isLocked`.
+
+- **`justFinishedInteraction` in `useEditorEventHandlers.ts`** — The ref and its 100ms
+  timeout. Replaced by reading `interactionMode.isLocked`.
+
+- **`marqueeJustFinished` in `useEditorMarquee.ts`** — The ref and its 100ms timeout.
+  Replaced by cooldown state after marquee ends.
+
+- **`isDragging` ref in `useEditorMove.ts`** — Replaced by `mode === "dragging"`.
+
+- **`isRotating` ref in `useEditorRotation.ts`** — Replaced by `mode === "rotating"`.
+
+- **`isScaling` ref in `useEditorScale.ts`** — Replaced by `mode === "scaling"`.
+
+- **`isMarqueeSelecting` ref in `useEditorMarquee.ts`** — Replaced by `mode === "marquee"`.
 
 ---
 
-## Files Affected
+## Adding a New Interaction Type
 
-| File | Change |
+Example: adding a `"panning"` interaction for two-finger touch pan.
+
+**Step 1 — Add to transition map (1 line):**
+
+```typescript
+const TRANSITIONS = {
+  "idle":      ["selected", "marquee", "panning"],  // ← added
+  "selected":  ["dragging", "rotating", "scaling", "marquee", "panning", "idle"],  // ← added
+  "dragging":  ["cooldown"],
+  "rotating":  ["cooldown"],
+  "scaling":   ["cooldown"],
+  "marquee":   ["cooldown", "selected"],
+  "panning":   ["cooldown"],  // ← new row
+  "cooldown":  ["idle", "selected"],
+}
+```
+
+TypeScript immediately derives `"panning"` as a valid `InteractionMode`. The
+`isInteracting` computed already includes it (any mode not in `["idle", "selected", "cooldown"]`).
+All guard checks via `isLocked` automatically block clicks during panning.
+
+**Step 2 — Create the composable (1 file):**
+
+```typescript
+// composables/editor/useEditorPan.ts
+export const useEditorPan = createSharedComposable(() => {
+  const interactionMode = useInteractionMode()
+  const panStart = ref<Point | null>(null)
+
+  function startPan(event: EditorInputEvent) {
+    if (!interactionMode.transition("panning")) return
+    panStart.value = { x: event.clientX, y: event.clientY }
+  }
+
+  function updatePan(event: EditorInputEvent) {
+    if (interactionMode.mode.value !== "panning") return
+    // ... apply pan delta ...
+  }
+
+  function endPan() {
+    if (interactionMode.mode.value !== "panning") return
+    interactionMode.endInteraction("idle")
+    panStart.value = null
+  }
+
+  return { startPan, updatePan, endPan }
+})
+```
+
+**Step 3 — Wire into event handlers:**
+
+Add `pan.updatePan(event)` to `processMoveFrame()` and `pan.endPan()` to
+`handleGlobalMouseUp()` in `useEditorEventHandlers.ts`.
+
+**That's it.** No boolean flags. No timeout hacks. No compound guard updates.
+The transition map prevents panning while dragging. The cooldown state prevents
+accidental clicks after panning ends. All existing guards work automatically.
+
+---
+
+## What Stays Unchanged
+
+### Tool layer (0 changes)
+
+| File | Why no change needed |
 |---|---|
-| `composables/editor/useEditorStateMachine.ts` | **New** — state machine definition |
-| `composables/editor/useEditorEventHandlers.ts` | Replace compound guards with `state.mode` checks |
-| `composables/editor/useEditorMove.ts` | Remove `isDragging`, delegate to state machine |
-| `composables/editor/useEditorRotation.ts` | Remove `isRotating`, delegate to state machine |
-| `composables/editor/useEditorScale.ts` | Remove `isScaling`, delegate to state machine |
-| `composables/editor/useEditorMarquee.ts` | Remove `isMarqueeSelecting`, delegate to state machine |
-| `composables/editor/useEditorDragState.ts` | Remove entirely (replaced by `cooldown` state) |
-| `composables/editor/useTextEditingState.ts` | Remove `editingId`, delegate to state machine |
-| `stores/annotations.ts` | Remove `isDrawing`, `activeTool` reactivity (move to state machine) |
-| `components/Editor/AnnotationLayer.vue` | Simplify click/deselect guards |
-| `components/Editor/Handles/Transform.vue` | Read from state machine instead of individual composables |
-| `components/Editor/Annotation.vue` | Read interaction state from state machine |
-| `utils/annotations.ts` | `isSelectionMode()` reads from state machine |
+| `useBaseTool.ts` | Owns drawing state (`points`, `isDrawing`). Doesn't know about interactions. |
+| `useCreateBaseTool.ts` | Shared store access, rotation helpers. No interaction awareness. |
+| `useDrawingTool.ts` | Tool lifecycle (`onCreate`, `calculate`). Composes `useBaseTool`. |
+| `useMeasureTool.ts` | Config + overrides. Composes `useDrawingTool`. |
+| `useAreaTool.ts` | Same pattern. |
+| `useCountTool.ts` | Same pattern. |
+| `useFillTool.ts` | Same pattern. |
+| `useTextTool.ts` | Same pattern. |
+| `useLineTool.ts` | Same pattern. |
+| `usePerimeterTool.ts` | Same pattern. |
+| `useToolRegistry.ts` | Registration system. No interaction awareness. |
+
+### Selection & bounds (0 changes)
+
+| File | Why no change needed |
+|---|---|
+| `useEditorSelection.ts` | Shape selection logic. Called by interactions, doesn't track mode. |
+| `useEditorBounds.ts` | Frozen bounds pattern. Watches `selectedIds`, not interaction mode. |
+| `useEditorTransformFinalise.ts` | Batches history. Called at end of interactions, mode-agnostic. |
+| `useEditorCoordinates.ts` | SVG coordinate conversion. Pure utility. |
+| `useTextEditingState.ts` | Text inline editing. Tool-specific, not an interaction mode. |
+
+### Stores (0 changes)
+
+| File | Why no change needed |
+|---|---|
+| `annotations.ts` | `activeTool`, `isDrawing`, `selectedAnnotationIds` stay. |
+| `viewport.ts` | Viewport state. No interaction awareness. |
+| `history.ts` | Undo/redo. Mode-agnostic. |
+
+---
+
+## Files Changed
+
+| File | Change | Size |
+|---|---|---|
+| `composables/editor/useInteractionMode.ts` | **New** — transition map + mode ref | ~80 lines |
+| `composables/editor/useEditorMove.ts` | Replace `isDragging` ref with `mode` reads | Small |
+| `composables/editor/useEditorRotation.ts` | Replace `isRotating` ref with `mode` reads | Small |
+| `composables/editor/useEditorScale.ts` | Replace `isScaling` ref with `mode` reads | Small |
+| `composables/editor/useEditorMarquee.ts` | Replace `isMarqueeSelecting` + timeout with `mode` reads | Small |
+| `composables/editor/useEditorEventHandlers.ts` | Replace compound guards with `isLocked` / `isInteracting` | Small |
+| `composables/editor/useEditorDragState.ts` | **Delete** | -25 lines |
+| `components/Editor/AnnotationLayer.vue` | Simplify click guards | Small |
+| `components/Editor/Annotation.vue` | Replace `dragState.isDragJustFinished()` with `isLocked` | 1 line |
+| `components/Editor/Handles/Transform.vue` | Read `mode` instead of `move.isDragging` | 1 line |
+
+**Total:** 1 new file (~80 lines), 1 deleted file, 8 files with small edits.
+Zero changes to tool composables, stores, or selection/bounds layer.
+
+---
+
+## Implementation Strategy
+
+Direct cutover — no intermediate shadow mode or phased rollout. The change set
+is small (~80 new lines, 8 small edits, 1 deletion) and fully testable in isolation.
+
+### Steps
+
+1. **Create `useInteractionMode.ts`** with transition map, mode ref, computed helpers,
+   `transition()`, `endInteraction()`, and `shouldSuppressClick`.
+
+2. **Update all 4 interaction composables** in one pass:
+   - `useEditorMarquee` — remove `isMarqueeSelecting` ref + `marqueeJustFinished` timeout
+   - `useEditorMove` — remove `isDragging` ref
+   - `useEditorScale` — remove `isScaling` ref
+   - `useEditorRotation` — remove `isRotating` ref
+   - Each: call `transition()` in start, read `mode` in update, call `endInteraction()` in end
+
+3. **Update `useEditorEventHandlers.ts`** — replace compound guards and
+   `justFinishedInteraction` timeout with `isLocked` / `shouldSuppressClick`.
+
+4. **Update components** — `AnnotationLayer.vue`, `Annotation.vue`, `Transform.vue`
+   replace multi-flag checks with `shouldSuppressClick` / `isLocked`.
+
+5. **Delete `useEditorDragState.ts`** — entirely replaced by cooldown mode.
+
+6. **Run full test suite**, fix any breakage from removed refs/exports.
+
+---
+
+## Testing
+
+### Unit test the transition map directly
+
+```typescript
+describe("useInteractionMode", () => {
+  it("allows idle → selected", () => {
+    const { transition, mode } = useInteractionMode()
+    expect(transition("selected")).toBe(true)
+    expect(mode.value).toBe("selected")
+  })
+
+  it("blocks idle → dragging (must be selected first)", () => {
+    const { transition, mode } = useInteractionMode()
+    expect(transition("dragging")).toBe(false)
+    expect(mode.value).toBe("idle")
+  })
+
+  it("blocks dragging → rotating (only one interaction at a time)", () => {
+    const { transition, mode } = useInteractionMode()
+    transition("selected")
+    transition("dragging")
+    expect(transition("rotating")).toBe(false)
+    expect(mode.value).toBe("dragging")
+  })
+
+  it("cooldown auto-transitions after timeout", async () => {
+    const { transition, endInteraction, mode } = useInteractionMode()
+    transition("selected")
+    transition("dragging")
+    endInteraction("selected")
+    expect(mode.value).toBe("cooldown")
+    await vi.advanceTimersByTimeAsync(100)
+    expect(mode.value).toBe("selected")
+  })
+
+  it("isLocked is true during interaction and cooldown", () => {
+    const { transition, isLocked } = useInteractionMode()
+    transition("selected")
+    expect(isLocked.value).toBe(false)
+    transition("dragging")
+    expect(isLocked.value).toBe(true)
+  })
+})
+```
+
+These tests are pure — no DOM, no SVG, no stores. They validate the transition
+rules in isolation.
+
+### Existing tests continue to work
+
+The interaction composables (`useEditorMove`, etc.) keep their existing APIs.
+Tests that call `startDrag()` / `updateDrag()` / `endDrag()` continue working
+because those functions still exist — they just delegate mode tracking internally.
 
 ---
 
@@ -382,8 +581,6 @@ Replace `justFinished*` timeout flags with a proper `cooldown` state that auto-t
 
 | Risk | Mitigation |
 |---|---|
-| Large refactor surface | Incremental migration via shadow mode (Phase 1) |
-| Breaking existing interactions | Phase 1 is read-only — no behavior changes |
-| Performance (reactive state object) | Single `shallowRef<EditorState>` — cheaper than 11 separate refs |
-| Testing | State machine is pure functions — unit test transitions in isolation |
-| Frozen bounds / selection rotation complexity | Keep these as separate concerns outside the mode state machine — they're persistent UI state, not interaction mode |
+| Interaction data still scattered across composables | Intentional — each composable owns its own data. Mode coordination is the only shared concern. |
+| Cooldown duration hardcoded to 100ms | Single constant in `useInteractionMode`. Easy to tune. Current system has 3 different durations. |
+| `useTransformBase.ts` has its own parallel `isDragging` | `useTransformBase` is used by Transform.vue handles component and has its own isolated lifecycle. It delegates to the 4 composables via callbacks (`onMove`, `onResize`, `onRotate`). It should read from `useInteractionMode` in a follow-up, but it's not blocking. |

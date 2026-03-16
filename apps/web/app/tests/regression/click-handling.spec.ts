@@ -2,7 +2,7 @@
  * Regression Tests: Click Handling
  *
  * Tests for bugs fixed in click/double-click handling:
- * - Click prevention after drag (useEditorDragState)
+ * - Click prevention after interaction (useInteractionMode cooldown)
  * - Double-click debouncing to prevent interference with single-click
  * - Click outside to deselect
  * - Click timing and event ordering
@@ -23,42 +23,46 @@ describe("Regression: Click Handling", () => {
     vi.useRealTimers()
   })
 
-  describe("Bug Fix: Click Prevention After Drag", () => {
-    it("should prevent click handler from firing immediately after drag ends", () => {
-      const dragState = useEditorDragState()
+  describe("Bug Fix: Click Prevention After Interaction", () => {
+    it("should prevent click handler from firing immediately after interaction ends", () => {
+      const interactionMode = useInteractionMode()
 
-      // GIVEN: Drag just finished
-      dragState.markDragEnd()
+      // GIVEN: Transition to selected → dragging → cooldown
+      interactionMode.transition("selected")
+      interactionMode.transition("dragging")
+      interactionMode.endInteraction("selected")
 
-      // WHEN: Checking if drag just finished
-      // THEN: Should return true within the prevention window (100ms)
-      expect(dragState.isDragJustFinished()).toBe(true)
+      // WHEN: Checking if locked (interaction just finished → cooldown)
+      // THEN: Should be locked within the prevention window (100ms)
+      expect(interactionMode.isLocked.value).toBe(true)
+      expect(interactionMode.mode.value).toBe("cooldown")
 
       // WHEN: Time passes beyond prevention window
-      vi.advanceTimersByTime(150)
+      vi.advanceTimersByTime(100)
 
-      // THEN: Should return false
-      expect(dragState.isDragJustFinished()).toBe(false)
+      // THEN: Should return to selected and no longer be locked
+      expect(interactionMode.isLocked.value).toBe(false)
+      expect(interactionMode.mode.value).toBe("selected")
     })
 
-    it("should use shared drag state across components", () => {
-      // GIVEN: Two instances of useEditorDragState
-      const dragState1 = useEditorDragState()
-      const dragState2 = useEditorDragState()
+    it("should use shared interaction mode across components", () => {
+      // GIVEN: Two instances of useInteractionMode
+      const mode1 = useInteractionMode()
+      const mode2 = useInteractionMode()
 
       // THEN: They should be the same instance (singleton)
-      expect(dragState1).toBe(dragState2)
+      expect(mode1).toBe(mode2)
 
-      // WHEN: One marks drag end
-      dragState1.markDragEnd()
+      // WHEN: One transitions
+      mode1.transition("selected")
 
       // THEN: Both see the state
-      expect(dragState2.isDragJustFinished()).toBe(true)
+      expect(mode2.mode.value).toBe("selected")
     })
 
-    it("should prevent selection changes when drag just finished", () => {
+    it("should prevent selection changes when interaction just finished", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useEditorDragState()
+      const interactionMode = useInteractionMode()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -74,20 +78,22 @@ describe("Regression: Click Handling", () => {
         color: "#000"
       })
 
-      // GIVEN: Drag just finished
-      dragState.markDragEnd()
+      // GIVEN: An interaction just finished (in cooldown)
+      interactionMode.transition("selected")
+      interactionMode.transition("dragging")
+      interactionMode.endInteraction("selected")
 
       // WHEN: Click handler checks if it should process
-      const shouldProcess = !dragState.isDragJustFinished()
+      const shouldProcess = !interactionMode.isLocked.value
 
       // THEN: Should not process the click
       expect(shouldProcess).toBe(false)
 
       // WHEN: Time passes
-      vi.advanceTimersByTime(150)
+      vi.advanceTimersByTime(100)
 
       // THEN: Click should now be processed
-      expect(!dragState.isDragJustFinished()).toBe(true)
+      expect(!interactionMode.isLocked.value).toBe(true)
     })
   })
 
@@ -178,7 +184,7 @@ describe("Regression: Click Handling", () => {
   describe("Click Outside to Deselect", () => {
     it("should deselect annotation when clicking outside", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useEditorDragState()
+      const interactionMode = useInteractionMode()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -197,8 +203,8 @@ describe("Regression: Click Handling", () => {
       annotationStore.selectAnnotation("text-1")
       expect(annotationStore.selectedAnnotationIds).toEqual(["text-1"])
 
-      // Simulate clicking outside (not on annotation, not drag just finished, not drawing)
-      const shouldDeselect = !dragState.isDragJustFinished() && !annotationStore.isDrawing
+      // Simulate clicking outside (not locked, not drawing)
+      const shouldDeselect = !interactionMode.shouldSuppressClick.value
 
       if (shouldDeselect) {
         annotationStore.selectAnnotation(null)
@@ -207,9 +213,9 @@ describe("Regression: Click Handling", () => {
       expect(annotationStore.selectedAnnotationIds).toEqual([])
     })
 
-    it("should not deselect if drag just finished", () => {
+    it("should not deselect if interaction just finished", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useEditorDragState()
+      const interactionMode = useInteractionMode()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -227,11 +233,13 @@ describe("Regression: Click Handling", () => {
 
       annotationStore.selectAnnotation("text-1")
 
-      // Mark drag just finished
-      dragState.markDragEnd()
+      // Mark interaction just finished (in cooldown)
+      interactionMode.transition("selected")
+      interactionMode.transition("dragging")
+      interactionMode.endInteraction("selected")
 
       // Should not deselect
-      const shouldDeselect = !dragState.isDragJustFinished() && !annotationStore.isDrawing
+      const shouldDeselect = !interactionMode.shouldSuppressClick.value
 
       expect(shouldDeselect).toBe(false)
       expect(annotationStore.selectedAnnotationIds).toEqual(["text-1"])
@@ -239,7 +247,7 @@ describe("Regression: Click Handling", () => {
 
     it("should not deselect if currently drawing", () => {
       const annotationStore = useAnnotationStore()
-      const dragState = useEditorDragState()
+      const interactionMode = useInteractionMode()
 
       annotationStore.addAnnotation({
         id: "text-1",
@@ -259,7 +267,7 @@ describe("Regression: Click Handling", () => {
       annotationStore.isDrawing = true
 
       // Should not deselect when drawing
-      const shouldDeselect = !dragState.isDragJustFinished() && !annotationStore.isDrawing
+      const shouldDeselect = !interactionMode.shouldSuppressClick.value
 
       expect(shouldDeselect).toBe(false)
       expect(annotationStore.selectedAnnotationIds).toEqual(["text-1"])
@@ -268,26 +276,28 @@ describe("Regression: Click Handling", () => {
 
   describe("Click Event Ordering", () => {
     it("should handle click → drag → release sequence correctly", () => {
-      const dragState = useEditorDragState()
+      const interactionMode = useInteractionMode()
       const clickHandler = vi.fn()
 
-      // WHEN: Click (mousedown)
-      // ... drag happens ...
-      // AND: Release (mouseup + click event)
-      dragState.markDragEnd()
+      // WHEN: Start drag interaction
+      interactionMode.transition("selected")
+      interactionMode.transition("dragging")
 
-      // THEN: Subsequent click should be ignored
-      if (!dragState.isDragJustFinished()) {
+      // AND: Release (mouseup → endInteraction → cooldown)
+      interactionMode.endInteraction("selected")
+
+      // THEN: Subsequent click should be ignored (locked during cooldown)
+      if (!interactionMode.isLocked.value) {
         clickHandler()
       }
 
       expect(clickHandler).not.toHaveBeenCalled()
 
       // WHEN: Wait past prevention window
-      vi.advanceTimersByTime(150)
+      vi.advanceTimersByTime(100)
 
       // THEN: Clicks are processed again
-      if (!dragState.isDragJustFinished()) {
+      if (!interactionMode.isLocked.value) {
         clickHandler()
       }
 

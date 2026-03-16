@@ -12,16 +12,12 @@ export const useEditorMarquee = createSharedComposable(() => {
   const coordinates = useEditorCoordinates()
   const cursor = useCursor()
   const viewportStore = useViewportStore()
+  const interactionMode = useInteractionMode()
 
   // Marquee state
-  const isMarqueeSelecting = ref(false)
   const marqueeStartPoint = ref<Point | null>(null)
   const marqueeEndPoint = ref<Point | null>(null)
   const marqueeShiftKey = ref(false)
-
-  // Prevent click events from clearing selection immediately after marquee ends
-  const marqueeJustFinished = ref(false)
-  let marqueeFinishedTimeout: ReturnType<typeof setTimeout> | null = null
 
   /**
    * Marquee bounds (computed from start and end points)
@@ -64,7 +60,7 @@ export const useEditorMarquee = createSharedComposable(() => {
     const svgPoint = coordinates.convertToSvgPoint(event, svg)
     if (!svgPoint) return
 
-    isMarqueeSelecting.value = true
+    if (!interactionMode.transition("marquee")) return
     marqueeStartPoint.value = svgPoint
     marqueeEndPoint.value = svgPoint
     marqueeShiftKey.value = event.shiftKey
@@ -83,7 +79,7 @@ export const useEditorMarquee = createSharedComposable(() => {
    * Update marquee as mouse moves
    */
   function updateMarquee(event: EditorInputEvent) {
-    if (!isMarqueeSelecting.value) return
+    if (!interactionMode.isMode("marquee")) return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
     if (!svgPoint) return
@@ -95,7 +91,7 @@ export const useEditorMarquee = createSharedComposable(() => {
    * End marquee selection
    */
   function endMarquee() {
-    if (!isMarqueeSelecting.value || !marqueeBounds.value) return
+    if (!interactionMode.isMode("marquee") || !marqueeBounds.value) return
 
     // Find shapes that intersect with marquee
     const marquee = marqueeBounds.value
@@ -121,23 +117,15 @@ export const useEditorMarquee = createSharedComposable(() => {
     }
 
     // Reset marquee state
-    isMarqueeSelecting.value = false
     marqueeStartPoint.value = null
     marqueeEndPoint.value = null
     marqueeShiftKey.value = false
     cursor.reset()
     coordinates.clearSvgCache()
 
-    // Set "just finished" flag to prevent click from clearing selection
-    // Clear any existing timeout
-    if (marqueeFinishedTimeout) {
-      clearTimeout(marqueeFinishedTimeout)
-    }
-    marqueeJustFinished.value = true
-    marqueeFinishedTimeout = setTimeout(() => {
-      marqueeJustFinished.value = false
-      marqueeFinishedTimeout = null
-    }, 100) // Same delay as dragState uses
+    // Enter cooldown — prevents click from clearing selection
+    const returnTo = intersectingIds.length > 0 ? "selected" as const : "idle" as const
+    interactionMode.endInteraction(returnTo)
 
     // Reset frozen bounds when selection changes
     if (intersectingIds.length > 0) {
@@ -145,22 +133,13 @@ export const useEditorMarquee = createSharedComposable(() => {
     }
   }
 
-  /**
-   * Check if marquee selection just finished (prevents click from clearing selection)
-   */
-  function isMarqueeJustFinished(): boolean {
-    return marqueeJustFinished.value
-  }
-
   return {
     // State
-    isMarqueeSelecting: readonly(isMarqueeSelecting),
     marqueeBounds,
 
     // Methods
     startMarquee,
     updateMarquee,
-    endMarquee,
-    isMarqueeJustFinished
+    endMarquee
   }
 })
