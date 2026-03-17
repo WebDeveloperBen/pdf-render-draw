@@ -7,6 +7,7 @@ import { db } from "./server/utils/drizzle"
 import * as schema from "./shared/db/schema"
 import { ac, roles } from "./shared/auth/access-control"
 import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
+import { useEvent } from "nitropack/runtime"
 import { sendMagicLinkEmail, sendOrganizationInviteEmail } from "./server/utils/email"
 import {
   createAuditHook,
@@ -20,11 +21,27 @@ import {
 export { stripeClient }
 
 export const auth = betterAuth({
+  telemetry: { enabled: false },
   experimental: { joins: true },
   session: {
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60
+    }
+  },
+  advanced: {
+    backgroundTasks: {
+      handler: (promise) => {
+        // Use Cloudflare's waitUntil to defer non-critical work (email sending,
+        // rate limit updates, session cleanup) after the response is sent.
+        // Falls back to fire-and-forget if called outside a request context.
+        try {
+          const event = useEvent()
+          event.context.cloudflare?.context?.waitUntil(promise)
+        } catch {
+          promise.catch(() => { })
+        }
+      }
     }
   },
   hooks: {
