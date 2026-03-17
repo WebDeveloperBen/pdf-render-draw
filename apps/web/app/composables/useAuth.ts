@@ -8,14 +8,19 @@ export function useAuth() {
   /**
    * Redirect after successful authentication.
    * Fetches fresh session to determine the correct destination.
+   * Respects a `redirect` query param if present (set by auth middleware).
    */
   const redirectAfterAuth = async (defaultPath = "/") => {
     const { data: session } = await authClient.getSession()
+    const route = useRoute()
+    const redirectTo = (route.query.redirect as string) || defaultPath
 
     if (session?.user?.isGuest) {
       await navigateTo("/g")
     } else {
-      await navigateTo(defaultPath)
+      // Only allow relative redirects to prevent open redirect attacks
+      const safePath = redirectTo.startsWith("/") ? redirectTo : defaultPath
+      await navigateTo(safePath)
     }
   }
 

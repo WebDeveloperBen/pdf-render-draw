@@ -62,6 +62,11 @@ export default defineNuxtConfig({
         brandColor: "#f97316",
         footerText: "Professional PDF annotation tools"
       },
+      // OAuth providers — set to true when env vars are configured
+      authProviders: {
+        google: !!process.env.GOOGLE_CLIENT_ID,
+        github: !!process.env.GITHUB_CLIENT_ID
+      },
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
       logger: {
         client: {

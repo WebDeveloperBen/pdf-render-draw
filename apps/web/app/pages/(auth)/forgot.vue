@@ -11,6 +11,7 @@ useSeoMeta({
 })
 
 const showSuccess = ref(false)
+const submittedEmail = ref("")
 
 const schema = toTypedSchema(
   z.object({
@@ -37,6 +38,7 @@ const submit = handleSubmit(async (values) => {
       return
     }
 
+    submittedEmail.value = values.email
     showSuccess.value = true
   } catch (error: any) {
     toast.error(error.message || "Failed to send reset instructions")
@@ -46,7 +48,7 @@ const submit = handleSubmit(async (values) => {
 
 <template>
   <div v-if="showSuccess">
-    <AuthSuccessSend />
+    <AuthSuccessSend :email="submittedEmail" type="password-reset" />
   </div>
   <div v-else class="grid min-h-screen lg:grid-cols-2">
     <div class="flex items-center justify-center px-5">

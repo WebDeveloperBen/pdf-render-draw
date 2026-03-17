@@ -73,9 +73,10 @@ const submit = handleSubmit(async (values) => {
             </fieldset>
           </form>
 
-          <UiDivider class="my-6" label="OR" />
-
-          <GoogleAuthButton mode="signin" :disabled="isSubmitting" />
+          <div>
+            <UiDivider class="my-6" label="OR" />
+            <GoogleAuthButton mode="signin" :disabled="isSubmitting" />
+          </div>
 
           <template #fallback>
             <div class="mt-8 grid gap-5">

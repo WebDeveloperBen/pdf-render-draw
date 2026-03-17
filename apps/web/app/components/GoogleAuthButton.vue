@@ -1,20 +1,73 @@
 <script lang="ts" setup>
-withDefaults(
+import { toast } from "vue-sonner"
+
+const props = withDefaults(
   defineProps<{
     mode?: "signin" | "signup"
+    disabled?: boolean
   }>(),
   {
-    mode: "signin"
+    mode: "signin",
+    disabled: false
   }
 )
+
+const config = useRuntimeConfig()
+const providers = computed(() => config.public.authProviders as { google: boolean; github: boolean })
+const hasAnyProvider = computed(() => providers.value.google || providers.value.github)
+
+const isLoading = ref<string | null>(null)
+
+async function signInWith(provider: "google" | "github") {
+  isLoading.value = provider
+  try {
+    await authClient.signIn.social({
+      provider,
+      callbackURL: "/"
+    })
+  } catch (e: any) {
+    toast.error(e.message || `Failed to sign in with ${provider}`)
+    isLoading.value = null
+  }
+}
 </script>
 
 <template>
-  <UiTooltip>
+  <div v-if="hasAnyProvider" class="grid gap-3">
+    <!-- Google -->
+    <UiButton
+      v-if="providers.google"
+      variant="outline"
+      type="button"
+      class="w-full"
+      :disabled="disabled || !!isLoading"
+      @click="signInWith('google')"
+    >
+      <Icon v-if="isLoading === 'google'" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
+      <IconsGoogle v-else class="mr-2 size-5" />
+      {{ mode === "signup" ? "Sign up with Google" : "Continue with Google" }}
+    </UiButton>
+
+    <!-- GitHub -->
+    <UiButton
+      v-if="providers.github"
+      variant="outline"
+      type="button"
+      class="w-full"
+      :disabled="disabled || !!isLoading"
+      @click="signInWith('github')"
+    >
+      <Icon v-if="isLoading === 'github'" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
+      <Icon v-else name="lucide:github" class="mr-2 size-5" />
+      {{ mode === "signup" ? "Sign up with GitHub" : "Continue with GitHub" }}
+    </UiButton>
+  </div>
+
+  <!-- No providers configured — show coming soon -->
+  <UiTooltip v-else>
     <UiTooltipTrigger as-child>
-      <!-- Wrapper span needed because disabled buttons don't receive pointer events -->
       <span class="inline-block w-full">
-        <UiButton variant="outline" type="button" class="w-full pointer-events-none" disabled>
+        <UiButton variant="outline" type="button" class="pointer-events-none w-full" disabled>
           <IconsGoogle class="size-5" />
           <span class="ml-2">{{ mode === "signup" ? "Sign up with Google" : "Continue with Google" }}</span>
         </UiButton>

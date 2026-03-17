@@ -17,7 +17,8 @@ const schema = toTypedSchema(
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
     email: z.email("Please enter a valid email"),
-    password: z.string().min(8, "Password must be at least 8 characters")
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    terms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms and conditions" }) })
   })
 )
 
@@ -27,7 +28,8 @@ const { handleSubmit, isSubmitting } = useForm({
     firstName: "",
     lastName: "",
     email: "",
-    password: ""
+    password: "",
+    terms: false as boolean
   }
 })
 
@@ -69,6 +71,16 @@ const submit = handleSubmit(async (values) => {
               </div>
               <UiVeeInput label="Email" type="email" name="email" placeholder="you@example.com" />
               <UiVeeInput label="Password" type="password" name="password" placeholder="••••••••" />
+              <UiVeeCheckbox name="terms">
+                <template #label>
+                  <span class="text-sm">
+                    I agree to the
+                    <NuxtLink to="/terms" target="_blank" class="text-primary underline-offset-2 hover:underline">Terms of Service</NuxtLink>
+                    and
+                    <NuxtLink to="/privacy" target="_blank" class="text-primary underline-offset-2 hover:underline">Privacy Policy</NuxtLink>
+                  </span>
+                </template>
+              </UiVeeCheckbox>
               <UiButton class="w-full" type="submit">
                 <Icon v-if="isSubmitting" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
                 Create account
@@ -76,9 +88,10 @@ const submit = handleSubmit(async (values) => {
             </fieldset>
           </form>
 
-          <UiDivider class="my-6" label="OR" />
-
-          <GoogleAuthButton mode="signup" :disabled="isSubmitting" />
+          <div>
+            <UiDivider class="my-6" label="OR" />
+            <GoogleAuthButton mode="signup" :disabled="isSubmitting" />
+          </div>
 
           <template #fallback>
             <div class="mt-8 grid gap-5">

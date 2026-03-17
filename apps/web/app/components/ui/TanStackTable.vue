@@ -391,7 +391,7 @@ function toggleColumnVisibility(column: any) {
   }
 }
 
-// eslint-disable-next-line vue/no-dupe-keys
+ 
 const pageSize = computed({
   get() {
     if (props.manualPagination) return props.pageSize.toString()

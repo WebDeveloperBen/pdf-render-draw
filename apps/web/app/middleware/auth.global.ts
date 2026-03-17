@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const authRoutes = ["/login", "/register", "/forgot", "/reset"]
 
   // Public routes that don't require authentication
-  const publicRoutes = [...authRoutes, "/share/"]
+  const publicRoutes = [...authRoutes, "/share/", "/verify-email", "/invite/"]
 
   // Guest routes - require authentication but accessible to guest users
   const guestRoutes = ["/g"]
@@ -35,7 +35,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   // If user is not authenticated and trying to access protected routes, redirect to login
+  // Preserve the intended destination so we can redirect back after auth
   if (!session.value && !isPublicRoute) {
-    return await navigateTo("/login")
+    return await navigateTo({
+      path: "/login",
+      query: { redirect: to.fullPath }
+    })
   }
 })

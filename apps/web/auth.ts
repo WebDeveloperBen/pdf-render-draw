@@ -349,9 +349,13 @@ export const auth = betterAuth({
   },
   emailVerification: {
     async sendVerificationEmail({ user, url }) {
-      await sendVerificationEmail(user.email, url)
+      // Append callbackURL so after verification, users land on our verify-email page
+      const verificationUrl = new URL(url)
+      verificationUrl.searchParams.set("callbackURL", `/verify-email?email=${encodeURIComponent(user.email)}`)
+      await sendVerificationEmail(user.email, verificationUrl.toString())
     },
-    sendOnSignUp: true
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true
   },
   emailAndPassword: {
     enabled: true,
@@ -361,9 +365,14 @@ export const auth = betterAuth({
     }
   },
   socialProviders: {
-    // google: {
-    //   clientId: process.env.GOOGLE_CLIENT_ID as string,
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET as string
-    // }
+    // Providers are auto-enabled when their env vars are set
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? {
+        google: {
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET
+        }
+      }
+      : {}),
   }
 })
