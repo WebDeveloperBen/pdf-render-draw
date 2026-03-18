@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { eq, and } from "drizzle-orm"
-import { auth } from "@auth"
 
 /**
  * Lightweight sync endpoint for navigator.sendBeacon()
@@ -82,15 +81,10 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
+  const { user: authUser, orgId } = await requireActiveOrg(event)
 
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  // Require cloud sync feature access
+  await requireFeatureAccess(event, "cloudSync")
 
   // Validate route params and body
   const { fileId } = await getValidatedRouterParams(event, paramsSchema.parse)
@@ -104,16 +98,8 @@ export default defineEventHandler(async (event) => {
     return null
   }
 
-  // Get active organization
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    setResponseStatus(event, 204)
-    return null
-  }
-
   const db = useDrizzle()
-  const userId = session.user.id
+  const userId = authUser.id
   const serverTime = new Date()
 
   // Check if file exists and user has access
@@ -124,7 +110,7 @@ export default defineEventHandler(async (event) => {
     })
     .from(projectFile)
     .innerJoin(project, eq(projectFile.projectId, project.id))
-    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, activeOrgId)))
+    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, orgId)))
 
   if (!file) {
     setResponseStatus(event, 204)

@@ -1,7 +1,7 @@
 import type Stripe from "stripe"
 import { eq } from "drizzle-orm"
 import { nanoid } from "nanoid"
-import { db } from "../drizzle"
+import { db } from "../../utils/drizzle"
 import * as schema from "@shared/db/schema"
 import { stripeClient } from "@auth"
 import { billingService } from "./billing.service"

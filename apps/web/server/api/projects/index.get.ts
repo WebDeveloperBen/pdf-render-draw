@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { and, desc, asc, eq, like, or, sql, inArray } from "drizzle-orm"
-import { auth } from "@auth"
 
 const querySchema = z.object({
   search: z.string().optional(),
@@ -125,29 +124,10 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { orgId } = await requireActiveOrg(event)
 
   // Validate query params
   const query = await getValidatedQuery(event, querySchema.parse)
-
-  // Get active organization from session
-  // Every user has a home org created on signup, so this should always be set
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organization. Please select an organization."
-    })
-  }
 
   const db = useDrizzle()
 
@@ -155,7 +135,7 @@ export default defineEventHandler(async (event) => {
   const conditions = []
 
   // Filter by active organization - all projects flow through organizations
-  conditions.push(eq(project.organizationId, activeOrgId))
+  conditions.push(eq(project.organizationId, orgId))
 
   // Search filter
   if (query.search) {

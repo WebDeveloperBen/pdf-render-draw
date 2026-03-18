@@ -51,8 +51,6 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  await requirePlatformAdmin(event)
-
   const query = await getValidatedQuery(event, querySchema.parse)
   const { page, limit } = query
   const offset = (page - 1) * limit

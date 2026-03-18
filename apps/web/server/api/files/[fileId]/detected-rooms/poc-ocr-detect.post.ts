@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { and, eq } from "drizzle-orm"
-import { auth } from "@auth"
 
 const paramsSchema = z.object({
   fileId: z.uuid({ message: "Invalid file ID" })
@@ -163,28 +162,17 @@ function polygonCentroid(points: Point[]): Point {
 export default defineEventHandler(async (event) => {
   requireFeature("roomAiDetect")
 
-  const session = await auth.api.getSession({ headers: event.headers })
-  if (!session) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
-  }
+  const { orgId } = await requireActiveOrg(event)
 
   const { fileId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const body = await readValidatedBody(event, bodySchema.parse)
-
-  const activeOrgId = session.session.activeOrganizationId
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organisation. Please select an organisation."
-    })
-  }
 
   const db = useDrizzle()
   const [file] = await db
     .select({ id: projectFile.id })
     .from(projectFile)
     .innerJoin(project, eq(projectFile.projectId, project.id))
-    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, activeOrgId)))
+    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, orgId)))
 
   if (!file) {
     throw createError({ statusCode: 404, statusMessage: "File not found or access denied" })

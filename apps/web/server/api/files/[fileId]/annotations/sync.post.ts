@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { eq, and, isNull, gt, or, inArray } from "drizzle-orm"
-import { auth } from "@auth"
 import { randomUUID } from "crypto"
 import { buildConflictServerVersion, isAnnotationScopedToFile } from "@shared/utils/annotation-sync"
 
@@ -168,32 +167,17 @@ interface SyncConflict {
 }
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
+  const { user: authUser, orgId } = await requireActiveOrg(event)
 
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  // Require cloud sync feature access
+  await requireFeatureAccess(event, "cloudSync")
 
   // Validate route params and body
   const { fileId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const body = await readValidatedBody(event, bodySchema.parse)
 
-  // Get active organization
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organization. Please select an organization."
-    })
-  }
-
   const db = useDrizzle()
-  const userId = session.user.id
+  const userId = authUser.id
   const syncId = randomUUID()
   const serverTime = new Date()
 
@@ -205,7 +189,7 @@ export default defineEventHandler(async (event) => {
     })
     .from(projectFile)
     .innerJoin(project, eq(projectFile.projectId, project.id))
-    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, activeOrgId)))
+    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, orgId)))
 
   if (!file) {
     throw createError({

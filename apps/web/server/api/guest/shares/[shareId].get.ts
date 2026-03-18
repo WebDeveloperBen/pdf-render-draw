@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { eq, and } from "drizzle-orm"
-import { auth } from "@auth"
 
 const paramsSchema = z.object({
   shareId: z.string().uuid({ message: "Invalid share ID" })
@@ -126,15 +125,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Require authenticated session
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser } = await requireAuth(event)
 
   const { shareId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const db = useDrizzle()
@@ -152,7 +143,7 @@ export default defineEventHandler(async (event) => {
       viewCount: projectShareRecipient.viewCount
     })
     .from(projectShareRecipient)
-    .where(and(eq(projectShareRecipient.shareId, shareId), eq(projectShareRecipient.email, session.user.email)))
+    .where(and(eq(projectShareRecipient.shareId, shareId), eq(projectShareRecipient.email, authUser.email)))
 
   if (!recipient) {
     throw createError({
@@ -225,7 +216,7 @@ export default defineEventHandler(async (event) => {
       firstViewedAt: recipient.firstViewedAt ?? now,
       lastViewedAt: now,
       viewCount: recipient.viewCount + 1,
-      userId: session.user.id
+      userId: authUser.id
     })
     .where(eq(projectShareRecipient.id, recipient.id))
 

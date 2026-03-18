@@ -1,4 +1,3 @@
-import { auth } from "@auth"
 import { uploadPdf } from "../../utils/r2"
 
 // OpenAPI metadata for Orval type generation
@@ -54,15 +53,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized - authentication required"
-    })
-  }
+  const { billing } = await requireAuth(event)
 
   // Parse multipart form data
   const form = await readMultipartFormData(event)
@@ -94,8 +85,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Check file size against billing plan limit
-  const billingCtx = await getOrgBillingContext(event)
-  requireFileSizeLimit(billingCtx, pdfFile.data.length)
+  requireFileSizeLimit(billing, pdfFile.data.length)
 
   try {
     // Upload PDF (thumbnail generated client-side)

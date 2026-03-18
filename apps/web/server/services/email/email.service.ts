@@ -1,9 +1,9 @@
 import { Resend } from "resend"
 import { render } from "@vue-email/render"
-import PasswordResetEmail from "~~/server/emails/PasswordResetEmail.vue"
-import VerificationEmail from "~~/server/emails/VerificationEmail.vue"
-import MagicLinkEmail from "~~/server/emails/MagicLinkEmail.vue"
-import OrganizationInviteEmail from "~~/server/emails/OrganizationInviteEmail.vue"
+import PasswordResetEmail from "./PasswordResetEmail.vue"
+import VerificationEmail from "./VerificationEmail.vue"
+import MagicLinkEmail from "./MagicLinkEmail.vue"
+import OrganizationInviteEmail from "./OrganizationInviteEmail.vue"
 
 // Lazy-initialized Resend client
 let resendClient: Resend | null = null

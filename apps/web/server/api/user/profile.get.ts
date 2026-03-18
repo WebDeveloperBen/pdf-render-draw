@@ -1,8 +1,4 @@
 import { eq, and, inArray } from "drizzle-orm"
-import { auth } from "@auth"
-import type { PlanLimits } from "@shared/types/billing"
-import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "@shared/types/billing"
-import { parseFeaturesFromMetadata } from "../../utils/billing/billing.helpers"
 
 // OpenAPI metadata for Orval type generation
 defineRouteMeta({
@@ -68,14 +64,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session?.user?.id) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser, orgId, billing } = await requireAuth(event)
 
   const db = useDrizzle()
 
@@ -98,7 +87,7 @@ export default defineEventHandler(async (event) => {
       updatedAt: user.updatedAt
     })
     .from(user)
-    .where(eq(user.id, session.user.id))
+    .where(eq(user.id, authUser.id))
 
   if (!userProfile) {
     throw createError({
@@ -107,32 +96,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Get the user's active org from the session
-  const activeOrgId = session.session.activeOrganizationId
-
+  // Look up subscription details for the response (billing context already resolved plan/limits)
   let subscriptionData = null
-  let planLimits = FREE_TIER_LIMITS
-  let planFeatures = FREE_TIER_FEATURES
-  let planName = "free"
 
-  if (activeOrgId) {
-    // Find active subscription for this org
+  if (orgId) {
     const orgSub = await db.query.subscription.findFirst({
-      where: and(eq(subscription.referenceId, activeOrgId), inArray(subscription.status, ["active", "trialing"]))
+      where: and(eq(subscription.referenceId, orgId), inArray(subscription.status, ["active", "trialing"]))
     })
 
     if (orgSub) {
-      // Look up the plan details from our local cache
-      const plan = await db.query.stripePlan.findFirst({
-        where: eq(stripePlan.name, orgSub.plan)
-      })
-
-      const metadata = (plan?.metadata ?? {}) as Record<string, string>
-
-      planName = orgSub.plan.toLowerCase()
-      planLimits = plan?.limits ? (plan.limits as PlanLimits) : FREE_TIER_LIMITS
-      planFeatures = parseFeaturesFromMetadata(metadata)
-
       subscriptionData = {
         id: orgSub.id,
         plan: orgSub.plan,
@@ -148,12 +120,12 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...userProfile,
-    activeOrganizationId: activeOrgId,
+    activeOrganizationId: orgId,
     subscription: subscriptionData,
     billing: {
-      plan: planName,
-      limits: planLimits,
-      features: planFeatures
+      plan: billing.planName,
+      limits: billing.limits,
+      features: billing.features
     }
   }
 })

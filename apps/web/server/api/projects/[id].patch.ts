@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { eq } from "drizzle-orm"
-import { auth } from "@auth"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
@@ -143,15 +142,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { orgId } = await requireActiveOrg(event)
 
   // Check permission to update projects
   await requirePermission(event, { project: ["update"] })
@@ -159,16 +150,6 @@ export default defineEventHandler(async (event) => {
   // Validate route params and body
   const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const body = await readValidatedBody(event, bodySchema.parse)
-
-  // Get active organization
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organization. Please select an organization."
-    })
-  }
 
   const db = useDrizzle()
 
@@ -183,7 +164,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Check access: project must belong to active organization
-  if (existingProject.organizationId !== activeOrgId) {
+  if (existingProject.organizationId !== orgId) {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"

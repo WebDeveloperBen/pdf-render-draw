@@ -97,9 +97,6 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Require platform admin access
-  await requirePlatformAdmin(event)
-
   const query = await getValidatedQuery(event, querySchema.parse)
   const db = useDrizzle()
 

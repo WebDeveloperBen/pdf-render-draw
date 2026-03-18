@@ -61,17 +61,10 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const db = useDrizzle()
 
-  // Get current session
-  const session = await auth.api.getSession({ headers: event.headers })
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser } = await requireAuth(event)
 
   // Must be a guest user
-  if (!session.user.isGuest) {
+  if (!authUser.isGuest) {
     throw createError({
       statusCode: 400,
       statusMessage: "Only guest users can upgrade"
@@ -101,16 +94,16 @@ export default defineEventHandler(async (event) => {
       isGuest: false,
       guestOrganizationId: null
     })
-    .where(eq(user.id, session.user.id))
+    .where(eq(user.id, authUser.id))
 
   // Create their home organization
-  const orgSlug = `${session.user.email.split("@")[0]}-${session.user.id.slice(0, 8)}`
+  const orgSlug = `${authUser.email.split("@")[0]}-${authUser.id.slice(0, 8)}`
 
   await auth.api.createOrganization({
     body: {
       name: `${firstName}'s Organization`,
       slug: orgSlug,
-      userId: session.user.id
+      userId: authUser.id
     }
   })
 

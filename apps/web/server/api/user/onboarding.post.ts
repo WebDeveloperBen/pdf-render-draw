@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm"
-import { auth } from "@auth"
 
 // OpenAPI metadata for Orval type generation
 defineRouteMeta({
@@ -29,15 +28,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser } = await requireAuth(event)
 
   const body = await readBody(event)
   const db = useDrizzle()
@@ -53,12 +44,12 @@ export default defineEventHandler(async (event) => {
       // For now, we'll just acknowledge the completion
       updatedAt: new Date()
     })
-    .where(eq(user.id, session.user.id))
+    .where(eq(user.id, authUser.id))
 
   // Log the onboarding data for analytics/CRM
   console.log("User completed onboarding:", {
-    userId: session.user.id,
-    email: session.user.email,
+    userId: authUser.id,
+    email: authUser.email,
     ...body
   })
 

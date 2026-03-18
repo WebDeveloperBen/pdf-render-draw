@@ -170,15 +170,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser, orgId } = await requireActiveOrg(event)
 
   // Require at least starter plan for sharing
   await requirePlan(event, "starter")
@@ -189,16 +181,6 @@ export default defineEventHandler(async (event) => {
   // Validate route params and body
   const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const body = await readValidatedBody(event, bodySchema.parse)
-
-  // Get active organization
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organization. Please select an organization."
-    })
-  }
 
   const db = useDrizzle()
 
@@ -213,7 +195,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Check access: project must belong to active organization
-  if (projectData.organizationId !== activeOrgId) {
+  if (projectData.organizationId !== orgId) {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"
@@ -239,7 +221,7 @@ export default defineEventHandler(async (event) => {
       id: shareId,
       projectId,
       token,
-      createdBy: session.user.id,
+      createdBy: authUser.id,
       name: body.name ?? null,
       shareType: body.shareType,
       message: body.message ?? null,

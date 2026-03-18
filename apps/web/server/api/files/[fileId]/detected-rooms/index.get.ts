@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { and, asc, eq } from "drizzle-orm"
-import { auth } from "@auth"
 
 const paramsSchema = z.object({
   fileId: z.uuid({ message: "Invalid file ID" })
@@ -15,24 +14,10 @@ const querySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const session = await auth.api.getSession({ headers: event.headers })
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { orgId } = await requireActiveOrg(event)
 
   const { fileId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const { pageNum, includeHidden } = await getValidatedQuery(event, querySchema.parse)
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organization. Please select an organization."
-    })
-  }
 
   const db = useDrizzle()
 
@@ -42,7 +27,7 @@ export default defineEventHandler(async (event) => {
     })
     .from(projectFile)
     .innerJoin(project, eq(projectFile.projectId, project.id))
-    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, activeOrgId)))
+    .where(and(eq(projectFile.id, fileId), eq(project.organizationId, orgId)))
 
   if (!file) {
     throw createError({

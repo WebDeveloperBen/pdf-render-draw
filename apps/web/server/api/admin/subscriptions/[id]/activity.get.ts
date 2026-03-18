@@ -54,8 +54,6 @@ const querySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  await requirePlatformAdmin(event)
-
   const { id } = await getValidatedRouterParams(event, paramsSchema.parse)
   const query = await getValidatedQuery(event, querySchema.parse)
 

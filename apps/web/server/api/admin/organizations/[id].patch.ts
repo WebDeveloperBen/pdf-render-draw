@@ -107,9 +107,6 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Require platform admin access
-  await requirePlatformAdmin(event)
-
   const { id: orgId } = await getValidatedRouterParams(event, paramsSchema.parse)
   const body = await readValidatedBody(event, bodySchema.parse)
 

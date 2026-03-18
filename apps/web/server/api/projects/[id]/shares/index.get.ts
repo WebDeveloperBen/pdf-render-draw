@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { eq, inArray } from "drizzle-orm"
-import { auth } from "@auth"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
@@ -108,28 +107,10 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser, orgId } = await requireActiveOrg(event)
 
   // Validate route params
   const { id: projectId } = await getValidatedRouterParams(event, paramsSchema.parse)
-
-  // Get active organization
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organization. Please select an organization."
-    })
-  }
 
   const db = useDrizzle()
 
@@ -144,7 +125,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Check access: project must belong to active organization
-  if (projectData.organizationId !== activeOrgId) {
+  if (projectData.organizationId !== orgId) {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied"
@@ -152,7 +133,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Only creator can view shares
-  if (projectData.createdBy !== session.user.id) {
+  if (projectData.createdBy !== authUser.id) {
     throw createError({
       statusCode: 403,
       statusMessage: "Access denied. Only project creator can view shares."

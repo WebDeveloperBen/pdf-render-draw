@@ -56,9 +56,6 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Require platform admin access
-  await requirePlatformAdmin(event)
-
   const db = useDrizzle()
 
   // Get counts from various tables

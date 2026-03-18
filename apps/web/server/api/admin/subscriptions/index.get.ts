@@ -38,7 +38,7 @@ defineRouteMeta({
                       organizationLogo: { type: "string", nullable: true },
                       stripeCustomerId: { type: "string", nullable: true },
                       plan: { type: "string" },
-                      planTier: { type: "string", enum: ["freemium", "pro", "team", "enterprise"] },
+                      planTier: { type: "string", enum: ["free", "starter", "professional", "team", "enterprise"] },
                       status: { type: "string" },
                       periodStart: { type: "string", nullable: true },
                       periodEnd: { type: "string", nullable: true },
@@ -89,8 +89,6 @@ const querySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  await requirePlatformAdmin(event)
-
   const query = await getValidatedQuery(event, querySchema.parse)
 
   return billingService.listSubscriptions({

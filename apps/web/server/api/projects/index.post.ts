@@ -1,7 +1,6 @@
 import { z } from "zod"
 import { randomUUID } from "crypto"
 import { eq } from "drizzle-orm"
-import { auth } from "@auth"
 
 const bodySchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters"),
@@ -174,31 +173,13 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Check authentication
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser, orgId } = await requireActiveOrg(event)
 
   // Validate body
   const body = await readValidatedBody(event, bodySchema.parse)
 
   // Check project quota before creating
   await requireProjectQuota(event)
-
-  // Get active organization - all projects belong to an organization
-  const activeOrgId = session.session.activeOrganizationId
-
-  if (!activeOrgId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No active organization. Please select an organization."
-    })
-  }
 
   const db = useDrizzle()
 
@@ -223,8 +204,8 @@ export default defineEventHandler(async (event) => {
     tags: body.tags,
     notes: body.notes ?? null,
     annotationCount: 0,
-    createdBy: session.user.id,
-    organizationId: activeOrgId,
+    createdBy: authUser.id,
+    organizationId: orgId,
     lastViewedAt: null
   })
 
@@ -237,7 +218,7 @@ export default defineEventHandler(async (event) => {
     pdfFileSize: body.pdfFileSize,
     pageCount: body.pageCount,
     annotationCount: 0,
-    uploadedBy: session.user.id,
+    uploadedBy: authUser.id,
     lastViewedAt: null
   })
 

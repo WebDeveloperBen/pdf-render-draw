@@ -177,7 +177,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     preset: process.env.NITRO_PRESET || "cloudflare-module",
-    imports: { dirs: ["./shared/db/schema/"] },
+    imports: { dirs: ["./shared/db/schema/", "./server/services/"] },
     rollupConfig: {
       plugins: [vue()]
     },

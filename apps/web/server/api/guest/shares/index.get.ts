@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm"
-import { auth } from "@auth"
 
 // OpenAPI metadata for Orval type generation
 defineRouteMeta({
@@ -83,15 +82,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  // Require authenticated session
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser } = await requireAuth(event)
 
   const db = useDrizzle()
 
@@ -141,7 +132,7 @@ export default defineEventHandler(async (event) => {
     .innerJoin(project, eq(projectShare.projectId, project.id))
     .leftJoin(user, eq(projectShare.createdBy, user.id))
     .leftJoin(organization, eq(project.organizationId, organization.id))
-    .where(eq(projectShareRecipient.email, session.user.email))
+    .where(eq(projectShareRecipient.email, authUser.email))
 
   // Filter out expired shares
   const now = new Date()

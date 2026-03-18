@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { eq } from "drizzle-orm"
-import { auth } from "@auth"
 
 const bodySchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name must be at most 100 characters").optional(),
@@ -81,14 +80,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  const session = await auth.api.getSession({ headers: event.headers })
-
-  if (!session?.user?.id) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized"
-    })
-  }
+  const { user: authUser } = await requireAuth(event)
 
   const body = await readValidatedBody(event, bodySchema.parse)
 
@@ -105,7 +97,7 @@ export default defineEventHandler(async (event) => {
   if (body.image !== undefined) updateData.image = body.image
 
   // Update user profile
-  await db.update(user).set(updateData).where(eq(user.id, session.user.id))
+  await db.update(user).set(updateData).where(eq(user.id, authUser.id))
 
   // Fetch and return updated profile
   const [updatedProfile] = await db
@@ -127,7 +119,7 @@ export default defineEventHandler(async (event) => {
       updatedAt: user.updatedAt
     })
     .from(user)
-    .where(eq(user.id, session.user.id))
+    .where(eq(user.id, authUser.id))
 
   return updatedProfile
 })

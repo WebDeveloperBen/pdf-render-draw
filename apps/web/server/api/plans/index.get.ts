@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm"
-import { parseFeaturesFromMetadata } from "../../utils/billing/billing.helpers"
+import { parseFeaturesFromMetadata } from "../../services/billing/billing.helpers"
 
 defineRouteMeta({
   openAPI: {

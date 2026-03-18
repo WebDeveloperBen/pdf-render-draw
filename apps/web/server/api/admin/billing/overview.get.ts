@@ -37,7 +37,5 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  await requirePlatformAdmin(event)
-
   return billingService.getOverview()
 })

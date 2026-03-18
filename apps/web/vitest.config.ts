@@ -27,6 +27,15 @@ export default defineConfig({
           globals: true,
           setupFiles: ["./test/setup.ts"]
         }
+      }),
+      await defineVitestProject({
+        test: {
+          name: "server",
+          include: ["server/**/*.spec.ts"],
+          exclude: ["node_modules/**"],
+          environment: "nuxt",
+          globals: true
+        }
       })
     ]
   }

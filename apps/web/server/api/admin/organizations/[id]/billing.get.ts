@@ -27,7 +27,7 @@ defineRouteMeta({
                   },
                   required: ["id", "plan", "status"]
                 },
-                planTier: { type: "string", enum: ["freemium", "pro", "team", "enterprise"] },
+                planTier: { type: "string", enum: ["free", "starter", "professional", "team", "enterprise"] },
                 billingHealth: { type: "string", enum: ["healthy", "at_risk", "action_needed", "inactive"] }
               },
               required: ["hasSubscription", "planTier", "billingHealth"]
@@ -45,8 +45,6 @@ const paramsSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  await requirePlatformAdmin(event)
-
   const { id } = await getValidatedRouterParams(event, paramsSchema.parse)
 
   return billingService.getOrganizationBilling(id)

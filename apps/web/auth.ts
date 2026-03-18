@@ -8,7 +8,7 @@ import * as schema from "./shared/db/schema"
 import { ac, roles } from "./shared/auth/access-control"
 import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
 import { useEvent } from "nitropack/runtime"
-import { sendMagicLinkEmail, sendOrganizationInviteEmail } from "./server/utils/email"
+import { sendMagicLinkEmail, sendOrganizationInviteEmail } from "./server/services/email/email.service"
 import {
   createAuditHook,
   stripeClient,

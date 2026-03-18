@@ -1,9 +1,9 @@
 import { eq } from "drizzle-orm"
-import { db } from "../drizzle"
+import { db } from "../../utils/drizzle"
 import * as schema from "@shared/db/schema"
 import { stripeClient } from "@auth"
 import { billingService } from "./billing.service"
-import { logAdminAction } from "../audit"
+import { logAdminAction } from "../../utils/audit"
 
 export const billingActionsService = {
   /**

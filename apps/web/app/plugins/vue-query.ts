@@ -1,6 +1,7 @@
 import type { DehydratedState, VueQueryPluginOptions } from "@tanstack/vue-query"
 import { VueQueryPlugin, QueryClient, hydrate, dehydrate } from "@tanstack/vue-query"
 import { defineNuxtPlugin, useState } from "#imports"
+import { toast } from "vue-sonner"
 
 export default defineNuxtPlugin((nuxt) => {
   const vueQueryState = useState<DehydratedState | null>("vue-query")
@@ -72,6 +73,18 @@ export default defineNuxtPlugin((nuxt) => {
           if (error?.status === 401) {
             console.error("[Authentication Error]: Please investigate", error)
             // await handle401Error(queryClient)
+          }
+          // Show upgrade toast for billing/feature limit errors
+          if (error?.status === 403 || error?.status === 413) {
+            const message = error?.statusMessage || error?.message || ""
+            if (message.includes("upgrade") || message.includes("plan") || message.includes("limit")) {
+              toast.error(message, {
+                action: {
+                  label: "View Plans",
+                  onClick: () => navigateTo("/pricing")
+                }
+              })
+            }
           }
         }
       }
