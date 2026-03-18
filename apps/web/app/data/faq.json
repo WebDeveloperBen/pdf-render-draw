@@ -1,0 +1,271 @@
+{
+  "categories": [
+    {
+      "name": "Getting Started",
+      "slug": "getting-started",
+      "description": "Set up your first project and learn the basics",
+      "icon": "rocket"
+    },
+    {
+      "name": "Measurements & Scale",
+      "slug": "measurements-and-scale",
+      "description": "Calibrate plans and take accurate measurements",
+      "icon": "ruler"
+    },
+    {
+      "name": "Annotations & Tools",
+      "slug": "annotations-and-tools",
+      "description": "Draw, label, count, and customise your annotations",
+      "icon": "pen-tool"
+    },
+    {
+      "name": "Projects & Files",
+      "slug": "projects-and-files",
+      "description": "Manage projects, export plans, and organise files",
+      "icon": "folder-open"
+    },
+    {
+      "name": "Account & Billing",
+      "slug": "account-and-billing",
+      "description": "Subscriptions, payments, and account settings",
+      "icon": "credit-card"
+    }
+  ],
+  "items": [
+    {
+      "category": "getting-started",
+      "question": "How do I create my first project?",
+      "answer": "Click \"Create a new Project\" on the dashboard, give it a name and client reference, then upload your PDF plan file. You'll be able to select which pages to include before the project is created."
+    },
+    {
+      "category": "getting-started",
+      "question": "What file formats are supported?",
+      "answer": "MetreMate supports PDF, JPEG, and PNG files. PDFs are recommended for best quality. Image files are automatically converted to PDF format when uploaded. Maximum file size is 25MB."
+    },
+    {
+      "category": "getting-started",
+      "question": "How do I navigate around a plan?",
+      "answer": "Use the scroll wheel to zoom in and out. Click and hold the middle mouse button (scroll wheel) to pan around the plan. You can also use the mini navigator in the bottom-right corner to jump to different areas of the page."
+    },
+    {
+      "category": "getting-started",
+      "question": "Can I work on multi-page documents?",
+      "answer": "Yes. When you upload a PDF with multiple pages, you can select which pages to include. Use the page thumbnails sidebar on the left to switch between pages. Each page maintains its own scale, annotations, and rotation."
+    },
+    {
+      "category": "getting-started",
+      "question": "What browsers does MetreMate support?",
+      "answer": "MetreMate works best on modern Chromium-based browsers (Google Chrome, Microsoft Edge, Brave) and Safari. Firefox is also supported. We recommend keeping your browser up to date for the best experience."
+    },
+    {
+      "category": "getting-started",
+      "question": "Can I use MetreMate on a tablet or phone?",
+      "answer": "MetreMate is optimised for desktop and laptop screens where you have a mouse and keyboard for precise annotation work. The interface is responsive and will display on tablets, but the full annotation toolset works best with a mouse."
+    },
+    {
+      "category": "getting-started",
+      "question": "Do I need to install anything?",
+      "answer": "No. MetreMate is a fully web-based application. Just log in from any supported browser and you're ready to go. There's nothing to download or install."
+    },
+    {
+      "category": "getting-started",
+      "question": "How do I switch between pages in a document?",
+      "answer": "Click the page sidebar toggle on the left side of the editor to open the thumbnail panel. Click any thumbnail to jump to that page. Each page keeps its own annotations and scale independently."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "How do I set the scale on my plan?",
+      "answer": "Click the scale/ratio tool in the toolbar. You can either enter a known scale (e.g. 1:100) manually, or draw a reference line on the plan and enter its real-world length to calibrate. MetreMate will also attempt to auto-detect the scale from text on the plan."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "Can I set different scales on different pages?",
+      "answer": "Yes. Each page has its own independent scale. When setting a scale, you also have the option to apply it to all pages at once if they share the same scale."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "How do I measure a distance?",
+      "answer": "Select the Measure tool from the toolbar, then click point-to-point on the plan. The distance is calculated automatically based on the page scale. You can create multi-segment measurements by clicking multiple points."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "How do I measure an area?",
+      "answer": "Select the Area tool, then click to place vertices around the region you want to measure. Close the shape by clicking near the starting point. The area is calculated in square metres based on the page scale."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "What units are supported?",
+      "answer": "MetreMate supports millimetres (mm), centimetres (cm), and metres (m) for linear measurements. Areas are displayed in square metres (m\u00b2). You can change the display unit in the settings menu."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "Why are my measurements showing as 0 or incorrect?",
+      "answer": "This usually means the scale hasn't been set for the current page. Set the scale using the scale tool before taking measurements. If the scale is set but values seem wrong, try recalibrating with a known dimension on the plan."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "What does the auto-detected scale mean?",
+      "answer": "When you open the scale dialog, MetreMate scans the PDF text for common scale notations like '1:100' or 'SCALE 1:200'. If found, they appear as suggestion buttons you can click to auto-fill the scale fields. Always verify the detected scale against a known dimension on the plan."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "How do I measure a perimeter?",
+      "answer": "Select the Perimeter tool from the toolbar, then click point-to-point around the boundary you want to measure. Unlike the Area tool, the perimeter calculates the total linear distance around the shape rather than the enclosed area. Close the shape by clicking near the start point."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "Can I measure curved or irregular shapes?",
+      "answer": "MetreMate uses point-to-point straight-line segments. For curved shapes, place more points along the curve to approximate it closely. The more points you use, the more accurate the measurement will be."
+    },
+    {
+      "category": "measurements-and-scale",
+      "question": "How accurate are the measurements?",
+      "answer": "Measurement accuracy depends on the quality of the PDF, the accuracy of the scale calibration, and how precisely you place your points. For best results, calibrate using a known dimension on the plan (like a door width or room length) and use auto-snap to place points precisely on plan lines."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "What annotation tools are available?",
+      "answer": "MetreMate includes: Measure (distance), Area, Perimeter, Line (freeform), Fill (highlight regions), Text labels, and Count (for counting items on a plan). Each tool has customisable options like colour, stroke width, opacity, and font."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "How do I delete an annotation?",
+      "answer": "Select the annotation on the canvas, then press the Delete key. You can also delete annotations from the Layer Manager panel on the right side. Deletions can be undone with Ctrl+Z (or Cmd+Z on Mac)."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "Can I customise how annotations look?",
+      "answer": "Yes. When a tool is active, a tool options bar appears at the top showing customisation options like colour, stroke width, opacity, font family, and label colour. You can also change an annotation's colour from the Layer Manager."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "What is the Layer Manager?",
+      "answer": "The Layer Manager is a panel on the right side that lists all annotations on the current page. You can rename, recolour, show/hide, delete, and select annotations from it. It also shows measurement values next to each layer name."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "Is there an undo/redo feature?",
+      "answer": "Yes. Use Ctrl+Z (Cmd+Z on Mac) to undo and Ctrl+Shift+Z or Ctrl+Y (Cmd+Shift+Z on Mac) to redo. There are also undo/redo buttons in the toolbar. The history supports up to 50 actions."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "What is the auto-snap feature?",
+      "answer": "Auto-snap helps you place points precisely by snapping to nearby edges, corners, and intersections on the plan. You can toggle it on/off in the settings, or temporarily disable it by holding the Ctrl key."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "How does the Count tool work?",
+      "answer": "The Count tool lets you tally items on a plan. Select the Count tool, then click on each item you want to count. Each click places a numbered marker. The total count is tracked in the Layer Manager. This is useful for counting fixtures, outlets, windows, or any repeating element."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "How do I add text labels to my plan?",
+      "answer": "Select the Text tool from the toolbar, then click on the plan where you want the label. A text input will appear where you can type your label. You can customise the font, size, and colour from the tool options bar at the top."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "What is the Fill tool used for?",
+      "answer": "The Fill tool lets you highlight or shade regions on the plan. Draw a closed shape and it will be filled with a semi-transparent colour. This is useful for marking zones, rooms, or areas of work. You can adjust the fill colour, opacity, and border width."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "Can I see live measurements while drawing?",
+      "answer": "Yes. When using the Measure, Area, or Perimeter tools, a live measurement indicator follows your cursor showing the real-time distance or area as you draw. This helps you verify measurements before committing a point."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "How do I select and move an existing annotation?",
+      "answer": "Switch to the Selection tool (pointer icon) in the toolbar, then click on the annotation you want to select. A transform handle will appear allowing you to move or resize it. You can also select annotations by clicking them in the Layer Manager."
+    },
+    {
+      "category": "annotations-and-tools",
+      "question": "Can I hide annotations temporarily without deleting them?",
+      "answer": "Yes. In the Layer Manager, click the eye icon next to any annotation to toggle its visibility. You can also use the 'Show/Hide all' button at the top of the Layer Manager to toggle all annotations at once. Hidden annotations are preserved and can be shown again at any time."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "Are my annotations saved automatically?",
+      "answer": "Yes. MetreMate auto-saves your annotations as you work. Your data is stored securely in the cloud and will be there when you return to the project."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "Can I add more files to an existing project?",
+      "answer": "Yes. Open the project settings page and use the \"Add more plans\" button to upload additional PDF or image files to the project."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "How do I export my annotated plan?",
+      "answer": "Use the Export tool in the toolbar to download your annotated plan. The export includes all visible annotations overlaid on the original PDF."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "Can I rotate a page?",
+      "answer": "Yes. Use the rotate buttons in the toolbar to rotate the current page 90\u00b0 clockwise or counter-clockwise. Rotation is per-page, so other pages in the document are not affected."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "How do I delete a project?",
+      "answer": "On the dashboard, click the trash icon on the project card. You'll be asked to confirm before the project and all its files are permanently deleted. This action cannot be undone."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "Can I rename a project or change the client name?",
+      "answer": "Yes. Click the edit icon on the project card from the dashboard, or open the project settings page. You can update the project name, client name, description, and project image."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "Is there a limit on the number of projects I can create?",
+      "answer": "There is no hard limit on the number of projects. Your subscription plan determines your overall storage and usage allowance. Contact support if you need additional capacity."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "What happens if my PDF is encrypted or password-protected?",
+      "answer": "MetreMate cannot open encrypted or password-protected PDFs. You'll need to remove the password protection before uploading. Most PDF editors (including free online tools) can remove PDF passwords if you have the authorisation to do so."
+    },
+    {
+      "category": "projects-and-files",
+      "question": "Can I select specific pages when uploading a multi-page PDF?",
+      "answer": "Yes. After uploading a PDF, a page picker will appear showing thumbnails of every page. You can select or deselect individual pages, and even rotate them before creating the project. Only selected pages will be included."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "How do I manage my subscription?",
+      "answer": "Go to Settings and click \"Manage Subscription\". This will open the Stripe customer portal where you can update your payment method, view invoices, or cancel your subscription."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "Can I change my profile details?",
+      "answer": "Yes. Navigate to Settings > Profile from the sidebar. You can update your name and profile details at any time."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "How do I contact support?",
+      "answer": "Browse the FAQ section on this page for instant answers, or email us at hi@metremate.com.au. Our team typically responds within 24 hours."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "Is my data secure?",
+      "answer": "Yes. All data is encrypted in transit via HTTPS and stored securely in the cloud with row-level security. Your plans and annotations are only accessible to your account."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "Can I cancel my subscription at any time?",
+      "answer": "Yes. You can cancel your subscription at any time from the Stripe customer portal (accessible via Settings > Manage Subscription). Your access will continue until the end of your current billing period."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "What payment methods are accepted?",
+      "answer": "We accept all major credit and debit cards (Visa, Mastercard, American Express) through our payment provider Stripe. Payments are processed securely and we never store your card details directly."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "How do I reset my password?",
+      "answer": "Click \"Forgot password?\" on the login page and enter your email address. You'll receive a password reset link via email. Follow the link to set a new password. The link expires after a short time for security."
+    },
+    {
+      "category": "account-and-billing",
+      "question": "Can I change the email address on my account?",
+      "answer": "Your account email is tied to your login credentials. To change it, please contact support at hi@metremate.com.au and we'll assist you with the migration."
+    }
+  ]
+}
