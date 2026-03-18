@@ -5,6 +5,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
 import type { AdminUserDetail } from "@shared/types/admin.types"
+import { AlertCircle, AlertTriangle, ArrowLeft, Ban, Building2, CheckCircle, UserCheck, XCircle } from "lucide-vue-next"
 
 definePageMeta({
   layout: "admin",
@@ -168,7 +169,7 @@ onUnmounted(() => {
   <div class="space-y-6">
     <!-- Back button -->
     <UiButton variant="ghost" size="sm" @click="navigateTo('/admin/users')">
-      <Icon name="lucide:arrow-left" class="size-4 mr-2" />
+      <ArrowLeft class="size-4 mr-2" />
       Back to Users
     </UiButton>
 
@@ -185,7 +186,7 @@ onUnmounted(() => {
 
     <!-- Error state -->
     <UiAlert v-else-if="error" variant="destructive">
-      <Icon name="lucide:alert-circle" class="size-4" />
+      <AlertCircle class="size-4" />
       <UiAlertTitle>Error</UiAlertTitle>
       <UiAlertDescription>{{ error }}</UiAlertDescription>
     </UiAlert>
@@ -213,11 +214,11 @@ onUnmounted(() => {
         <!-- Actions -->
         <div v-if="canBan || canImpersonate" class="flex items-center gap-2">
           <UiButton v-if="canImpersonate && !user.banned" variant="outline" @click="handleImpersonate">
-            <Icon name="lucide:user-check" class="size-4 mr-2" />
+            <UserCheck class="size-4 mr-2" />
             Impersonate
           </UiButton>
           <UiButton v-if="canBan && user.banned" variant="outline" :disabled="isBanning" @click="handleUnban">
-            <Icon name="lucide:user-check" class="size-4 mr-2" />
+            <UserCheck class="size-4 mr-2" />
             Unban
           </UiButton>
           <UiButton
@@ -226,7 +227,7 @@ onUnmounted(() => {
             :disabled="isBanning"
             @click="showBanDialog = true"
           >
-            <Icon name="lucide:ban" class="size-4 mr-2" />
+            <Ban class="size-4 mr-2" />
             Ban User
           </UiButton>
         </div>
@@ -234,7 +235,7 @@ onUnmounted(() => {
 
       <!-- Ban info -->
       <UiAlert v-if="user.banned && user.banReason" variant="destructive">
-        <Icon name="lucide:alert-triangle" class="size-4" />
+        <AlertTriangle class="size-4" />
         <UiAlertTitle>User is Banned</UiAlertTitle>
         <UiAlertDescription>
           <p>Reason: {{ user.banReason }}</p>
@@ -274,10 +275,9 @@ onUnmounted(() => {
           </UiCardHeader>
           <UiCardContent>
             <div class="flex items-center gap-2">
-              <Icon
-                :name="user.emailVerified ? 'lucide:check-circle' : 'lucide:x-circle'"
-                :class="user.emailVerified ? 'text-green-500' : 'text-red-500'"
-                class="size-6"
+              <component
+                :is="user.emailVerified ? CheckCircle : XCircle"
+                :class="[user.emailVerified ? 'text-green-500' : 'text-red-500', 'size-6']"
               />
               <span class="text-lg">{{ user.emailVerified ? "Yes" : "No" }}</span>
             </div>
@@ -323,7 +323,7 @@ onUnmounted(() => {
           </UiCardHeader>
           <UiCardContent>
             <div v-if="user.memberships.length === 0" class="text-center py-8 text-muted-foreground">
-              <Icon name="lucide:building-2" class="size-12 mx-auto mb-4 opacity-50" />
+              <Building2 class="size-12 mx-auto mb-4 opacity-50" />
               <p>No organization memberships</p>
             </div>
             <div v-else class="space-y-3">
@@ -369,7 +369,7 @@ onUnmounted(() => {
         <UiAlertDialogFooter>
           <UiAlertDialogCancel :disabled="isBanning">Cancel</UiAlertDialogCancel>
           <UiButton variant="destructive" :disabled="isBanning" @click="handleBan">
-            <Icon v-if="isBanning" name="lucide:loader-2" class="size-4 mr-2 animate-spin" />
+            <UiSpinner v-if="isBanning" class="size-4 mr-2" />
             Ban User
           </UiButton>
         </UiAlertDialogFooter>

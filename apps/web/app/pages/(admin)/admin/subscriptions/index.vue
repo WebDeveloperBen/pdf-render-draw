@@ -4,6 +4,7 @@ import { toast } from "vue-sonner"
 import type { ColumnDef } from "@tanstack/vue-table"
 import type { GetApiAdminSubscriptions200, GetApiAdminSubscriptions200SubscriptionsItem, GetApiAdminSubscriptionsParams } from "~/models/api"
 import { useGetApiAdminSubscriptions } from "~/models/api"
+import { CreditCard, Eye, RefreshCw, Search } from "lucide-vue-next"
 
 definePageMeta({
   layout: "admin",
@@ -190,7 +191,7 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
           title: "View subscription details",
           onClick: () => navigateTo(`/admin/subscriptions/${row.original.id}`)
         },
-        () => h(resolveComponent("Icon"), { name: "lucide:eye", class: "size-4" })
+        () => h(Eye, { class: "size-4" })
       )
     }
   }
@@ -207,11 +208,11 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
       </div>
       <div class="flex items-center gap-2">
         <UiButton variant="default" size="sm" :disabled="isSyncing" @click="handleSync">
-          <Icon name="lucide:refresh-cw" :class="['size-4 mr-2', { 'animate-spin': isSyncing }]" />
+          <RefreshCw :class="['size-4 mr-2', { 'animate-spin': isSyncing }]" />
           Sync from Stripe
         </UiButton>
         <UiButton variant="outline" size="sm" @click="refetch()">
-          <Icon name="lucide:refresh-cw" class="size-4 mr-2" />
+          <RefreshCw class="size-4 mr-2" />
           Refresh
         </UiButton>
       </div>
@@ -220,7 +221,7 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
     <!-- Search and Filters -->
     <div class="flex items-center gap-4 flex-wrap">
       <div class="relative flex-1 min-w-[240px] max-w-sm">
-        <Icon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <UiInput v-model="search" placeholder="Search orgs, emails, Stripe IDs..." class="pl-9" />
       </div>
       <select
@@ -277,7 +278,7 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
       >
         <template #empty>
           <div class="flex flex-col items-center py-8 text-muted-foreground">
-            <Icon name="lucide:credit-card" class="size-12 mb-4 opacity-50" />
+            <CreditCard class="size-12 mb-4 opacity-50" />
             <p>No subscriptions found</p>
             <p v-if="search || statusFilter || planFilter" class="text-sm mt-1">Try adjusting your filters</p>
           </div>

@@ -1,26 +1,29 @@
 <script setup lang="ts">
+import { ChevronRight, Key, Pencil, Shield, Trash, User } from "lucide-vue-next"
+import type { Component } from "vue"
+
 const session = authClient.useSession()
 const user = computed(() => session.value?.data?.user)
 
 useSeoMeta({ title: "Settings" })
 
-const settingsSections = [
+const settingsSections: Array<{ title: string; description: string; icon: Component; link: string }> = [
   {
     title: "Profile",
     description: "Manage your personal information and preferences",
-    icon: "lucide:user",
+    icon: User,
     link: "/settings/profile"
   },
   {
     title: "Security",
     description: "Password, sessions, and account security",
-    icon: "lucide:shield",
+    icon: Shield,
     link: "/settings/security"
   },
   {
     title: "API Keys",
     description: "Manage your personal API keys for integrations",
-    icon: "lucide:key",
+    icon: Key,
     link: "/settings/api-keys"
   }
 ]
@@ -52,7 +55,7 @@ const settingsSections = [
       </UiCardHeader>
       <UiCardFooter>
         <UiButton variant="outline" to="/settings/profile">
-          <Icon name="lucide:pencil" class="size-4" />
+          <Pencil class="size-4" />
           Edit Profile
         </UiButton>
       </UiCardFooter>
@@ -69,7 +72,7 @@ const settingsSections = [
         <UiCardHeader>
           <div class="flex items-center gap-3">
             <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-              <Icon :name="section.icon" class="size-5 text-primary" />
+              <component :is="section.icon" class="size-5 text-primary" />
             </div>
             <div>
               <UiCardTitle class="text-base">{{ section.title }}</UiCardTitle>
@@ -78,7 +81,7 @@ const settingsSections = [
           </div>
         </UiCardHeader>
         <UiCardFooter class="pt-0">
-          <Icon name="lucide:chevron-right" class="ml-auto size-4 text-muted-foreground" />
+          <ChevronRight class="ml-auto size-4 text-muted-foreground" />
         </UiCardFooter>
       </UiCard>
     </div>
@@ -91,7 +94,7 @@ const settingsSections = [
       </UiCardHeader>
       <UiCardContent>
         <UiButton variant="destructive" disabled>
-          <Icon name="lucide:trash" class="size-4" />
+          <Trash class="size-4" />
           Delete Account
         </UiButton>
         <p class="mt-2 text-xs text-muted-foreground">

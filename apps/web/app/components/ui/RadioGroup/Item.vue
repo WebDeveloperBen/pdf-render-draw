@@ -9,14 +9,14 @@
 <script lang="ts" setup>
 import { RadioGroupItem } from "reka-ui"
 import type { RadioGroupItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   RadioGroupItemProps & {
     /** Class to apply to the item */
     class?: HTMLAttributes["class"]
     /** Icon to show */
-    icon?: string
+    icon?: Component
   }
 >()
 const forwarded = reactiveOmit(props, "class", "icon")

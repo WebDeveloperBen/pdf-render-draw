@@ -88,7 +88,6 @@ export default defineNuxtConfig({
     "@nuxt/test-utils/module",
     "@nuxtjs/color-mode",
     "motion-v/nuxt",
-    "@nuxt/icon",
     "@nuxt/fonts",
     "reka-ui/nuxt",
     "@yuta-inoue-ph/nuxt-vcalendar",
@@ -160,17 +159,6 @@ export default defineNuxtConfig({
     classSuffix: ""
   },
 
-  icon: {
-    clientBundle: {
-      scan: true,
-      sizeLimitKb: 0
-    },
-
-    mode: "svg",
-    class: "shrink-0",
-    fetchTimeout: 2000,
-    serverBundle: "local"
-  },
 
   app: {
     head: {

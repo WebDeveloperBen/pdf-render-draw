@@ -1,6 +1,6 @@
 <template>
   <div data-slot="command-input-wrapper" class="flex h-9 items-center gap-2 border-b px-3" cmdk-input-wrapper>
-    <Icon name="lucide:search" class="size-4 shrink-0 opacity-50" />
+    <Search class="size-4 shrink-0 opacity-50" />
     <ListboxFilter
       v-bind="{ ...forwardedProps, ...$attrs }"
       v-model="filterState.search"
@@ -13,6 +13,7 @@
 </template>
 
 <script setup lang="ts">
+import { Search } from "lucide-vue-next"
 import { reactiveOmit } from "@vueuse/core"
 import { ListboxFilter, useForwardProps } from "reka-ui"
 import type { ListboxFilterProps } from "reka-ui"

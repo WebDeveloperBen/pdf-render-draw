@@ -1,3 +1,4 @@
+import { Hash } from "lucide-vue-next"
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 import { COUNT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Count.vue"
@@ -93,7 +94,7 @@ const [useCountTool, useCountToolState] = createInjectionState(() => {
   registerTool({
     type: "count",
     name: "Count",
-    icon: "lucide:hash",
+    icon: Hash,
     onClick: tool.handleClick,
     onKeyDown: tool.handleKeyDown
   })

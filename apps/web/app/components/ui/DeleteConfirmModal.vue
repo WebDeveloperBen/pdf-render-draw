@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Trash2, TriangleAlert } from "lucide-vue-next"
+
 interface Props {
   /** Title of the modal */
   title?: string
@@ -61,7 +63,7 @@ watch(isOpen, (open) => {
       <!-- Header with warning icon -->
       <div class="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left gap-4">
         <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-          <Icon name="lucide:triangle-alert" class="size-6 text-destructive" />
+          <TriangleAlert class="size-6 text-destructive" />
         </div>
         <div class="flex-1 space-y-2">
           <UiDialogTitle class="text-lg font-semibold">
@@ -98,8 +100,8 @@ watch(isOpen, (open) => {
       <UiDialogFooter class="mt-6 gap-3 sm:gap-2">
         <UiButton variant="outline" :disabled="isDeleting" @click="handleCancel"> Cancel </UiButton>
         <UiButton variant="destructive" :disabled="!canConfirm || isDeleting" @click="handleConfirm">
-          <Icon v-if="isDeleting" name="svg-spinners:ring-resize" class="size-4 mr-2" />
-          <Icon v-else name="lucide:trash-2" class="size-4 mr-2" />
+          <UiSpinner v-if="isDeleting" class="size-4 mr-2" />
+          <Trash2 v-else class="size-4 mr-2" />
           {{ confirmText }}
         </UiButton>
       </UiDialogFooter>

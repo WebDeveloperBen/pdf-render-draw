@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { AlertTriangle, ArrowLeft, Copy, Info, Key, Plus, Trash } from "lucide-vue-next"
 
 useSeoMeta({ title: "API Keys" })
 
@@ -102,14 +103,14 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center gap-4">
       <UiButton variant="ghost" size="icon" to="/settings">
-        <Icon name="lucide:arrow-left" class="size-4" />
+        <ArrowLeft class="size-4" />
       </UiButton>
       <div class="flex-1">
         <h1 class="text-2xl font-bold tracking-tight">API Keys</h1>
         <p class="text-muted-foreground">Manage your personal API keys for integrations</p>
       </div>
       <UiButton @click="showCreateDialog = true">
-        <Icon name="lucide:plus" class="size-4" />
+        <Plus class="size-4" />
         Create API Key
       </UiButton>
     </div>
@@ -117,7 +118,7 @@ onMounted(() => {
     <!-- Info Card -->
     <UiCard class="bg-muted/50">
       <UiCardContent class="flex items-start gap-3 pt-6">
-        <Icon name="lucide:info" class="size-5 text-muted-foreground mt-0.5" />
+        <Info class="size-5 text-muted-foreground mt-0.5" />
         <div class="text-sm">
           <p class="font-medium">About API Keys</p>
           <p class="text-muted-foreground">
@@ -136,11 +137,11 @@ onMounted(() => {
       </UiCardHeader>
       <UiCardContent>
         <div v-if="isLoading" class="flex items-center justify-center py-8">
-          <Icon name="svg-spinners:ring-resize" class="size-6 text-muted-foreground" />
+          <UiSpinner class="size-6 text-muted-foreground" />
         </div>
 
         <div v-else-if="apiKeys.length === 0" class="text-center py-8 text-muted-foreground">
-          <Icon name="lucide:key" class="size-12 mx-auto mb-2 opacity-50" />
+          <Key class="size-12 mx-auto mb-2 opacity-50" />
           <p>No API keys yet</p>
           <p class="text-sm">Create your first API key to get started</p>
         </div>
@@ -149,7 +150,7 @@ onMounted(() => {
           <div v-for="key in apiKeys" :key="key.id" class="flex items-center justify-between p-4 border rounded-lg">
             <div class="flex items-center gap-3 flex-1 min-w-0">
               <div class="flex size-10 items-center justify-center rounded-lg bg-muted">
-                <Icon name="lucide:key" class="size-5 text-muted-foreground" />
+                <Key class="size-5 text-muted-foreground" />
               </div>
               <div class="flex-1 min-w-0">
                 <p class="font-medium truncate">{{ key.name || "Unnamed Key" }}</p>
@@ -170,8 +171,8 @@ onMounted(() => {
                 :disabled="isDeleting === key.id"
                 @click="handleDeleteKey(key.id)"
               >
-                <Icon v-if="isDeleting === key.id" name="svg-spinners:ring-resize" class="size-4" />
-                <Icon v-else name="lucide:trash" class="size-4" />
+                <UiSpinner v-if="isDeleting === key.id" class="size-4" />
+                <Trash v-else class="size-4" />
               </UiButton>
             </div>
           </div>
@@ -202,13 +203,13 @@ onMounted(() => {
             <div class="flex gap-2">
               <UiInput :model-value="newKeyCreated.key" readonly class="font-mono text-sm" />
               <UiButton variant="outline" size="icon" @click="copyToClipboard(newKeyCreated.key)">
-                <Icon name="lucide:copy" class="size-4" />
+                <Copy class="size-4" />
               </UiButton>
             </div>
           </div>
           <div class="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3">
             <div class="flex items-start gap-2">
-              <Icon name="lucide:alert-triangle" class="size-4 text-amber-500 mt-0.5" />
+              <AlertTriangle class="size-4 text-amber-500 mt-0.5" />
               <p class="text-sm text-amber-700 dark:text-amber-300">
                 This is the only time you'll see this key. Copy it now and store it securely.
               </p>
@@ -235,7 +236,7 @@ onMounted(() => {
           <template v-else>
             <UiButton variant="outline" :disabled="isCreating" @click="closeCreateDialog"> Cancel </UiButton>
             <UiButton :disabled="isCreating || !newKeyName.trim()" @click="handleCreateKey">
-              <Icon v-if="isCreating" name="svg-spinners:ring-resize" class="size-4" />
+              <UiSpinner v-if="isCreating" class="size-4" />
               Create Key
             </UiButton>
           </template>

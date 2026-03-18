@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdminOrganizationDetail } from "@shared/types/admin.types"
+import { AlertCircle, ArrowLeft, Users } from "lucide-vue-next"
 
 definePageMeta({
   layout: "admin",
@@ -62,7 +63,7 @@ onMounted(() => {
   <div class="space-y-6">
     <!-- Back button -->
     <UiButton variant="ghost" size="sm" @click="navigateTo('/admin/organizations')">
-      <Icon name="lucide:arrow-left" class="size-4 mr-2" />
+      <ArrowLeft class="size-4 mr-2" />
       Back to Organizations
     </UiButton>
 
@@ -79,7 +80,7 @@ onMounted(() => {
 
     <!-- Error state -->
     <UiAlert v-else-if="error" variant="destructive">
-      <Icon name="lucide:alert-circle" class="size-4" />
+      <AlertCircle class="size-4" />
       <UiAlertTitle>Error</UiAlertTitle>
       <UiAlertDescription>{{ error }}</UiAlertDescription>
     </UiAlert>
@@ -161,7 +162,7 @@ onMounted(() => {
           </UiCardHeader>
           <UiCardContent>
             <div v-if="org.members.length === 0" class="text-center py-8 text-muted-foreground">
-              <Icon name="lucide:users" class="size-12 mx-auto mb-4 opacity-50" />
+              <Users class="size-12 mx-auto mb-4 opacity-50" />
               <p>No members</p>
             </div>
             <div v-else class="space-y-3 max-h-96 overflow-y-auto">

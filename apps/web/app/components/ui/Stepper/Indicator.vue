@@ -6,8 +6,7 @@
       >
         {{ step }}
       </span>
-      <Icon
-        name="lucide:check"
+      <Check
         class="absolute size-4 scale-0 opacity-0 transition-all group-data-[state=completed]/step:scale-100 group-data-[state=completed]/step:opacity-100"
         aria-hidden="true"
       />
@@ -15,13 +14,14 @@
         v-if="isLoading"
         class="absolute opacity-0 transition-all group-data-[state=active]/step:opacity-100 group-data-[state=active]/step:transition-none"
       >
-        <Icon name="lucide:loader-circle" class="size-3.5 animate-spin" aria-hidden="true" />
+        <LoaderCircle class="size-3.5 animate-spin" aria-hidden="true" />
       </span>
     </slot>
   </StepperIndicator>
 </template>
 
 <script lang="ts" setup>
+import { Check, LoaderCircle } from "lucide-vue-next"
 import { StepperIndicator, useForwardProps } from "reka-ui"
 import type { StepperIndicatorProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"

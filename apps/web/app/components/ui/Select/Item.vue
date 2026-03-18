@@ -12,14 +12,14 @@
 <script lang="ts" setup>
 import { SelectItem } from "reka-ui"
 import type { SelectItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   SelectItemProps & {
     /** Custom class(es) to add to the parent */
     class?: HTMLAttributes["class"]
     /** Icon to show */
-    icon?: string
+    icon?: Component
     /** Text to show */
     text?: string
   }

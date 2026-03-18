@@ -2,8 +2,8 @@
   <MenubarRadioItem data-slot="menubar-radio-item" v-bind="forwarded" :class="styles({ class: props.class })">
     <span class="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
       <UiMenubarItemIndicator>
-        <Icon v-if="icon" :name="icon" class="size-4" />
-        <Icon v-else name="ph:circle-fill" class="size-2" />
+        <component :is="icon" v-if="icon" class="size-4" />
+        <span v-else class="block size-2 rounded-full bg-current" />
       </UiMenubarItemIndicator>
     </span>
     <slot>{{ title }}</slot>
@@ -13,14 +13,14 @@
 <script lang="ts" setup>
 import { MenubarRadioItem, useForwardPropsEmits } from "reka-ui"
 import type { MenubarRadioItemEmits, MenubarRadioItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   MenubarRadioItemProps & {
     /** Custom class(es) to add to the parent */
     class?: HTMLAttributes["class"]
     /** The icon to display */
-    icon?: string
+    icon?: Component
     /** The title of the component */
     title?: string
   }

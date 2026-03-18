@@ -1,3 +1,4 @@
+import { Hexagon } from "lucide-vue-next"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 
 /**
@@ -91,7 +92,7 @@ const [usePerimeterTool, usePerimeterToolState] = createInjectionState(() => {
   registerTool({
     type: "perimeter",
     name: "Perimeter",
-    icon: "lucide:hexagon",
+    icon: Hexagon,
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

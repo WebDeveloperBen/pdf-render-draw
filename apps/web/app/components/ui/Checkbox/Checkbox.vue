@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 import { CheckboxRoot, useForwardPropsEmits } from "reka-ui"
 import type { CheckboxRootEmits, CheckboxRootProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   CheckboxRootProps & {
@@ -23,12 +23,12 @@ const props = defineProps<
      * Icon to display when the checkbox is checked
      * @default lucide:check
      */
-    icon?: string
+    icon?: Component
     /**
      * Icon to display when the checkbox is in indeterminate state
-     * @default lucide:minus
+     * @default Minus
      */
-    indeterminateIcon?: string
+    indeterminateIcon?: Component
   }
 >()
 

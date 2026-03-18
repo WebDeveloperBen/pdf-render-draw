@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { Mail, UserPlus, X } from "lucide-vue-next"
 
 const { activeOrg, isOrgAdmin, workspaceName, hasActiveOrganization, isLoading } = useActiveOrganization()
 
@@ -96,7 +97,7 @@ useSeoMeta({
         <p class="text-muted-foreground">Manage pending invitations to your workplace</p>
       </div>
       <UiButton @click="showInviteDialog = true">
-        <Icon name="lucide:user-plus" class="size-4" />
+        <UserPlus class="size-4" />
         Invite Member
       </UiButton>
     </div>
@@ -106,7 +107,7 @@ useSeoMeta({
       <UiCardContent class="p-0">
         <!-- Loading state -->
         <div v-if="invitationsStatus === 'pending'" class="flex items-center justify-center py-12">
-          <Icon name="svg-spinners:ring-resize" class="size-8 text-primary" />
+          <UiSpinner class="size-8 text-primary" />
         </div>
 
         <!-- Invitations list -->
@@ -159,8 +160,8 @@ useSeoMeta({
                     :disabled="isCancelling === invitation.id"
                     @click="handleCancelInvitation(invitation.id, invitation.email)"
                   >
-                    <Icon v-if="isCancelling === invitation.id" name="svg-spinners:ring-resize" class="size-4" />
-                    <Icon v-else name="lucide:x" class="size-4" />
+                    <UiSpinner v-if="isCancelling === invitation.id" class="size-4" />
+                    <X v-else class="size-4" />
                     Cancel
                   </UiButton>
                 </template>
@@ -171,7 +172,7 @@ useSeoMeta({
             <UiTableRow v-if="invitations?.length === 0">
               <UiTableCell colspan="6" class="h-24 text-center">
                 <div class="flex flex-col items-center gap-2">
-                  <Icon name="lucide:mail" class="size-8 text-muted-foreground" />
+                  <Mail class="size-8 text-muted-foreground" />
                   <p class="text-muted-foreground">No invitations found</p>
                   <UiButton variant="outline" size="sm" @click="showInviteDialog = true">
                     Invite your first team member

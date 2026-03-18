@@ -10,12 +10,12 @@
     <div class="relative">
       <slot name="icon">
         <span v-if="hasIcon" class="absolute inset-y-0 left-3 flex items-center justify-center">
-          <Icon v-if="icon" :name="icon" class="size-4 text-muted-foreground/70" />
+          <component :is="icon" v-if="icon" class="size-4 text-muted-foreground/70" />
         </span>
       </slot>
       <slot name="trailingIcon">
         <span v-if="hasTrailingIcon" class="absolute inset-y-0 right-3 flex items-center justify-center">
-          <Icon v-if="trailingIcon" :name="trailingIcon" class="size-4 text-muted-foreground/70" />
+          <component :is="trailingIcon" v-if="trailingIcon" class="size-4 text-muted-foreground/70" />
         </span>
       </slot>
       <UiInput
@@ -64,6 +64,7 @@
 
 <script lang="ts" setup>
 import { motion } from "motion-v"
+import type { Component } from "vue"
 
 const variants = {
   initial: { opacity: 0, y: -2 },
@@ -73,8 +74,8 @@ const variants = {
 const props = defineProps<{
   label?: string
   labelHint?: string
-  icon?: string
-  trailingIcon?: string
+  icon?: Component
+  trailingIcon?: Component
   hint?: string
   disabled?: boolean
   modelValue?: string

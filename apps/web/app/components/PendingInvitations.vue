@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Mail, Building2, Check, X, Loader2 } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 import { useGetApiUserInvitations, getGetApiUserInvitationsQueryKey } from "@/models/api"
 import { useQueryClient } from "@tanstack/vue-query"
@@ -100,7 +101,7 @@ const formatTimeAgo = (date: string) => {
 
   <div v-else-if="invitations.length" class="space-y-3">
     <div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-      <Icon name="lucide:mail" class="size-4" />
+      <Mail class="size-4" />
       <span>Pending Invitations</span>
       <UiBadge variant="secondary" class="ml-auto">{{ invitations.length }}</UiBadge>
     </div>
@@ -110,7 +111,7 @@ const formatTimeAgo = (date: string) => {
         <UiCardContent class="p-4">
           <div class="flex items-center gap-3">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Icon name="lucide:building-2" class="size-5 text-primary" />
+              <Building2 class="size-5 text-primary" />
             </div>
             <div class="flex-1 min-w-0">
               <p class="font-semibold truncate">{{ invite.organizationName }}</p>
@@ -127,9 +128,9 @@ const formatTimeAgo = (date: string) => {
                 :disabled="isAccepting === invite.id || isRejecting === invite.id"
                 @click="handleAccept(invite)"
               >
-                <Icon v-if="isAccepting === invite.id" name="svg-spinners:ring-resize" class="size-4" />
+                <Loader2 v-if="isAccepting === invite.id" class="size-4 animate-spin" />
                 <template v-else>
-                  <Icon name="lucide:check" class="size-4" />
+                  <Check class="size-4" />
                   Accept
                 </template>
               </UiButton>
@@ -139,8 +140,8 @@ const formatTimeAgo = (date: string) => {
                 :disabled="isAccepting === invite.id || isRejecting === invite.id"
                 @click="handleReject(invite)"
               >
-                <Icon v-if="isRejecting === invite.id" name="svg-spinners:ring-resize" class="size-4" />
-                <Icon v-else name="lucide:x" class="size-4" />
+                <Loader2 v-if="isRejecting === invite.id" class="size-4 animate-spin" />
+                <X v-else class="size-4" />
               </UiButton>
             </div>
           </div>

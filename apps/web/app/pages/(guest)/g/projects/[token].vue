@@ -4,6 +4,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
 import { useGetApiShareToken, type GetApiShareToken200 } from "@/models/api"
+import { AlertCircle, ArrowLeft, Download, Eye, FileText, Lock, Maximize2, MessageSquare, Unlock } from "lucide-vue-next"
 
 definePageMeta({
   layout: "guest",
@@ -97,7 +98,7 @@ useSeoMeta({
     <!-- Loading state -->
     <div v-if="status === 'pending'" class="flex items-center justify-center py-24">
       <div class="flex flex-col items-center gap-4">
-        <Icon name="svg-spinners:ring-resize" class="size-12 text-primary" />
+        <UiSpinner class="size-12 text-primary" />
         <p class="text-muted-foreground">Loading shared project...</p>
       </div>
     </div>
@@ -107,7 +108,7 @@ useSeoMeta({
       <UiCard class="w-full max-w-md">
         <UiCardHeader class="text-center">
           <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
-            <Icon name="lucide:lock" class="size-8 text-muted-foreground" />
+            <Lock class="size-8 text-muted-foreground" />
           </div>
           <UiCardTitle>Password Protected</UiCardTitle>
           <UiCardDescription> This project is password protected. Enter the password to continue. </UiCardDescription>
@@ -116,8 +117,8 @@ useSeoMeta({
           <form class="space-y-4" @submit="submitPassword">
             <UiFormBuilder :fields="passwordFields" />
             <UiButton type="submit" class="w-full" :disabled="isSubmittingPassword">
-              <Icon v-if="isSubmittingPassword" name="svg-spinners:ring-resize" class="size-4" />
-              <Icon v-else name="lucide:unlock" class="size-4" />
+              <UiSpinner v-if="isSubmittingPassword" class="size-4" />
+              <Unlock v-else class="size-4" />
               Unlock Project
             </UiButton>
           </form>
@@ -130,7 +131,7 @@ useSeoMeta({
       <UiCard class="w-full max-w-md border-destructive">
         <UiCardContent class="flex flex-col items-center gap-4 py-8">
           <div class="flex size-16 items-center justify-center rounded-full bg-destructive/10">
-            <Icon name="lucide:alert-circle" class="size-8 text-destructive" />
+            <AlertCircle class="size-8 text-destructive" />
           </div>
           <div class="text-center">
             <h3 class="font-semibold">Unable to load project</h3>
@@ -138,7 +139,7 @@ useSeoMeta({
           </div>
           <NuxtLink to="/g">
             <UiButton variant="outline">
-              <Icon name="lucide:arrow-left" class="size-4" />
+              <ArrowLeft class="size-4" />
               Back to Shared Projects
             </UiButton>
           </NuxtLink>
@@ -153,7 +154,7 @@ useSeoMeta({
         <div class="space-y-1">
           <div class="flex items-center gap-2">
             <NuxtLink to="/g" class="text-muted-foreground hover:text-foreground transition-colors">
-              <Icon name="lucide:arrow-left" class="size-4" />
+              <ArrowLeft class="size-4" />
             </NuxtLink>
             <h1 class="text-2xl font-bold tracking-tight">{{ shareData.name }}</h1>
           </div>
@@ -164,7 +165,7 @@ useSeoMeta({
           <!-- Download button -->
           <a v-if="shareData.share.allowDownload" :href="shareData.pdfUrl" target="_blank" download>
             <UiButton variant="outline">
-              <Icon name="lucide:download" class="size-4" />
+              <Download class="size-4" />
               Download PDF
             </UiButton>
           </a>
@@ -172,7 +173,7 @@ useSeoMeta({
           <!-- Open in viewer button -->
           <NuxtLink :to="`/editor/${token}?shared=true`">
             <UiButton>
-              <Icon name="lucide:maximize-2" class="size-4" />
+              <Maximize2 class="size-4" />
               Open Viewer
             </UiButton>
           </NuxtLink>
@@ -184,7 +185,7 @@ useSeoMeta({
         <UiCard>
           <UiCardContent class="flex items-center gap-3 p-4">
             <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-              <Icon name="lucide:file-text" class="size-5 text-primary" />
+              <FileText class="size-5 text-primary" />
             </div>
             <div>
               <p class="text-sm text-muted-foreground">Pages</p>
@@ -196,7 +197,7 @@ useSeoMeta({
         <UiCard>
           <UiCardContent class="flex items-center gap-3 p-4">
             <div class="flex size-10 items-center justify-center rounded-lg bg-blue-500/10">
-              <Icon name="lucide:eye" class="size-5 text-blue-500" />
+              <Eye class="size-5 text-blue-500" />
             </div>
             <div>
               <p class="text-sm text-muted-foreground">Views</p>
@@ -208,7 +209,7 @@ useSeoMeta({
         <UiCard>
           <UiCardContent class="flex items-center gap-3 p-4">
             <div class="flex size-10 items-center justify-center rounded-lg bg-green-500/10">
-              <Icon name="lucide:message-square" class="size-5 text-green-500" />
+              <MessageSquare class="size-5 text-green-500" />
             </div>
             <div>
               <p class="text-sm text-muted-foreground">Notes</p>
@@ -222,7 +223,7 @@ useSeoMeta({
         <UiCard>
           <UiCardContent class="flex items-center gap-3 p-4">
             <div class="flex size-10 items-center justify-center rounded-lg bg-orange-500/10">
-              <Icon name="lucide:download" class="size-5 text-orange-500" />
+              <Download class="size-5 text-orange-500" />
             </div>
             <div>
               <p class="text-sm text-muted-foreground">Download</p>
@@ -252,7 +253,7 @@ useSeoMeta({
             />
             <div v-else class="flex size-full items-center justify-center">
               <div class="text-center">
-                <Icon name="lucide:file-text" class="mx-auto size-16 text-muted-foreground" />
+                <FileText class="mx-auto size-16 text-muted-foreground" />
                 <p class="mt-2 text-sm text-muted-foreground">Preview not available</p>
               </div>
             </div>
@@ -261,7 +262,7 @@ useSeoMeta({
         <UiCardFooter>
           <NuxtLink :to="`/editor/${token}?shared=true`" class="w-full">
             <UiButton class="w-full">
-              <Icon name="lucide:maximize-2" class="size-4" />
+              <Maximize2 class="size-4" />
               Open Full Viewer
             </UiButton>
           </NuxtLink>

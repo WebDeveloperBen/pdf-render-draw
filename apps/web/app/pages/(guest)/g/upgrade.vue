@@ -5,6 +5,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
 import { usePostApiGuestUpgrade } from "@/models/api"
+import { Check, Rocket } from "lucide-vue-next"
 
 definePageMeta({
   layout: "guest",
@@ -80,7 +81,7 @@ useSeoMeta({
     <UiCard class="w-full max-w-md">
       <UiCardHeader class="text-center">
         <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
-          <Icon name="lucide:rocket" class="size-8 text-primary" />
+          <Rocket class="size-8 text-primary" />
         </div>
         <UiCardTitle class="text-2xl">Upgrade to Free Account</UiCardTitle>
         <UiCardDescription>Get your own workspace to create and manage projects</UiCardDescription>
@@ -96,27 +97,27 @@ useSeoMeta({
             <p class="font-medium text-sm">What you'll get:</p>
             <ul class="text-sm text-muted-foreground space-y-1">
               <li class="flex items-center gap-2">
-                <Icon name="lucide:check" class="size-4 text-green-500" />
+                <Check class="size-4 text-green-500" />
                 Your own workspace
               </li>
               <li class="flex items-center gap-2">
-                <Icon name="lucide:check" class="size-4 text-green-500" />
+                <Check class="size-4 text-green-500" />
                 Create unlimited projects
               </li>
               <li class="flex items-center gap-2">
-                <Icon name="lucide:check" class="size-4 text-green-500" />
+                <Check class="size-4 text-green-500" />
                 Share with your team
               </li>
               <li class="flex items-center gap-2">
-                <Icon name="lucide:check" class="size-4 text-green-500" />
+                <Check class="size-4 text-green-500" />
                 Full annotation tools
               </li>
             </ul>
           </div>
 
           <UiButton type="submit" class="w-full" :disabled="isUpgrading">
-            <Icon v-if="isUpgrading" name="svg-spinners:ring-resize" class="size-4" />
-            <Icon v-else name="lucide:rocket" class="size-4" />
+            <UiSpinner v-if="isUpgrading" class="size-4" />
+            <Rocket v-else class="size-4" />
             Create My Free Account
           </UiButton>
         </form>

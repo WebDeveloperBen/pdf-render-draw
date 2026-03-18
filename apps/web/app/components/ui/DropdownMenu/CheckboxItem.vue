@@ -5,7 +5,7 @@
     :class="styles({ class: props.class })"
   >
     <span class="absolute left-2 flex size-3.5 items-center justify-center text-primary">
-      <UiDropdownMenuItemIndicator icon="lucide:check" />
+      <UiDropdownMenuItemIndicator :icon="Check" />
     </span>
     <slot>
       <span v-if="title">{{ title }}</span>
@@ -17,6 +17,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Check } from "lucide-vue-next"
 import { DropdownMenuCheckboxItem, useForwardPropsEmits } from "reka-ui"
 import type { DropdownMenuCheckboxItemEmits, DropdownMenuCheckboxItemProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"

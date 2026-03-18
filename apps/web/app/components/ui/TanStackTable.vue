@@ -14,19 +14,19 @@
               <template v-if="!header.isPlaceholder">
                 <div class="flex items-center gap-3">
                   <FlexRender :render="header.column.columnDef.header" :props="header.getContext()" />
-                  <Icon
+                  <component
+                    :is="ascIcon"
                     v-if="header.column.getCanSort() && header.column.getIsSorted() === 'asc'"
-                    :name="ascIcon"
                     class="size-4"
                   />
-                  <Icon
+                  <component
+                    :is="descIcon"
                     v-else-if="header.column.getCanSort() && header.column.getIsSorted() === 'desc'"
-                    :name="descIcon"
                     class="size-4"
                   />
-                  <Icon
+                  <component
+                    :is="unsortedIcon"
                     v-else-if="header.column.getCanSort() && !header.column.getIsSorted()"
-                    :name="unsortedIcon"
                     class="h-5 w-5"
                   />
                 </div>
@@ -103,7 +103,7 @@
                 :disabled="!table.getCanPreviousPage()"
                 @click="table.setPageIndex(0)"
               >
-                <Icon name="lucide:chevrons-left" class="size-4" />
+                <ChevronsLeft class="size-4" />
               </UiButton>
               <UiButton
                 variant="outline"
@@ -112,7 +112,7 @@
                 :disabled="!table.getCanPreviousPage()"
                 @click="table.previousPage()"
               >
-                <Icon name="lucide:chevron-left" class="size-4" />
+                <ChevronLeft class="size-4" />
               </UiButton>
               <UiButton
                 variant="outline"
@@ -121,7 +121,7 @@
                 :disabled="!table.getCanNextPage()"
                 @click="table.nextPage()"
               >
-                <Icon name="lucide:chevron-right" class="size-4" />
+                <ChevronRight class="size-4" />
               </UiButton>
               <UiButton
                 variant="outline"
@@ -130,7 +130,7 @@
                 :disabled="!table.getCanNextPage()"
                 @click="table.setPageIndex(table.getPageCount() - 1)"
               >
-                <Icon name="lucide:chevrons-right" class="size-4" />
+                <ChevronsRight class="size-4" />
               </UiButton>
             </div>
           </slot>
@@ -142,6 +142,7 @@
 
 <script lang="ts" setup generic="T extends object">
 import CheckBox from "@/components/ui/Checkbox/Checkbox.vue"
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ChevronsLeft, ChevronsRight, ChevronsUpDown } from "lucide-vue-next"
 import {
   FlexRender,
   getCoreRowModel,
@@ -151,7 +152,7 @@ import {
   useVueTable
 } from "@tanstack/vue-table"
 import type { ColumnDef, PaginationState, SortingState, Table } from "@tanstack/vue-table"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<{
@@ -190,15 +191,15 @@ const props = withDefaults(
     /**
      * The icon to display for ascending sorting.
      */
-    ascIcon?: string
+    ascIcon?: Component
     /**
      * The icon to display for descending sorting.
      */
-    descIcon?: string
+    descIcon?: Component
     /**
      * The icon to display for unsorted columns.
      */
-    unsortedIcon?: string
+    unsortedIcon?: Component
     /**
      * Custom class(es) to add to the parent element.
      */
@@ -242,9 +243,9 @@ const props = withDefaults(
     columns: () => [],
     data: () => [],
     sorting: () => [],
-    ascIcon: "lucide:chevron-up",
-    descIcon: "lucide:chevron-down",
-    unsortedIcon: "lucide:chevrons-up-down",
+    ascIcon: () => ChevronUp,
+    descIcon: () => ChevronDown,
+    unsortedIcon: () => ChevronsUpDown,
     showPagination: true,
     rowsPerPageText: "Rows per page:",
     manualPagination: false,

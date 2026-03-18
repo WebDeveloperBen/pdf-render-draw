@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
+import { ArrowLeft, ArrowRight, Briefcase, Building, Building2, Calculator, Check, ClipboardList, Cog, FileCheck, HardHat, MoreHorizontal, PencilRuler, User, UserCog, Users, UsersRound } from "lucide-vue-next"
+import type { Component } from "vue"
 
 definePageMeta({
   layout: "wizard"
@@ -27,22 +29,22 @@ const handleAbnInput = (event: Event) => {
   abn.value = formatAbn(input.value)
 }
 
-const roles = [
-  { value: "contractor", label: "Contractor", icon: "lucide:hard-hat" },
-  { value: "pm", label: "Project Manager", icon: "lucide:clipboard-list" },
-  { value: "architect", label: "Architect", icon: "lucide:pencil-ruler" },
-  { value: "engineer", label: "Engineer", icon: "lucide:cog" },
-  { value: "estimator", label: "Estimator", icon: "lucide:calculator" },
-  { value: "owner", label: "Business Owner", icon: "lucide:briefcase" },
-  { value: "other", label: "Other", icon: "lucide:more-horizontal" }
+const roles: Array<{ value: string; label: string; icon: Component }> = [
+  { value: "contractor", label: "Contractor", icon: HardHat },
+  { value: "pm", label: "Project Manager", icon: ClipboardList },
+  { value: "architect", label: "Architect", icon: PencilRuler },
+  { value: "engineer", label: "Engineer", icon: Cog },
+  { value: "estimator", label: "Estimator", icon: Calculator },
+  { value: "owner", label: "Business Owner", icon: Briefcase },
+  { value: "other", label: "Other", icon: MoreHorizontal }
 ]
 
-const teamSizes = [
-  { value: "solo", label: "Just me", icon: "lucide:user" },
-  { value: "small", label: "2-10", icon: "lucide:users" },
-  { value: "medium", label: "11-50", icon: "lucide:users-round" },
-  { value: "large", label: "51-200", icon: "lucide:building" },
-  { value: "enterprise", label: "200+", icon: "lucide:building-2" }
+const teamSizes: Array<{ value: string; label: string; icon: Component }> = [
+  { value: "solo", label: "Just me", icon: User },
+  { value: "small", label: "2-10", icon: Users },
+  { value: "medium", label: "11-50", icon: UsersRound },
+  { value: "large", label: "51-200", icon: Building },
+  { value: "enterprise", label: "200+", icon: Building2 }
 ]
 
 const handleNext = () => {
@@ -83,7 +85,7 @@ const handleBack = () => {
         <div
           class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25"
         >
-          <Icon name="lucide:building" class="size-10 text-primary-foreground" />
+          <Building class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
@@ -107,7 +109,7 @@ const handleBack = () => {
         <div class="space-y-3">
           <div>
             <UiLabel for="company" class="text-base font-semibold justify-start">
-              <Icon name="lucide:building-2" class="size-4 text-primary" />
+              <Building2 class="size-4 text-primary" />
               Company Name
               <span class="text-destructive">*</span>
             </UiLabel>
@@ -127,7 +129,7 @@ const handleBack = () => {
         <div class="space-y-3">
           <div>
             <UiLabel for="abn" class="text-base font-semibold flex items-center gap-2">
-              <Icon name="lucide:file-check" class="size-4 text-primary" />
+              <FileCheck class="size-4 text-primary" />
               ABN
               <UiBadge variant="secondary" class="ml-auto text-xs font-normal">Optional</UiBadge>
             </UiLabel>
@@ -148,7 +150,7 @@ const handleBack = () => {
         <div class="space-y-4">
           <div>
             <UiLabel class="text-base font-semibold justify-start">
-              <Icon name="lucide:users" class="size-4 text-primary" />
+              <Users class="size-4 text-primary" />
               Team size?
               <span class="text-destructive">*</span>
             </UiLabel>
@@ -168,7 +170,7 @@ const handleBack = () => {
               "
               @click="teamSize = size.value"
             >
-              <Icon :name="size.icon" class="size-4" />
+              <component :is="size.icon" class="size-4" />
               <span>{{ size.label }}</span>
             </button>
           </div>
@@ -178,7 +180,7 @@ const handleBack = () => {
         <div class="space-y-4">
           <div>
             <UiLabel class="text-base font-semibold justify-start">
-              <Icon name="lucide:user-cog" class="size-4 text-primary" />
+              <UserCog class="size-4 text-primary" />
               What's your role?
               <span class="text-destructive">*</span>
             </UiLabel>
@@ -202,7 +204,7 @@ const handleBack = () => {
                     : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
                 "
               >
-                <Icon :name="r.icon" class="size-6" />
+                <component :is="r.icon" class="size-6" />
               </div>
               <span class="font-medium text-sm text-center">{{ r.label }}</span>
 
@@ -211,7 +213,7 @@ const handleBack = () => {
                 v-if="role === r.value"
                 class="absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full bg-primary border-2 border-background"
               >
-                <Icon name="lucide:check" class="size-3.5 text-primary-foreground" />
+                <Check class="size-3.5 text-primary-foreground" />
               </div>
             </button>
           </div>
@@ -229,7 +231,7 @@ const handleBack = () => {
         class="group h-12 px-6 text-base border-2 hover:bg-accent"
         @click="handleBack"
       >
-        <Icon name="lucide:arrow-left" class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+        <ArrowLeft class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
         <span class="font-medium">Back</span>
       </UiButton>
 
@@ -240,7 +242,7 @@ const handleBack = () => {
         @click="handleNext"
       >
         <span class="font-semibold">Continue</span>
-        <Icon name="lucide:arrow-right" class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
+        <ArrowRight class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>
     </div>
   </div>

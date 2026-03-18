@@ -4,22 +4,28 @@
     :class="styles({ class: props.class })"
     v-bind="forwarded"
   >
-    <slot> <Icon :name="icon || 'lucide:chevron-down'" class="size-4" /></slot>
+    <slot> <component :is="icon" class="size-4" /></slot>
   </SelectScrollDownButton>
 </template>
 
 <script lang="ts" setup>
+import { ChevronDown } from "lucide-vue-next"
 import { SelectScrollDownButton } from "reka-ui"
 import type { SelectScrollDownButtonProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
-const props = defineProps<
-  SelectScrollDownButtonProps & {
-    /** Icon to render */
-    icon?: string
-    class?: HTMLAttributes["class"]
+const props = withDefaults(
+  defineProps<
+    SelectScrollDownButtonProps & {
+      /** Icon to render */
+      icon?: Component
+      class?: HTMLAttributes["class"]
+    }
+  >(),
+  {
+    icon: () => ChevronDown
   }
->()
+)
 const forwarded = reactiveOmit(props, "icon")
 const styles = tv({
   base: "flex cursor-default items-center justify-center py-1"

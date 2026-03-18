@@ -1,16 +1,17 @@
 <template>
   <DialogClose data-slot="sheet-close-x" :class="styles({ class: props.class })" v-bind="forwarded">
     <slot>
-      <Icon :name="icon" class="size-4" />
+      <component :is="icon" class="size-4" />
       <span class="sr-only">{{ srText }}</span>
     </slot>
   </DialogClose>
 </template>
 
 <script lang="ts" setup>
+import { X } from "lucide-vue-next"
 import { DialogClose } from "reka-ui"
 import type { DialogCloseProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
@@ -18,13 +19,13 @@ const props = withDefaults(
       /** Custom class(es) to add to parent element */
       class?: HTMLAttributes["class"]
       /** Icon to display */
-      icon?: string
+      icon?: Component
       /** Screen reader text */
       srText?: string
     }
   >(),
   {
-    icon: "lucide:x",
+    icon: () => X,
     srText: "Close"
   }
 )

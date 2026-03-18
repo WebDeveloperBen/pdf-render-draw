@@ -1,3 +1,4 @@
+import { PaintBucket } from "lucide-vue-next"
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 import { FILL_TOOL_DEFAULTS } from "~/components/Editor/Tools/Fill.vue"
@@ -113,7 +114,7 @@ const [useFillTool, useFillToolState] = createInjectionState(() => {
   registerTool({
     type: "fill",
     name: "Fill",
-    icon: "lucide:paint-bucket",
+    icon: PaintBucket,
     onMouseDown: tool.handleMouseDown,
     onMouseMove: tool.handleMouseMove,
     onMouseUp: tool.handleMouseUp

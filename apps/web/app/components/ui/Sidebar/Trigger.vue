@@ -9,14 +9,15 @@
     @click="toggleSidebar"
   >
     <slot v-bind="{ state }">
-      <Icon v-if="icon" :name="icon" />
+      <component :is="icon" v-if="icon" />
       <span class="sr-only">{{ label }}</span>
     </slot>
   </UiButton>
 </template>
 
 <script lang="ts">
-import type { HTMLAttributes } from "vue"
+import { PanelLeft } from "lucide-vue-next"
+import type { Component, HTMLAttributes } from "vue"
 
 export const sideBarTriggerStyles = tv({
   base: "size-7"
@@ -30,7 +31,7 @@ const props = withDefaults(
      * The icon to display in the trigger.
      * @default "lucide:panel-left"
      */
-    icon?: string
+    icon?: Component
     /**
      * Additional classes to apply to the parent element.
      */
@@ -42,7 +43,7 @@ const props = withDefaults(
     label?: string
   }>(),
   {
-    icon: "lucide:panel-left",
+    icon: () => PanelLeft,
     label: "Toggle Sidebar"
   }
 )

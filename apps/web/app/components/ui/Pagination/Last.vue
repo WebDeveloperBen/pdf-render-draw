@@ -3,7 +3,7 @@
     <slot>
       <UiButton v-if="icon" :variant :size>
         <span class="sr-only">Last page</span>
-        <Icon :name="icon" />
+        <component :is="icon" />
       </UiButton>
     </slot>
   </PaginationLast>
@@ -14,12 +14,13 @@ import { reactiveOmit } from "@vueuse/core"
 import { PaginationLast } from "reka-ui"
 import type { ButtonProps } from "~/components/ui/Button.vue"
 import type { PaginationLastProps } from "reka-ui"
+import type { Component } from "vue"
 
 const props = withDefaults(
   defineProps<
     PaginationLastProps & {
       /** Icon to show */
-      icon?: string
+      icon?: Component
       /** The variant of the button */
       variant?: ButtonProps["variant"]
       /** The size of the button */

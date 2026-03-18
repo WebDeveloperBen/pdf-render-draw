@@ -5,7 +5,7 @@
     :class="toggleStyles({ class: props.class, size, variant })"
   >
     <slot>
-      <Icon v-if="icon" class="size-4" :name="icon" />
+      <component :is="icon" v-if="icon" class="size-4" />
     </slot>
   </ToggleGroupItem>
 </template>
@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import { ToggleGroupItem, useForwardProps } from "reka-ui"
 import type { ToggleGroupItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 import { toggleStyles } from "../Toggle.vue"
 
@@ -22,7 +22,7 @@ const props = defineProps<
     /** custom class to add to the toggle */
     class?: HTMLAttributes["class"]
     /** icon to display */
-    icon?: string
+    icon?: Component
     /** variant of the toggle */
     variant?: VariantProps<typeof toggleStyles>["variant"]
     /** size of the toggle */

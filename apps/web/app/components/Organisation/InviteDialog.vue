@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { UserPlus, Send, Loader2 } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
@@ -107,7 +108,7 @@ const handleClose = () => {
       <!-- Header with icon -->
       <div class="flex flex-col items-start pb-2">
         <div class="flex size-14 items-center justify-center rounded-full bg-primary/10 mb-4">
-          <Icon name="lucide:user-plus" class="size-7 text-primary" />
+          <UserPlus class="size-7 text-primary" />
         </div>
         <UiDialogHeader class="space-y-1">
           <UiDialogTitle class="text-xl">Invite Team Member</UiDialogTitle>
@@ -125,8 +126,8 @@ const handleClose = () => {
       <UiDialogFooter class="gap-3">
         <UiButton variant="outline" :disabled="isInviting" @click="handleClose"> Cancel </UiButton>
         <UiButton :disabled="isInviting || !values.email" @click="handleInvite">
-          <Icon v-if="isInviting" name="svg-spinners:ring-resize" class="size-4" />
-          <Icon v-else name="lucide:send" class="size-4" />
+          <Loader2 v-if="isInviting" class="size-4 animate-spin" />
+          <Send v-else class="size-4" />
           Send Invitation
         </UiButton>
       </UiDialogFooter>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BarChart3 } from "lucide-vue-next"
 definePageMeta({
   layout: "admin"
 })
@@ -16,7 +17,7 @@ useSeoMeta({ title: "Reports - Admin" })
     <!-- Coming Soon -->
     <UiCard class="border-dashed">
       <UiCardContent class="flex flex-col items-center justify-center py-16">
-        <Icon name="lucide:bar-chart-3" class="size-16 text-muted-foreground/30 mb-4" />
+        <BarChart3 class="size-16 text-muted-foreground/30 mb-4" />
         <h3 class="text-lg font-semibold mb-2">Reports Coming Soon</h3>
         <p class="text-muted-foreground text-center max-w-md">
           Platform analytics, usage metrics, and custom reports will be available here.

@@ -9,6 +9,9 @@
  * tool-specific configuration. This keeps tools decoupled from transform logic.
  */
 
+import { Rotate3d } from "lucide-vue-next"
+import type { Component } from "vue"
+
 export interface ToolDefinition {
   /** Unique tool type identifier */
   type: ToolType
@@ -19,8 +22,8 @@ export interface ToolDefinition {
   /** Display name for the toolbar */
   name: string
 
-  /** Toolbar icon (emoji or text) */
-  icon: string
+  /** Toolbar icon (lucide-vue-next component) */
+  icon: Component
 
   /** Optional: Handler for double-click events on this tool's annotations */
   onDoubleClick?: (annotationId: string) => void
@@ -100,8 +103,8 @@ export function getToolbarTools() {
  */
 export function getCompleteToolbarTools() {
   const registeredTools = getToolbarTools()
-  const manualTools: Array<{ id: ToolType | "selection" | "rotate" | ""; name: string; icon: string }> = [
-    { id: "rotate", name: "Rotate", icon: "lucide:rotate-3d" }
+  const manualTools: Array<{ id: ToolType | "selection" | "rotate" | ""; name: string; icon: Component }> = [
+    { id: "rotate", name: "Rotate", icon: Rotate3d }
   ]
   return [...registeredTools, ...manualTools]
 }

@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 import { SelectTrigger } from "reka-ui"
 import type { SelectTriggerProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
@@ -23,7 +23,7 @@ const props = withDefaults(
       /** Custom class(es) to add to the parent */
       class?: HTMLAttributes["class"]
       /** Icon to render */
-      icon?: string
+      icon?: Component
       /** Placeholder text */
       placeholder?: string
       /** Size of the select */

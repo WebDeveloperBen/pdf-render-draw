@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { KeyRound, Send } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
@@ -61,8 +62,8 @@ const submit = handleSubmit(async (values) => {
             <fieldset :disabled="isSubmitting" class="grid gap-5">
               <UiVeeInput label="Email address" type="email" name="email" placeholder="you@example.com" />
               <UiButton class="w-full" type="submit">
-                <Icon v-if="isSubmitting" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
-                <Icon v-else name="lucide:send" class="mr-2 size-4" />
+                <UiSpinner v-if="isSubmitting" class="mr-2 size-4" />
+                <Send v-else class="mr-2 size-4" />
                 Send Reset Instructions
               </UiButton>
             </fieldset>
@@ -90,7 +91,7 @@ const submit = handleSubmit(async (values) => {
     <div class="hidden bg-muted lg:block">
       <div class="flex h-full flex-col items-center justify-center p-8">
         <div class="max-w-md text-center">
-          <Icon name="lucide:key-round" class="mx-auto mb-6 size-16 text-primary" />
+          <KeyRound class="mx-auto mb-6 size-16 text-primary" />
           <h2 class="mb-4 text-2xl font-bold">Secure Password Recovery</h2>
           <p class="text-muted-foreground">
             We'll send you a secure link to reset your password. The link will expire in 24 hours for your security.

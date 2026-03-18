@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { CheckCircle2, LogIn, Mail, MailCheck, XCircle } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 
 definePageMeta({ layout: false })
@@ -56,12 +57,12 @@ async function handleResend() {
         <!-- Success -->
         <div v-if="status === 'success'" class="flex flex-col items-center text-center">
           <div class="mx-auto mb-6 flex size-14 items-center justify-center rounded-lg border bg-background">
-            <Icon name="lucide:check-circle-2" class="size-6 text-emerald-500" />
+            <CheckCircle2 class="size-6 text-emerald-500" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight lg:text-3xl">Email verified!</h1>
           <p class="mt-1 text-muted-foreground">Your email has been confirmed. You can now sign in.</p>
           <UiButton class="mt-8 w-full" @click="router.push('/login')">
-            <Icon name="lucide:log-in" class="mr-2 size-4" />
+            <LogIn class="mr-2 size-4" />
             Continue to Login
           </UiButton>
         </div>
@@ -69,7 +70,7 @@ async function handleResend() {
         <!-- Error -->
         <div v-else class="flex flex-col items-center text-center">
           <div class="mx-auto mb-6 flex size-14 items-center justify-center rounded-lg border bg-background">
-            <Icon name="lucide:x-circle" class="size-6 text-destructive" />
+            <XCircle class="size-6 text-destructive" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight lg:text-3xl">Verification failed</h1>
           <p class="mt-2 text-muted-foreground">{{ errorMessage }}</p>
@@ -81,8 +82,8 @@ async function handleResend() {
               :disabled="isResending"
               @click="handleResend"
             >
-              <Icon v-if="isResending" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
-              <Icon v-else name="lucide:mail" class="mr-2 size-4" />
+              <UiSpinner v-if="isResending" class="mr-2 size-4" />
+              <Mail v-else class="mr-2 size-4" />
               Resend verification email
             </UiButton>
             <UiButton variant="outline" class="w-full" @click="router.push('/login')">
@@ -95,7 +96,7 @@ async function handleResend() {
     <div class="hidden bg-muted lg:block">
       <div class="flex h-full flex-col items-center justify-center p-8">
         <div class="max-w-md text-center">
-          <Icon name="lucide:mail-check" class="mx-auto mb-6 size-16 text-primary" />
+          <MailCheck class="mx-auto mb-6 size-16 text-primary" />
           <h2 class="mb-4 text-2xl font-bold">Email Verification</h2>
           <p class="text-muted-foreground">
             Verifying your email helps keep your account secure and ensures you can recover your password if needed.

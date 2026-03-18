@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 import type { AdminStats } from "@shared/types/admin.types"
+import { Activity, AlertCircle, ArrowRight, Ban, Building2, FolderOpen, RefreshCw, ScrollText, Shield, Users } from "lucide-vue-next"
+import type { Component } from "vue"
 
 definePageMeta({
   layout: "admin",
@@ -37,35 +39,35 @@ const statCards = computed(() => {
     {
       title: "Total Users",
       value: stats.value.users.total,
-      icon: "lucide:users",
+      icon: Users,
       description: `${stats.value.users.recentSignups} new this week`,
       color: "text-blue-500"
     },
     {
       title: "Organizations",
       value: stats.value.organizations.total,
-      icon: "lucide:building-2",
+      icon: Building2,
       description: "Active organizations",
       color: "text-green-500"
     },
     {
       title: "Projects",
       value: stats.value.projects.total,
-      icon: "lucide:folder-open",
+      icon: FolderOpen,
       description: "Total projects created",
       color: "text-purple-500"
     },
     {
       title: "Active Sessions",
       value: stats.value.sessions.active,
-      icon: "lucide:activity",
+      icon: Activity,
       description: "Currently logged in",
       color: "text-orange-500"
     },
     {
       title: "Banned Users",
       value: stats.value.users.banned,
-      icon: "lucide:ban",
+      icon: Ban,
       description: "Accounts suspended",
       color: "text-red-500"
     }
@@ -73,10 +75,10 @@ const statCards = computed(() => {
 })
 
 // Quick actions for admins
-const quickActions = [
-  { title: "View All Users", url: "/admin/users", icon: "lucide:users" },
-  { title: "View Organizations", url: "/admin/organizations", icon: "lucide:building-2" },
-  { title: "View Audit Log", url: "/admin/audit-log", icon: "lucide:scroll-text" }
+const quickActions: Array<{ title: string; url: string; icon: Component }> = [
+  { title: "View All Users", url: "/admin/users", icon: Users },
+  { title: "View Organizations", url: "/admin/organizations", icon: Building2 },
+  { title: "View Audit Log", url: "/admin/audit-log", icon: ScrollText }
 ]
 
 // ---- Billing Overview ----
@@ -190,7 +192,7 @@ const formatRelativeTime = (date: string | null) => {
 
     <!-- Error state -->
     <UiAlert v-if="error" variant="destructive">
-      <Icon name="lucide:alert-circle" class="size-4" />
+      <AlertCircle class="size-4" />
       <UiAlertTitle>Error</UiAlertTitle>
       <UiAlertDescription>{{ error }}</UiAlertDescription>
     </UiAlert>
@@ -213,7 +215,7 @@ const formatRelativeTime = (date: string | null) => {
       <UiCard v-for="card in statCards" :key="card.title">
         <UiCardHeader class="flex flex-row items-center justify-between pb-2">
           <UiCardTitle class="text-sm font-medium">{{ card.title }}</UiCardTitle>
-          <Icon :name="card.icon" :class="['size-4', card.color]" />
+          <component :is="card.icon" :class="['size-4', card.color]" />
         </UiCardHeader>
         <UiCardContent>
           <div class="text-2xl font-bold">{{ card.value.toLocaleString() }}</div>
@@ -236,12 +238,12 @@ const formatRelativeTime = (date: string | null) => {
         </div>
         <div class="flex items-center gap-2">
           <UiButton variant="outline" size="sm" :disabled="isSyncing" @click="handleSync">
-            <Icon name="lucide:refresh-cw" :class="['size-4 mr-2', { 'animate-spin': isSyncing }]" />
+            <RefreshCw :class="['size-4 mr-2', { 'animate-spin': isSyncing }]" />
             Sync from Stripe
           </UiButton>
           <UiButton variant="ghost" size="sm" @click="navigateTo('/admin/subscriptions')">
             View All
-            <Icon name="lucide:arrow-right" class="size-4 ml-1" />
+            <ArrowRight class="size-4 ml-1" />
           </UiButton>
         </div>
       </UiCardHeader>
@@ -289,12 +291,12 @@ const formatRelativeTime = (date: string | null) => {
       >
         <UiCardHeader class="flex flex-row items-center gap-4">
           <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-            <Icon :name="action.icon" class="size-5 text-primary" />
+            <component :is="action.icon" class="size-5 text-primary" />
           </div>
           <div class="flex-1">
             <UiCardTitle class="text-base">{{ action.title }}</UiCardTitle>
           </div>
-          <Icon name="lucide:arrow-right" class="size-4 text-muted-foreground" />
+          <ArrowRight class="size-4 text-muted-foreground" />
         </UiCardHeader>
       </UiCard>
     </div>
@@ -307,7 +309,7 @@ const formatRelativeTime = (date: string | null) => {
       </UiCardHeader>
       <UiCardContent class="space-y-4">
         <div class="flex items-start gap-3">
-          <Icon name="lucide:shield" class="size-5 text-primary mt-0.5" />
+          <Shield class="size-5 text-primary mt-0.5" />
           <div>
             <h4 class="font-medium">Admin Access Levels</h4>
             <p class="text-sm text-muted-foreground">
@@ -317,7 +319,7 @@ const formatRelativeTime = (date: string | null) => {
           </div>
         </div>
         <div class="flex items-start gap-3">
-          <Icon name="lucide:scroll-text" class="size-5 text-primary mt-0.5" />
+          <ScrollText class="size-5 text-primary mt-0.5" />
           <div>
             <h4 class="font-medium">Audit Logging</h4>
             <p class="text-sm text-muted-foreground">

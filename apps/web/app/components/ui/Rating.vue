@@ -10,10 +10,10 @@
         @mouseleave="handleStarMouseLeave"
       >
         <!-- Background star (empty) -->
-        <Icon v-if="props.icon" :name="props.icon" data-slot="rating-star-empty" :class="emptyStarClasses" />
+        <component :is="props.icon" v-if="props.icon" data-slot="rating-star-empty" :class="emptyStarClasses" />
         <!-- Filled star -->
         <div class="absolute inset-0 overflow-hidden" :style="{ width: starWidths[index] }">
-          <Icon v-if="props.icon" :name="props.icon" data-slot="rating-star-filled" :class="filledStarClasses" />
+          <component :is="props.icon" v-if="props.icon" data-slot="rating-star-filled" :class="filledStarClasses" />
         </div>
       </div>
     </div>
@@ -27,7 +27,8 @@
 </template>
 
 <script lang="ts">
-import type { HTMLAttributes } from "vue"
+import { Star } from "lucide-vue-next"
+import type { Component, HTMLAttributes } from "vue"
 
 export const ratingStyles = tv({
   slots: {
@@ -91,7 +92,7 @@ export type RatingProps = {
    * Name of the icon to use for the stars (defaults to a star icon)
    * @default "lucide:star"
    */
-  icon?: string
+  icon?: Component
 }
 </script>
 
@@ -101,7 +102,7 @@ const props = withDefaults(defineProps<RatingProps>(), {
   size: "md",
   showValue: false,
   editable: false,
-  icon: "lucide:star"
+  icon: () => Star
 })
 
 const modelValue = defineModel<number>({ default: 0 })
@@ -110,7 +111,7 @@ if (modelValue.value < 0 || modelValue.value > props.maxRating) {
   console.warn(`Rating value ${modelValue.value} is out of bounds (0 - ${props.maxRating})`)
 }
 if (!props.icon) {
-  console.warn(`No icon provided for Rating component, defaulting to 'lucide:star'`)
+  console.warn(`No icon provided for Rating component, defaulting to Star`)
 }
 
 const emit = defineEmits<{

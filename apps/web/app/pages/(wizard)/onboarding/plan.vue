@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
+import { ArrowLeft, ArrowRight, Check, CheckCircle, CreditCard, Crown, RotateCcw, ShieldCheck, Sparkles, Star, Users } from "lucide-vue-next"
 
 definePageMeta({
   layout: "wizard"
@@ -102,7 +103,7 @@ const handleBack = () => {
         <div
           class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25"
         >
-          <Icon name="lucide:crown" class="size-10 text-primary-foreground" />
+          <Crown class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
@@ -116,7 +117,7 @@ const handleBack = () => {
         </p>
       </div>
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-        <Icon name="lucide:sparkles" class="size-4 text-primary" />
+        <Sparkles class="size-4 text-primary" />
         <span class="text-sm font-semibold text-primary">No credit card required</span>
       </div>
     </div>
@@ -131,7 +132,7 @@ const handleBack = () => {
             <UiBadge
               class="relative bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground shadow-lg border-2 border-background px-4 py-1.5 font-semibold"
             >
-              <Icon name="lucide:star" class="size-3 mr-1.5 fill-current" />
+              <Star class="size-3 mr-1.5 fill-current" />
               Most Popular
             </UiBadge>
           </div>
@@ -182,7 +183,7 @@ const handleBack = () => {
               <!-- Seats info -->
               <div class="flex items-center gap-2 mt-2">
                 <span class="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                  <Icon name="lucide:users" class="size-3.5" />
+                  <Users class="size-3.5" />
                   {{ plan.seats }}
                 </span>
                 <span v-if="plan.seatsNote" class="text-xs text-muted-foreground/70">
@@ -199,7 +200,7 @@ const handleBack = () => {
                 <div
                   class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 mt-0.5 group-hover/feature:bg-primary/20 transition-colors"
                 >
-                  <Icon name="lucide:check" class="size-3.5 text-primary" />
+                  <Check class="size-3.5 text-primary" />
                 </div>
                 <span class="leading-relaxed font-medium">{{ feature }}</span>
               </li>
@@ -218,7 +219,7 @@ const handleBack = () => {
                 @click.stop="selectedPlan = plan.id as any"
               >
                 <template v-if="selectedPlan === plan.id">
-                  <Icon name="lucide:check-circle" class="size-4 mr-2" />
+                  <CheckCircle class="size-4 mr-2" />
                   Selected
                 </template>
                 <template v-else> Select {{ plan.name }} </template>
@@ -242,12 +243,12 @@ const handleBack = () => {
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div class="space-y-1">
             <p class="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Icon name="lucide:check-circle" class="size-4 text-primary" />
+              <CheckCircle class="size-4 text-primary" />
               You've selected
             </p>
             <p class="text-2xl sm:text-3xl font-bold">{{ plans.find((p) => p.id === selectedPlan)?.name }} Plan</p>
             <p class="text-sm text-muted-foreground flex items-center gap-2">
-              <Icon name="lucide:users" class="size-4" />
+              <Users class="size-4" />
               {{ plans.find((p) => p.id === selectedPlan)?.seats }}
               <span v-if="plans.find((p) => p.id === selectedPlan)?.seatsNote" class="text-muted-foreground/70">
                 ({{ plans.find((p) => p.id === selectedPlan)?.seatsNote }})
@@ -279,7 +280,7 @@ const handleBack = () => {
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
           <div class="flex items-center gap-3">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Icon name="lucide:shield-check" class="size-5 text-primary" />
+              <ShieldCheck class="size-5 text-primary" />
             </div>
             <div>
               <p class="text-sm font-semibold">14-day free trial</p>
@@ -289,7 +290,7 @@ const handleBack = () => {
 
           <div class="flex items-center gap-3">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Icon name="lucide:credit-card" class="size-5 text-primary" />
+              <CreditCard class="size-5 text-primary" />
             </div>
             <div>
               <p class="text-sm font-semibold">No card required</p>
@@ -299,7 +300,7 @@ const handleBack = () => {
 
           <div class="flex items-center gap-3">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Icon name="lucide:rotate-ccw" class="size-5 text-primary" />
+              <RotateCcw class="size-5 text-primary" />
             </div>
             <div>
               <p class="text-sm font-semibold">Cancel anytime</p>
@@ -321,7 +322,7 @@ const handleBack = () => {
         :disabled="isSubmitting"
         @click="handleBack"
       >
-        <Icon name="lucide:arrow-left" class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+        <ArrowLeft class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
         <span class="font-medium">Back</span>
       </UiButton>
       <UiButton
@@ -334,12 +335,12 @@ const handleBack = () => {
           v-if="!isSubmitting"
           class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
         />
-        <Icon v-if="isSubmitting" name="svg-spinners:90-ring-with-bg" class="size-5 mr-2" />
+        <UiSpinner v-if="isSubmitting" class="size-5 mr-2" />
         <template v-else>
           <span class="font-bold text-lg">
             {{ selectedPlan === "enterprise" ? "Contact Sales" : "Start Free Trial" }}
           </span>
-          <Icon name="lucide:arrow-right" class="size-6 ml-3 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight class="size-6 ml-3 group-hover:translate-x-1 transition-transform" />
         </template>
       </UiButton>
     </div>

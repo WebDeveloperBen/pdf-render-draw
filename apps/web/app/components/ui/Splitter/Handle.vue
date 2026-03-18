@@ -2,16 +2,17 @@
   <SplitterResizeHandle v-bind="forwarded" :class="styles({ class: props.class })">
     <slot>
       <div v-if="withHandle" class="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
-        <Icon :name="icon" class="h-2.5 w-2.5" />
+        <component :is="icon" class="h-2.5 w-2.5" />
       </div>
     </slot>
   </SplitterResizeHandle>
 </template>
 
 <script lang="ts" setup>
+import { GripVertical } from "lucide-vue-next"
 import { SplitterResizeHandle, useForwardPropsEmits } from "reka-ui"
 import type { SplitterResizeHandleEmits, SplitterResizeHandleProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
@@ -20,12 +21,12 @@ const props = withDefaults(
       /** Custom class(es) to add to parent element */
       class?: HTMLAttributes["class"]
       withHandle?: boolean
-      icon?: string
+      icon?: Component
     }
   >(),
   {
     direction: "horizontal",
-    icon: "lucide:grip-vertical"
+    icon: () => GripVertical
   }
 )
 

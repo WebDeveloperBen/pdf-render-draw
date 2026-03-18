@@ -49,7 +49,7 @@
 
 <script lang="ts" setup>
 import { AnimatePresence, motion } from "motion-v"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const variants = {
   initial: { opacity: 0, y: -2 },
@@ -58,7 +58,7 @@ const variants = {
 
 const props = defineProps<{
   label?: string
-  icon?: string
+  icon?: Component
   hint?: string
   modelValue?: any
   name?: string

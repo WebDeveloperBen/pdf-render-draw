@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { ArrowLeft } from "lucide-vue-next"
 
 const session = authClient.useSession()
 const user = computed(() => session.value?.data?.user)
@@ -54,7 +55,7 @@ const handleUpdateProfile = async () => {
     <!-- Header -->
     <div class="flex items-center gap-4">
       <UiButton variant="ghost" size="icon" to="/settings">
-        <Icon name="lucide:arrow-left" class="size-4" />
+        <ArrowLeft class="size-4" />
       </UiButton>
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Profile</h1>
@@ -109,7 +110,7 @@ const handleUpdateProfile = async () => {
       <UiCardFooter class="flex justify-end gap-2">
         <UiButton variant="outline" to="/settings" :disabled="isLoading"> Cancel </UiButton>
         <UiButton :disabled="isLoading" @click="handleUpdateProfile">
-          <Icon v-if="isLoading" name="svg-spinners:ring-resize" class="size-4" />
+          <UiSpinner v-if="isLoading" class="size-4" />
           Save Changes
         </UiButton>
       </UiCardFooter>

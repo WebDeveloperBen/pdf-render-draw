@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ChevronsUpDown, Search, Loader2, Check, X } from "lucide-vue-next"
 import { useDebounceFn } from "@vueuse/core"
 import type { AdminUser, AdminUsersResponse } from "@shared/types/admin.types"
 
@@ -77,18 +78,18 @@ const clearSelection = () => {
           <span class="truncate">{{ selectedUser.name || selectedUser.email }}</span>
         </div>
         <span v-else class="text-muted-foreground">{{ placeholder || "Search users..." }}</span>
-        <Icon name="lucide:chevrons-up-down" class="ml-2 size-4 shrink-0 opacity-50" />
+        <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
       </UiButton>
     </UiPopoverTrigger>
     <UiPopoverContent class="w-[400px] p-0" align="start">
       <div class="flex items-center border-b px-3">
-        <Icon name="lucide:search" class="mr-2 size-4 shrink-0 opacity-50" />
+        <Search class="mr-2 size-4 shrink-0 opacity-50" />
         <input
           v-model="searchQuery"
           placeholder="Type to search users..."
           class="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         />
-        <Icon v-if="isLoading" name="lucide:loader-2" class="size-4 animate-spin opacity-50" />
+        <Loader2 v-if="isLoading" class="size-4 animate-spin opacity-50" />
       </div>
       <div class="max-h-[300px] overflow-y-auto p-1">
         <div
@@ -118,13 +119,13 @@ const clearSelection = () => {
               <p class="font-medium">{{ user.name || "No name" }}</p>
               <p class="text-xs text-muted-foreground">{{ user.email }}</p>
             </div>
-            <Icon v-if="selectedUser?.id === user.id" name="lucide:check" class="size-4 text-primary" />
+            <Check v-if="selectedUser?.id === user.id" class="size-4 text-primary" />
           </button>
         </template>
       </div>
       <div v-if="selectedUser" class="border-t p-2">
         <UiButton variant="ghost" size="sm" class="w-full" @click="clearSelection">
-          <Icon name="lucide:x" class="size-4 mr-2" />
+          <X class="size-4 mr-2" />
           Clear selection
         </UiButton>
       </div>

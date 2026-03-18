@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowRight, Building2, CreditCard, FolderOpen, HardDrive, Pencil, Settings, UserPlus, Users } from "lucide-vue-next"
 const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization, isLoading } = useActiveOrganization()
 
 // Redirect to dashboard if no active org (only after loading completes)
@@ -31,11 +32,11 @@ useSeoMeta({
       </div>
       <div v-if="isOrgAdmin" class="flex gap-2">
         <UiButton variant="outline" to="/organisation/settings">
-          <Icon name="lucide:settings" class="size-4" />
+          <Settings class="size-4" />
           Settings
         </UiButton>
         <UiButton to="/organisation/members">
-          <Icon name="lucide:user-plus" class="size-4" />
+          <UserPlus class="size-4" />
           Invite Members
         </UiButton>
       </div>
@@ -46,7 +47,7 @@ useSeoMeta({
       <UiCard>
         <UiCardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <UiCardTitle class="text-sm font-medium">Members</UiCardTitle>
-          <Icon name="lucide:users" class="size-4 text-muted-foreground" />
+          <Users class="size-4 text-muted-foreground" />
         </UiCardHeader>
         <UiCardContent>
           <div class="text-2xl font-bold">{{ membersCount }}</div>
@@ -57,7 +58,7 @@ useSeoMeta({
       <UiCard>
         <UiCardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <UiCardTitle class="text-sm font-medium">Projects</UiCardTitle>
-          <Icon name="lucide:folder-open" class="size-4 text-muted-foreground" />
+          <FolderOpen class="size-4 text-muted-foreground" />
         </UiCardHeader>
         <UiCardContent>
           <div class="text-2xl font-bold">-</div>
@@ -68,7 +69,7 @@ useSeoMeta({
       <UiCard>
         <UiCardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <UiCardTitle class="text-sm font-medium">Plan</UiCardTitle>
-          <Icon name="lucide:credit-card" class="size-4 text-muted-foreground" />
+          <CreditCard class="size-4 text-muted-foreground" />
         </UiCardHeader>
         <UiCardContent>
           <div class="text-2xl font-bold">Free</div>
@@ -79,7 +80,7 @@ useSeoMeta({
       <UiCard>
         <UiCardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <UiCardTitle class="text-sm font-medium">Storage</UiCardTitle>
-          <Icon name="lucide:hard-drive" class="size-4 text-muted-foreground" />
+          <HardDrive class="size-4 text-muted-foreground" />
         </UiCardHeader>
         <UiCardContent>
           <div class="text-2xl font-bold">0 MB</div>
@@ -118,7 +119,7 @@ useSeoMeta({
         <UiCardFooter v-if="isOrgAdmin">
           <UiButton variant="outline" class="w-full" to="/organisation/members">
             View All Members
-            <Icon name="lucide:arrow-right" class="size-4" />
+            <ArrowRight class="size-4" />
           </UiButton>
         </UiCardFooter>
       </UiCard>
@@ -132,7 +133,7 @@ useSeoMeta({
           <div class="flex items-center gap-4">
             <div class="flex size-16 items-center justify-center rounded-lg bg-primary/10">
               <img v-if="orgData?.logo" :src="orgData.logo" :alt="orgData.name" class="size-10 rounded object-cover" />
-              <Icon v-else name="lucide:building-2" class="size-8 text-primary" />
+              <Building2 v-else class="size-8 text-primary" />
             </div>
             <div>
               <h3 class="font-semibold">{{ orgData?.name }}</h3>
@@ -158,7 +159,7 @@ useSeoMeta({
         <UiCardFooter v-if="isOrgAdmin">
           <UiButton variant="outline" class="w-full" to="/organisation/settings">
             Edit Workplace
-            <Icon name="lucide:pencil" class="size-4" />
+            <Pencil class="size-4" />
           </UiButton>
         </UiCardFooter>
       </UiCard>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
+import { ArrowRight, ChevronRight, FileText, HandMetal, Headphones, Mail, Phone, ShieldCheck, Smartphone, Sparkles, UserCircle, Users } from "lucide-vue-next"
 
 definePageMeta({
   layout: "wizard"
@@ -52,7 +53,7 @@ const handleSkip = () => {
         <div
           class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25"
         >
-          <Icon name="lucide:user-circle" class="size-10 text-primary-foreground" />
+          <UserCircle class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
@@ -77,12 +78,12 @@ const handleSkip = () => {
           <div
             class="flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10"
           >
-            <Icon name="lucide:hand-metal" class="size-6 text-primary" />
+            <HandMetal class="size-6 text-primary" />
           </div>
           <div>
             <p class="text-2xl font-bold">Hey{{ userFirstName ? ` ${userFirstName}` : " there" }}!</p>
             <p class="text-sm text-muted-foreground flex items-center gap-1.5">
-              <Icon name="lucide:mail" class="size-3.5" />
+              <Mail class="size-3.5" />
               Signed in as {{ session.data?.user.email }}
             </p>
           </div>
@@ -92,7 +93,7 @@ const handleSkip = () => {
         <div class="space-y-4">
           <div>
             <UiLabel for="phone" class="text-base font-semibold flex items-center gap-2">
-              <Icon name="lucide:phone" class="size-4 text-primary" />
+              <Phone class="size-4 text-primary" />
               Phone Number
               <UiBadge variant="secondary" class="ml-auto text-xs font-normal">Optional</UiBadge>
             </UiLabel>
@@ -101,10 +102,8 @@ const handleSkip = () => {
 
           <div class="relative group/input">
             <div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
-              <Icon
-                name="lucide:smartphone"
-                class="size-5 text-muted-foreground group-focus-within/input:text-primary transition-all duration-300"
-              />
+              <Smartphone
+                class="size-5 text-muted-foreground group-focus-within/input:text-primary transition-all duration-300" />
             </div>
             <UiInput
               id="phone"
@@ -118,7 +117,7 @@ const handleSkip = () => {
 
           <div class="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/10">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Icon name="lucide:shield-check" class="size-5 text-primary" />
+              <ShieldCheck class="size-5 text-primary" />
             </div>
             <div class="space-y-1 pt-0.5">
               <p class="text-sm font-medium">Your privacy matters</p>
@@ -134,7 +133,7 @@ const handleSkip = () => {
           <div class="flex items-center gap-3">
             <div class="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
             <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border">
-              <Icon name="lucide:sparkles" class="size-3.5 text-primary" />
+              <Sparkles class="size-3.5 text-primary" />
               <span class="text-sm font-semibold text-muted-foreground">Benefits</span>
             </div>
             <div class="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
@@ -147,10 +146,8 @@ const handleSkip = () => {
               <div
                 class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
               >
-                <Icon
-                  name="lucide:users"
-                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors"
-                />
+                <Users
+                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Team coordination</p>
@@ -166,10 +163,8 @@ const handleSkip = () => {
               <div
                 class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
               >
-                <Icon
-                  name="lucide:file-text"
-                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors"
-                />
+                <FileText
+                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Professional quotes</p>
@@ -183,10 +178,8 @@ const handleSkip = () => {
               <div
                 class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
               >
-                <Icon
-                  name="lucide:headphones"
-                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors"
-                />
+                <Headphones
+                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Direct support</p>
@@ -204,7 +197,7 @@ const handleSkip = () => {
     >
       <UiButton variant="ghost" size="lg" class="group h-12 px-6 text-base" @click="handleSkip">
         <span>Skip for now</span>
-        <Icon name="lucide:chevron-right" class="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
+        <ChevronRight class="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>
 
       <UiButton
@@ -213,7 +206,7 @@ const handleSkip = () => {
         @click="handleNext"
       >
         <span class="font-semibold">Continue</span>
-        <Icon name="lucide:arrow-right" class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
+        <ArrowRight class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>
     </div>
   </div>

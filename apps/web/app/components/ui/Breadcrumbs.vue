@@ -5,10 +5,10 @@
         <div data-slot="breadcrumb-item" class="flex items-center gap-3">
           <div class="group flex items-center gap-2">
             <slot name="crumbIcon" :item="item" :index="i">
-              <Icon
+              <component
+                :is="item.icon"
                 v-if="item.icon"
                 data-slot="breadcrumb-icon"
-                :name="item.icon"
                 class="size-3.5 shrink-0"
                 :class="[isNotLastItem(i) ? 'text-muted-foreground group-hover:text-foreground' : 'text-primary']"
               />
@@ -31,10 +31,10 @@
         </div>
       </slot>
       <slot name="separator" :item="item" :index="i">
-        <Icon
+        <component
+          :is="separator"
           v-if="isNotLastItem(i)"
           data-slot="breadcrumb-separator"
-          :name="separator"
           class="h-3 w-3 text-muted-foreground"
         />
       </slot>
@@ -45,11 +45,12 @@
 <script lang="ts"></script>
 
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
+import { ChevronRight } from "lucide-vue-next"
+import type { Component, HTMLAttributes } from "vue"
 
 export interface BreadcrumbItem {
   label?: string
-  icon?: string
+  icon?: Component
   link?: string
   disabled?: boolean
   slot?: string
@@ -66,14 +67,14 @@ const props = withDefaults(
     /**
      * The separator to use between each breadcrumb.
      */
-    separator?: string
+    separator?: Component
     /**
      * Custom class(es) to add to the parent element.
      */
     class?: HTMLAttributes["class"]
   }>(),
   {
-    separator: "lucide:chevron-right",
+    separator: () => ChevronRight,
     items: () => []
   }
 )

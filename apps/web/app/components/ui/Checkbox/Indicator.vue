@@ -1,8 +1,8 @@
 <template>
   <CheckboxIndicator data-slot="checkbox-indicator" :class="styles({ class: props.class })" v-bind="forwarded">
     <slot>
-      <Icon
-        :name="state == 'indeterminate' ? indeterminateIcon : icon"
+      <component
+        :is="state == 'indeterminate' ? indeterminateIcon : icon"
         :class="[state == 'indeterminate' ? 'size-3' : 'size-3.5']"
       />
     </slot>
@@ -10,9 +10,10 @@
 </template>
 
 <script lang="ts" setup>
+import { Check, Minus } from "lucide-vue-next"
 import { CheckboxIndicator } from "reka-ui"
 import type { CheckboxCheckedState, CheckboxIndicatorProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
@@ -29,17 +30,17 @@ const props = withDefaults(
        * Icon to display when the checkbox is checked
        * @default lucide:check
        */
-      icon?: string
+      icon?: Component
       /**
        * Icon to display when the checkbox is in indeterminate state
-       * @default lucide:minus
+       * @default Minus
        */
-      indeterminateIcon?: string
+      indeterminateIcon?: Component
     }
   >(),
   {
-    icon: "lucide:check",
-    indeterminateIcon: "lucide:minus"
+    icon: () => Check,
+    indeterminateIcon: () => Minus
   }
 )
 const forwarded = reactiveOmit(props, "class", "icon")

@@ -10,7 +10,7 @@
             </span>
           </slot>
           <slot name="icon">
-            <Icon v-if="icon" :name="icon" :class="iconClass({ orientation, type })" />
+            <component :is="icon" v-if="icon" :class="iconClass({ orientation, type })" />
           </slot>
           <slot name="avatar">
             <UiAvatar v-if="avatar" :src="avatar" />
@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import { Primitive, Separator } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<{
   /**
@@ -44,7 +44,7 @@ const props = defineProps<{
   /**
    * The icon to display in the divider
    */
-  icon?: string
+  icon?: Component
   /**
    * The label to display in the divider
    */

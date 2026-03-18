@@ -1,4 +1,17 @@
 <script lang="ts" setup>
+import type { Component } from "vue"
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Building2,
+  Settings,
+  HelpCircle,
+  ChevronRight,
+  ChevronsUpDown,
+  Shield,
+  LogOut
+} from "lucide-vue-next"
+
 const runtimeConfig = useRuntimeConfig()
 const name = runtimeConfig.public.app.name
 
@@ -24,16 +37,16 @@ watch(
 )
 
 // Navigation structure
-const navMain = [
+const navMain: Array<{ title: string; url: string; icon: Component }> = [
   {
     title: "Dashboard",
     url: "/",
-    icon: "lucide:layout-dashboard"
+    icon: LayoutDashboard
   },
   {
     title: "Projects",
     url: "/projects",
-    icon: "lucide:folder-open"
+    icon: FolderOpen
   }
 ]
 
@@ -44,7 +57,7 @@ const navOrg = computed(() => {
     {
       title: "Workplace",
       url: "/organisation",
-      icon: "lucide:building-2",
+      icon: Building2,
       items: [
         { title: "Overview", url: "/organisation" },
         ...(isOrgAdmin.value
@@ -59,16 +72,16 @@ const navOrg = computed(() => {
   ]
 })
 
-const navAccount = [
+const navAccount: Array<{ title: string; url: string; icon: Component }> = [
   {
     title: "Settings",
     url: "/settings",
-    icon: "lucide:settings"
+    icon: Settings
   },
   {
     title: "Help & Support",
     url: "/support",
-    icon: "lucide:help-circle"
+    icon: HelpCircle
   }
 ]
 
@@ -117,7 +130,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
               <UiSidebarMenuItem v-for="item in navMain" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -134,10 +147,9 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                   <UiSidebarMenuItem>
                     <UiCollapsibleTrigger as-child>
                       <UiSidebarMenuButton :tooltip="item.title">
-                        <Icon :name="item.icon" class="size-4" />
+                        <component :is="item.icon" class="size-4" />
                         <span>{{ item.title }}</span>
-                        <Icon
-                          name="lucide:chevron-right"
+                        <ChevronRight
                           class="ml-auto size-4 transition-transform duration-200"
                           :class="[open && 'rotate-90']"
                         />
@@ -167,7 +179,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
               <UiSidebarMenuItem v-for="item in navAccount" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -199,7 +211,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                       <span class="truncate font-semibold">{{ currentUser.name }}</span>
                       <span class="truncate text-xs">{{ currentUser.email }}</span>
                     </div>
-                    <Icon name="lucide:chevrons-up-down" class="ml-auto size-4" />
+                    <ChevronsUpDown class="ml-auto size-4" />
                   </UiSidebarMenuButton>
                 </UiDropdownMenuTrigger>
                 <UiDropdownMenuContent
@@ -224,7 +236,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                     <NuxtLink to="/settings">
                       <UiDropdownMenuItem title="Settings">
                         <template #icon>
-                          <Icon name="lucide:settings" class="size-4" />
+                          <Settings class="size-4" />
                         </template>
                       </UiDropdownMenuItem>
                     </NuxtLink>
@@ -236,7 +248,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                       <NuxtLink to="/admin">
                         <UiDropdownMenuItem title="Admin Panel">
                           <template #icon>
-                            <Icon name="lucide:shield" class="size-4" />
+                            <Shield class="size-4" />
                           </template>
                         </UiDropdownMenuItem>
                       </NuxtLink>
@@ -245,7 +257,7 @@ useSeoMeta({ title: `${name} - Measure with precision` })
                   <UiDropdownMenuSeparator />
                   <UiDropdownMenuItem title="Log out" @click="signOut">
                     <template #icon>
-                      <Icon name="lucide:log-out" class="size-4" />
+                      <LogOut class="size-4" />
                     </template>
                   </UiDropdownMenuItem>
                 </UiDropdownMenuContent>

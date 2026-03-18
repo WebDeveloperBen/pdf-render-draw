@@ -1,27 +1,28 @@
 <template>
   <PopoverClose data-slot="popover-x" v-bind="forwarded" :class="styles({ class: props.class })">
     <slot>
-      <Icon :name="icon" class="size-4" />
+      <component :is="icon" class="size-4" />
       <span class="sr-only">{{ srText }}</span>
     </slot>
   </PopoverClose>
 </template>
 
 <script lang="ts" setup>
+import { X } from "lucide-vue-next"
 import { PopoverClose, useForwardProps } from "reka-ui"
 import type { PopoverCloseProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
     PopoverCloseProps & {
       class?: HTMLAttributes["class"]
-      icon?: string
+      icon?: Component
       srText?: string
     }
   >(),
   {
-    icon: "heroicons:x-mark",
+    icon: () => X,
     srText: "Close"
   }
 )

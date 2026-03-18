@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FolderOpen, Plus, FileText, File, MessageSquare, ArrowRight } from "lucide-vue-next"
+
 /**
  * Async component that fetches and displays recent projects
  * Must be wrapped in <Suspense> by parent
@@ -47,11 +49,11 @@ const formatDate = (date: Date | string | null) => {
     </div>
 
     <div v-if="projects.length === 0" class="text-center py-12 border-2 border-dashed rounded-lg">
-      <Icon name="lucide:folder-open" class="size-16 mx-auto text-muted-foreground mb-4" />
+      <FolderOpen class="size-16 mx-auto text-muted-foreground mb-4" />
       <h3 class="text-lg font-semibold mb-2">No projects yet</h3>
       <p class="text-muted-foreground mb-4">Get started by creating your first project</p>
       <UiButton @click="navigateTo('/projects')">
-        <Icon name="lucide:plus" class="size-4 mr-2" />
+        <Plus class="size-4 mr-2" />
         Create Project
       </UiButton>
     </div>
@@ -65,7 +67,7 @@ const formatDate = (date: Date | string | null) => {
       >
         <UiCardHeader class="p-0">
           <div class="aspect-video bg-muted flex items-center justify-center">
-            <Icon name="lucide:file-text" class="size-16 text-muted-foreground/30" />
+            <FileText class="size-16 text-muted-foreground/30" />
           </div>
         </UiCardHeader>
         <UiCardContent class="p-4">
@@ -78,11 +80,11 @@ const formatDate = (date: Date | string | null) => {
 
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
             <div class="flex items-center gap-1">
-              <Icon name="lucide:file" class="size-3" />
+              <File class="size-3" />
               {{ project.pageCount }} {{ project.pageCount === 1 ? "page" : "pages" }}
             </div>
             <div class="flex items-center gap-1">
-              <Icon name="lucide:message-square" class="size-3" />
+              <MessageSquare class="size-3" />
               {{ project.annotationCount }}
             </div>
           </div>
@@ -91,7 +93,7 @@ const formatDate = (date: Date | string | null) => {
 
           <div class="flex items-center justify-between text-xs text-muted-foreground">
             <span>Updated {{ formatDate(project.updatedAt) }}</span>
-            <Icon name="lucide:arrow-right" class="size-3 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight class="size-3 group-hover:translate-x-1 transition-transform" />
           </div>
         </UiCardContent>
       </UiCard>

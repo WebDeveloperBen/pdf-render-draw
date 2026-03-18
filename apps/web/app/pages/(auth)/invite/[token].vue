@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { Building2 } from "lucide-vue-next"
 definePageMeta({
   layout: false
 })
@@ -153,7 +154,7 @@ const acceptInvitationHandler = async () => {
     <!-- Loading state -->
     <UiCard v-if="invitationStatus === 'pending'" class="w-full max-w-md">
       <UiCardContent class="flex items-center justify-center py-12">
-        <Icon name="svg-spinners:ring-resize" class="size-8 text-primary" />
+        <UiSpinner class="size-8 text-primary" />
       </UiCardContent>
     </UiCard>
 
@@ -174,7 +175,7 @@ const acceptInvitationHandler = async () => {
     <UiCard v-else class="w-full max-w-md">
       <UiCardHeader class="text-center">
         <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
-          <Icon name="lucide:building-2" class="size-8 text-primary" />
+          <Building2 class="size-8 text-primary" />
         </div>
         <UiCardTitle>You're invited!</UiCardTitle>
         <UiCardDescription>
@@ -193,7 +194,7 @@ const acceptInvitationHandler = async () => {
             </p>
           </div>
           <UiButton class="w-full" :disabled="isLoading" @click="acceptInvitationHandler">
-            <Icon v-if="isLoading" name="svg-spinners:ring-resize" class="size-4" />
+            <UiSpinner v-if="isLoading" class="size-4" />
             Accept Invitation
           </UiButton>
         </div>
@@ -264,7 +265,7 @@ const acceptInvitationHandler = async () => {
               />
             </div>
             <UiButton class="w-full" :disabled="isLoading || !password" @click="handleSignIn">
-              <Icon v-if="isLoading" name="svg-spinners:ring-resize" class="size-4" />
+              <UiSpinner v-if="isLoading" class="size-4" />
               Sign In & Accept
             </UiButton>
           </div>
@@ -308,7 +309,7 @@ const acceptInvitationHandler = async () => {
               :disabled="isLoading || !password || !firstName || !lastName"
               @click="handleSignUp"
             >
-              <Icon v-if="isLoading" name="svg-spinners:ring-resize" class="size-4" />
+              <UiSpinner v-if="isLoading" class="size-4" />
               Create Account & Accept
             </UiButton>
           </div>

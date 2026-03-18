@@ -1,24 +1,25 @@
 <template>
   <NumberFieldIncrement data-slot="number-field-increment" v-bind="forwarded" :class="styles({ class: props.class })">
     <slot>
-      <Icon :name="props.icon" />
+      <component :is="props.icon" />
     </slot>
   </NumberFieldIncrement>
 </template>
 
 <script lang="ts" setup>
+import { Plus } from "lucide-vue-next"
 import { NumberFieldIncrement, useForwardProps } from "reka-ui"
 import type { NumberFieldIncrementProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
     NumberFieldIncrementProps & {
       class?: HTMLAttributes["class"]
-      icon?: string
+      icon?: Component
     }
   >(),
-  { icon: "lucide:plus" }
+  { icon: () => Plus }
 )
 
 const forwarded = useForwardProps(reactiveOmit(props, "class"))

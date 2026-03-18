@@ -10,12 +10,12 @@
 <script lang="ts" setup>
 import { ListboxItem, useForwardPropsEmits } from "reka-ui"
 import type { ListboxItemEmits, ListboxItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   ListboxItemProps & {
     class?: HTMLAttributes["class"]
-    icon?: string
+    icon?: Component
   }
 >()
 const emits = defineEmits<ListboxItemEmits>()

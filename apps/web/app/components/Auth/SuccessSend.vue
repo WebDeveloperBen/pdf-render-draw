@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Mail, ArrowLeft, Loader2 } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 
 const props = withDefaults(
@@ -54,7 +55,7 @@ async function handleResend() {
     />
     <div class="relative z-2 w-full max-w-[340px] px-5">
       <div class="mx-auto mb-6 flex size-14 items-center justify-center rounded-lg border bg-background">
-        <Icon class="size-6" name="lucide:mail" />
+        <Mail class="size-6" />
       </div>
 
       <div class="flex flex-col items-center text-center">
@@ -67,8 +68,8 @@ async function handleResend() {
 
       <div class="mt-10">
         <UiButton class="w-full" :disabled="isResending || !email" @click="handleResend">
-          <Icon v-if="isResending" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
-          <Icon v-else class="size-5" name="lucide:arrow-left" />
+          <Loader2 v-if="isResending" class="mr-2 size-4 animate-spin" />
+          <ArrowLeft v-else class="size-5" />
           <span>Resend instructions</span>
         </UiButton>
       </div>

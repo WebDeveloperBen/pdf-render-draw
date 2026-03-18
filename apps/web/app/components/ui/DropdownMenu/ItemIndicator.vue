@@ -5,7 +5,7 @@
     :class="styles({ class: props.class })"
   >
     <slot>
-      <Icon v-if="icon" :name="icon" class="size-4" />
+      <component :is="icon" v-if="icon" class="size-4" />
     </slot>
   </DropdownMenuItemIndicator>
 </template>
@@ -13,12 +13,12 @@
 <script lang="ts" setup>
 import { DropdownMenuItemIndicator } from "reka-ui"
 import type { DropdownMenuItemIndicatorProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   DropdownMenuItemIndicatorProps & {
     /** The icon to display */
-    icon?: string
+    icon?: Component
     /** Custom class(es) to add to the parent */
     class?: HTMLAttributes["class"]
   }

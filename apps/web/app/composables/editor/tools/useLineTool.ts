@@ -1,3 +1,4 @@
+import { Minus } from "lucide-vue-next"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 
 /**
@@ -31,7 +32,7 @@ const [useLineTool, useLineToolState] = createInjectionState(() => {
   registerTool({
     type: "line",
     name: "Line",
-    icon: "lucide:minus",
+    icon: Minus,
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

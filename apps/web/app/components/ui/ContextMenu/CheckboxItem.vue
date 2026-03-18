@@ -5,7 +5,7 @@
     :class="styles({ class: props.class })"
   >
     <span class="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
-      <UiContextMenuItemIndicator icon="lucide:check" />
+      <UiContextMenuItemIndicator :icon="Check" />
     </span>
     <slot>
       <span v-if="title">{{ title }}</span>
@@ -17,6 +17,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Check } from "lucide-vue-next"
 import { ContextMenuCheckboxItem, useForwardPropsEmits } from "reka-ui"
 import type { ContextMenuCheckboxItemEmits, ContextMenuCheckboxItemProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"

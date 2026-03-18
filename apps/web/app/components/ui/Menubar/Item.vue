@@ -8,7 +8,7 @@
   >
     <slot>
       <slot name="icon">
-        <Icon v-if="icon" :name="icon" class="size-4" />
+        <component :is="icon" v-if="icon" class="size-4" />
       </slot>
       <slot name="title">
         <span v-if="title" data-slot="menubar-item-title">{{ title }}</span>
@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 import { MenubarItem, useForwardPropsEmits } from "reka-ui"
 import type { MenubarItemEmits, MenubarItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   MenubarItemProps & {
@@ -31,7 +31,7 @@ const props = defineProps<
     class?: HTMLAttributes["class"]
     shortcut?: string
     title?: string
-    icon?: string
+    icon?: Component
     variant?: "default" | "destructive"
   }
 >()

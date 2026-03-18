@@ -1,10 +1,10 @@
 <template>
   <div data-slot="fancy-icon" :class="styles().base({ class: props.class, color, type, size, circle })">
     <slot :styles="styles().icon({ color, type, size, circle })">
-      <Icon
+      <component
+        :is="icon"
         v-if="icon"
         data-slot="fancy-icon-icon"
-        :name="icon"
         :class="styles().icon({ color, type, size, circle })"
       />
     </slot>
@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<{
@@ -23,7 +23,7 @@ const props = withDefaults(
     /**
      * The icon to display.
      */
-    icon?: string
+    icon?: Component
     /**
      * The color variant of the icon.
      */

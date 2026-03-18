@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ProjectWithRelations } from "#shared/types/projects.types"
 import { toast } from "vue-sonner"
+import { FileText, FolderOpen, MessageSquare, Plus, Search, Share2 } from "lucide-vue-next"
 
 useSeoMeta({ title: "Projects" })
 
@@ -74,7 +75,7 @@ onMounted(() => {
         <p class="text-muted-foreground mt-1">Manage your building plan projects</p>
       </div>
       <UiButton @click="showCreateDialog = true">
-        <Icon name="lucide:plus" class="size-4 mr-2" />
+        <Plus class="size-4 mr-2" />
         New Project
       </UiButton>
     </div>
@@ -82,7 +83,7 @@ onMounted(() => {
     <!-- Search and filters -->
     <div class="flex items-center gap-4">
       <div class="relative flex-1 max-w-md">
-        <Icon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <UiInput v-model="searchQuery" placeholder="Search projects..." class="pl-9" />
       </div>
     </div>
@@ -101,11 +102,11 @@ onMounted(() => {
     </div>
 
     <div v-else-if="projects.length === 0" class="text-center py-12">
-      <Icon name="lucide:folder-open" class="size-16 mx-auto text-muted-foreground mb-4" />
+      <FolderOpen class="size-16 mx-auto text-muted-foreground mb-4" />
       <h3 class="text-lg font-semibold mb-2">No projects yet</h3>
       <p class="text-muted-foreground mb-4">Get started by creating your first project</p>
       <UiButton @click="showCreateDialog = true">
-        <Icon name="lucide:plus" class="size-4 mr-2" />
+        <Plus class="size-4 mr-2" />
         Create Project
       </UiButton>
     </div>
@@ -119,7 +120,7 @@ onMounted(() => {
       >
         <UiCardHeader class="p-0">
           <div class="aspect-video bg-muted flex items-center justify-center">
-            <Icon name="lucide:file-text" class="size-16 text-muted-foreground/30" />
+            <FileText class="size-16 text-muted-foreground/30" />
           </div>
         </UiCardHeader>
         <UiCardContent class="p-4">
@@ -132,15 +133,15 @@ onMounted(() => {
 
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
             <div class="flex items-center gap-1">
-              <Icon name="lucide:file-text" class="size-3" />
+              <FileText class="size-3" />
               {{ project._count?.files ?? 0 }} {{ project._count?.files === 1 ? "file" : "files" }}
             </div>
             <div class="flex items-center gap-1">
-              <Icon name="lucide:message-square" class="size-3" />
+              <MessageSquare class="size-3" />
               {{ project.annotationCount }}
             </div>
             <div v-if="project._count?.shares" class="flex items-center gap-1">
-              <Icon name="lucide:share-2" class="size-3" />
+              <Share2 class="size-3" />
               {{ project._count.shares }}
             </div>
           </div>

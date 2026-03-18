@@ -42,6 +42,7 @@
 <script lang="ts" setup>
 import { AnimatePresence, motion } from "motion-v"
 import type { DateFieldRootProps } from "reka-ui"
+import type { Component } from "vue"
 
 const variants = {
   initial: { opacity: 0, y: -2 },
@@ -59,7 +60,7 @@ const props = defineProps<
     rules?: any
     validateOnMount?: boolean
     separator?: string
-    separatorIcon?: string
+    separatorIcon?: Component
   }
 >()
 

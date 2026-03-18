@@ -9,6 +9,7 @@ import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
+import { AlertCircle, Download, ExternalLink, Eye, File, FileText, Key, Lock, Unlock } from "lucide-vue-next"
 
 definePageMeta({
   layout: false // No layout for public page
@@ -92,7 +93,7 @@ useSeoMeta({
     <header class="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div class="container flex h-14 items-center justify-between">
         <NuxtLink to="/" class="flex items-center gap-2 font-semibold">
-          <Icon name="lucide:file-text" class="size-5 text-primary" />
+          <FileText class="size-5 text-primary" />
           <span>PDF Annotator</span>
         </NuxtLink>
         <NuxtLink to="/login">
@@ -105,7 +106,7 @@ useSeoMeta({
       <!-- Loading -->
       <div v-if="status === 'pending'" class="flex items-center justify-center py-24">
         <div class="flex flex-col items-center gap-4">
-          <Icon name="svg-spinners:ring-resize" class="size-12 text-primary" />
+          <UiSpinner class="size-12 text-primary" />
           <p class="text-muted-foreground">Loading shared project...</p>
         </div>
       </div>
@@ -115,7 +116,7 @@ useSeoMeta({
         <UiCard class="w-full max-w-md">
           <UiCardHeader class="text-center">
             <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
-              <Icon name="lucide:lock" class="size-8 text-primary" />
+              <Lock class="size-8 text-primary" />
             </div>
             <UiCardTitle>Private Share</UiCardTitle>
             <UiCardDescription>
@@ -135,7 +136,7 @@ useSeoMeta({
         <UiCard class="w-full max-w-md">
           <UiCardHeader class="text-center">
             <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
-              <Icon name="lucide:key" class="size-8 text-primary" />
+              <Key class="size-8 text-primary" />
             </div>
             <UiCardTitle>Password Protected</UiCardTitle>
             <UiCardDescription>Enter the password to view this shared project.</UiCardDescription>
@@ -144,8 +145,8 @@ useSeoMeta({
             <form class="space-y-4" @submit="handlePasswordSubmit">
               <UiFormBuilder :fields="passwordFields" />
               <UiButton type="submit" class="w-full" :disabled="isSubmittingPassword">
-                <Icon v-if="isSubmittingPassword" name="svg-spinners:ring-resize" class="size-4" />
-                <Icon v-else name="lucide:unlock" class="size-4" />
+                <UiSpinner v-if="isSubmittingPassword" class="size-4" />
+                <Unlock v-else class="size-4" />
                 View Project
               </UiButton>
             </form>
@@ -158,7 +159,7 @@ useSeoMeta({
         <UiCard class="w-full max-w-md border-destructive">
           <UiCardHeader class="text-center">
             <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-destructive/10">
-              <Icon name="lucide:alert-circle" class="size-8 text-destructive" />
+              <AlertCircle class="size-8 text-destructive" />
             </div>
             <UiCardTitle>Unable to Load</UiCardTitle>
             <UiCardDescription>This share link may be invalid or expired.</UiCardDescription>
@@ -180,11 +181,11 @@ useSeoMeta({
             <p v-if="shareData.description" class="text-muted-foreground">{{ shareData.description }}</p>
             <div class="flex items-center gap-4 text-sm text-muted-foreground">
               <span class="flex items-center gap-1">
-                <Icon name="lucide:file" class="size-4" />
+                <File class="size-4" />
                 {{ shareData.pageCount }} pages
               </span>
               <span class="flex items-center gap-1">
-                <Icon name="lucide:eye" class="size-4" />
+                <Eye class="size-4" />
                 {{ shareData.share?.viewCount || 0 }} views
               </span>
             </div>
@@ -192,7 +193,7 @@ useSeoMeta({
           <div v-if="shareData.share?.allowDownload" class="flex items-center gap-2">
             <a :href="shareData.pdfUrl" target="_blank" download>
               <UiButton variant="outline">
-                <Icon name="lucide:download" class="size-4" />
+                <Download class="size-4" />
                 Download PDF
               </UiButton>
             </a>
@@ -204,14 +205,14 @@ useSeoMeta({
           <UiCardContent class="p-0">
             <div class="aspect-4/3 bg-muted flex items-center justify-center">
               <div class="text-center space-y-4">
-                <Icon name="lucide:file-text" class="size-16 text-muted-foreground mx-auto" />
+                <FileText class="size-16 text-muted-foreground mx-auto" />
                 <div>
                   <p class="font-medium">PDF Viewer</p>
                   <p class="text-sm text-muted-foreground">Open in editor to view and annotate</p>
                 </div>
                 <NuxtLink :to="`/editor?share=${token}`">
                   <UiButton>
-                    <Icon name="lucide:external-link" class="size-4" />
+                    <ExternalLink class="size-4" />
                     Open in Editor
                   </UiButton>
                 </NuxtLink>

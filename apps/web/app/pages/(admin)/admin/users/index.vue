@@ -3,6 +3,7 @@ import { keepPreviousData } from "@tanstack/vue-query"
 import type { ColumnDef } from "@tanstack/vue-table"
 import type { GetApiAdminUsers200, GetApiAdminUsers200UsersItem, GetApiAdminUsersParams } from "~/models/api"
 import { useGetApiAdminUsers } from "~/models/api"
+import { CheckCircle, Eye, RefreshCw, Search, Users } from "lucide-vue-next"
 
 definePageMeta({
   layout: "admin",
@@ -86,11 +87,7 @@ const columns: ColumnDef<GetApiAdminUsers200UsersItem>[] = [
       return h("div", { class: "flex items-center gap-2" }, [
         h("span", {}, user.email),
         user.emailVerified
-          ? h(resolveComponent("Icon"), {
-              name: "lucide:check-circle",
-              class: "size-4 text-green-500",
-              title: "Email verified"
-            })
+          ? h(CheckCircle, { class: "size-4 text-green-500", title: "Email verified" })
           : null
       ])
     }
@@ -128,7 +125,7 @@ const columns: ColumnDef<GetApiAdminUsers200UsersItem>[] = [
           title: "View user details",
           onClick: () => navigateTo(`/admin/users/${row.original.id}`)
         },
-        () => h(resolveComponent("Icon"), { name: "lucide:eye", class: "size-4" })
+        () => h(Eye, { class: "size-4" })
       )
     }
   }
@@ -144,7 +141,7 @@ const columns: ColumnDef<GetApiAdminUsers200UsersItem>[] = [
         <p class="text-muted-foreground mt-1">Manage platform users</p>
       </div>
       <UiButton variant="outline" size="sm" @click="refetch()">
-        <Icon name="lucide:refresh-cw" class="size-4 mr-2" />
+        <RefreshCw class="size-4 mr-2" />
         Refresh
       </UiButton>
     </div>
@@ -152,7 +149,7 @@ const columns: ColumnDef<GetApiAdminUsers200UsersItem>[] = [
     <!-- Search -->
     <div class="flex items-center gap-4">
       <div class="relative flex-1 max-w-sm">
-        <Icon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <UiInput v-model="search" placeholder="Search users by name or email..." class="pl-9" />
       </div>
     </div>
@@ -188,7 +185,7 @@ const columns: ColumnDef<GetApiAdminUsers200UsersItem>[] = [
       >
         <template #empty>
           <div class="flex flex-col items-center py-8 text-muted-foreground">
-            <Icon name="lucide:users" class="size-12 mb-4 opacity-50" />
+            <Users class="size-12 mb-4 opacity-50" />
             <p>No users found</p>
           </div>
         </template>

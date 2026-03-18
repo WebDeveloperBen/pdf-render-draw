@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { ArrowLeft, Laptop, Monitor, X } from "lucide-vue-next"
 
 const session = authClient.useSession()
 
@@ -138,7 +139,7 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center gap-4">
       <UiButton variant="ghost" size="icon" to="/settings">
-        <Icon name="lucide:arrow-left" class="size-4" />
+        <ArrowLeft class="size-4" />
       </UiButton>
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Security</h1>
@@ -190,7 +191,7 @@ onMounted(() => {
           :disabled="isChangingPassword || !currentPassword || !newPassword || !confirmPassword"
           @click="handleChangePassword"
         >
-          <Icon v-if="isChangingPassword" name="svg-spinners:ring-resize" class="size-4" />
+          <UiSpinner v-if="isChangingPassword" class="size-4" />
           Change Password
         </UiButton>
       </UiCardFooter>
@@ -209,11 +210,11 @@ onMounted(() => {
       </UiCardHeader>
       <UiCardContent>
         <div v-if="isLoadingSessions" class="flex items-center justify-center py-8">
-          <Icon name="svg-spinners:ring-resize" class="size-6 text-muted-foreground" />
+          <UiSpinner class="size-6 text-muted-foreground" />
         </div>
 
         <div v-else-if="sessions.length === 0" class="text-center py-8 text-muted-foreground">
-          <Icon name="lucide:monitor" class="size-12 mx-auto mb-2 opacity-50" />
+          <Monitor class="size-12 mx-auto mb-2 opacity-50" />
           <p>No active sessions found</p>
         </div>
 
@@ -226,8 +227,8 @@ onMounted(() => {
           >
             <div class="flex items-center gap-3">
               <div class="flex size-10 items-center justify-center rounded-lg bg-muted">
-                <Icon
-                  :name="parseUserAgent(sess.userAgent).os === 'macOS' ? 'lucide:laptop' : 'lucide:monitor'"
+                <component
+                  :is="parseUserAgent(sess.userAgent).os === 'macOS' ? Laptop : Monitor"
                   class="size-5 text-muted-foreground"
                 />
               </div>
@@ -252,8 +253,8 @@ onMounted(() => {
               :disabled="isRevokingSession === sess.token"
               @click="handleRevokeSession(sess.token)"
             >
-              <Icon v-if="isRevokingSession === sess.token" name="svg-spinners:ring-resize" class="size-4" />
-              <Icon v-else name="lucide:x" class="size-4" />
+              <UiSpinner v-if="isRevokingSession === sess.token" class="size-4" />
+              <X v-else class="size-4" />
             </UiButton>
           </div>
         </div>

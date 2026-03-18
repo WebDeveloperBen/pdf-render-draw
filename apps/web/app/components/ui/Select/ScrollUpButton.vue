@@ -1,23 +1,29 @@
 <template>
   <SelectScrollUpButton :class="styles({ class: props.class })" data-slot="select-scroll-up-button" v-bind="forwarded">
     <slot>
-      <Icon :name="icon || 'lucide:chevron-up'" class="size-4" />
+      <component :is="icon" class="size-4" />
     </slot>
   </SelectScrollUpButton>
 </template>
 
 <script lang="ts" setup>
+import { ChevronUp } from "lucide-vue-next"
 import { SelectScrollUpButton } from "reka-ui"
 import type { SelectScrollUpButtonProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
-const props = defineProps<
-  SelectScrollUpButtonProps & {
-    /** Icon to render */
-    icon?: string
-    class?: HTMLAttributes["class"]
+const props = withDefaults(
+  defineProps<
+    SelectScrollUpButtonProps & {
+      /** Icon to render */
+      icon?: Component
+      class?: HTMLAttributes["class"]
+    }
+  >(),
+  {
+    icon: () => ChevronUp
   }
->()
+)
 const forwarded = reactiveOmit(props, "icon")
 const styles = tv({
   base: "flex cursor-default items-center justify-center py-1"

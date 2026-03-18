@@ -12,13 +12,14 @@
       }
     "
   >
-    <Icon :name="icon" />
+    <component :is="icon" />
     <span class="sr-only">Toggle Navbar</span>
   </UiButton>
 </template>
 
 <script lang="ts" setup>
-import type { HTMLAttributes } from "vue"
+import { Menu } from "lucide-vue-next"
+import type { Component, HTMLAttributes } from "vue"
 
 import { navProviderKey } from "./Provider.vue"
 
@@ -36,11 +37,11 @@ const props = withDefaults(
     ariaLabel?: string
     class?: HTMLAttributes["class"]
     onClick?: (event: MouseEvent) => void
-    icon?: string
+    icon?: Component
   }>(),
   {
     ariaLabel: "Toggle Navbar",
-    icon: "lucide:menu"
+    icon: () => Menu
   }
 )
 

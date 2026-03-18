@@ -8,7 +8,7 @@
   >
     <slot>
       <slot name="icon">
-        <Icon v-if="icon" :name="icon" class="size-4" />
+        <component :is="icon" v-if="icon" class="size-4" />
       </slot>
       <slot name="title">
         <span v-if="title">{{ title }}</span>
@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 import { DropdownMenuItem, useForwardPropsEmits } from "reka-ui"
 import type { DropdownMenuItemEmits, DropdownMenuItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   DropdownMenuItemProps & {
@@ -36,7 +36,7 @@ const props = defineProps<
     /** The title text to display */
     title?: string
     /** The icon to display */
-    icon?: string
+    icon?: Component
     /**
      * The variant of the item.
      *

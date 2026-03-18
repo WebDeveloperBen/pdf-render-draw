@@ -7,16 +7,17 @@
     @click="scrollPrev"
   >
     <slot>
-      <Icon :name="props.icon" :class="styles().icon({ orientation, class: props.iconClass })" />
+      <component :is="props.icon" :class="styles().icon({ orientation, class: props.iconClass })" />
       <span class="sr-only">{{ props.srText }}</span>
     </slot>
   </UiButton>
 </template>
 
 <script setup lang="ts">
+import { ArrowLeft } from "lucide-vue-next"
 import type { buttonStyles } from "~/components/ui/Button.vue"
 import type { WithClassAsProps } from "~/composables/useCarousel"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
@@ -25,7 +26,7 @@ const props = withDefaults(
        *
        * @default "lucide:arrow-left"
        */
-      icon?: string
+      icon?: Component
       /** The screen reader text
        *
        * @default "Previous Slide"
@@ -41,7 +42,7 @@ const props = withDefaults(
     }
   >(),
   {
-    icon: "lucide:arrow-left",
+    icon: () => ArrowLeft,
     srText: "Previous Slide",
     variant: "outline"
   }

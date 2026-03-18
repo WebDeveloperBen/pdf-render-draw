@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { User, X } from "lucide-vue-next"
+
 const props = defineProps<{
   modelValue: string[]
   disabled?: boolean
@@ -113,7 +115,7 @@ const focusInput = () => {
           :key="email"
           class="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-sm"
         >
-          <Icon name="lucide:user" class="size-3 text-muted-foreground" />
+          <User class="size-3 text-muted-foreground" />
           <span class="max-w-[200px] truncate">{{ email }}</span>
           <button
             type="button"
@@ -121,7 +123,7 @@ const focusInput = () => {
             :disabled="disabled"
             @click.stop="removeEmail(email)"
           >
-            <Icon name="lucide:x" class="size-3" />
+            <X class="size-3" />
           </button>
         </div>
       </TransitionGroup>

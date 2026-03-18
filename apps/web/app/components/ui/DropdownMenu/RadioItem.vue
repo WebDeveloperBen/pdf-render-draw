@@ -6,8 +6,8 @@
   >
     <span class="absolute left-2 flex size-3.5 items-center justify-center text-primary">
       <UiDropdownMenuItemIndicator>
-        <Icon v-if="icon" :name="icon" class="size-4" />
-        <Icon v-else name="ph:circle-fill" class="size-2" />
+        <component :is="icon" v-if="icon" class="size-4" />
+        <span v-else class="block size-2 rounded-full bg-current" />
       </UiDropdownMenuItemIndicator>
     </span>
     <slot>{{ title }}</slot>
@@ -17,14 +17,14 @@
 <script lang="ts" setup>
 import { DropdownMenuRadioItem, useForwardPropsEmits } from "reka-ui"
 import type { DropdownMenuRadioItemEmits, DropdownMenuRadioItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   DropdownMenuRadioItemProps & {
     /** Custom class(es) to add to the parent */
     class?: HTMLAttributes["class"]
     /** The icon to display */
-    icon?: string
+    icon?: Component
     /** The title text to display */
     title?: string
   }

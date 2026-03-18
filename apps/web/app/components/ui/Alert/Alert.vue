@@ -1,10 +1,10 @@
 <template>
   <div v-if="shown" data-slot="alert" :class="alertStyles().base({ variant, filled, class: props.class })">
     <slot :props="props" name="icon">
-      <Icon
+      <component
+        :is="icon"
         v-if="icon"
         data-slot="alert-icon"
-        :name="icon"
         :class="alertStyles().icon({ variant, filled, class: props.iconClass })"
       />
     </slot>
@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 export type AlertProps = {
   /** Custom class to add to the `Alert` parent */
@@ -43,7 +43,7 @@ export type AlertProps = {
   /** The description that is passed to the `AlertDescription` component */
   description?: string
   /** The icon that should be displayed*/
-  icon?: string
+  icon?: Component
 }
 
 export const alertStyles = tv({

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { ShieldCheck } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
@@ -86,7 +87,7 @@ const submit = handleSubmit(async (values) => {
               <UiVeeInput label="New password" type="password" name="password" placeholder="••••••••" />
               <UiVeeInput label="Confirm password" type="password" name="confirmPassword" placeholder="••••••••" />
               <UiButton class="w-full" type="submit">
-                <Icon v-if="isSubmitting" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
+                <UiSpinner v-if="isSubmitting" class="mr-2 size-4" />
                 Reset Password
               </UiButton>
             </fieldset>
@@ -118,7 +119,7 @@ const submit = handleSubmit(async (values) => {
     <div class="hidden bg-muted lg:block">
       <div class="flex h-full flex-col items-center justify-center p-8">
         <div class="max-w-md text-center">
-          <Icon name="lucide:shield-check" class="mx-auto mb-6 size-16 text-primary" />
+          <ShieldCheck class="mx-auto mb-6 size-16 text-primary" />
           <h2 class="mb-4 text-2xl font-bold">Almost There!</h2>
           <p class="text-muted-foreground">
             Choose a strong password to keep your account secure. Use a mix of letters, numbers, and symbols.

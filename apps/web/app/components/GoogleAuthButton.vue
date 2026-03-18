@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Github, Loader2 } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 
 const props = withDefaults(
@@ -43,7 +44,7 @@ async function signInWith(provider: "google" | "github") {
       :disabled="disabled || !!isLoading"
       @click="signInWith('google')"
     >
-      <Icon v-if="isLoading === 'google'" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
+      <Loader2 v-if="isLoading === 'google'" class="mr-2 size-4 animate-spin" />
       <IconsGoogle v-else class="mr-2 size-5" />
       {{ mode === "signup" ? "Sign up with Google" : "Continue with Google" }}
     </UiButton>
@@ -57,8 +58,8 @@ async function signInWith(provider: "google" | "github") {
       :disabled="disabled || !!isLoading"
       @click="signInWith('github')"
     >
-      <Icon v-if="isLoading === 'github'" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
-      <Icon v-else name="lucide:github" class="mr-2 size-5" />
+      <Loader2 v-if="isLoading === 'github'" class="mr-2 size-4 animate-spin" />
+      <Github v-else class="mr-2 size-5" />
       {{ mode === "signup" ? "Sign up with GitHub" : "Continue with GitHub" }}
     </UiButton>
   </div>

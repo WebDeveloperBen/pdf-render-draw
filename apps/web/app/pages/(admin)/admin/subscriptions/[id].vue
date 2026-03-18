@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { AlertCircle, AlertTriangle, ArrowLeft, CalendarX, CheckCircle, Clock, CreditCard, Dot, ExternalLink, GitCommitHorizontal, HelpCircle, MinusCircle, RefreshCw, Shield, Undo2, XCircle } from "lucide-vue-next"
+import type { Component } from "vue"
 
 definePageMeta({
   layout: "admin",
@@ -166,18 +168,18 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 const getStatusConfig = (status: string) =>
   statusConfig[status] || { label: status, class: "text-gray-600 border-gray-600" }
 
-const healthConfig: Record<string, { label: string; icon: string; class: string }> = {
-  healthy: { label: "Healthy", icon: "lucide:check-circle", class: "text-green-500" },
-  at_risk: { label: "At Risk", icon: "lucide:alert-triangle", class: "text-amber-500" },
-  action_needed: { label: "Action Needed", icon: "lucide:alert-circle", class: "text-red-500" },
-  inactive: { label: "Inactive", icon: "lucide:minus-circle", class: "text-gray-400" }
+const healthConfig: Record<string, { label: string; icon: Component; class: string }> = {
+  healthy: { label: "Healthy", icon: CheckCircle, class: "text-green-500" },
+  at_risk: { label: "At Risk", icon: AlertTriangle, class: "text-amber-500" },
+  action_needed: { label: "Action Needed", icon: AlertCircle, class: "text-red-500" },
+  inactive: { label: "Inactive", icon: MinusCircle, class: "text-gray-400" }
 }
 
-const activityTypeConfig: Record<string, { icon: string; class: string }> = {
-  lifecycle: { icon: "lucide:git-commit-horizontal", class: "text-blue-500" },
-  admin_action: { icon: "lucide:shield", class: "text-amber-500" },
-  sync: { icon: "lucide:refresh-cw", class: "text-purple-500" },
-  payment: { icon: "lucide:credit-card", class: "text-green-500" }
+const activityTypeConfig: Record<string, { icon: Component; class: string }> = {
+  lifecycle: { icon: GitCommitHorizontal, class: "text-blue-500" },
+  admin_action: { icon: Shield, class: "text-amber-500" },
+  sync: { icon: RefreshCw, class: "text-purple-500" },
+  payment: { icon: CreditCard, class: "text-green-500" }
 }
 
 useSeoMeta({
@@ -197,13 +199,13 @@ onMounted(() => {
       to="/admin/subscriptions"
       class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
     >
-      <Icon name="lucide:arrow-left" class="size-4" />
+      <ArrowLeft class="size-4" />
       Back to Subscriptions
     </NuxtLink>
 
     <!-- Error -->
     <UiAlert v-if="error" variant="destructive">
-      <Icon name="lucide:alert-circle" class="size-4" />
+      <AlertCircle class="size-4" />
       <UiAlertTitle>Error</UiAlertTitle>
       <UiAlertDescription>{{ error }}</UiAlertDescription>
     </UiAlert>
@@ -242,7 +244,7 @@ onMounted(() => {
         variant="warning"
         class="border-amber-300 bg-amber-50 dark:bg-amber-950/20"
       >
-        <Icon name="lucide:alert-triangle" class="size-4 text-amber-500" />
+        <AlertTriangle class="size-4 text-amber-500" />
         <UiAlertTitle>Data may be outdated</UiAlertTitle>
         <UiAlertDescription class="flex items-center gap-2">
           Last synced {{ formatRelativeTime(detail.lastSyncedAt) }}.
@@ -368,7 +370,7 @@ onMounted(() => {
                 <div class="flex items-center justify-between">
                   <span class="text-muted-foreground">Billing Health</span>
                   <span class="flex items-center gap-1" :class="healthConfig[detail.billingHealth]?.class">
-                    <Icon :name="healthConfig[detail.billingHealth]?.icon || 'lucide:help-circle'" class="size-4" />
+                    <component :is="healthConfig[detail.billingHealth]?.icon || HelpCircle" class="size-4" />
                     {{ healthConfig[detail.billingHealth]?.label || detail.billingHealth }}
                   </span>
                 </div>
@@ -401,7 +403,7 @@ onMounted(() => {
                   :disabled="isRefreshing"
                   @click="handleRefresh"
                 >
-                  <Icon name="lucide:refresh-cw" :class="['size-4 mr-2', { 'animate-spin': isRefreshing }]" />
+                  <RefreshCw :class="['size-4 mr-2', { 'animate-spin': isRefreshing }]" />
                   Refresh from Stripe
                 </UiButton>
               </div>
@@ -424,7 +426,7 @@ onMounted(() => {
               size="sm"
               @click="openCancelDialog('at_period_end')"
             >
-              <Icon name="lucide:calendar-x" class="size-4 mr-2" />
+              <CalendarX class="size-4 mr-2" />
               Cancel at Period End
             </UiButton>
             <UiButton
@@ -433,7 +435,7 @@ onMounted(() => {
               size="sm"
               @click="openCancelDialog('immediately')"
             >
-              <Icon name="lucide:x-circle" class="size-4 mr-2" />
+              <XCircle class="size-4 mr-2" />
               Cancel Immediately
             </UiButton>
             <UiButton
@@ -443,7 +445,7 @@ onMounted(() => {
               :disabled="isReactivating"
               @click="handleReactivate"
             >
-              <Icon name="lucide:undo-2" class="size-4 mr-2" />
+              <Undo2 class="size-4 mr-2" />
               Reactivate
             </UiButton>
             <UiButton
@@ -453,7 +455,7 @@ onMounted(() => {
               :disabled="isGeneratingPortal"
               @click="handleBillingPortal"
             >
-              <Icon name="lucide:external-link" class="size-4 mr-2" />
+              <ExternalLink class="size-4 mr-2" />
               Copy Billing Portal Link
             </UiButton>
           </div>
@@ -471,13 +473,13 @@ onMounted(() => {
         </UiCardHeader>
         <UiCardContent>
           <div v-if="activities.length === 0" class="text-center py-6 text-muted-foreground">
-            <Icon name="lucide:clock" class="size-8 mx-auto mb-2 opacity-50" />
+            <Clock class="size-8 mx-auto mb-2 opacity-50" />
             <p class="text-sm">No activity recorded yet</p>
           </div>
           <div v-else class="space-y-4">
             <div v-for="entry in activities" :key="entry.id" class="flex items-start gap-3">
-              <Icon
-                :name="activityTypeConfig[entry.type]?.icon || 'lucide:dot'"
+              <component
+                :is="activityTypeConfig[entry.type]?.icon || Dot"
                 :class="['size-4 mt-0.5', activityTypeConfig[entry.type]?.class || 'text-gray-400']"
               />
               <div class="flex-1 min-w-0">

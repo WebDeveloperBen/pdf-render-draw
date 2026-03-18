@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { LockKeyhole } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
@@ -67,7 +68,7 @@ const submit = handleSubmit(async (values) => {
                 </NuxtLink>
               </div>
               <UiButton class="w-full" type="submit">
-                <Icon v-if="isSubmitting" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
+                <UiSpinner v-if="isSubmitting" class="mr-2 size-4" />
                 Log in
               </UiButton>
             </fieldset>
@@ -114,7 +115,7 @@ const submit = handleSubmit(async (values) => {
     <div class="hidden bg-muted lg:block">
       <div class="flex h-full flex-col items-center justify-center p-8">
         <div class="max-w-md text-center">
-          <Icon name="lucide:lock-keyhole" class="mx-auto mb-6 size-16 text-primary" />
+          <LockKeyhole class="mx-auto mb-6 size-16 text-primary" />
           <h2 class="mb-4 text-2xl font-bold">Secure & Private</h2>
           <p class="text-muted-foreground">
             Your data is encrypted and secure. We never share your information with third parties.

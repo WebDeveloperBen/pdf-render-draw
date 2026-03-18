@@ -7,7 +7,7 @@
       :exit="{ opacity: 0, scale: 0.95 }"
       :class="loaderStyles().backdrop({ class: backdropClass, fullPage })"
     >
-      <Icon :class="loaderStyles().icon({ class: props.class })" :name="props.icon" />
+      <UiSpinner :class="loaderStyles().icon({ class: props.class })" />
       <slot :open>{{ text }}</slot>
     </motion.div>
     <motion.div
@@ -18,7 +18,7 @@
       :transition="{ duration: 0.5 }"
       :class="loaderStyles().backdrop({ class: props.backdropClass, fullPage })"
     >
-      <Icon :class="loaderStyles().icon({ class: props.class })" :name="props.icon" />
+      <UiSpinner :class="loaderStyles().icon({ class: props.class })" />
       <slot :open>{{ text }}</slot>
     </motion.div>
   </AnimatePresence>
@@ -33,13 +33,7 @@ import type { HtmlHTMLAttributes } from "vue"
 
 export type LoaderProps = PrimitiveProps & {
   /**
-   * The icon to display in the loader.
-   *
-   * @default "svg-spinners:bars-rotate-fade"
-   */
-  icon?: string
-  /**
-   * The class to apply to the loader Icon
+   * The class to apply to the loader spinner
    */
   class?: HtmlHTMLAttributes["class"]
   /**
@@ -99,7 +93,6 @@ export const loaderStyles = tv({
 <script lang="ts" setup>
 defineOptions({ inheritAttrs: false })
 const props = withDefaults(defineProps<LoaderProps>(), {
-  icon: "svg-spinners:bars-rotate-fade",
   role: "progressbar",
   closeOnEscape: true
 })

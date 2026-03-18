@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { CalendarDays, RotateCcw } from "lucide-vue-next"
+
 const { dateRange, isDefaultRange, hasDateRange, dateRangeLabel, setDateRange, resetToAllTime, applyPreset } =
   useDateRange()
 
@@ -58,8 +60,7 @@ function onResetToAllTime() {
         :class="[hasDateRange && 'border-primary/30 bg-primary/5 text-primary']"
         @click="togglePopover"
       >
-        <Icon
-          name="lucide:calendar-days"
+        <CalendarDays
           :class="['size-4 mr-2', hasDateRange ? 'text-primary' : 'text-muted-foreground']"
         />
         {{ dateRangeLabel }}
@@ -87,7 +88,7 @@ function onResetToAllTime() {
           </UiButton>
         </div>
         <UiButton variant="ghost" size="xs" class="text-muted-foreground" @click="onResetToAllTime">
-          <Icon name="lucide:rotate-ccw" class="size-3 mr-1" />
+          <RotateCcw class="size-3 mr-1" />
           Reset
         </UiButton>
       </div>

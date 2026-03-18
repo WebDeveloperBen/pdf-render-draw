@@ -6,6 +6,8 @@ import type {
 } from "#shared/types/projects.types"
 import type { Annotation } from "#shared/types/annotations.types"
 import { toast } from "vue-sonner"
+import { ArrowLeft, ArrowRight, Building2, Calculator, Clock, Copy, Download, Expand, Eye, File, FilePen, FilePlus, FileText, Files, Folder, Globe, Hammer, HardDrive, Home, Infinity as InfinityIcon, Info, Layers, Link, Lock, Mail, MapPin, MessageSquare, MoreVertical, PenTool, PencilRuler, Phone, Plus, Search, Send, Share2, StickyNote, Store, Tags, Trash, Upload, UploadCloud, Users, Wrench, X } from "lucide-vue-next"
+import type { Component } from "vue"
 
 const route = useRoute("projects-id")
 const projectId = route.params.id
@@ -147,16 +149,16 @@ const priorityConfig: Record<string, { label: string; color: string; bgColor: st
 }
 
 // Category config
-const categoryConfig: Record<string, { label: string; icon: string }> = {
-  "new-build": { label: "New Build", icon: "lucide:building-2" },
-  renovation: { label: "Renovation", icon: "lucide:hammer" },
-  extension: { label: "Extension", icon: "lucide:expand" },
-  inspection: { label: "Inspection", icon: "lucide:search" },
-  quote: { label: "Quote/Estimate", icon: "lucide:calculator" },
-  maintenance: { label: "Maintenance", icon: "lucide:wrench" },
-  commercial: { label: "Commercial", icon: "lucide:store" },
-  residential: { label: "Residential", icon: "lucide:home" },
-  other: { label: "Other", icon: "lucide:folder" }
+const categoryConfig: Record<string, { label: string; icon: Component }> = {
+  "new-build": { label: "New Build", icon: Building2 },
+  renovation: { label: "Renovation", icon: Hammer },
+  extension: { label: "Extension", icon: Expand },
+  inspection: { label: "Inspection", icon: Search },
+  quote: { label: "Quote/Estimate", icon: Calculator },
+  maintenance: { label: "Maintenance", icon: Wrench },
+  commercial: { label: "Commercial", icon: Store },
+  residential: { label: "Residential", icon: Home },
+  other: { label: "Other", icon: Folder }
 }
 
 // Fetch project details
@@ -508,7 +510,7 @@ onMounted(() => {
         <!-- Back button & Title -->
         <div class="flex items-center gap-3">
           <UiButton variant="ghost" size="icon" class="shrink-0" @click="navigateTo('/projects')">
-            <Icon name="lucide:arrow-left" class="size-4" />
+            <ArrowLeft class="size-4" />
           </UiButton>
           <div class="flex items-center gap-3 flex-wrap">
             <h1 class="text-2xl font-bold lg:text-3xl">{{ project.name }}</h1>
@@ -521,7 +523,7 @@ onMounted(() => {
             </UiBadge>
             <!-- Category Badge -->
             <UiBadge v-if="project.category" variant="outline" class="gap-1">
-              <Icon :name="categoryConfig[project.category]?.icon || 'lucide:folder'" class="size-3" />
+              <component :is="categoryConfig[project.category]?.icon || Folder" class="size-3" />
               {{ categoryConfig[project.category]?.label || project.category }}
             </UiBadge>
           </div>
@@ -542,28 +544,28 @@ onMounted(() => {
       <div class="flex items-center gap-2 ml-11 lg:ml-0">
         <!-- Primary CTA: Open Editor (when files exist) -->
         <UiButton v-if="files.length > 0" size="lg" @click="handleOpenEditor">
-          <Icon name="lucide:pencil-ruler" class="size-5 mr-2" />
+          <PencilRuler class="size-5 mr-2" />
           Open Editor
         </UiButton>
         <!-- Upload CTA (when no files) -->
         <UiButton v-else size="lg" @click="showAddFileDialog = true">
-          <Icon name="lucide:upload" class="size-5 mr-2" />
+          <Upload class="size-5 mr-2" />
           Upload PDF
         </UiButton>
         <UiButton variant="outline" @click="showShareDialog = true">
-          <Icon name="lucide:share-2" class="size-4 mr-2" />
+          <Share2 class="size-4 mr-2" />
           Share
         </UiButton>
         <UiDropdownMenu>
           <UiDropdownMenuTrigger as-child>
             <UiButton variant="ghost" size="icon">
-              <Icon name="lucide:more-vertical" class="size-4" />
+              <MoreVertical class="size-4" />
             </UiButton>
           </UiDropdownMenuTrigger>
           <UiDropdownMenuContent align="end">
             <UiDropdownMenuItem title="Delete Project" class="text-destructive" @click="promptDeleteProject">
               <template #icon>
-                <Icon name="lucide:trash" class="size-4" />
+                <Trash class="size-4" />
               </template>
             </UiDropdownMenuItem>
           </UiDropdownMenuContent>
@@ -581,7 +583,7 @@ onMounted(() => {
               <p class="text-3xl font-bold">{{ files.length }}</p>
             </div>
             <div class="size-12 rounded-full bg-muted flex items-center justify-center">
-              <Icon name="lucide:file-text" class="size-6 text-muted-foreground" />
+              <FileText class="size-6 text-muted-foreground" />
             </div>
           </div>
         </UiCardContent>
@@ -595,7 +597,7 @@ onMounted(() => {
               <p class="text-3xl font-bold">{{ project.annotationCount }}</p>
             </div>
             <div class="size-12 rounded-full bg-muted flex items-center justify-center">
-              <Icon name="lucide:message-square" class="size-6 text-muted-foreground" />
+              <MessageSquare class="size-6 text-muted-foreground" />
             </div>
           </div>
         </UiCardContent>
@@ -609,7 +611,7 @@ onMounted(() => {
               <p class="text-3xl font-bold">{{ shares.length }}</p>
             </div>
             <div class="size-12 rounded-full bg-muted flex items-center justify-center">
-              <Icon name="lucide:share-2" class="size-6 text-muted-foreground" />
+              <Share2 class="size-6 text-muted-foreground" />
             </div>
           </div>
         </UiCardContent>
@@ -623,7 +625,7 @@ onMounted(() => {
               <p class="text-lg font-semibold">{{ formatDate(project.lastViewedAt) }}</p>
             </div>
             <div class="size-12 rounded-full bg-muted flex items-center justify-center">
-              <Icon name="lucide:eye" class="size-6 text-muted-foreground" />
+              <Eye class="size-6 text-muted-foreground" />
             </div>
           </div>
         </UiCardContent>
@@ -640,13 +642,13 @@ onMounted(() => {
             <div class="flex items-center justify-between">
               <div>
                 <UiCardTitle class="flex items-center gap-2">
-                  <Icon name="lucide:files" class="size-5 text-muted-foreground" />
+                  <Files class="size-5 text-muted-foreground" />
                   Files
                 </UiCardTitle>
                 <UiCardDescription>PDF files in this project</UiCardDescription>
               </div>
               <UiButton size="sm" @click="showAddFileDialog = true">
-                <Icon name="lucide:plus" class="size-4 mr-2" />
+                <Plus class="size-4 mr-2" />
                 Add File
               </UiButton>
             </div>
@@ -657,14 +659,14 @@ onMounted(() => {
               <div
                 class="mx-auto size-20 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4"
               >
-                <Icon name="lucide:file-plus" class="size-10 text-primary" />
+                <FilePlus class="size-10 text-primary" />
               </div>
               <h3 class="font-semibold text-lg mb-1">No files yet</h3>
               <p class="text-muted-foreground mb-6 max-w-sm mx-auto">
                 Upload a PDF to start annotating, measuring, and marking up your building plans.
               </p>
               <UiButton size="lg" @click="showAddFileDialog = true">
-                <Icon name="lucide:upload" class="size-5 mr-2" />
+                <Upload class="size-5 mr-2" />
                 Upload PDF
               </UiButton>
             </div>
@@ -681,13 +683,13 @@ onMounted(() => {
                 <div
                   class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center"
                 >
-                  <Icon name="lucide:file-text" class="size-16 text-slate-300 dark:text-slate-600" />
+                  <FileText class="size-16 text-slate-300 dark:text-slate-600" />
                   <!-- Overlay on hover -->
                   <div
                     class="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <div class="text-center text-primary-foreground">
-                      <Icon name="lucide:pencil-ruler" class="size-8 mx-auto mb-2" />
+                      <PencilRuler class="size-8 mx-auto mb-2" />
                       <span class="font-medium">Open in Editor</span>
                     </div>
                   </div>
@@ -696,7 +698,7 @@ onMounted(() => {
                     v-if="file.annotationCount > 0"
                     class="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium"
                   >
-                    <Icon name="lucide:pen-tool" class="size-3 text-primary" />
+                    <PenTool class="size-3 text-primary" />
                     {{ file.annotationCount }}
                   </div>
                 </div>
@@ -718,7 +720,7 @@ onMounted(() => {
                     class="flex-1 mr-2"
                     @click.stop="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
                   >
-                    <Icon name="lucide:pencil-ruler" class="size-4 mr-2" />
+                    <PencilRuler class="size-4 mr-2" />
                     Edit
                   </UiButton>
                   <div class="flex items-center gap-1">
@@ -731,12 +733,8 @@ onMounted(() => {
                           :disabled="exportingFileId === file.id || downloadingFileId === file.id"
                           @click.stop
                         >
-                          <Icon
-                            v-if="exportingFileId === file.id || downloadingFileId === file.id"
-                            name="svg-spinners:ring-resize"
-                            class="size-4"
-                          />
-                          <Icon v-else name="lucide:download" class="size-4" />
+                          <UiSpinner v-if="exportingFileId === file.id || downloadingFileId === file.id" class="size-4" />
+                          <Download v-else class="size-4" />
                         </UiButton>
                       </UiDropdownMenuTrigger>
                       <UiDropdownMenuContent align="end" @click.stop>
@@ -746,7 +744,7 @@ onMounted(() => {
                           @click="handleExportFile(file)"
                         >
                           <template #icon>
-                            <Icon name="lucide:file-pen" class="size-4" />
+                            <FilePen class="size-4" />
                           </template>
                         </UiDropdownMenuItem>
                         <UiDropdownMenuItem
@@ -755,7 +753,7 @@ onMounted(() => {
                           @click="handleDownloadOriginal(file)"
                         >
                           <template #icon>
-                            <Icon name="lucide:file" class="size-4" />
+                            <File class="size-4" />
                           </template>
                         </UiDropdownMenuItem>
                       </UiDropdownMenuContent>
@@ -764,7 +762,7 @@ onMounted(() => {
                     <UiDropdownMenu>
                       <UiDropdownMenuTrigger as-child>
                         <UiButton variant="ghost" size="icon" @click.stop>
-                          <Icon name="lucide:more-vertical" class="size-4" />
+                          <MoreVertical class="size-4" />
                         </UiButton>
                       </UiDropdownMenuTrigger>
                       <UiDropdownMenuContent align="end" @click.stop>
@@ -774,7 +772,7 @@ onMounted(() => {
                           @click="promptDeleteFile(file)"
                         >
                           <template #icon>
-                            <Icon name="lucide:trash" class="size-4" />
+                            <Trash class="size-4" />
                           </template>
                         </UiDropdownMenuItem>
                       </UiDropdownMenuContent>
@@ -792,20 +790,20 @@ onMounted(() => {
             <div class="flex items-center justify-between">
               <div>
                 <UiCardTitle class="flex items-center gap-2">
-                  <Icon name="lucide:link" class="size-5 text-muted-foreground" />
+                  <Link class="size-5 text-muted-foreground" />
                   Share Links
                 </UiCardTitle>
                 <UiCardDescription>Manage access to this project</UiCardDescription>
               </div>
               <UiButton size="sm" @click="showShareDialog = true">
-                <Icon name="lucide:plus" class="size-4 mr-2" />
+                <Plus class="size-4 mr-2" />
                 New Share
               </UiButton>
             </div>
           </UiCardHeader>
           <UiCardContent>
             <div v-if="shares.length === 0" class="text-center py-12 text-muted-foreground">
-              <Icon name="lucide:link" class="size-16 mx-auto mb-3 opacity-30" />
+              <Link class="size-16 mx-auto mb-3 opacity-30" />
               <p class="font-medium">No share links yet</p>
               <p class="text-sm mt-1">Create a link to share this project</p>
             </div>
@@ -820,8 +818,8 @@ onMounted(() => {
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center gap-2 min-w-0">
                     <UiBadge :variant="share.shareType === 'private' ? 'default' : 'secondary'" class="shrink-0">
-                      <Icon
-                        :name="share.shareType === 'private' ? 'lucide:users' : 'lucide:globe'"
+                      <component
+                        :is="share.shareType === 'private' ? Users : Globe"
                         class="size-3 mr-1"
                       />
                       {{ share.shareType === "private" ? "Private" : "Public" }}
@@ -829,17 +827,17 @@ onMounted(() => {
                     <span v-if="share.name" class="font-medium truncate">{{ share.name }}</span>
                     <code v-else class="text-xs bg-muted px-2 py-1 rounded">{{ share.token.slice(0, 12) }}...</code>
                     <UiBadge v-if="share.password" variant="outline" class="text-xs shrink-0">
-                      <Icon name="lucide:lock" class="size-3 mr-1" />
+                      <Lock class="size-3 mr-1" />
                       Protected
                     </UiBadge>
                   </div>
 
                   <div class="flex items-center gap-1 shrink-0">
                     <UiButton variant="ghost" size="sm" @click="copyShareLink(share.token)">
-                      <Icon name="lucide:copy" class="size-4" />
+                      <Copy class="size-4" />
                     </UiButton>
                     <UiButton variant="ghost" size="sm" class="text-destructive" @click="handleDeleteShare(share.id)">
-                      <Icon name="lucide:trash" class="size-4" />
+                      <Trash class="size-4" />
                     </UiButton>
                   </div>
                 </div>
@@ -882,15 +880,15 @@ onMounted(() => {
                 <!-- Stats row -->
                 <div class="flex items-center gap-4 text-xs text-muted-foreground">
                   <span class="flex items-center gap-1">
-                    <Icon name="lucide:eye" class="size-3" />
+                    <Eye class="size-3" />
                     {{ share.viewCount }} views
                   </span>
                   <span v-if="share.expiresAt" class="flex items-center gap-1">
-                    <Icon name="lucide:clock" class="size-3" />
+                    <Clock class="size-3" />
                     Expires {{ formatDate(share.expiresAt) }}
                   </span>
                   <span v-else class="flex items-center gap-1">
-                    <Icon name="lucide:infinity" class="size-3" />
+                    <InfinityIcon class="size-3" />
                     No expiration
                   </span>
                 </div>
@@ -906,7 +904,7 @@ onMounted(() => {
         <UiCard v-if="hasLocationInfo || hasClientInfo">
           <UiCardHeader class="pb-3">
             <UiCardTitle class="text-base flex items-center gap-2">
-              <Icon name="lucide:map-pin" class="size-4 text-muted-foreground" />
+              <MapPin class="size-4 text-muted-foreground" />
               Location & Client
             </UiCardTitle>
           </UiCardHeader>
@@ -927,7 +925,7 @@ onMounted(() => {
                   :href="`mailto:${project.clientEmail}`"
                   class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <Icon name="lucide:mail" class="size-3.5" />
+                  <Mail class="size-3.5" />
                   {{ project.clientEmail }}
                 </a>
                 <a
@@ -935,7 +933,7 @@ onMounted(() => {
                   :href="`tel:${project.clientPhone}`"
                   class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <Icon name="lucide:phone" class="size-3.5" />
+                  <Phone class="size-3.5" />
                   {{ project.clientPhone }}
                 </a>
               </div>
@@ -947,7 +945,7 @@ onMounted(() => {
         <UiCard v-if="project.tags && project.tags.length > 0">
           <UiCardHeader class="pb-3">
             <UiCardTitle class="text-base flex items-center gap-2">
-              <Icon name="lucide:tags" class="size-4 text-muted-foreground" />
+              <Tags class="size-4 text-muted-foreground" />
               Tags
             </UiCardTitle>
           </UiCardHeader>
@@ -964,7 +962,7 @@ onMounted(() => {
         <UiCard v-if="project.notes">
           <UiCardHeader class="pb-3">
             <UiCardTitle class="text-base flex items-center gap-2">
-              <Icon name="lucide:sticky-note" class="size-4 text-muted-foreground" />
+              <StickyNote class="size-4 text-muted-foreground" />
               Internal Notes
             </UiCardTitle>
           </UiCardHeader>
@@ -977,7 +975,7 @@ onMounted(() => {
         <UiCard>
           <UiCardHeader class="pb-3">
             <UiCardTitle class="text-base flex items-center gap-2">
-              <Icon name="lucide:info" class="size-4 text-muted-foreground" />
+              <Info class="size-4 text-muted-foreground" />
               Details
             </UiCardTitle>
           </UiCardHeader>
@@ -1047,7 +1045,7 @@ onMounted(() => {
                     newShare.shareType === 'public' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                   ]"
                 >
-                  <Icon name="lucide:globe" class="size-4" />
+                  <Globe class="size-4" />
                 </div>
                 <div>
                   <p class="font-medium text-sm">Anyone with link</p>
@@ -1072,7 +1070,7 @@ onMounted(() => {
                     newShare.shareType === 'private' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                   ]"
                 >
-                  <Icon name="lucide:users" class="size-4" />
+                  <Users class="size-4" />
                 </div>
                 <div>
                   <p class="font-medium text-sm">Specific people</p>
@@ -1163,7 +1161,7 @@ onMounted(() => {
                   @update:checked="newShare.allowDownload = $event"
                 />
                 <div class="flex items-center gap-2">
-                  <Icon name="lucide:download" class="size-4 text-muted-foreground" />
+                  <Download class="size-4 text-muted-foreground" />
                   <span class="text-sm">Allow download</span>
                 </div>
               </label>
@@ -1175,7 +1173,7 @@ onMounted(() => {
                   @update:checked="newShare.allowNotes = $event"
                 />
                 <div class="flex items-center gap-2">
-                  <Icon name="lucide:message-square" class="size-4 text-muted-foreground" />
+                  <MessageSquare class="size-4 text-muted-foreground" />
                   <span class="text-sm">Allow notes</span>
                 </div>
               </label>
@@ -1186,10 +1184,10 @@ onMounted(() => {
         <UiDialogFooter class="gap-3">
           <UiButton variant="outline" :disabled="isCreatingShare" @click="showShareDialog = false">Cancel</UiButton>
           <UiButton :disabled="isCreatingShare" @click="handleCreateShare">
-            <Icon v-if="isCreatingShare" name="svg-spinners:ring-resize" class="size-4" />
+            <UiSpinner v-if="isCreatingShare" class="size-4" />
             <template v-else>
-              <Icon v-if="newShare.shareType === 'private'" name="lucide:send" class="size-4" />
-              <Icon v-else name="lucide:link" class="size-4" />
+              <Send v-if="newShare.shareType === 'private'" class="size-4" />
+              <Link v-else class="size-4" />
             </template>
             {{ newShare.shareType === "private" ? "Send Invitations" : "Create Link" }}
           </UiButton>
@@ -1218,12 +1216,12 @@ onMounted(() => {
             <input ref="fileInputRef" type="file" accept="application/pdf" class="hidden" @change="handleFileSelect" />
 
             <div v-if="isUploading" class="space-y-3">
-              <Icon name="svg-spinners:ring-resize" class="size-10 mx-auto text-primary" />
+              <UiSpinner class="size-10 mx-auto text-primary" />
               <p class="text-sm text-muted-foreground">Uploading...</p>
             </div>
 
             <div v-else class="space-y-3">
-              <Icon name="lucide:upload-cloud" class="size-10 mx-auto text-muted-foreground" />
+              <UploadCloud class="size-10 mx-auto text-muted-foreground" />
               <div>
                 <p class="font-medium">Drop your PDF here or click to browse</p>
                 <p class="text-sm text-muted-foreground mt-1">Maximum file size: 50MB</p>
@@ -1234,7 +1232,7 @@ onMounted(() => {
           <div v-else class="border rounded-lg p-4">
             <div class="flex items-start gap-3">
               <div class="flex-shrink-0 size-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Icon name="lucide:file-text" class="size-5 text-primary" />
+                <FileText class="size-5 text-primary" />
               </div>
               <div class="flex-1 min-w-0">
                 <p class="font-medium truncate">{{ uploadedFile.fileName }}</p>
@@ -1244,7 +1242,7 @@ onMounted(() => {
                 </p>
               </div>
               <UiButton variant="ghost" size="sm" @click="uploadedFile = null">
-                <Icon name="lucide:x" class="size-4" />
+                <X class="size-4" />
               </UiButton>
             </div>
           </div>
@@ -1264,14 +1262,14 @@ onMounted(() => {
         <div class="px-6 py-5 border-b bg-muted/30">
           <div class="flex items-center gap-4">
             <div class="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Icon name="lucide:pencil-ruler" class="size-6 text-primary" />
+              <PencilRuler class="size-6 text-primary" />
             </div>
             <div class="flex-1">
               <h2 class="text-lg font-semibold">Open in Editor</h2>
               <p class="text-sm text-muted-foreground">Select a file to start editing</p>
             </div>
             <UiButton variant="ghost" size="icon" @click="showFileSelector = false">
-              <Icon name="lucide:x" class="size-5" />
+              <X class="size-5" />
             </UiButton>
           </div>
         </div>
@@ -1290,14 +1288,14 @@ onMounted(() => {
               <div
                 class="relative h-36 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center"
               >
-                <Icon name="lucide:file-text" class="size-14 text-slate-300 dark:text-slate-600" />
+                <FileText class="size-14 text-slate-300 dark:text-slate-600" />
 
                 <!-- Hover Overlay -->
                 <div
                   class="absolute inset-0 bg-primary/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
                 >
                   <div class="size-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
-                    <Icon name="lucide:pencil-ruler" class="size-7 text-primary-foreground" />
+                    <PencilRuler class="size-7 text-primary-foreground" />
                   </div>
                   <span class="font-semibold text-primary-foreground">Open in Editor</span>
                 </div>
@@ -1307,7 +1305,7 @@ onMounted(() => {
                   v-if="file.annotationCount > 0"
                   class="absolute top-3 right-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm"
                 >
-                  <Icon name="lucide:pen-tool" class="size-3.5 text-primary" />
+                  <PenTool class="size-3.5 text-primary" />
                   {{ file.annotationCount }}
                 </div>
 
@@ -1315,7 +1313,7 @@ onMounted(() => {
                 <div
                   class="absolute bottom-3 left-3 flex items-center gap-1.5 bg-background/95 backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-medium shadow-sm"
                 >
-                  <Icon name="lucide:layers" class="size-3.5 text-muted-foreground" />
+                  <Layers class="size-3.5 text-muted-foreground" />
                   {{ file.pageCount }} {{ file.pageCount === 1 ? "page" : "pages" }}
                 </div>
               </div>
@@ -1327,11 +1325,11 @@ onMounted(() => {
                 </h4>
                 <div class="flex items-center justify-between text-xs text-muted-foreground">
                   <span class="flex items-center gap-1.5">
-                    <Icon name="lucide:hard-drive" class="size-3.5" />
+                    <HardDrive class="size-3.5" />
                     {{ formatFileSize(file.pdfFileSize) }}
                   </span>
                   <span class="flex items-center gap-1.5">
-                    <Icon name="lucide:clock" class="size-3.5" />
+                    <Clock class="size-3.5" />
                     {{ formatDate(file.updatedAt || file.createdAt) }}
                   </span>
                 </div>
@@ -1340,10 +1338,8 @@ onMounted(() => {
               <!-- Bottom Action Bar -->
               <div class="px-4 py-3 border-t bg-muted/30 flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">Click to edit</span>
-                <Icon
-                  name="lucide:arrow-right"
-                  class="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all"
-                />
+                <ArrowRight
+                  class="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </div>
             </button>
           </div>

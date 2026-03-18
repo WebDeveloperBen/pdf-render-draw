@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { Building2, Upload } from "lucide-vue-next"
 
 const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization, isLoading } = useActiveOrganization()
 
@@ -127,7 +128,7 @@ useSeoMeta({
       </UiCardContent>
       <UiCardFooter>
         <UiButton :disabled="isUpdating || !orgName.trim()" @click="handleUpdateOrg">
-          <Icon v-if="isUpdating" name="svg-spinners:ring-resize" class="size-4" />
+          <UiSpinner v-if="isUpdating" class="size-4" />
           Save Changes
         </UiButton>
       </UiCardFooter>
@@ -143,11 +144,11 @@ useSeoMeta({
         <div class="flex items-center gap-6">
           <div class="flex size-20 items-center justify-center rounded-lg border-2 border-dashed bg-muted">
             <img v-if="orgData?.logo" :src="orgData.logo" :alt="orgData.name" class="size-12 rounded object-cover" />
-            <Icon v-else name="lucide:building-2" class="size-10 text-muted-foreground" />
+            <Building2 v-else class="size-10 text-muted-foreground" />
           </div>
           <div class="space-y-2">
             <UiButton variant="outline" disabled>
-              <Icon name="lucide:upload" class="size-4" />
+              <Upload class="size-4" />
               Upload Logo
             </UiButton>
             <p class="text-xs text-muted-foreground">PNG, JPG up to 2MB. Coming soon.</p>
@@ -214,7 +215,7 @@ useSeoMeta({
             :disabled="isDeleting || deleteConfirmation !== orgData?.name"
             @click="handleDeleteOrg"
           >
-            <Icon v-if="isDeleting" name="svg-spinners:ring-resize" class="size-4" />
+            <UiSpinner v-if="isDeleting" class="size-4" />
             Delete Workplace
           </UiButton>
         </UiDialogFooter>

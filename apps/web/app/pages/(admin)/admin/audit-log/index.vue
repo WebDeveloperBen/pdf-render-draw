@@ -2,6 +2,8 @@
 import { useQuery, keepPreviousData } from "@tanstack/vue-query"
 import type { ColumnDef } from "@tanstack/vue-table"
 import { getGetApiAdminAuditLogQueryKey } from "~/models/api"
+import { Activity, Ban, CreditCard, Edit, ExternalLink, Eye, Info, RefreshCw, ScrollText, Search, Trash2, Undo2, UserCheck, UserMinus, UserPlus, X } from "lucide-vue-next"
+import type { Component } from "vue"
 
 definePageMeta({
   layout: "admin",
@@ -86,42 +88,42 @@ const hasFilters = computed(() => search.value || actionTypeFilter.value || hasD
 
 // Action display config
 const getActionDisplay = (actionType: string) => {
-  const actions: Record<string, { icon: string; color: string; label: string }> = {
+  const actions: Record<string, { icon: Component; color: string; label: string }> = {
     // Platform admin management
-    platform_admin_granted: { icon: "lucide:user-plus", color: "text-green-500", label: "Granted Admin" },
-    platform_admin_revoked: { icon: "lucide:user-minus", color: "text-red-500", label: "Revoked Admin" },
-    platform_admin_tier_changed: { icon: "lucide:edit", color: "text-blue-500", label: "Changed Admin Tier" },
+    platform_admin_granted: { icon: UserPlus, color: "text-green-500", label: "Granted Admin" },
+    platform_admin_revoked: { icon: UserMinus, color: "text-red-500", label: "Revoked Admin" },
+    platform_admin_tier_changed: { icon: Edit, color: "text-blue-500", label: "Changed Admin Tier" },
     // User management
-    user_hard_delete: { icon: "lucide:trash-2", color: "text-red-500", label: "Hard Deleted User" },
-    user_soft_delete: { icon: "lucide:trash-2", color: "text-red-500", label: "Soft Deleted User" },
-    ban_user: { icon: "lucide:ban", color: "text-red-500", label: "Banned User" },
-    unban_user: { icon: "lucide:user-check", color: "text-green-500", label: "Unbanned User" },
-    impersonate_user: { icon: "lucide:eye", color: "text-orange-500", label: "Impersonated User" },
+    user_hard_delete: { icon: Trash2, color: "text-red-500", label: "Hard Deleted User" },
+    user_soft_delete: { icon: Trash2, color: "text-red-500", label: "Soft Deleted User" },
+    ban_user: { icon: Ban, color: "text-red-500", label: "Banned User" },
+    unban_user: { icon: UserCheck, color: "text-green-500", label: "Unbanned User" },
+    impersonate_user: { icon: Eye, color: "text-orange-500", label: "Impersonated User" },
     // Organisation management
-    organization_delete: { icon: "lucide:trash-2", color: "text-red-500", label: "Deleted Organisation" },
+    organization_delete: { icon: Trash2, color: "text-red-500", label: "Deleted Organisation" },
     // Billing
     "billing.subscription.cancel": {
-      icon: "lucide:credit-card",
+      icon: CreditCard,
       color: "text-red-500",
       label: "Cancelled Subscription"
     },
     "billing.subscription.reactivate": {
-      icon: "lucide:undo-2",
+      icon: Undo2,
       color: "text-green-500",
       label: "Reactivated Subscription"
     },
     "billing.portal_link_generated": {
-      icon: "lucide:external-link",
+      icon: ExternalLink,
       color: "text-blue-500",
       label: "Portal Link Generated"
     },
-    "billing.sync.full": { icon: "lucide:refresh-cw", color: "text-purple-500", label: "Full Stripe Sync" },
-    "billing.sync.refresh": { icon: "lucide:refresh-cw", color: "text-purple-500", label: "Subscription Refreshed" }
+    "billing.sync.full": { icon: RefreshCw, color: "text-purple-500", label: "Full Stripe Sync" },
+    "billing.sync.refresh": { icon: RefreshCw, color: "text-purple-500", label: "Subscription Refreshed" }
   }
 
   return (
     actions[actionType] || {
-      icon: "lucide:activity",
+      icon: Activity,
       color: "text-muted-foreground",
       label: actionType
         .replace(/\./g, " ")
@@ -162,7 +164,7 @@ const columns: ColumnDef<AuditEntry>[] = [
     cell: ({ row }) => {
       const display = getActionDisplay(row.original.actionType)
       return h("div", { class: "flex items-center gap-2" }, [
-        h(resolveComponent("Icon"), { name: display.icon, class: `size-4 ${display.color}` }),
+        h(display.icon, { class: `size-4 ${display.color}` }),
         h("span", { class: "font-medium" }, display.label)
       ])
     }
@@ -229,7 +231,7 @@ const columns: ColumnDef<AuditEntry>[] = [
           title: "View details",
           onClick: () => openDetails(entry)
         },
-        () => h(resolveComponent("Icon"), { name: "lucide:info", class: "size-4" })
+        () => h(Info, { class: "size-4" })
       )
     }
   }
@@ -245,7 +247,7 @@ const columns: ColumnDef<AuditEntry>[] = [
         <p class="text-muted-foreground mt-1">Track all platform actions across admins, support, and billing</p>
       </div>
       <UiButton variant="outline" :disabled="isLoading || isFetching" @click="refetch()">
-        <Icon name="lucide:refresh-cw" class="size-4 mr-2" :class="{ 'animate-spin': isFetching }" />
+        <RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': isFetching }" />
         Refresh
       </UiButton>
     </div>
@@ -253,7 +255,7 @@ const columns: ColumnDef<AuditEntry>[] = [
     <!-- Filters -->
     <div class="flex items-end gap-4 flex-wrap">
       <div class="relative flex-1 min-w-[240px] max-w-sm">
-        <Icon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <UiInput v-model="search" placeholder="Search actions, metadata..." class="pl-9" />
       </div>
 
@@ -270,7 +272,7 @@ const columns: ColumnDef<AuditEntry>[] = [
       <BlocksHeaderDatePicker />
 
       <UiButton v-if="hasFilters" variant="ghost" size="sm" @click="clearFilters">
-        <Icon name="lucide:x" class="size-4 mr-1" />
+        <X class="size-4 mr-1" />
         Clear
       </UiButton>
     </div>
@@ -305,7 +307,7 @@ const columns: ColumnDef<AuditEntry>[] = [
       >
         <template #empty>
           <div class="py-8 text-center text-muted-foreground">
-            <Icon name="lucide:scroll-text" class="size-12 mx-auto mb-4 opacity-50" />
+            <ScrollText class="size-12 mx-auto mb-4 opacity-50" />
             <p>No audit log entries found</p>
             <p v-if="hasFilters" class="text-sm mt-1">Try adjusting your filters</p>
           </div>

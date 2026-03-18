@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useGetApiGuestShares, type GetApiGuestShares200Item } from "@/models/api"
+import { AlertCircle, Building2, Calendar, File, FileText, FolderOpen } from "lucide-vue-next"
 
 definePageMeta({
   layout: "guest",
@@ -51,13 +52,13 @@ useSeoMeta({
 
     <!-- Loading state -->
     <div v-if="status === 'pending'" class="flex items-center justify-center py-12">
-      <Icon name="svg-spinners:ring-resize" class="size-8 text-primary" />
+      <UiSpinner class="size-8 text-primary" />
     </div>
 
     <!-- Error state -->
     <UiCard v-else-if="error" class="border-destructive">
       <UiCardContent class="flex flex-col items-center gap-4 py-12">
-        <Icon name="lucide:alert-circle" class="size-12 text-destructive" />
+        <AlertCircle class="size-12 text-destructive" />
         <div class="text-center">
           <h3 class="font-semibold">Failed to load shares</h3>
           <p class="text-sm text-muted-foreground">{{ errorMessage }}</p>
@@ -69,7 +70,7 @@ useSeoMeta({
     <UiCard v-else-if="!shares || shares.length === 0">
       <UiCardContent class="flex flex-col items-center gap-4 py-12">
         <div class="flex size-16 items-center justify-center rounded-full bg-muted">
-          <Icon name="lucide:folder-open" class="size-8 text-muted-foreground" />
+          <FolderOpen class="size-8 text-muted-foreground" />
         </div>
         <div class="text-center">
           <h3 class="font-semibold">No shared projects</h3>
@@ -91,7 +92,7 @@ useSeoMeta({
               class="size-full object-cover transition-transform group-hover:scale-105"
             />
             <div v-else class="flex size-full items-center justify-center">
-              <Icon name="lucide:file-text" class="size-12 text-muted-foreground" />
+              <FileText class="size-12 text-muted-foreground" />
             </div>
 
             <!-- Overlay with org info -->
@@ -101,7 +102,7 @@ useSeoMeta({
                   <img :src="item.organization.logo" class="size-full object-contain" />
                 </div>
                 <div v-else class="flex size-6 items-center justify-center rounded bg-white/90">
-                  <Icon name="lucide:building-2" class="size-3 text-muted-foreground" />
+                  <Building2 class="size-3 text-muted-foreground" />
                 </div>
                 <span class="text-xs font-medium text-white">
                   {{ item.organization?.name || "Unknown Organization" }}
@@ -125,11 +126,11 @@ useSeoMeta({
 
               <div class="flex items-center gap-4 text-xs text-muted-foreground pt-2">
                 <div class="flex items-center gap-1">
-                  <Icon name="lucide:file" class="size-3" />
+                  <File class="size-3" />
                   <span>{{ item.project.pageCount }} pages</span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <Icon name="lucide:calendar" class="size-3" />
+                  <Calendar class="size-3" />
                   <span>{{ formatDate(item.invitedAt) }}</span>
                 </div>
               </div>

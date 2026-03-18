@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Sparkles } from "lucide-vue-next"
+
 const { state } = useSidebar()
 const isCollapsed = computed(() => state.value === "collapsed")
 </script>
@@ -11,7 +13,7 @@ const isCollapsed = computed(() => state.value === "collapsed")
       to="/pricing"
       class="flex size-8 items-center justify-center rounded-lg bg-linear-to-br from-primary/20 to-primary/5 text-primary transition-colors hover:from-primary/30 hover:to-primary/10"
     >
-      <Icon name="lucide:sparkles" class="size-4" />
+      <Sparkles class="size-4" />
     </NuxtLink>
 
     <!-- Expanded state: full CTA card -->
@@ -27,7 +29,7 @@ const isCollapsed = computed(() => state.value === "collapsed")
       <div class="relative space-y-2">
         <div class="flex items-center gap-2">
           <div class="flex size-6 items-center justify-center rounded-md bg-primary/20">
-            <Icon name="lucide:sparkles" class="size-3.5 text-primary" />
+            <Sparkles class="size-3.5 text-primary" />
           </div>
           <div class="flex flex-col">
             <span class="text-xs font-semibold text-foreground">Free Plan</span>

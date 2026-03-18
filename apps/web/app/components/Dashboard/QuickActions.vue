@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FolderOpen, Plus, FilePlus, HelpCircle, ArrowRight } from "lucide-vue-next"
+
 /**
  * Async component that fetches stats for quick action cards
  * Must be wrapped in <Suspense> by parent
@@ -23,7 +25,7 @@ const projectCount = projects.length > 0 ? "View" : "0"
     <UiCard class="hover:shadow-md transition-shadow cursor-pointer" @click="navigateTo('/projects')">
       <UiCardHeader class="flex flex-row items-center justify-between pb-2">
         <UiCardTitle class="text-sm font-medium">All Projects</UiCardTitle>
-        <Icon name="lucide:folder-open" class="size-4 text-muted-foreground" />
+        <FolderOpen class="size-4 text-muted-foreground" />
       </UiCardHeader>
       <UiCardContent>
         <div class="text-2xl font-bold">{{ projectCount }}</div>
@@ -34,11 +36,11 @@ const projectCount = projects.length > 0 ? "View" : "0"
     <UiCard class="hover:shadow-md transition-shadow cursor-pointer" @click="navigateTo('/projects?create=true')">
       <UiCardHeader class="flex flex-row items-center justify-between pb-2">
         <UiCardTitle class="text-sm font-medium">New Project</UiCardTitle>
-        <Icon name="lucide:plus" class="size-4 text-muted-foreground" />
+        <Plus class="size-4 text-muted-foreground" />
       </UiCardHeader>
       <UiCardContent>
         <div class="text-2xl font-bold">
-          <Icon name="lucide:file-plus" class="size-6" />
+          <FilePlus class="size-6" />
         </div>
         <p class="text-xs text-muted-foreground mt-1">Create a new project</p>
       </UiCardContent>
@@ -47,11 +49,11 @@ const projectCount = projects.length > 0 ? "View" : "0"
     <UiCard class="hover:shadow-md transition-shadow cursor-pointer" @click="navigateTo('/support')">
       <UiCardHeader class="flex flex-row items-center justify-between pb-2">
         <UiCardTitle class="text-sm font-medium">Help & Support</UiCardTitle>
-        <Icon name="lucide:help-circle" class="size-4 text-muted-foreground" />
+        <HelpCircle class="size-4 text-muted-foreground" />
       </UiCardHeader>
       <UiCardContent>
         <div class="text-2xl font-bold">
-          <Icon name="lucide:arrow-right" class="size-6" />
+          <ArrowRight class="size-6" />
         </div>
         <p class="text-xs text-muted-foreground mt-1">Get help and resources</p>
       </UiCardContent>

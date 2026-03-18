@@ -41,8 +41,11 @@ pnpm lint                   # ESLint with auto-fix
 - **motion-v** for animations
 
 ### Icons
-- **@nuxt/icon** with Iconify - use `<Icon name="lucide:icon-name" />` format
-- Do NOT use lucide-vue-next directly
+- **lucide-vue-next** for icons - import components directly: `import { Ruler } from "lucide-vue-next"`
+- Use `<Ruler class="size-4" />` in templates (PascalCase component names)
+- For dynamic icons in data arrays, use `icon: Component` type and `<component :is="item.icon" />`
+- UI components (`app/components/ui/`) still use `@nuxt/icon` `<Icon>` internally - do NOT change those
+- Spinners: use `<Loader2 class="size-4 animate-spin" />` from lucide-vue-next
 
 ### Forms & Validation
 - **vee-validate** with `@vee-validate/nuxt`
@@ -175,7 +178,7 @@ const tool = useDrawingTool<Measurement>({
 
 ## Key Conventions
 
-1. **Icons**: Always `<Icon name="lucide:icon-name" />`, never direct lucide imports
+1. **Icons**: Import from `lucide-vue-next` directly, e.g. `import { Ruler } from "lucide-vue-next"` then `<Ruler class="size-4" />`
 2. **Components**: Use `Ui` prefix from auto-imports
 3. **Styling**: Prefer `tv()` variants over inline conditional classes
 4. **Forms**: Use `UiVee*` components for validated inputs

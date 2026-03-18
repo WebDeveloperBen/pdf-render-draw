@@ -1,20 +1,21 @@
 <template>
   <TagsInputItemDelete data-slot="tags-input-item-delete" v-bind="forwarded" :class="styles({ class: props.class })">
     <slot>
-      <Icon v-if="icon" :name="icon" class="m-auto size-3" />
+      <component :is="icon" v-if="icon" class="m-auto size-3" />
     </slot>
   </TagsInputItemDelete>
 </template>
 
 <script lang="ts" setup>
+import { X } from "lucide-vue-next"
 import { TagsInputItemDelete } from "reka-ui"
 import type { TagsInputItemDeleteProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
-  defineProps<TagsInputItemDeleteProps & { icon?: string; class?: HTMLAttributes["class"] }>(),
+  defineProps<TagsInputItemDeleteProps & { icon?: Component; class?: HTMLAttributes["class"] }>(),
   {
-    icon: "lucide:x"
+    icon: () => X
   }
 )
 const forwarded = reactiveOmit(props, "class", "icon")

@@ -1,3 +1,4 @@
+import { Ruler } from "lucide-vue-next"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 /**
  * Measure Tool - extends BaseTool
@@ -58,7 +59,7 @@ const [useMeasureTool, useMeasureToolState] = createInjectionState(() => {
   registerTool({
     type: "measure",
     name: "Measure",
-    icon: "lucide:ruler",
+    icon: Ruler,
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

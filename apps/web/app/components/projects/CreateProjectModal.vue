@@ -1,4 +1,32 @@
 <script setup lang="ts">
+import type { Component } from "vue"
+import {
+  ClipboardList,
+  MapPin,
+  FileUp,
+  StickyNote,
+  Building2,
+  Hammer,
+  Expand,
+  Search,
+  Calculator,
+  Wrench,
+  Store,
+  Home,
+  Folder,
+  X,
+  UploadCloud,
+  FileText,
+  HardDrive,
+  CheckCircle,
+  Trash2,
+  Loader2,
+  User,
+  Plus,
+  ArrowLeft,
+  ArrowRight,
+  Check
+} from "lucide-vue-next"
 import type { ProjectWithRelations } from "#shared/types/projects.types"
 import { usePostApiProjects } from "@/models/api"
 import { toast } from "vue-sonner"
@@ -16,11 +44,11 @@ const emit = defineEmits<{
 // STEP DEFINITIONS
 // ============================================
 
-const steps = [
-  { id: "details" as const, label: "Project Details", icon: "lucide:clipboard-list", required: true },
-  { id: "location" as const, label: "Location & Client", icon: "lucide:map-pin", required: false },
-  { id: "files" as const, label: "Upload Files", icon: "lucide:file-up", required: true },
-  { id: "notes" as const, label: "Additional Info", icon: "lucide:sticky-note", required: false }
+const steps: Array<{ id: "details" | "location" | "files" | "notes"; label: string; icon: Component; required: boolean }> = [
+  { id: "details", label: "Project Details", icon: ClipboardList, required: true },
+  { id: "location", label: "Location & Client", icon: MapPin, required: false },
+  { id: "files", label: "Upload Files", icon: FileUp, required: true },
+  { id: "notes", label: "Additional Info", icon: StickyNote, required: false }
 ]
 
 type StepId = (typeof steps)[number]["id"]
@@ -82,16 +110,16 @@ const canCreate = computed(() => stepStatus.value.details && stepStatus.value.fi
 // CATEGORIES & OPTIONS
 // ============================================
 
-const projectCategories = [
-  { value: "new-build", label: "New Build", icon: "lucide:building-2" },
-  { value: "renovation", label: "Renovation", icon: "lucide:hammer" },
-  { value: "extension", label: "Extension", icon: "lucide:expand" },
-  { value: "inspection", label: "Inspection", icon: "lucide:search" },
-  { value: "quote", label: "Quote/Estimate", icon: "lucide:calculator" },
-  { value: "maintenance", label: "Maintenance", icon: "lucide:wrench" },
-  { value: "commercial", label: "Commercial", icon: "lucide:store" },
-  { value: "residential", label: "Residential", icon: "lucide:home" },
-  { value: "other", label: "Other", icon: "lucide:folder" }
+const projectCategories: Array<{ value: string; label: string; icon: Component }> = [
+  { value: "new-build", label: "New Build", icon: Building2 },
+  { value: "renovation", label: "Renovation", icon: Hammer },
+  { value: "extension", label: "Extension", icon: Expand },
+  { value: "inspection", label: "Inspection", icon: Search },
+  { value: "quote", label: "Quote/Estimate", icon: Calculator },
+  { value: "maintenance", label: "Maintenance", icon: Wrench },
+  { value: "commercial", label: "Commercial", icon: Store },
+  { value: "residential", label: "Residential", icon: Home },
+  { value: "other", label: "Other", icon: Folder }
 ]
 
 const priorityLevels = [
@@ -370,7 +398,7 @@ watch(isOpen, (open) => {
               ]"
               @click="activeStep = step.id"
             >
-              <Icon :name="step.icon" class="size-5" />
+              <component :is="step.icon" class="size-5" />
               <span class="flex-1 font-medium text-sm">{{ step.label }}</span>
               <div
                 v-if="step.required"
@@ -382,7 +410,7 @@ watch(isOpen, (open) => {
 
           <div class="p-4 border-t">
             <UiButton variant="ghost" class="w-full" @click="closeModal">
-              <Icon name="lucide:x" class="size-4 mr-2" />
+              <X class="size-4 mr-2" />
               Cancel
             </UiButton>
           </div>
@@ -394,7 +422,7 @@ watch(isOpen, (open) => {
           <div class="px-8 py-6 border-b bg-background">
             <div class="flex items-center gap-3">
               <div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Icon :name="steps.find((s) => s.id === activeStep)?.icon || ''" class="size-5 text-primary" />
+                <component :is="steps.find((s) => s.id === activeStep)?.icon" class="size-5 text-primary" />
               </div>
               <div>
                 <h3 class="text-lg font-semibold">{{ steps.find((s) => s.id === activeStep)?.label }}</h3>
@@ -451,7 +479,7 @@ watch(isOpen, (open) => {
                       "
                       @click="formData.category = cat.value"
                     >
-                      <Icon :name="cat.icon" class="size-5 shrink-0" />
+                      <component :is="cat.icon" class="size-5 shrink-0" />
                       <span class="text-sm font-medium">{{ cat.label }}</span>
                     </button>
                   </div>
@@ -473,7 +501,7 @@ watch(isOpen, (open) => {
               <div v-else-if="activeStep === 'location'" class="space-y-8 max-w-2xl flex-1">
                 <div class="space-y-4">
                   <div class="flex items-center gap-2">
-                    <Icon name="lucide:map-pin" class="size-5 text-primary" />
+                    <MapPin class="size-5 text-primary" />
                     <h4 class="font-medium">Job Site Location</h4>
                   </div>
 
@@ -500,7 +528,7 @@ watch(isOpen, (open) => {
 
                 <div class="space-y-4">
                   <div class="flex items-center gap-2">
-                    <Icon name="lucide:user" class="size-5 text-primary" />
+                    <User class="size-5 text-primary" />
                     <h4 class="font-medium">Client Information</h4>
                   </div>
 
@@ -564,7 +592,7 @@ watch(isOpen, (open) => {
 
                   <div v-if="isUploading" class="space-y-4">
                     <div class="size-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                      <Icon name="svg-spinners:ring-resize" class="size-10 text-primary" />
+                      <Loader2 class="size-10 text-primary animate-spin" />
                     </div>
                     <div>
                       <p class="text-lg font-medium">Uploading your file...</p>
@@ -574,7 +602,7 @@ watch(isOpen, (open) => {
 
                   <div v-else class="space-y-6">
                     <div class="size-24 mx-auto rounded-full bg-muted flex items-center justify-center">
-                      <Icon name="lucide:upload-cloud" class="size-12 text-muted-foreground" />
+                      <UploadCloud class="size-12 text-muted-foreground" />
                     </div>
                     <div>
                       <p class="text-xl font-semibold">Drop your PDF here</p>
@@ -582,11 +610,11 @@ watch(isOpen, (open) => {
                     </div>
                     <div class="flex items-center justify-center gap-6 text-sm text-muted-foreground">
                       <span class="flex items-center gap-2">
-                        <Icon name="lucide:file-text" class="size-4" />
+                        <FileText class="size-4" />
                         PDF files only
                       </span>
                       <span class="flex items-center gap-2">
-                        <Icon name="lucide:hard-drive" class="size-4" />
+                        <HardDrive class="size-4" />
                         Max 50MB
                       </span>
                     </div>
@@ -599,7 +627,7 @@ watch(isOpen, (open) => {
                       <div
                         class="w-40 h-52 rounded-lg bg-linear-to-br from-red-500/20 to-red-600/20 border border-red-500/30 flex flex-col items-center justify-center shrink-0"
                       >
-                        <Icon name="lucide:file-text" class="size-16 text-red-500/70" />
+                        <FileText class="size-16 text-red-500/70" />
                         <span class="text-sm font-medium text-red-500/70 mt-2">PDF</span>
                       </div>
 
@@ -611,24 +639,24 @@ watch(isOpen, (open) => {
 
                         <div class="flex flex-wrap gap-3">
                           <UiBadge variant="secondary" class="gap-1.5 text-sm py-1 px-3">
-                            <Icon name="lucide:hard-drive" class="size-3.5" />
+                            <HardDrive class="size-3.5" />
                             {{ formatFileSize(uploadedFile.fileSize) }}
                           </UiBadge>
                           <UiBadge v-if="uploadedFile.pageCount" variant="secondary" class="gap-1.5 text-sm py-1 px-3">
-                            <Icon name="lucide:file-text" class="size-3.5" />
+                            <FileText class="size-3.5" />
                             {{ uploadedFile.pageCount }} {{ uploadedFile.pageCount === 1 ? "page" : "pages" }}
                           </UiBadge>
                           <UiBadge
                             variant="outline"
                             class="gap-1.5 text-sm py-1 px-3 text-green-600 border-green-600/30 bg-green-500/10"
                           >
-                            <Icon name="lucide:check-circle" class="size-3.5" />
+                            <CheckCircle class="size-3.5" />
                             Ready
                           </UiBadge>
                         </div>
 
                         <UiButton variant="outline" @click="uploadedFile = null">
-                          <Icon name="lucide:trash-2" class="size-4 mr-2" />
+                          <Trash2 class="size-4 mr-2" />
                           Remove & Upload Different File
                         </UiButton>
                       </div>
@@ -671,14 +699,14 @@ watch(isOpen, (open) => {
                   <div class="flex gap-2">
                     <UiInput v-model="tagInput" placeholder="Add a tag and press Enter..." @keyup.enter="addTag" />
                     <UiButton variant="outline" @click="addTag">
-                      <Icon name="lucide:plus" class="size-4" />
+                      <Plus class="size-4" />
                     </UiButton>
                   </div>
                   <div v-if="formData.tags.length" class="flex flex-wrap gap-2">
                     <UiBadge v-for="tag in formData.tags" :key="tag" variant="secondary" class="gap-1 pr-1">
                       {{ tag }}
                       <button class="ml-1 hover:bg-muted rounded p-0.5 transition-colors" @click.stop="removeTag(tag)">
-                        <Icon name="lucide:x" class="size-3" />
+                        <X class="size-3" />
                       </button>
                     </UiBadge>
                   </div>
@@ -704,18 +732,18 @@ watch(isOpen, (open) => {
           <!-- Bottom Navigation -->
           <div class="px-8 py-4 border-t bg-muted/30 flex items-center justify-between">
             <UiButton v-if="activeStep !== 'details'" variant="outline" @click="goToPreviousStep">
-              <Icon name="lucide:arrow-left" class="size-4 mr-2" />
+              <ArrowLeft class="size-4 mr-2" />
               Back
             </UiButton>
             <div v-else />
 
             <UiButton v-if="activeStep !== 'notes'" @click="goToNextStep">
               Next
-              <Icon name="lucide:arrow-right" class="size-4 ml-2" />
+              <ArrowRight class="size-4 ml-2" />
             </UiButton>
             <UiButton v-else :disabled="!canCreate || isCreating" @click="handleSubmit">
-              <Icon v-if="isCreating" name="svg-spinners:90-ring-with-bg" class="size-4 mr-2" />
-              <Icon v-else name="lucide:check" class="size-4 mr-2" />
+              <Loader2 v-if="isCreating" class="size-4 mr-2 animate-spin" />
+              <Check v-else class="size-4 mr-2" />
               Create Project
             </UiButton>
           </div>

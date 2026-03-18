@@ -1,24 +1,25 @@
 <template>
   <NumberFieldDecrement data-slot="number-field-decrement" v-bind="forwarded" :class="styles({ class: props.class })">
     <slot>
-      <Icon :name="props.icon" />
+      <component :is="props.icon" />
     </slot>
   </NumberFieldDecrement>
 </template>
 
 <script lang="ts" setup>
+import { Minus } from "lucide-vue-next"
 import { NumberFieldDecrement, useForwardProps } from "reka-ui"
 import type { NumberFieldDecrementProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
     NumberFieldDecrementProps & {
       class?: HTMLAttributes["class"]
-      icon?: string
+      icon?: Component
     }
   >(),
-  { icon: "lucide:minus" }
+  { icon: () => Minus }
 )
 
 const forwarded = useForwardProps(reactiveOmit(props, "class"))

@@ -6,6 +6,7 @@ import { z } from "zod"
 import type { PlatformAdminTier, PlatformAdminListItem } from "@shared/auth/plugins/platform-admin.client"
 import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
 import type { ColumnDef } from "@tanstack/vue-table"
+import { Edit, Shield, Trash2, UserPlus } from "lucide-vue-next"
 
 definePageMeta({
   layout: "admin",
@@ -280,12 +281,12 @@ const columns: ColumnDef<PlatformAdminListItem>[] = [
           h(
             resolveComponent("UiButton"),
             { variant: "ghost", size: "sm", onClick: () => openUpdateDialog(admin) },
-            () => h(resolveComponent("Icon"), { name: "lucide:edit", class: "size-4" })
+            () => h(Edit, { class: "size-4" })
           ),
           h(
             resolveComponent("UiButton"),
             { variant: "ghost", size: "sm", class: "text-destructive", onClick: () => openRevokeDialog(admin) },
-            () => h(resolveComponent("Icon"), { name: "lucide:trash-2", class: "size-4" })
+            () => h(Trash2, { class: "size-4" })
           )
         ])
       }
@@ -322,7 +323,7 @@ onMounted(() => {
         <p class="text-muted-foreground mt-1">Manage who has access to the admin panel</p>
       </div>
       <UiButton @click="showGrantDialog = true">
-        <Icon name="lucide:user-plus" class="size-4 mr-2" />
+        <UserPlus class="size-4 mr-2" />
         Add Admin
       </UiButton>
     </div>
@@ -365,7 +366,7 @@ onMounted(() => {
       >
         <template #empty>
           <div class="py-8 text-center text-muted-foreground">
-            <Icon name="lucide:shield" class="size-12 mx-auto mb-4 opacity-50" />
+            <Shield class="size-12 mx-auto mb-4 opacity-50" />
             <p>No platform admins found</p>
           </div>
         </template>
@@ -389,7 +390,7 @@ onMounted(() => {
         <UiDialogFooter>
           <UiButton variant="outline" @click="showGrantDialog = false">Cancel</UiButton>
           <UiButton :disabled="isGranting || !selectedUserId" @click="handleGrant">
-            <Icon v-if="isGranting" name="lucide:loader-2" class="size-4 mr-2 animate-spin" />
+            <UiSpinner v-if="isGranting" class="size-4 mr-2" />
             Grant Access
           </UiButton>
         </UiDialogFooter>
@@ -411,7 +412,7 @@ onMounted(() => {
         <UiDialogFooter>
           <UiButton variant="outline" @click="showUpdateDialog = false">Cancel</UiButton>
           <UiButton :disabled="isUpdating" @click="handleUpdateTier">
-            <Icon v-if="isUpdating" name="lucide:loader-2" class="size-4 mr-2 animate-spin" />
+            <UiSpinner v-if="isUpdating" class="size-4 mr-2" />
             Update Tier
           </UiButton>
         </UiDialogFooter>
@@ -432,7 +433,7 @@ onMounted(() => {
         <UiAlertDialogFooter>
           <UiAlertDialogCancel :disabled="isRevoking">Cancel</UiAlertDialogCancel>
           <UiButton variant="destructive" :disabled="isRevoking" @click="handleRevoke">
-            <Icon v-if="isRevoking" name="lucide:loader-2" class="size-4 mr-2 animate-spin" />
+            <UiSpinner v-if="isRevoking" class="size-4 mr-2" />
             Revoke Access
           </UiButton>
         </UiAlertDialogFooter>

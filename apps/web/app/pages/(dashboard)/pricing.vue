@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Building2, Calendar, Check, ChevronDown, Mail, X } from "lucide-vue-next"
 useSeoMeta({ title: "Pricing" })
 
 interface PricingFeature {
@@ -170,8 +171,8 @@ function toggleFaq(index: number) {
           <!-- Features -->
           <ul class="space-y-3">
             <li v-for="feature in tier.features" :key="feature.text" class="flex items-start gap-3">
-              <Icon
-                :name="feature.included ? 'lucide:check' : 'lucide:x'"
+              <component
+                :is="feature.included ? Check : X"
                 :class="['size-4 mt-0.5 shrink-0', feature.included ? 'text-primary' : 'text-muted-foreground/50']"
               />
               <span :class="['text-sm', !feature.included && 'text-muted-foreground/50']">
@@ -210,7 +211,7 @@ function toggleFaq(index: number) {
       <div class="mx-auto max-w-2xl space-y-4">
         <div class="flex justify-center">
           <div class="flex size-12 items-center justify-center rounded-xl bg-primary/10">
-            <Icon name="lucide:building-2" class="size-6 text-primary" />
+            <Building2 class="size-6 text-primary" />
           </div>
         </div>
         <h2 class="text-2xl font-bold">Need something bigger?</h2>
@@ -220,11 +221,11 @@ function toggleFaq(index: number) {
         </p>
         <div class="flex flex-wrap justify-center gap-3 pt-2">
           <UiButton to="/support" variant="default">
-            <Icon name="lucide:mail" class="mr-2 size-4" />
+            <Mail class="mr-2 size-4" />
             Contact Sales
           </UiButton>
           <UiButton variant="outline">
-            <Icon name="lucide:calendar" class="mr-2 size-4" />
+            <Calendar class="mr-2 size-4" />
             Schedule Demo
           </UiButton>
         </div>
@@ -310,13 +311,13 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Measurement presets</td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
             </tr>
             <tr>
@@ -338,25 +339,25 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Cloud sync & backup</td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Shared project libraries</td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
             </tr>
 
@@ -372,37 +373,37 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Real-time collaboration</td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Role-based permissions</td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Custom branding</td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <Icon name="lucide:x" class="mx-auto size-4 text-muted-foreground/50" />
+                <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
-                <Icon name="lucide:check" class="mx-auto size-4 text-primary" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
             </tr>
 
@@ -446,10 +447,8 @@ function toggleFaq(index: number) {
             @click="toggleFaq(index)"
           >
             {{ faq.question }}
-            <Icon
-              name="lucide:chevron-down"
-              :class="['size-4 shrink-0 transition-transform', openFaqIndex === index && 'rotate-180']"
-            />
+            <ChevronDown
+              :class="['size-4 shrink-0 transition-transform', openFaqIndex === index && 'rotate-180']" />
           </button>
           <div v-show="openFaqIndex === index" class="pb-4 text-sm text-muted-foreground">
             {{ faq.answer }}

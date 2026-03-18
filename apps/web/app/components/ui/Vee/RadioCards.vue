@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { CheckCircle2 } from "lucide-vue-next"
 import { useField } from "vee-validate"
+import type { Component } from "vue"
 
 export interface RadioCardOption {
   value: string
   label: string
   description?: string
-  icon?: string
+  icon?: Component
 }
 
 export interface RadioCardsProps {
@@ -58,7 +60,7 @@ const { value, setValue, errorMessage } = useField<string>(() => props.name, pro
             value === option.value ? 'bg-primary text-primary-foreground scale-110' : 'bg-muted group-hover:bg-muted/80'
           ]"
         >
-          <Icon :name="option.icon" class="size-5" />
+          <component :is="option.icon" class="size-5" />
         </div>
         <div class="flex-1 space-y-1">
           <p class="font-medium leading-none">{{ option.label }}</p>
@@ -72,7 +74,7 @@ const { value, setValue, errorMessage } = useField<string>(() => props.name, pro
             value === option.value ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
           ]"
         >
-          <Icon name="lucide:check-circle-2" class="size-5 text-primary" />
+          <CheckCircle2 class="size-5 text-primary" />
         </div>
       </button>
     </div>

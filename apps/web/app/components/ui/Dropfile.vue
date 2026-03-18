@@ -10,9 +10,9 @@
               class="inline-flex items-center justify-center rounded-md border p-2 transition"
               :class="[isOverDropZone && 'animate-bounce border-primary']"
             >
-              <Icon
+              <component
+                :is="icon"
                 data-slot="dropfile-icon"
-                :name="icon"
                 class="h-7 w-7 opacity-70"
                 :class="[isOverDropZone && 'text-primary']"
               />
@@ -33,7 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
+import { CloudUpload } from "lucide-vue-next"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<{
@@ -54,7 +55,7 @@ const props = withDefaults(
      *
      * @default "lucide:cloud-upload"
      */
-    icon?: string
+    icon?: Component
     /**
      * The function to call when files are dropped.
      */
@@ -80,7 +81,7 @@ const props = withDefaults(
   {
     title: "Click to upload or drag & drop files.",
     subtext: "All file types accepted",
-    icon: "lucide:cloud-upload",
+    icon: () => CloudUpload,
     multiple: true,
     accept: "*"
   }

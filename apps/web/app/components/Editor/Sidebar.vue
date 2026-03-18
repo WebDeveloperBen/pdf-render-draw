@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from "lucide-vue-next"
 import type { PDFDocumentProxy } from "pdfjs-dist"
 import { DIMENSIONS } from "@/constants/dimensions"
 
@@ -248,7 +249,7 @@ watch(
     <div class="sidebar-header">
       <h3>Pages</h3>
       <button class="close-btn" title="Close sidebar" @click="emit('close')">
-        <Icon name="lucide:x" class="size-5" />
+        <X class="size-5" />
       </button>
     </div>
 

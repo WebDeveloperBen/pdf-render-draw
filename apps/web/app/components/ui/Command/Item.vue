@@ -15,7 +15,7 @@
   >
     <slot>
       <slot name="icon">
-        <Icon v-if="icon" :name="icon" />
+        <component :is="icon" v-if="icon" />
       </slot>
       {{ text }}
       <slot name="shortcut">
@@ -29,7 +29,7 @@
 import { reactiveOmit, useCurrentElement } from "@vueuse/core"
 import { ListboxItem, useForwardPropsEmits, useId } from "reka-ui"
 import type { ListboxItemEmits, ListboxItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 import { useCommand, useCommandGroup } from "./Command.vue"
 
@@ -38,7 +38,7 @@ const props = defineProps<
     /** Custom class(es) to add to the element */
     class?: HTMLAttributes["class"]
     /** Icon to render */
-    icon?: string
+    icon?: Component
     /** Text to render */
     text?: string
     /** Shortcut to render */

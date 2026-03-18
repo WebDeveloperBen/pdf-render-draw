@@ -23,19 +23,20 @@
 </template>
 
 <script lang="ts" setup>
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Ellipsis } from "lucide-vue-next"
 import { reactiveOmit } from "@vueuse/core"
 import { PaginationRoot, useForwardPropsEmits } from "reka-ui"
 import type { PaginationRootEmits, PaginationRootProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
     PaginationRootProps & {
-      ellipsisIcon?: string
-      firstIcon?: string
-      lastIcon?: string
-      nextIcon?: string
-      prevIcon?: string
+      ellipsisIcon?: Component
+      firstIcon?: Component
+      lastIcon?: Component
+      nextIcon?: Component
+      prevIcon?: Component
       class?: HTMLAttributes["class"]
     }
   >(),
@@ -45,11 +46,11 @@ const props = withDefaults(
     itemsPerPage: 10,
     siblingCount: 3,
     showEdges: true,
-    ellipsisIcon: "lucide:ellipsis",
-    firstIcon: "lucide:chevrons-left",
-    lastIcon: "lucide:chevrons-right",
-    nextIcon: "lucide:chevron-right",
-    prevIcon: "lucide:chevron-left"
+    ellipsisIcon: () => Ellipsis,
+    firstIcon: () => ChevronsLeft,
+    lastIcon: () => ChevronsRight,
+    nextIcon: () => ChevronRight,
+    prevIcon: () => ChevronLeft
   }
 )
 

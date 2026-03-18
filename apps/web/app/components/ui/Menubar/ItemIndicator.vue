@@ -1,7 +1,7 @@
 <template>
   <MenubarItemIndicator v-bind="forwarded" :class="styles({ class: props.class })">
     <slot>
-      <Icon v-if="icon" :name="icon" class="size-4" />
+      <component :is="icon" v-if="icon" class="size-4" />
     </slot>
   </MenubarItemIndicator>
 </template>
@@ -9,12 +9,12 @@
 <script lang="ts" setup>
 import { MenubarItemIndicator } from "reka-ui"
 import type { MenubarItemIndicatorProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = defineProps<
   MenubarItemIndicatorProps & {
     /** The icon to display */
-    icon?: string
+    icon?: Component
     /** The class(es) to apply to the parent */
     class?: HTMLAttributes["class"]
   }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Eye, Loader2, X } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 
 // Get session to check for impersonation
@@ -52,7 +53,7 @@ const handleStopImpersonating = async () => {
         class="fixed top-4 right-4 z-[100] flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full pl-3.5 pr-1 py-1 shadow-lg"
       >
         <div class="flex items-center gap-2">
-          <Icon name="lucide:eye" class="size-4" />
+          <Eye class="size-4" />
           <span class="text-sm font-medium">
             Viewing as <span class="font-semibold">{{ impersonatedUser?.name || impersonatedUser?.email }}</span>
           </span>
@@ -63,8 +64,8 @@ const handleStopImpersonating = async () => {
           title="Stop impersonating"
           @click="handleStopImpersonating"
         >
-          <Icon v-if="isLoading" name="lucide:loader-2" class="size-3.5 animate-spin" />
-          <Icon v-else name="lucide:x" class="size-3.5" />
+          <Loader2 v-if="isLoading" class="size-3.5 animate-spin" />
+          <X v-else class="size-3.5" />
         </button>
       </div>
     </Transition>

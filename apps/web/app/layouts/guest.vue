@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Sparkles, ArrowRight, Ruler, ChevronDown, FolderOpen, LogOut } from "lucide-vue-next"
+
 const runtimeConfig = useRuntimeConfig()
 const name = runtimeConfig.public.app.name
 
@@ -32,7 +34,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
       <div class="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2 text-sm">
-            <Icon name="lucide:sparkles" class="size-4 text-primary" />
+            <Sparkles class="size-4 text-primary" />
             <span class="text-muted-foreground">
               You're viewing shared content.
               <span class="font-medium text-foreground">Create your own projects with a free account.</span>
@@ -41,7 +43,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
           <NuxtLink to="/g/upgrade">
             <UiButton size="sm" variant="outline" class="h-7 text-xs">
               Create Free Account
-              <Icon name="lucide:arrow-right" class="ml-1 size-3" />
+              <ArrowRight class="ml-1 size-3" />
             </UiButton>
           </NuxtLink>
         </div>
@@ -55,7 +57,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
           <!-- Logo -->
           <NuxtLink to="/g" class="flex items-center gap-2">
             <div class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Icon name="lucide:ruler" class="size-4" />
+              <Ruler class="size-4" />
             </div>
             <span class="font-semibold">{{ name }}</span>
           </NuxtLink>
@@ -72,7 +74,7 @@ useSeoMeta({ title: `${name} - Shared with you` })
                     <UiAvatarFallback class="text-xs">{{ currentUser.initials }}</UiAvatarFallback>
                   </UiAvatar>
                   <span class="hidden text-sm sm:inline-block">{{ currentUser.name }}</span>
-                  <Icon name="lucide:chevron-down" class="size-3 text-muted-foreground" />
+                  <ChevronDown class="size-3 text-muted-foreground" />
                 </UiButton>
               </UiDropdownMenuTrigger>
               <UiDropdownMenuContent align="end" class="w-56">
@@ -86,14 +88,14 @@ useSeoMeta({ title: `${name} - Shared with you` })
                 <NuxtLink to="/g">
                   <UiDropdownMenuItem title="Shared Projects">
                     <template #icon>
-                      <Icon name="lucide:folder-open" class="size-4" />
+                      <FolderOpen class="size-4" />
                     </template>
                   </UiDropdownMenuItem>
                 </NuxtLink>
                 <UiDropdownMenuSeparator />
                 <UiDropdownMenuItem title="Sign Out" @click="signOut">
                   <template #icon>
-                    <Icon name="lucide:log-out" class="size-4" />
+                    <LogOut class="size-4" />
                   </template>
                 </UiDropdownMenuItem>
               </UiDropdownMenuContent>

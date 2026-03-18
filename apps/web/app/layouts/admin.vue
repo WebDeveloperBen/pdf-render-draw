@@ -1,4 +1,19 @@
 <script lang="ts" setup>
+import type { Component } from "vue"
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  CreditCard,
+  ShieldCheck,
+  ScrollText,
+  BarChart3,
+  ArrowLeft,
+  Shield,
+  ChevronsUpDown,
+  LogOut
+} from "lucide-vue-next"
+
 const runtimeConfig = useRuntimeConfig()
 const name = runtimeConfig.public.app.name
 
@@ -26,32 +41,32 @@ const currentUser = computed(() => {
 const { signOut } = useAuth()
 
 // Navigation grouped by function
-const navOverview = [
+const navOverview: Array<{ title: string; url: string; icon: Component }> = [
   {
     title: "Dashboard",
     url: "/admin",
-    icon: "lucide:layout-dashboard"
+    icon: LayoutDashboard
   }
 ]
 
-const navManagement = [
+const navManagement: Array<{ title: string; url: string; icon: Component }> = [
   {
     title: "Users",
     url: "/admin/users",
-    icon: "lucide:users"
+    icon: Users
   },
   {
     title: "Organizations",
     url: "/admin/organizations",
-    icon: "lucide:building-2"
+    icon: Building2
   }
 ]
 
-const navBilling = [
+const navBilling: Array<{ title: string; url: string; icon: Component }> = [
   {
     title: "Subscriptions",
     url: "/admin/subscriptions",
-    icon: "lucide:credit-card"
+    icon: CreditCard
   }
 ]
 
@@ -62,30 +77,30 @@ const navSecurity = computed(() => {
     items.push({
       title: "Platform Admins",
       url: "/admin/platform-admins",
-      icon: "lucide:shield-check"
+      icon: ShieldCheck
     })
   }
   items.push({
     title: "Audit Log",
     url: "/admin/audit-log",
-    icon: "lucide:scroll-text"
+    icon: ScrollText
   })
   return items
 })
 
-const navReports = [
+const navReports: Array<{ title: string; url: string; icon: Component }> = [
   {
     title: "Reports",
     url: "/admin/reports",
-    icon: "lucide:bar-chart-3"
+    icon: BarChart3
   }
 ]
 
-const navQuickLinks = [
+const navQuickLinks: Array<{ title: string; url: string; icon: Component }> = [
   {
     title: "Back to App",
     url: "/",
-    icon: "lucide:arrow-left"
+    icon: ArrowLeft
   }
 ]
 
@@ -120,7 +135,7 @@ useSeoMeta({ title: `Admin - ${name}` })
                   <div
                     class="flex aspect-square size-8 items-center justify-center rounded-lg bg-destructive text-destructive-foreground"
                   >
-                    <Icon name="lucide:shield" class="size-4" />
+                    <Shield class="size-4" />
                   </div>
                   <div class="grid flex-1 text-left text-sm leading-tight">
                     <span class="truncate font-semibold">{{ name }} Admin</span>
@@ -140,7 +155,7 @@ useSeoMeta({ title: `Admin - ${name}` })
               <UiSidebarMenuItem v-for="item in navOverview" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -155,7 +170,7 @@ useSeoMeta({ title: `Admin - ${name}` })
               <UiSidebarMenuItem v-for="item in navManagement" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -170,7 +185,7 @@ useSeoMeta({ title: `Admin - ${name}` })
               <UiSidebarMenuItem v-for="item in navBilling" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -185,7 +200,7 @@ useSeoMeta({ title: `Admin - ${name}` })
               <UiSidebarMenuItem v-for="item in navSecurity" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -200,7 +215,7 @@ useSeoMeta({ title: `Admin - ${name}` })
               <UiSidebarMenuItem v-for="item in navReports" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -214,7 +229,7 @@ useSeoMeta({ title: `Admin - ${name}` })
               <UiSidebarMenuItem v-for="item in navQuickLinks" :key="item.url">
                 <UiSidebarMenuButton as-child :tooltip="item.title">
                   <NuxtLink :to="item.url">
-                    <Icon :name="item.icon" class="size-4" />
+                    <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>
                   </NuxtLink>
                 </UiSidebarMenuButton>
@@ -243,7 +258,7 @@ useSeoMeta({ title: `Admin - ${name}` })
                       <span class="truncate font-semibold">{{ currentUser.name }}</span>
                       <span class="truncate text-xs">{{ currentUser.email }}</span>
                     </div>
-                    <Icon name="lucide:chevrons-up-down" class="ml-auto size-4" />
+                    <ChevronsUpDown class="ml-auto size-4" />
                   </UiSidebarMenuButton>
                 </UiDropdownMenuTrigger>
                 <UiDropdownMenuContent
@@ -268,7 +283,7 @@ useSeoMeta({ title: `Admin - ${name}` })
                     <NuxtLink to="/">
                       <UiDropdownMenuItem title="Back to App">
                         <template #icon>
-                          <Icon name="lucide:arrow-left" class="size-4" />
+                          <ArrowLeft class="size-4" />
                         </template>
                       </UiDropdownMenuItem>
                     </NuxtLink>
@@ -276,7 +291,7 @@ useSeoMeta({ title: `Admin - ${name}` })
                   <UiDropdownMenuSeparator />
                   <UiDropdownMenuItem title="Log out" @click="signOut">
                     <template #icon>
-                      <Icon name="lucide:log-out" class="size-4" />
+                      <LogOut class="size-4" />
                     </template>
                   </UiDropdownMenuItem>
                 </UiDropdownMenuContent>
@@ -294,7 +309,7 @@ useSeoMeta({ title: `Admin - ${name}` })
           <UiBreadcrumbs :items="breadcrumbItems" />
           <div class="ml-auto flex items-center gap-2">
             <UiBadge variant="destructive" class="gap-1">
-              <Icon name="lucide:shield" class="size-3" />
+              <Shield class="size-3" />
               {{ tierDisplay }}
             </UiBadge>
             <BackgroundThemeToggle />

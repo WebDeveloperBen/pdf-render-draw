@@ -6,7 +6,7 @@
         :part="item.part"
         class="inline-flex items-center justify-center text-muted-foreground"
       >
-        <Icon v-if="separatorIcon" :name="separatorIcon" class="text-muted-foreground" />
+        <component :is="separatorIcon" v-if="separatorIcon" class="text-muted-foreground" />
         <span v-else-if="separator" class="mx-1 text-muted-foreground">{{ separator }}</span>
       </DateFieldInput>
       <DateFieldInput
@@ -24,7 +24,7 @@
 import { DateFieldInput, DateFieldRoot } from "reka-ui"
 import type { DateValue } from "@internationalized/date"
 import type { DateFieldRootProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<
@@ -42,7 +42,7 @@ const props = withDefaults(
       /**
        * The icon to use as a separator
        */
-      separatorIcon?: string
+      separatorIcon?: Component
     }
   >(),
   {

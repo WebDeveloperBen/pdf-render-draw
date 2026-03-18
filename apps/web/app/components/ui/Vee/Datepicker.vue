@@ -9,13 +9,13 @@
     <div class="relative">
       <slot name="icon">
         <span v-if="hasIcon" class="absolute inset-y-0 left-3 flex items-center justify-center">
-          <Icon v-if="icon" :name="icon" class="size-4 text-muted-foreground/70" />
+          <component :is="icon" v-if="icon" class="size-4 text-muted-foreground/70" />
         </span>
       </slot>
       <UiDatepicker v-bind="datePickerProps" v-model="value">
         <template #header-title="{ title }">
           <div class="inline-flex items-center gap-1">
-            {{ title }} <Icon name="lucide:chevron-down" class="size-4" />
+            {{ title }} <ChevronDown class="size-4" />
           </div>
         </template>
         <template #default="{ inputValue, inputEvents }">
@@ -66,7 +66,9 @@
 </template>
 
 <script lang="ts" setup>
+import { CalendarDays, ChevronDown } from "lucide-vue-next"
 import { AnimatePresence, motion } from "motion-v"
+import type { Component } from "vue"
 
 const variants = {
   initial: { opacity: 0, y: -2 },
@@ -75,7 +77,7 @@ const variants = {
 const props = withDefaults(
   defineProps<{
     label?: string
-    icon?: string
+    icon?: Component
     hint?: string
     disabled?: boolean
     modelValue?: any
@@ -89,7 +91,7 @@ const props = withDefaults(
     required?: boolean
   }>(),
   {
-    icon: "lucide:calendar-days"
+    icon: () => CalendarDays
   }
 )
 

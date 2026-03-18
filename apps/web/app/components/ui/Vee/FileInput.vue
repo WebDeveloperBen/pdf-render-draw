@@ -6,7 +6,7 @@
     <div class="relative">
       <slot name="icon">
         <span v-if="hasIcon" class="absolute inset-y-0 left-3 flex items-center justify-center">
-          <Icon v-if="icon" :name="icon" class="size-4 text-muted-foreground/70" />
+          <component :is="icon" v-if="icon" class="size-4 text-muted-foreground/70" />
         </span>
       </slot>
       <UiInput
@@ -55,6 +55,7 @@
 
 <script lang="ts" setup>
 import { AnimatePresence, motion } from "motion-v"
+import type { Component } from "vue"
 
 const variants = {
   initial: { opacity: 0, y: -2 },
@@ -63,7 +64,7 @@ const variants = {
 
 const props = defineProps<{
   label?: string
-  icon?: string
+  icon?: Component
   hint?: string
   name: string
   id?: string

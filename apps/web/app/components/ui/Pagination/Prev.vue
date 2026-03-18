@@ -3,7 +3,7 @@
     <slot>
       <UiButton v-if="icon" :variant :size>
         <span class="sr-only">Previous page</span>
-        <Icon :name="icon" />
+        <component :is="icon" />
       </UiButton>
     </slot>
   </PaginationPrev>
@@ -14,12 +14,13 @@ import { reactiveOmit } from "@vueuse/core"
 import { PaginationPrev } from "reka-ui"
 import type { ButtonProps } from "~/components/ui/Button.vue"
 import type { PaginationPrevProps } from "reka-ui"
+import type { Component } from "vue"
 
 const props = withDefaults(
   defineProps<
     PaginationPrevProps & {
       /** Icon to show */
-      icon?: string
+      icon?: Component
       /** The variant of the button */
       variant?: ButtonProps["variant"]
       /** The size of the button */

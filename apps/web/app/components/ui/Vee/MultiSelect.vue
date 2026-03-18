@@ -26,7 +26,7 @@
       </template>
       <template #clear="{ clear }">
         <button class="mr-2 flex items-center justify-center" @click="clear">
-          <Icon name="heroicons:x-mark" size="16" class="text-muted-foreground" />
+          <X class="size-4 text-muted-foreground" />
         </button>
       </template>
     </Multiselect>
@@ -59,6 +59,7 @@
 </template>
 
 <script lang="ts">
+import { X } from "lucide-vue-next"
 import Multiselect from "@vueform/multiselect"
 import { motion } from "motion-v"
 import { useForwardPropsEmits } from "reka-ui"

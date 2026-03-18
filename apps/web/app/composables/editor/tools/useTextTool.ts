@@ -1,3 +1,4 @@
+import { Type } from "lucide-vue-next"
 import { v4 as uuidv4 } from "uuid"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 import { TEXT_TOOL_DEFAULTS } from "~/components/Editor/Tools/Text.vue"
@@ -142,7 +143,7 @@ const [useTextTool, useTextToolState] = createInjectionState(() => {
   registerTool({
     type: "text",
     name: "Text",
-    icon: "lucide:type",
+    icon: Type,
     onClick: tool.handleClick,
     onDoubleClick: (id: string) => {
       // Use global text editing state (singleton composable, no injection needed)

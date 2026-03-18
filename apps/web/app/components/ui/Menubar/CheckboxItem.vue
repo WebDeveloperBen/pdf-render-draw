@@ -2,7 +2,7 @@
   <MenubarCheckboxItem data-slot="menubar-checkbox-item" v-bind="forwarded" :class="styles({ class: props.class })">
     <span class="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
       <UiMenubarItemIndicator>
-        <Icon :name="icon || 'lucide:check'" />
+        <component :is="icon" />
       </UiMenubarItemIndicator>
     </span>
     <slot>{{ title }}</slot>
@@ -13,18 +13,24 @@
 </template>
 
 <script lang="ts" setup>
+import { Check } from "lucide-vue-next"
 import { MenubarCheckboxItem, useForwardPropsEmits } from "reka-ui"
 import type { MenubarCheckboxItemEmits, MenubarCheckboxItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
-const props = defineProps<
-  MenubarCheckboxItemProps & {
-    icon?: string
-    class?: HTMLAttributes["class"]
-    title?: string
-    shortcut?: string
+const props = withDefaults(
+  defineProps<
+    MenubarCheckboxItemProps & {
+      icon?: Component
+      class?: HTMLAttributes["class"]
+      title?: string
+      shortcut?: string
+    }
+  >(),
+  {
+    icon: () => Check
   }
->()
+)
 const emits = defineEmits<MenubarCheckboxItemEmits>()
 
 const forwarded = useForwardPropsEmits(reactiveOmit(props, "icon", "class", "title", "shortcut"), emits)

@@ -3,6 +3,7 @@ import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
 import { useRoomDetection } from "@/composables/editor/useRoomDetection"
 import { useFeatureFlags } from "@/composables/useFeatureFlags"
+import { AlertCircle, ArrowLeft, Brain, Bug, ChevronLeft, ChevronRight, CloudCheck, CloudOff, CloudUpload, Crosshair, Download, FileText, Minus, MousePointer2, PanelLeft, Plus, RotateCcw, RotateCw, ScanLine, TextSearch, WifiOff } from "lucide-vue-next"
 
 definePageMeta({
   layout: "editor"
@@ -305,7 +306,7 @@ if (typeof window !== "undefined") {
           <!-- Left side - Navigation -->
           <div class="toolbar-section">
             <NuxtLink :to="projectId ? `/projects/${projectId}` : '/'" class="toolbar-btn" title="Back to project">
-              <Icon name="lucide:arrow-left" class="size-4" />
+              <ArrowLeft class="size-4" />
               <span>Back</span>
             </NuxtLink>
 
@@ -313,7 +314,7 @@ if (typeof window !== "undefined") {
 
             <!-- File name -->
             <div v-if="fileName" class="file-name" :title="fileName">
-              <Icon name="lucide:file-text" class="size-4" />
+              <FileText class="size-4" />
               <span>{{ fileName }}</span>
             </div>
 
@@ -325,7 +326,7 @@ if (typeof window !== "undefined") {
               title="Toggle pages sidebar"
               @click="toggleSidebar"
             >
-              <Icon name="lucide:panel-left" class="size-4" />
+              <PanelLeft class="size-4" />
               Pages
             </button>
 
@@ -338,7 +339,7 @@ if (typeof window !== "undefined") {
                 :disabled="viewportStore.getCurrentPage <= 1"
                 @click="viewportStore.setCurrentPage(Math.max(1, viewportStore.getCurrentPage - 1))"
               >
-                <Icon name="lucide:chevron-left" class="size-4" />
+                <ChevronLeft class="size-4" />
               </button>
               <span class="page-indicator">
                 {{ viewportStore.getCurrentPage }} / {{ viewportStore.getTotalPages }}
@@ -351,7 +352,7 @@ if (typeof window !== "undefined") {
                   viewportStore.setCurrentPage(Math.min(viewportStore.getTotalPages, viewportStore.getCurrentPage + 1))
                 "
               >
-                <Icon name="lucide:chevron-right" class="size-4" />
+                <ChevronRight class="size-4" />
               </button>
             </div>
           </div>
@@ -361,13 +362,13 @@ if (typeof window !== "undefined") {
             <div class="control-group">
               <span class="control-label">Zoom</span>
               <button class="toolbar-btn-icon" title="Zoom out" @click="zoomOut">
-                <Icon name="lucide:minus" class="size-4" />
+                <Minus class="size-4" />
               </button>
               <button class="toolbar-btn-sm" title="Reset zoom" @click="resetZoom">
                 {{ Math.round(viewportStore.getScale * 100) }}%
               </button>
               <button class="toolbar-btn-icon" title="Zoom in" @click="zoomIn">
-                <Icon name="lucide:plus" class="size-4" />
+                <Plus class="size-4" />
               </button>
             </div>
 
@@ -376,13 +377,13 @@ if (typeof window !== "undefined") {
             <div class="control-group">
               <span class="control-label">Rotate</span>
               <button class="toolbar-btn-icon" title="Rotate counter-clockwise" @click="rotateCounterClockwise">
-                <Icon name="lucide:rotate-ccw" class="size-4" />
+                <RotateCcw class="size-4" />
               </button>
               <button class="toolbar-btn-sm" title="Reset rotation" @click="resetRotation">
                 {{ Math.round(viewportStore.rotation) }}°
               </button>
               <button class="toolbar-btn-icon" title="Rotate clockwise" @click="rotateClockwise">
-                <Icon name="lucide:rotate-cw" class="size-4" />
+                <RotateCw class="size-4" />
               </button>
             </div>
           </div>
@@ -396,8 +397,8 @@ if (typeof window !== "undefined") {
               title="Download PDF with annotations"
               @click="handleExport"
             >
-              <Icon v-if="isExporting" name="svg-spinners:ring-resize" class="size-4" />
-              <Icon v-else name="lucide:download" class="size-4" />
+              <UiSpinner v-if="isExporting" class="size-4" />
+              <Download v-else class="size-4" />
               <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
             </button>
 
@@ -405,11 +406,11 @@ if (typeof window !== "undefined") {
 
             <!-- Sync Status Indicator -->
             <div class="sync-status" :class="syncState" :title="syncTooltip">
-              <Icon v-if="syncState === 'syncing'" name="svg-spinners:ring-resize" class="size-4" />
-              <Icon v-else-if="syncState === 'error'" name="lucide:cloud-off" class="size-4" />
-              <Icon v-else-if="syncState === 'offline'" name="lucide:wifi-off" class="size-4" />
-              <Icon v-else-if="hasPendingChanges" name="lucide:cloud-upload" class="size-4" />
-              <Icon v-else name="lucide:cloud-check" class="size-4" />
+              <UiSpinner v-if="syncState === 'syncing'" class="size-4" />
+              <CloudOff v-else-if="syncState === 'error'" class="size-4" />
+              <WifiOff v-else-if="syncState === 'offline'" class="size-4" />
+              <CloudUpload v-else-if="hasPendingChanges" class="size-4" />
+              <CloudCheck v-else class="size-4" />
               <span v-if="pendingCount > 0" class="pending-badge">
                 {{ pendingCount }}
               </span>
@@ -434,7 +435,7 @@ if (typeof window !== "undefined") {
               :title="tool.name"
               @click="annotationStore.setActiveTool(tool.id)"
             >
-              <Icon :name="tool.icon" class="size-4" />
+              <component :is="tool.icon" class="size-4" />
               <span class="tool-name">{{ tool.name }}</span>
             </button>
 
@@ -443,7 +444,7 @@ if (typeof window !== "undefined") {
               title="Selection"
               @click="annotationStore.setActiveTool('selection')"
             >
-              <Icon name="lucide:mouse-pointer-2" class="size-4" />
+              <MousePointer2 class="size-4" />
               <span class="tool-name">Select</span>
             </button>
 
@@ -459,8 +460,8 @@ if (typeof window !== "undefined") {
               :disabled="!viewportStore.isPdfLoaded"
               @click="toggleRoomLayer"
             >
-              <Icon v-if="isDetectingRooms" name="svg-spinners:ring-resize" class="size-4" />
-              <Icon v-else name="lucide:scan-line" class="size-4" />
+              <UiSpinner v-if="isDetectingRooms" class="size-4" />
+              <ScanLine v-else class="size-4" />
               <span class="tool-name">{{ roomLayerEnabled ? `Rooms (${detectedRooms.length})` : "Detect Rooms" }}</span>
             </button>
 
@@ -471,8 +472,8 @@ if (typeof window !== "undefined") {
               :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
               @click="detectWithTextWalls"
             >
-              <Icon v-if="isDetectingRooms" name="svg-spinners:ring-resize" class="size-4" />
-              <Icon v-else name="lucide:text-search" class="size-4" />
+              <UiSpinner v-if="isDetectingRooms" class="size-4" />
+              <TextSearch v-else class="size-4" />
               <span class="tool-name">Smart Detect</span>
             </button>
 
@@ -483,8 +484,8 @@ if (typeof window !== "undefined") {
               :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
               @click="detectWithOCR"
             >
-              <Icon v-if="isDetectingRooms" name="svg-spinners:ring-resize" class="size-4" />
-              <Icon v-else name="lucide:brain" class="size-4" />
+              <UiSpinner v-if="isDetectingRooms" class="size-4" />
+              <Brain v-else class="size-4" />
               <span class="tool-name">AI Detect</span>
             </button>
 
@@ -495,7 +496,7 @@ if (typeof window !== "undefined") {
               :disabled="!viewportStore.isPdfLoaded"
               @click="toggleDebugLayer"
             >
-              <Icon name="lucide:bug" class="size-4" />
+              <Bug class="size-4" />
               <span class="tool-name">
                 {{ debugLayerEnabled ? `Debug (${debugData?.nodes.length ?? 0} nodes)` : "Debug Plan" }}
               </span>
@@ -508,7 +509,7 @@ if (typeof window !== "undefined") {
               :disabled="!viewportStore.isPdfLoaded"
               @click="toggleSnapDebug"
             >
-              <Icon name="lucide:crosshair" class="size-4" />
+              <Crosshair class="size-4" />
               <span class="tool-name">
                 {{ snapDebugEnabled ? "Hide Snap Debug" : "Snap Debug" }}
               </span>
@@ -529,13 +530,13 @@ if (typeof window !== "undefined") {
         >
           <!-- Loading state -->
           <div v-if="isLoading" class="loading-state">
-            <Icon name="svg-spinners:ring-resize" class="size-8 text-primary" />
+            <UiSpinner class="size-8 text-primary" />
             <span>Loading file...</span>
           </div>
 
           <!-- Error state -->
           <div v-else-if="loadError" class="error-state">
-            <Icon name="lucide:alert-circle" class="size-8 text-destructive" />
+            <AlertCircle class="size-8 text-destructive" />
             <span>{{ loadError }}</span>
             <NuxtLink :to="projectId ? `/projects/${projectId}` : '/'" class="error-link"> Return to project </NuxtLink>
           </div>

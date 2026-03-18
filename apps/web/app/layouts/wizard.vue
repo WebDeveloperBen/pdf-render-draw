@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Ruler, Check, ShieldCheck } from "lucide-vue-next"
+
 const route = useRoute()
 
 const steps = [
@@ -36,7 +38,7 @@ const currentYear = computed(() => new Date().getFullYear())
               <div
                 class="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
               >
-                <Icon name="lucide:ruler" class="size-5" />
+                <Ruler class="size-5" />
               </div>
               <div>
                 <h1 class="text-xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
@@ -61,7 +63,7 @@ const currentYear = computed(() => new Date().getFullYear())
                           : 'bg-muted text-muted-foreground'
                     "
                   >
-                    <Icon v-if="index < currentStepIndex" name="lucide:check" class="size-5" />
+                    <Check v-if="index < currentStepIndex" class="size-5" />
                     <span v-else>{{ step.step }}</span>
                   </div>
                   <span
@@ -83,7 +85,7 @@ const currentYear = computed(() => new Date().getFullYear())
 
             <!-- Secure setup (right) -->
             <div class="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
-              <Icon name="lucide:shield-check" class="size-4 text-primary" />
+              <ShieldCheck class="size-4 text-primary" />
               <span>Secure setup</span>
             </div>
           </div>
@@ -95,7 +97,7 @@ const currentYear = computed(() => new Date().getFullYear())
                 <div
                   class="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
                 >
-                  <Icon name="lucide:ruler" class="size-5" />
+                  <Ruler class="size-5" />
                 </div>
                 <div>
                   <h1 class="text-xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
@@ -106,7 +108,7 @@ const currentYear = computed(() => new Date().getFullYear())
               </div>
 
               <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                <Icon name="lucide:shield-check" class="size-4 text-primary" />
+                <ShieldCheck class="size-4 text-primary" />
               </div>
             </div>
 

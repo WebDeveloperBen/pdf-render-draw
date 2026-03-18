@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
+import { ArrowLeft, ArrowRight, Calculator, Check, ClipboardCheck, FileText, Layers, Megaphone, Ruler, Target, Users } from "lucide-vue-next"
+import type { Component } from "vue"
 
 definePageMeta({
   layout: "wizard"
@@ -11,12 +13,12 @@ const wizardData = useState<WizardData>("wizard-data", () => ({}))
 const selectedUseCases = ref<string[]>(wizardData.value.useCases || [])
 const referralSource = ref(wizardData.value.referralSource || "")
 
-const useCases = [
-  { value: "measure", label: "Measure plans", icon: "lucide:ruler" },
-  { value: "estimates", label: "Estimates & quotes", icon: "lucide:calculator" },
-  { value: "documentation", label: "Documentation", icon: "lucide:file-text" },
-  { value: "collaboration", label: "Collaboration", icon: "lucide:users" },
-  { value: "inspections", label: "Inspections", icon: "lucide:clipboard-check" }
+const useCases: Array<{ value: string; label: string; icon: Component }> = [
+  { value: "measure", label: "Measure plans", icon: Ruler },
+  { value: "estimates", label: "Estimates & quotes", icon: Calculator },
+  { value: "documentation", label: "Documentation", icon: FileText },
+  { value: "collaboration", label: "Collaboration", icon: Users },
+  { value: "inspections", label: "Inspections", icon: ClipboardCheck }
 ]
 
 const referralSources = [
@@ -61,7 +63,7 @@ const handleBack = () => {
         <div
           class="relative flex items-center justify-center p-4 rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/25"
         >
-          <Icon name="lucide:target" class="size-10 text-primary-foreground" />
+          <Target class="size-10 text-primary-foreground" />
         </div>
       </div>
       <div class="space-y-2">
@@ -83,7 +85,7 @@ const handleBack = () => {
         <div class="space-y-4">
           <div>
             <UiLabel class="text-base font-semibold justify-start">
-              <Icon name="lucide:layers" class="size-4 text-primary" />
+              <Layers class="size-4 text-primary" />
               What will you use this app for?
               <span class="text-destructive">*</span>
             </UiLabel>
@@ -107,7 +109,7 @@ const handleBack = () => {
                     : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
                 "
               >
-                <Icon :name="usecase.icon" class="size-6" />
+                <component :is="usecase.icon" class="size-6" />
               </div>
               <span class="font-medium text-sm text-center">{{ usecase.label }}</span>
 
@@ -116,7 +118,7 @@ const handleBack = () => {
                 v-if="selectedUseCases.includes(usecase.value)"
                 class="absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full bg-primary border-2 border-background"
               >
-                <Icon name="lucide:check" class="size-3.5 text-primary-foreground" />
+                <Check class="size-3.5 text-primary-foreground" />
               </div>
             </button>
           </div>
@@ -126,7 +128,7 @@ const handleBack = () => {
         <div class="space-y-4">
           <div>
             <UiLabel class="text-base font-semibold">
-              <Icon name="lucide:megaphone" class="size-4 text-primary" />
+              <Megaphone class="size-4 text-primary" />
               How did you hear about us?
               <UiBadge variant="secondary" class="ml-auto text-xs font-normal">Optional</UiBadge>
             </UiLabel>
@@ -163,7 +165,7 @@ const handleBack = () => {
         class="group h-12 px-6 text-base border-2 hover:bg-accent"
         @click="handleBack"
       >
-        <Icon name="lucide:arrow-left" class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+        <ArrowLeft class="size-5 mr-2 group-hover:-translate-x-1 transition-transform" />
         <span class="font-medium">Back</span>
       </UiButton>
       <UiButton
@@ -173,7 +175,7 @@ const handleBack = () => {
         @click="handleNext"
       >
         <span class="font-semibold">Continue</span>
-        <Icon name="lucide:arrow-right" class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
+        <ArrowRight class="size-5 ml-2 group-hover:translate-x-1 transition-transform" />
       </UiButton>
     </div>
   </div>

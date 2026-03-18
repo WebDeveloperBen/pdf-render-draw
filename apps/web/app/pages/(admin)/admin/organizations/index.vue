@@ -3,6 +3,7 @@ import { keepPreviousData } from "@tanstack/vue-query"
 import type { ColumnDef } from "@tanstack/vue-table"
 import type { GetApiAdminOrganizations200, GetApiAdminOrganizations200OrganizationsItem, GetApiAdminOrganizationsParams } from "~/models/api"
 import { useGetApiAdminOrganizations } from "~/models/api"
+import { Building2, Eye, RefreshCw, Search, Users } from "lucide-vue-next"
 
 definePageMeta({
   layout: "admin",
@@ -89,10 +90,7 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
     header: "Members",
     cell: ({ row }) =>
       h("div", { class: "flex items-center gap-1" }, [
-        h(resolveComponent("Icon"), {
-          name: "lucide:users",
-          class: "size-4 text-muted-foreground"
-        }),
+        h(Users, { class: "size-4 text-muted-foreground" }),
         h("span", {}, String(row.original.memberCount))
       ])
   },
@@ -115,7 +113,7 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
           title: "View organization details",
           onClick: () => navigateTo(`/admin/organizations/${row.original.id}`)
         },
-        () => h(resolveComponent("Icon"), { name: "lucide:eye", class: "size-4" })
+        () => h(Eye, { class: "size-4" })
       )
     }
   }
@@ -131,7 +129,7 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
         <p class="text-muted-foreground mt-1">Manage platform organizations</p>
       </div>
       <UiButton variant="outline" size="sm" @click="refetch()">
-        <Icon name="lucide:refresh-cw" class="size-4 mr-2" />
+        <RefreshCw class="size-4 mr-2" />
         Refresh
       </UiButton>
     </div>
@@ -139,7 +137,7 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
     <!-- Search -->
     <div class="flex items-center gap-4">
       <div class="relative flex-1 max-w-sm">
-        <Icon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <UiInput v-model="search" placeholder="Search organizations by name or slug..." class="pl-9" />
       </div>
     </div>
@@ -176,7 +174,7 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
       >
         <template #empty>
           <div class="flex flex-col items-center py-8 text-muted-foreground">
-            <Icon name="lucide:building-2" class="size-12 mb-4 opacity-50" />
+            <Building2 class="size-12 mb-4 opacity-50" />
             <p>No organizations found</p>
           </div>
         </template>

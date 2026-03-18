@@ -22,6 +22,7 @@
 <script lang="ts">
 import { AccordionRoot, useForwardPropsEmits } from "reka-ui"
 import type { AccordionRootEmits, AccordionRootProps } from "reka-ui"
+import type { Component } from "vue"
 
 /**
  * Interface that represents a single item in the accordion
@@ -31,7 +32,7 @@ export interface AccordionItem {
   content?: string
   value: string
   disabled?: boolean
-  icon?: string
+  icon?: Component
   [key: string]: any
 }
 </script>

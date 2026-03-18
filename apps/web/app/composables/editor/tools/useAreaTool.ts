@@ -1,3 +1,4 @@
+import { BoxSelect } from "lucide-vue-next"
 import { useCreateBaseTool } from "./useCreateBaseTool"
 
 /**
@@ -69,7 +70,7 @@ const [useAreaTool, useAreaToolState] = createInjectionState(() => {
   registerTool({
     type: "area",
     name: "Area",
-    icon: "lucide:box-select",
+    icon: BoxSelect,
     onClick: tool.handleClick,
     onMouseMove: tool.handleMove,
     onMouseLeave: tool.clearPreview,

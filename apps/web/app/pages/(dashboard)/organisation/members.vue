@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
+import { MoreHorizontal, Shield, User, UserMinus, UserPlus } from "lucide-vue-next"
 
 const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization, currentMember, isLoading } =
   useActiveOrganization()
@@ -97,7 +98,7 @@ useSeoMeta({
         <p class="text-muted-foreground">Manage your workplace's team members</p>
       </div>
       <UiButton @click="showInviteDialog = true">
-        <Icon name="lucide:user-plus" class="size-4" />
+        <UserPlus class="size-4" />
         Invite Member
       </UiButton>
     </div>
@@ -151,7 +152,7 @@ useSeoMeta({
                   <UiDropdownMenu>
                     <UiDropdownMenuTrigger as-child>
                       <UiButton variant="ghost" size="icon">
-                        <Icon name="lucide:more-horizontal" class="size-4" />
+                        <MoreHorizontal class="size-4" />
                       </UiButton>
                     </UiDropdownMenuTrigger>
                     <UiDropdownMenuContent align="end">
@@ -164,7 +165,7 @@ useSeoMeta({
                         :disabled="isUpdatingRole === member.id"
                         @click="handleUpdateRole(member.id, 'admin')"
                       >
-                        <Icon name="lucide:shield" class="mr-2 size-4" />
+                        <Shield class="mr-2 size-4" />
                         Make Admin
                       </UiDropdownMenuItem>
                       <UiDropdownMenuItem
@@ -172,7 +173,7 @@ useSeoMeta({
                         :disabled="isUpdatingRole === member.id"
                         @click="handleUpdateRole(member.id, 'member')"
                       >
-                        <Icon name="lucide:user" class="mr-2 size-4" />
+                        <User class="mr-2 size-4" />
                         Make Member
                       </UiDropdownMenuItem>
 
@@ -183,7 +184,7 @@ useSeoMeta({
                         :disabled="isRemovingMember === member.id"
                         @click="handleRemoveMember(member.id, member.user?.email || '')"
                       >
-                        <Icon name="lucide:user-minus" class="mr-2 size-4" />
+                        <UserMinus class="mr-2 size-4" />
                         Remove from Workplace
                       </UiDropdownMenuItem>
                     </UiDropdownMenuContent>

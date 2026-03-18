@@ -32,14 +32,14 @@
 <script lang="ts" setup>
 import { DialogContent, useForwardPropsEmits } from "reka-ui"
 import type { DialogContentEmits, DialogContentProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import type { Component, HTMLAttributes } from "vue"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
     DialogContentProps & {
-      icon?: string
+      icon?: Component
       title?: string
       description?: string
       class?: HTMLAttributes["class"]

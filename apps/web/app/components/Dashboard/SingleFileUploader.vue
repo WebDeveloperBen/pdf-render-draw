@@ -25,7 +25,7 @@
               class="mb-2 flex size-11 shrink-0 items-center justify-center rounded-full border bg-background"
               aria-hidden="true"
             >
-              <Icon name="lucide:upload" class="size-4 opacity-60" />
+              <Upload class="size-4 opacity-60" />
             </Motion>
             <Motion as="p" :variants="dropAreaContainerItem" class="mb-1.5 text-sm font-medium">Upload file</Motion>
             <Motion as="p" :variants="dropAreaContainerItem" class="text-xs text-muted-foreground">
@@ -55,14 +55,14 @@
         class="flex items-center gap-1 text-xs text-destructive"
         role="alert"
       >
-        <Icon name="lucide:circle-alert" class="size-3 shrink-0" />
+        <CircleAlert class="size-3 shrink-0" />
         <span>{{ errors[0] }}</span>
       </Motion>
 
       <Motion v-if="currentFile" key="file-list" layout="position" :variants="fileListItem" class="space-y-2">
         <div class="flex items-center justify-between gap-2 rounded-lg border px-4 py-2">
           <div class="flex items-center gap-3 overflow-hidden">
-            <Icon name="lucide:paperclip" class="size-4 shrink-0 opacity-60" aria-hidden="true" />
+            <Paperclip class="size-4 shrink-0 opacity-60" aria-hidden="true" />
             <div class="min-w-0">
               <p class="truncate text-[13px] font-medium">
                 {{ currentFile.file.name }}
@@ -77,7 +77,7 @@
             aria-label="Remove file"
             @click="removeFile(currentFile.id)"
           >
-            <Icon name="lucide:x" class="size-4" aria-hidden="true" />
+            <X class="size-4" aria-hidden="true" />
           </UiButton>
         </div>
       </Motion>
@@ -97,6 +97,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Upload, CircleAlert, Paperclip, X } from "lucide-vue-next"
 import type { MotionProps } from "motion-v"
 
 const maxSize = 10 * 1024 * 1024 // 10MB default

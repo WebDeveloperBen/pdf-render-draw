@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { PencilRuler } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
@@ -82,7 +83,7 @@ const submit = handleSubmit(async (values) => {
                 </template>
               </UiVeeCheckbox>
               <UiButton class="w-full" type="submit">
-                <Icon v-if="isSubmitting" name="svg-spinners:270-ring-with-bg" class="mr-2 size-4" />
+                <UiSpinner v-if="isSubmitting" class="mr-2 size-4" />
                 Create account
               </UiButton>
             </fieldset>
@@ -135,7 +136,7 @@ const submit = handleSubmit(async (values) => {
     <div class="hidden bg-muted lg:block">
       <div class="flex h-full flex-col items-center justify-center p-8">
         <div class="max-w-md text-center">
-          <Icon name="lucide:pencil-ruler" class="mx-auto mb-6 size-16 text-primary" />
+          <PencilRuler class="mx-auto mb-6 size-16 text-primary" />
           <h2 class="mb-4 text-2xl font-bold">Annotate PDFs with Ease</h2>
           <p class="text-muted-foreground">
             Draw, measure, and annotate building plans directly on your PDFs. Perfect for tradespeople.

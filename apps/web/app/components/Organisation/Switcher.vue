@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Ruler, ChevronsUpDown, Building2, Check, Plus, Loader2 } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 
 const runtimeConfig = useRuntimeConfig()
@@ -62,14 +63,14 @@ const handleCreateOrg = async () => {
         <div
           class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
         >
-          <Icon name="lucide:ruler" class="size-4" />
+          <Ruler class="size-4" />
         </div>
         <div class="grid flex-1 text-left text-sm leading-tight">
           <span class="truncate font-semibold">{{ appName }}</span>
           <span class="truncate text-xs text-muted-foreground">{{ workspaceName }}</span>
         </div>
-        <Icon v-if="!isSwitching" name="lucide:chevrons-up-down" class="ml-auto size-4 text-muted-foreground" />
-        <Icon v-else name="svg-spinners:ring-resize" class="ml-auto size-4 text-muted-foreground" />
+        <ChevronsUpDown v-if="!isSwitching" class="ml-auto size-4 text-muted-foreground" />
+        <Loader2 v-else class="ml-auto size-4 text-muted-foreground animate-spin" />
       </UiSidebarMenuButton>
     </UiDropdownMenuTrigger>
 
@@ -94,11 +95,11 @@ const handleCreateOrg = async () => {
             <img :src="org.logo" :alt="org.name" class="size-4 rounded-sm object-cover" />
           </template>
           <template v-else>
-            <Icon name="lucide:building-2" class="size-4" />
+            <Building2 class="size-4" />
           </template>
         </div>
         <span class="flex-1 truncate">{{ org.name }}</span>
-        <Icon v-if="activeOrg?.data?.id === org.id" name="lucide:check" class="size-4 text-primary" />
+        <Check v-if="activeOrg?.data?.id === org.id" class="size-4 text-primary" />
       </UiDropdownMenuItem>
 
       <UiDropdownMenuSeparator />
@@ -106,7 +107,7 @@ const handleCreateOrg = async () => {
       <!-- Create new workplace -->
       <UiDropdownMenuItem class="gap-2 p-2" @click="showCreateDialog = true">
         <div class="flex size-6 items-center justify-center rounded-md border border-dashed bg-background">
-          <Icon name="lucide:plus" class="size-4" />
+          <Plus class="size-4" />
         </div>
         <span class="font-medium text-muted-foreground">Create Workplace</span>
       </UiDropdownMenuItem>
@@ -137,7 +138,7 @@ const handleCreateOrg = async () => {
       <UiDialogFooter>
         <UiButton variant="outline" :disabled="isCreating" @click="showCreateDialog = false"> Cancel </UiButton>
         <UiButton :disabled="isCreating || !newOrgName.trim()" @click="handleCreateOrg">
-          <Icon v-if="isCreating" name="svg-spinners:ring-resize" class="mr-2 size-4" />
+          <Loader2 v-if="isCreating" class="mr-2 size-4 animate-spin" />
           Create
         </UiButton>
       </UiDialogFooter>

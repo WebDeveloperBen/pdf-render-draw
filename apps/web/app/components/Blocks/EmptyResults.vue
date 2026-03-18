@@ -19,7 +19,7 @@ const props = withDefaults(
     />
     <div class="relative z-10 flex flex-col items-center justify-center py-16 text-center lg:py-24">
       <slot name="icon">
-        <UiFancyIcon v-if="props.icon" icon="lucide:search" />
+        <UiFancyIcon v-if="props.icon" :icon="props.icon" />
       </slot>
       <slot name="title">
         <p class="mt-6 mb-2 text-xl font-bold tracking-tight text-balance">{{ props.title }}</p>
