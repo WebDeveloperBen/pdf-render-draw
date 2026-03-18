@@ -1,8 +1,8 @@
 import { render } from "@vue-email/render"
-import PasswordResetEmail from "~~/server/emails/PasswordResetEmail.vue"
-import VerificationEmail from "~~/server/emails/VerificationEmail.vue"
-import MagicLinkEmail from "~~/server/emails/MagicLinkEmail.vue"
-import OrganizationInviteEmail from "~~/server/emails/OrganizationInviteEmail.vue"
+import PasswordResetEmail from "~~/server/services/email/PasswordResetEmail.vue"
+import VerificationEmail from "~~/server/services/email/VerificationEmail.vue"
+import MagicLinkEmail from "~~/server/services/email/MagicLinkEmail.vue"
+import OrganizationInviteEmail from "~~/server/services/email/OrganizationInviteEmail.vue"
 
 export default defineEventHandler(async (event) => {
   // Only allow in development
