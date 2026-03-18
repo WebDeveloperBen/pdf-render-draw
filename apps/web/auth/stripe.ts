@@ -50,9 +50,7 @@ export const stripePlugin = stripe({
     ) {
       const invoice = event.data.object as any
       const subscriptionId =
-        typeof invoice.subscription === "string"
-          ? invoice.subscription
-          : (invoice.subscription as { id?: string })?.id
+        typeof invoice.subscription === "string" ? invoice.subscription : (invoice.subscription as { id?: string })?.id
 
       if (subscriptionId) {
         const sub = await db.query.subscription.findFirst({

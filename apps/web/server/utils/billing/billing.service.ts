@@ -15,7 +15,7 @@ export type SubscriptionStatus =
   | "unpaid"
   | "paused"
 
-export type PlanTier = "freemium" | "pro" | "team" | "enterprise"
+export type PlanTier = "free" | "starter" | "professional" | "team" | "enterprise"
 
 export type BillingHealth = "healthy" | "at_risk" | "action_needed" | "inactive"
 
@@ -102,10 +102,11 @@ export interface BillingPaginationInfo {
 
 function planTierFromName(planName: string): PlanTier {
   const lower = planName.toLowerCase()
-  if (lower === "pro") return "pro"
+  if (lower === "starter") return "starter"
+  if (lower === "professional") return "professional"
   if (lower === "team") return "team"
   if (lower === "enterprise") return "enterprise"
-  return "freemium"
+  return "free"
 }
 
 function computeBillingHealth(status: string, cancelAtPeriodEnd: boolean | null): BillingHealth {
@@ -433,7 +434,7 @@ export const billingService = {
       return {
         hasSubscription: false,
         subscription: null,
-        planTier: "freemium" as PlanTier,
+        planTier: "free" as PlanTier,
         billingHealth: "inactive" as BillingHealth
       }
     }

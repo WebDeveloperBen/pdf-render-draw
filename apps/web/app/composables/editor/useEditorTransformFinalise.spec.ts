@@ -90,10 +90,7 @@ describe("useEditorTransformFinalise", () => {
 
     finalise.finaliseTransformGesture({
       originalAnnotations,
-      annotations: [
-        annotationStore.getAnnotationById("fill-1")!,
-        annotationStore.getAnnotationById("fill-2")!
-      ],
+      annotations: [annotationStore.getAnnotationById("fill-1")!, annotationStore.getAnnotationById("fill-2")!],
       description: "Move selection"
     })
 

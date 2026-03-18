@@ -187,11 +187,7 @@ function handleClick(e: EditorInputEvent) {
   // But only if not drawing marquee or actively drawing with a tool
   // Also ignore clicks on transform handles (they handle deselection via drag/drop)
   // Prevent deselection if a drag/marquee just finished (click fires after mouseup)
-  if (
-    !annotationId &&
-    !isTransformHandle &&
-    !interactionMode.shouldSuppressClick.value
-  ) {
+  if (!annotationId && !isTransformHandle && !interactionMode.shouldSuppressClick.value) {
     annotationStore.selectAnnotation(null)
     // Don't return - allow drawing tools to continue processing the click
   }

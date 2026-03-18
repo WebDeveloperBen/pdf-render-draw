@@ -5,6 +5,7 @@ import { db } from "../drizzle"
 import * as schema from "@shared/db/schema"
 import { stripeClient } from "@auth"
 import { billingService } from "./billing.service"
+import { parseLimitsFromMetadata } from "./billing.helpers"
 
 export const billingSyncService = {
   /**
@@ -175,18 +176,26 @@ export const billingSyncService = {
         lastSyncedAt: new Date()
       }
 
+      // Parse quantitative limits from Stripe metadata into the limits column
+      const parsedLimits = parseLimitsFromMetadata(stripeValues.metadata as Record<string, string>)
+
       if (existing) {
         // Update only Stripe-sourced fields, preserve app-managed fields
         await db.update(schema.stripePlan).set(stripeValues).where(eq(schema.stripePlan.id, existing.id))
+
+        // Existing plan with no admin-set limits — populate from metadata
+        if (existing.limits === null) {
+          await db.update(schema.stripePlan).set({ limits: parsedLimits }).where(eq(schema.stripePlan.id, existing.id))
+        }
       } else {
-        // New plan — create with Stripe fields, app-managed fields default to null
+        // New plan — create with Stripe fields, auto-populate limits from metadata
         await db.insert(schema.stripePlan).values({
           id: nanoid(),
           ...stripeValues,
           // App-managed fields start as null — admin configures them after sync
           annualDiscountPriceId: null,
           lookupKey: price.lookup_key ?? null,
-          limits: null,
+          limits: parsedLimits,
           trialDays: null,
           group: null,
           createdAt: new Date()

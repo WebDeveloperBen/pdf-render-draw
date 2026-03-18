@@ -234,9 +234,7 @@ const columns: ColumnDef<PlatformAdminListItem>[] = [
           admin.user?.image
             ? h(resolveComponent("UiAvatarImage"), { src: admin.user.image, alt: admin.user?.name || "User" })
             : null,
-          h(resolveComponent("UiAvatarFallback"), {}, () =>
-            (admin.user?.name || admin.user?.email)?.[0]?.toUpperCase()
-          )
+          h(resolveComponent("UiAvatarFallback"), {}, () => (admin.user?.name || admin.user?.email)?.[0]?.toUpperCase())
         ]),
         h("div", {}, [
           h("p", { class: "font-medium" }, admin.user?.name || "Unknown"),
@@ -358,12 +356,7 @@ onMounted(() => {
 
     <!-- Admins Table -->
     <UiCard v-else class="p-4">
-      <UiTanStackTable
-        :data="admins"
-        :columns="columns"
-        :page-size="20"
-        :sorting="[{ id: 'grantedAt', desc: true }]"
-      >
+      <UiTanStackTable :data="admins" :columns="columns" :page-size="20" :sorting="[{ id: 'grantedAt', desc: true }]">
         <template #empty>
           <div class="py-8 text-center text-muted-foreground">
             <Shield class="size-12 mx-auto mb-4 opacity-50" />

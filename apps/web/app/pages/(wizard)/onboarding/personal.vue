@@ -1,7 +1,20 @@
 <script setup lang="ts">
 import type { WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
-import { ArrowRight, ChevronRight, FileText, HandMetal, Headphones, Mail, Phone, ShieldCheck, Smartphone, Sparkles, UserCircle, Users } from "lucide-vue-next"
+import {
+  ArrowRight,
+  ChevronRight,
+  FileText,
+  HandMetal,
+  Headphones,
+  Mail,
+  Phone,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  UserCircle,
+  Users
+} from "lucide-vue-next"
 
 definePageMeta({
   layout: "wizard"
@@ -103,7 +116,8 @@ const handleSkip = () => {
           <div class="relative group/input">
             <div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
               <Smartphone
-                class="size-5 text-muted-foreground group-focus-within/input:text-primary transition-all duration-300" />
+                class="size-5 text-muted-foreground group-focus-within/input:text-primary transition-all duration-300"
+              />
             </div>
             <UiInput
               id="phone"
@@ -146,8 +160,7 @@ const handleSkip = () => {
               <div
                 class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
               >
-                <Users
-                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+                <Users class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Team coordination</p>
@@ -163,8 +176,7 @@ const handleSkip = () => {
               <div
                 class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
               >
-                <FileText
-                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+                <FileText class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Professional quotes</p>
@@ -178,8 +190,7 @@ const handleSkip = () => {
               <div
                 class="flex size-11 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 group-hover/benefit:from-primary group-hover/benefit:to-primary/90 transition-all shadow-sm group-hover/benefit:shadow-lg group-hover/benefit:shadow-primary/20"
               >
-                <Headphones
-                  class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
+                <Headphones class="size-5 text-primary group-hover/benefit:text-primary-foreground transition-colors" />
               </div>
               <div class="space-y-1">
                 <p class="text-sm font-semibold">Direct support</p>

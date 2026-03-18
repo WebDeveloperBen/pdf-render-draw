@@ -60,9 +60,7 @@ function onResetToAllTime() {
         :class="[hasDateRange && 'border-primary/30 bg-primary/5 text-primary']"
         @click="togglePopover"
       >
-        <CalendarDays
-          :class="['size-4 mr-2', hasDateRange ? 'text-primary' : 'text-muted-foreground']"
-        />
+        <CalendarDays :class="['size-4 mr-2', hasDateRange ? 'text-primary' : 'text-muted-foreground']" />
         {{ dateRangeLabel }}
       </UiButton>
     </template>

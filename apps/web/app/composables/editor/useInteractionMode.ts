@@ -9,14 +9,7 @@
 
 const COOLDOWN_MS = 100
 
-export type InteractionMode =
-  | "idle"
-  | "selected"
-  | "dragging"
-  | "rotating"
-  | "scaling"
-  | "marquee"
-  | "cooldown"
+export type InteractionMode = "idle" | "selected" | "dragging" | "rotating" | "scaling" | "marquee" | "cooldown"
 
 const TRANSITIONS: Record<InteractionMode, readonly InteractionMode[]> = {
   idle: ["selected", "marquee"],
@@ -42,15 +35,11 @@ export const useInteractionMode = createSharedComposable(() => {
   const isLocked = computed(() => isInteracting.value || mode.value === "cooldown")
 
   /** True when a new interaction can begin */
-  const canStartInteraction = computed(
-    () => mode.value === "idle" || mode.value === "selected"
-  )
+  const canStartInteraction = computed(() => mode.value === "idle" || mode.value === "selected")
 
   /** True when click-to-select should be suppressed.
    *  Combines interaction-layer lock with tool-layer isDrawing. */
-  const shouldSuppressClick = computed(
-    () => isLocked.value || annotationStore.isDrawing
-  )
+  const shouldSuppressClick = computed(() => isLocked.value || annotationStore.isDrawing)
 
   /** Type-safe mode check — reactive in templates and computeds */
   function isMode(target: InteractionMode): boolean {

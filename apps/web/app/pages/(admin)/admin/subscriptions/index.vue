@@ -2,7 +2,11 @@
 import { keepPreviousData } from "@tanstack/vue-query"
 import { toast } from "vue-sonner"
 import type { ColumnDef } from "@tanstack/vue-table"
-import type { GetApiAdminSubscriptions200, GetApiAdminSubscriptions200SubscriptionsItem, GetApiAdminSubscriptionsParams } from "~/models/api"
+import type {
+  GetApiAdminSubscriptions200,
+  GetApiAdminSubscriptions200SubscriptionsItem,
+  GetApiAdminSubscriptionsParams
+} from "~/models/api"
 import { useGetApiAdminSubscriptions } from "~/models/api"
 import { CreditCard, Eye, RefreshCw, Search } from "lucide-vue-next"
 
@@ -122,9 +126,7 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
           sub.organizationLogo
             ? h(resolveComponent("UiAvatarImage"), { src: sub.organizationLogo, alt: sub.organizationName })
             : null,
-          h(resolveComponent("UiAvatarFallback"), { class: "rounded-lg" }, () =>
-            sub.organizationName[0]?.toUpperCase()
-          )
+          h(resolveComponent("UiAvatarFallback"), { class: "rounded-lg" }, () => sub.organizationName[0]?.toUpperCase())
         ]),
         h("div", {}, [
           h("p", { class: "font-medium" }, sub.organizationName),
@@ -146,9 +148,7 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
     cell: ({ row }) => {
       const sub = row.original
       const config = getStatusConfig(sub.status)
-      const children = [
-        h(resolveComponent("UiBadge"), { variant: "outline", class: config.class }, () => config.label)
-      ]
+      const children = [h(resolveComponent("UiBadge"), { variant: "outline", class: config.class }, () => config.label)]
       if (sub.cancelAtPeriodEnd) {
         children.push(h("span", { class: "block text-xs text-muted-foreground mt-1" }, "Cancelling"))
       }
@@ -159,11 +159,7 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
     accessorKey: "billingInterval",
     header: "Interval",
     cell: ({ row }) => {
-      return h(
-        "span",
-        { class: "text-muted-foreground capitalize" },
-        row.original.billingInterval || "\u2014"
-      )
+      return h("span", { class: "text-muted-foreground capitalize" }, row.original.billingInterval || "\u2014")
     }
   },
   {

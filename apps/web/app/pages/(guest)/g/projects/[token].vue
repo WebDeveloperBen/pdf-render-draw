@@ -4,7 +4,17 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
 import { useGetApiShareToken, type GetApiShareToken200 } from "@/models/api"
-import { AlertCircle, ArrowLeft, Download, Eye, FileText, Lock, Maximize2, MessageSquare, Unlock } from "lucide-vue-next"
+import {
+  AlertCircle,
+  ArrowLeft,
+  Download,
+  Eye,
+  FileText,
+  Lock,
+  Maximize2,
+  MessageSquare,
+  Unlock
+} from "lucide-vue-next"
 
 definePageMeta({
   layout: "guest",

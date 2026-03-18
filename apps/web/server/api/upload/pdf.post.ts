@@ -93,14 +93,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Validate file size (max 50MB)
-  const maxSize = 50 * 1024 * 1024 // 50MB in bytes
-  if (pdfFile.data.length > maxSize) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "File too large. Maximum size is 50MB."
-    })
-  }
+  // Check file size against billing plan limit
+  const billingCtx = await getOrgBillingContext(event)
+  requireFileSizeLimit(billingCtx, pdfFile.data.length)
 
   try {
     // Upload PDF (thumbnail generated client-side)

@@ -14,9 +14,7 @@
       </slot>
       <UiDatepicker v-bind="datePickerProps" v-model="value">
         <template #header-title="{ title }">
-          <div class="inline-flex items-center gap-1">
-            {{ title }} <ChevronDown class="size-4" />
-          </div>
+          <div class="inline-flex items-center gap-1">{{ title }} <ChevronDown class="size-4" /></div>
         </template>
         <template #default="{ inputValue, inputEvents }">
           <UiInput

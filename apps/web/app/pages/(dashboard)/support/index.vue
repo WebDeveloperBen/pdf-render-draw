@@ -16,11 +16,36 @@ interface CategoryStyle {
 }
 
 const categoryStyles: Record<string, CategoryStyle> = {
-  "rocket": { icon: Rocket, iconColor: "text-blue-600", bgColor: "bg-blue-100 dark:bg-blue-950", borderHover: "group-hover:border-blue-300" },
-  "ruler": { icon: Ruler, iconColor: "text-amber-600", bgColor: "bg-amber-100 dark:bg-amber-950", borderHover: "group-hover:border-amber-300" },
-  "pen-tool": { icon: PenTool, iconColor: "text-violet-600", bgColor: "bg-violet-100 dark:bg-violet-950", borderHover: "group-hover:border-violet-300" },
-  "folder-open": { icon: FolderOpen, iconColor: "text-emerald-600", bgColor: "bg-emerald-100 dark:bg-emerald-950", borderHover: "group-hover:border-emerald-300" },
-  "credit-card": { icon: CreditCard, iconColor: "text-rose-600", bgColor: "bg-rose-100 dark:bg-rose-950", borderHover: "group-hover:border-rose-300" }
+  rocket: {
+    icon: Rocket,
+    iconColor: "text-blue-600",
+    bgColor: "bg-blue-100 dark:bg-blue-950",
+    borderHover: "group-hover:border-blue-300"
+  },
+  ruler: {
+    icon: Ruler,
+    iconColor: "text-amber-600",
+    bgColor: "bg-amber-100 dark:bg-amber-950",
+    borderHover: "group-hover:border-amber-300"
+  },
+  "pen-tool": {
+    icon: PenTool,
+    iconColor: "text-violet-600",
+    bgColor: "bg-violet-100 dark:bg-violet-950",
+    borderHover: "group-hover:border-violet-300"
+  },
+  "folder-open": {
+    icon: FolderOpen,
+    iconColor: "text-emerald-600",
+    bgColor: "bg-emerald-100 dark:bg-emerald-950",
+    borderHover: "group-hover:border-emerald-300"
+  },
+  "credit-card": {
+    icon: CreditCard,
+    iconColor: "text-rose-600",
+    bgColor: "bg-rose-100 dark:bg-rose-950",
+    borderHover: "group-hover:border-rose-300"
+  }
 }
 
 function getArticleCount(slug: string) {
@@ -110,15 +135,17 @@ function getCategoryName(slug: string) {
         <p class="mb-6 text-muted-foreground">Pick a category to find what you need.</p>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NuxtLink
-            v-for="cat in faqData.categories"
-            :key="cat.slug"
-            :to="`/support/${cat.slug}`"
-            class="group"
-          >
-            <UiCard :class="['h-full transition-all duration-200 group-hover:shadow-md', categoryStyles[cat.icon]?.borderHover]">
+          <NuxtLink v-for="cat in faqData.categories" :key="cat.slug" :to="`/support/${cat.slug}`" class="group">
+            <UiCard
+              :class="[
+                'h-full transition-all duration-200 group-hover:shadow-md',
+                categoryStyles[cat.icon]?.borderHover
+              ]"
+            >
               <UiCardContent class="flex flex-col items-center gap-4 p-6 text-center">
-                <div :class="['flex size-14 items-center justify-center rounded-2xl', categoryStyles[cat.icon]?.bgColor]">
+                <div
+                  :class="['flex size-14 items-center justify-center rounded-2xl', categoryStyles[cat.icon]?.bgColor]"
+                >
                   <component
                     :is="categoryStyles[cat.icon]?.icon"
                     :class="['size-7', categoryStyles[cat.icon]?.iconColor]"
@@ -128,7 +155,9 @@ function getCategoryName(slug: string) {
                   <p class="font-semibold">{{ cat.name }}</p>
                   <p class="mt-1 text-sm text-muted-foreground">{{ cat.description }}</p>
                 </div>
-                <span class="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary">
+                <span
+                  class="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary"
+                >
                   {{ getArticleCount(cat.slug) }} articles
                   <ArrowRight class="size-3 transition-transform group-hover:translate-x-0.5" />
                 </span>

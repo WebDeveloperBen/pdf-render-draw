@@ -129,8 +129,8 @@ export default defineEventHandler(async (event) => {
   } catch (error: unknown) {
     // Handle slug conflicts
     if (
-      (error instanceof Error && error.message.includes("slug"))
-      || (typeof error === "object" && error !== null && "statusCode" in error && error.statusCode === 409)
+      (error instanceof Error && error.message.includes("slug")) ||
+      (typeof error === "object" && error !== null && "statusCode" in error && error.statusCode === 409)
     ) {
       throw createError({
         statusCode: 409,

@@ -76,19 +76,12 @@ async function handleResend() {
           <p class="mt-2 text-muted-foreground">{{ errorMessage }}</p>
 
           <div class="mt-8 flex w-full flex-col gap-3">
-            <UiButton
-              v-if="resendEmail"
-              class="w-full"
-              :disabled="isResending"
-              @click="handleResend"
-            >
+            <UiButton v-if="resendEmail" class="w-full" :disabled="isResending" @click="handleResend">
               <UiSpinner v-if="isResending" class="mr-2 size-4" />
               <Mail v-else class="mr-2 size-4" />
               Resend verification email
             </UiButton>
-            <UiButton variant="outline" class="w-full" @click="router.push('/login')">
-              Back to Login
-            </UiButton>
+            <UiButton variant="outline" class="w-full" @click="router.push('/login')"> Back to Login </UiButton>
           </div>
         </div>
       </div>

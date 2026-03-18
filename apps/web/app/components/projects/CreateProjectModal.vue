@@ -44,7 +44,12 @@ const emit = defineEmits<{
 // STEP DEFINITIONS
 // ============================================
 
-const steps: Array<{ id: "details" | "location" | "files" | "notes"; label: string; icon: Component; required: boolean }> = [
+const steps: Array<{
+  id: "details" | "location" | "files" | "notes"
+  label: string
+  icon: Component
+  required: boolean
+}> = [
   { id: "details", label: "Project Details", icon: ClipboardList, required: true },
   { id: "location", label: "Location & Client", icon: MapPin, required: false },
   { id: "files", label: "Upload Files", icon: FileUp, required: true },

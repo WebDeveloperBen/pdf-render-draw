@@ -80,7 +80,7 @@ export type GetApiAdminBillingOverview200 = {
 export type PostApiAdminBillingSyncBodyMode =
   (typeof PostApiAdminBillingSyncBodyMode)[keyof typeof PostApiAdminBillingSyncBodyMode]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiAdminBillingSyncBodyMode = {
   full: "full"
 } as const
@@ -167,18 +167,9 @@ export type GetApiAdminOrganizationsId200 = {
 export type PatchApiAdminOrganizationsIdBodyMetadata = { [key: string]: unknown } | null
 
 export type PatchApiAdminOrganizationsIdBody = {
-  /**
-   * Organization name
-   * @minLength 2
-   * @maxLength 100
-   */
+  /** Organization name */
   name?: string
-  /**
-   * Organization slug (lowercase, numbers, hyphens only)
-   * @minLength 2
-   * @maxLength 50
-   * @pattern ^[a-z0-9-]+$
-   */
+  /** Organization slug (lowercase, numbers, hyphens only) */
   slug?: string
   /**
    * Organization logo URL
@@ -232,7 +223,7 @@ export type GetApiAdminOrganizationsIdBilling200Subscription = {
 export type GetApiAdminOrganizationsIdBilling200PlanTier =
   (typeof GetApiAdminOrganizationsIdBilling200PlanTier)[keyof typeof GetApiAdminOrganizationsIdBilling200PlanTier]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminOrganizationsIdBilling200PlanTier = {
   freemium: "freemium",
   pro: "pro",
@@ -243,7 +234,7 @@ export const GetApiAdminOrganizationsIdBilling200PlanTier = {
 export type GetApiAdminOrganizationsIdBilling200BillingHealth =
   (typeof GetApiAdminOrganizationsIdBilling200BillingHealth)[keyof typeof GetApiAdminOrganizationsIdBilling200BillingHealth]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminOrganizationsIdBilling200BillingHealth = {
   healthy: "healthy",
   at_risk: "at_risk",
@@ -288,7 +279,7 @@ export type GetApiAdminOrganizationsParams = {
 export type GetApiAdminOrganizationsSortBy =
   (typeof GetApiAdminOrganizationsSortBy)[keyof typeof GetApiAdminOrganizationsSortBy]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminOrganizationsSortBy = {
   createdAt: "createdAt",
   name: "name"
@@ -297,7 +288,7 @@ export const GetApiAdminOrganizationsSortBy = {
 export type GetApiAdminOrganizationsSortOrder =
   (typeof GetApiAdminOrganizationsSortOrder)[keyof typeof GetApiAdminOrganizationsSortOrder]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminOrganizationsSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -417,7 +408,7 @@ export type GetApiAdminStats200 = {
 export type GetApiAdminSubscriptionsId200PlanTier =
   (typeof GetApiAdminSubscriptionsId200PlanTier)[keyof typeof GetApiAdminSubscriptionsId200PlanTier]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptionsId200PlanTier = {
   freemium: "freemium",
   pro: "pro",
@@ -438,7 +429,7 @@ export type GetApiAdminSubscriptionsId200PlanInfo = {
 export type GetApiAdminSubscriptionsId200BillingHealth =
   (typeof GetApiAdminSubscriptionsId200BillingHealth)[keyof typeof GetApiAdminSubscriptionsId200BillingHealth]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptionsId200BillingHealth = {
   healthy: "healthy",
   at_risk: "at_risk",
@@ -449,7 +440,7 @@ export const GetApiAdminSubscriptionsId200BillingHealth = {
 export type GetApiAdminSubscriptionsId200DataFreshness =
   (typeof GetApiAdminSubscriptionsId200DataFreshness)[keyof typeof GetApiAdminSubscriptionsId200DataFreshness]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptionsId200DataFreshness = {
   fresh: "fresh",
   stale: "stale",
@@ -459,7 +450,7 @@ export const GetApiAdminSubscriptionsId200DataFreshness = {
 export type GetApiAdminSubscriptionsId200AllowedActionsItem =
   (typeof GetApiAdminSubscriptionsId200AllowedActionsItem)[keyof typeof GetApiAdminSubscriptionsId200AllowedActionsItem]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptionsId200AllowedActionsItem = {
   refresh: "refresh",
   cancel_at_period_end: "cancel_at_period_end",
@@ -547,7 +538,7 @@ export type GetApiAdminSubscriptionsIdActivity200 = {
 export type PostApiAdminSubscriptionsIdCancelBodyMode =
   (typeof PostApiAdminSubscriptionsIdCancelBodyMode)[keyof typeof PostApiAdminSubscriptionsIdCancelBodyMode]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiAdminSubscriptionsIdCancelBodyMode = {
   at_period_end: "at_period_end",
   immediately: "immediately"
@@ -582,7 +573,7 @@ export type GetApiAdminSubscriptionsParams = {
 export type GetApiAdminSubscriptionsSortBy =
   (typeof GetApiAdminSubscriptionsSortBy)[keyof typeof GetApiAdminSubscriptionsSortBy]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptionsSortBy = {
   organizationName: "organizationName",
   status: "status",
@@ -593,7 +584,7 @@ export const GetApiAdminSubscriptionsSortBy = {
 export type GetApiAdminSubscriptionsSortOrder =
   (typeof GetApiAdminSubscriptionsSortOrder)[keyof typeof GetApiAdminSubscriptionsSortOrder]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptionsSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -602,7 +593,7 @@ export const GetApiAdminSubscriptionsSortOrder = {
 export type GetApiAdminSubscriptions200SubscriptionsItemPlanTier =
   (typeof GetApiAdminSubscriptions200SubscriptionsItemPlanTier)[keyof typeof GetApiAdminSubscriptions200SubscriptionsItemPlanTier]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptions200SubscriptionsItemPlanTier = {
   freemium: "freemium",
   pro: "pro",
@@ -738,7 +729,7 @@ export type GetApiAdminUsersParams = {
 
 export type GetApiAdminUsersSortBy = (typeof GetApiAdminUsersSortBy)[keyof typeof GetApiAdminUsersSortBy]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminUsersSortBy = {
   createdAt: "createdAt",
   name: "name",
@@ -747,7 +738,7 @@ export const GetApiAdminUsersSortBy = {
 
 export type GetApiAdminUsersSortOrder = (typeof GetApiAdminUsersSortOrder)[keyof typeof GetApiAdminUsersSortOrder]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminUsersSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -786,7 +777,7 @@ export type GetApiAdminUsers200 = {
 export type GetApiDashboardStats200RecentActivityItemType =
   (typeof GetApiDashboardStats200RecentActivityItemType)[keyof typeof GetApiDashboardStats200RecentActivityItemType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiDashboardStats200RecentActivityItemType = {
   project_updated: "project_updated"
 } as const
@@ -862,7 +853,7 @@ export type GetApiFilesFileIdAnnotations200 = {
 export type PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType =
   (typeof PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType)[keyof typeof PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiFilesFileIdAnnotationsSyncBeaconBodyOperationsItemType = {
   create: "create",
   update: "update",
@@ -887,7 +878,7 @@ export type PostApiFilesFileIdAnnotationsSyncBeaconBody = {
 export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType =
   (typeof PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType)[keyof typeof PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType = {
   create: "create",
   update: "update",
@@ -930,7 +921,7 @@ export type PostApiFilesFileIdAnnotationsSyncBody = {
 export type PostApiFilesFileIdAnnotationsSync200ConflictsItemReason =
   (typeof PostApiFilesFileIdAnnotationsSync200ConflictsItemReason)[keyof typeof PostApiFilesFileIdAnnotationsSync200ConflictsItemReason]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiFilesFileIdAnnotationsSync200ConflictsItemReason = {
   version_mismatch: "version_mismatch",
   deleted: "deleted",
@@ -1136,21 +1127,47 @@ export type GetApiGuestShares200Item = {
 }
 
 export type PostApiGuestUpgradeBody = {
-  /**
-   * User's first name
-   * @minLength 1
-   */
+  /** User's first name */
   firstName: string
-  /**
-   * User's last name
-   * @minLength 1
-   */
+  /** User's last name */
   lastName: string
 }
 
 export type PostApiGuestUpgrade200 = {
   success: boolean
   message: string
+}
+
+/**
+ * @nullable
+ */
+export type GetApiPlans200PlansItemLimits = { [key: string]: unknown } | null
+
+/**
+ * @nullable
+ */
+export type GetApiPlans200PlansItemFeatures = { [key: string]: unknown } | null
+
+export type GetApiPlans200PlansItem = {
+  id?: string
+  name?: string
+  /** @nullable */
+  description?: string | null
+  amount?: number
+  currency?: string
+  interval?: string
+  /** @nullable */
+  limits?: GetApiPlans200PlansItemLimits
+  /** @nullable */
+  features?: GetApiPlans200PlansItemFeatures
+  displayOrder?: number
+  /** @nullable */
+  trialDays?: number | null
+  stripePriceId?: string
+}
+
+export type GetApiPlans200 = {
+  plans?: GetApiPlans200PlansItem[]
 }
 
 export type DeleteApiProjectsId200 = {
@@ -1249,22 +1266,14 @@ export type GetApiProjectsId200 = {
 }
 
 export type PatchApiProjectsIdBody = {
-  /**
-   * Project name
-   * @minLength 3
-   * @maxLength 100
-   */
+  /** Project name */
   name?: string
   /**
    * Project description
-   * @maxLength 500
    * @nullable
    */
   description?: string | null
-  /**
-   * Number of annotations in the project
-   * @minimum 0
-   */
+  /** Number of annotations in the project */
   annotationCount?: number
   /**
    * When the project was last viewed
@@ -1433,20 +1442,11 @@ export type GetApiProjectsIdFiles200Item = {
 export type PostApiProjectsIdFilesBody = {
   /** URL to the PDF file */
   pdfUrl: string
-  /**
-   * Original PDF file name
-   * @minLength 1
-   */
+  /** Original PDF file name */
   pdfFileName: string
-  /**
-   * PDF file size in bytes
-   * @minimum 1
-   */
+  /** PDF file size in bytes */
   pdfFileSize: number
-  /**
-   * Number of pages in the PDF
-   * @minimum 1
-   */
+  /** Number of pages in the PDF */
   pageCount?: number
 }
 
@@ -1482,13 +1482,11 @@ export type DeleteApiProjectsIdSharesShareId200 = {
 export type PatchApiProjectsIdSharesShareIdBody = {
   /**
    * Share name
-   * @maxLength 100
    * @nullable
    */
   name?: string | null
   /**
    * Share message
-   * @maxLength 500
    * @nullable
    */
   message?: string | null
@@ -1499,7 +1497,6 @@ export type PatchApiProjectsIdSharesShareIdBody = {
   expiresAt?: string | null
   /**
    * Password for public shares
-   * @minLength 4
    * @nullable
    */
   password?: string | null
@@ -1512,7 +1509,7 @@ export type PatchApiProjectsIdSharesShareIdBody = {
 export type PatchApiProjectsIdSharesShareId200ShareType =
   (typeof PatchApiProjectsIdSharesShareId200ShareType)[keyof typeof PatchApiProjectsIdSharesShareId200ShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchApiProjectsIdSharesShareId200ShareType = {
   public: "public",
   private: "private"
@@ -1555,7 +1552,7 @@ export type PatchApiProjectsIdSharesShareId200 = {
 export type GetApiProjectsIdShares200ItemShareType =
   (typeof GetApiProjectsIdShares200ItemShareType)[keyof typeof GetApiProjectsIdShares200ItemShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiProjectsIdShares200ItemShareType = {
   public: "public",
   private: "private"
@@ -1626,30 +1623,23 @@ export type GetApiProjectsIdShares200Item = {
 export type PostApiProjectsIdSharesBodyShareType =
   (typeof PostApiProjectsIdSharesBodyShareType)[keyof typeof PostApiProjectsIdSharesBodyShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiProjectsIdSharesBodyShareType = {
   public: "public",
   private: "private"
 } as const
 
 export type PostApiProjectsIdSharesBody = {
-  /**
-   * Share name
-   * @maxLength 100
-   */
+  /** Share name */
   name?: string
   /** Type of share */
   shareType?: PostApiProjectsIdSharesBodyShareType
-  /**
-   * Share message
-   * @maxLength 500
-   */
+  /** Share message */
   message?: string
   /** Email addresses for private shares */
   recipients?: string[]
   /**
    * Password for public shares
-   * @minLength 4
    * @nullable
    */
   password?: string | null
@@ -1667,7 +1657,7 @@ export type PostApiProjectsIdSharesBody = {
 export type PostApiProjectsIdShares201ShareType =
   (typeof PostApiProjectsIdShares201ShareType)[keyof typeof PostApiProjectsIdShares201ShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiProjectsIdShares201ShareType = {
   public: "public",
   private: "private"
@@ -1744,7 +1734,7 @@ export type GetApiProjectsParams = {
 
 export type GetApiProjectsSortBy = (typeof GetApiProjectsSortBy)[keyof typeof GetApiProjectsSortBy]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiProjectsSortBy = {
   name: "name",
   createdAt: "createdAt",
@@ -1754,7 +1744,7 @@ export const GetApiProjectsSortBy = {
 
 export type GetApiProjectsSortOrder = (typeof GetApiProjectsSortOrder)[keyof typeof GetApiProjectsSortOrder]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiProjectsSortOrder = {
   asc: "asc",
   desc: "desc"
@@ -1811,7 +1801,7 @@ export type GetApiProjects200Item = {
  */
 export type PostApiProjectsBodyPriority = (typeof PostApiProjectsBodyPriority)[keyof typeof PostApiProjectsBodyPriority]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostApiProjectsBodyPriority = {
   low: "low",
   normal: "normal",
@@ -1995,7 +1985,7 @@ export type GetApiShareToken200Organization = {
 export type GetApiShareToken200ShareShareType =
   (typeof GetApiShareToken200ShareShareType)[keyof typeof GetApiShareToken200ShareShareType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiShareToken200ShareShareType = {
   public: "public",
   private: "private"
@@ -2069,6 +2059,35 @@ export type PostApiUserOnboarding200 = {
   message: string
 }
 
+/**
+ * @nullable
+ */
+export type GetApiUserProfile200Subscription = {
+  id?: string
+  plan?: string
+  status?: string
+  /** @nullable */
+  periodEnd?: string | null
+  /** @nullable */
+  cancelAtPeriodEnd?: boolean | null
+  /** @nullable */
+  trialEnd?: string | null
+  /** @nullable */
+  seats?: number | null
+  /** @nullable */
+  billingInterval?: string | null
+} | null
+
+export type GetApiUserProfile200BillingLimits = { [key: string]: unknown }
+
+export type GetApiUserProfile200BillingFeatures = { [key: string]: unknown }
+
+export type GetApiUserProfile200Billing = {
+  plan?: string
+  limits?: GetApiUserProfile200BillingLimits
+  features?: GetApiUserProfile200BillingFeatures
+}
+
 export type GetApiUserProfile200 = {
   id: string
   /** @nullable */
@@ -2094,26 +2113,19 @@ export type GetApiUserProfile200 = {
   guestOrganizationId?: string | null
   createdAt: string
   updatedAt: string
+  /** @nullable */
+  activeOrganizationId?: string | null
+  /** @nullable */
+  subscription?: GetApiUserProfile200Subscription
+  billing?: GetApiUserProfile200Billing
 }
 
 export type PatchApiUserProfileBody = {
-  /**
-   * Full display name
-   * @minLength 1
-   * @maxLength 100
-   */
+  /** Full display name */
   name?: string
-  /**
-   * First name
-   * @minLength 1
-   * @maxLength 50
-   */
+  /** First name */
   firstName?: string
-  /**
-   * Last name
-   * @minLength 1
-   * @maxLength 50
-   */
+  /** Last name */
   lastName?: string
   /**
    * Profile image URL
@@ -5846,6 +5858,81 @@ export function useGetApiHealth<TData = Awaited<ReturnType<typeof getApiHealth>>
 }
 
 /**
+ * Get all active subscription plans (public)
+ * @summary List Plans
+ */
+export type getApiPlansResponse200 = {
+  data: GetApiPlans200
+  status: 200
+}
+
+export type getApiPlansResponseSuccess = getApiPlansResponse200 & {
+  headers: Headers
+}
+export type getApiPlansResponse = getApiPlansResponseSuccess
+
+export const getGetApiPlansUrl = () => {
+  return `/api/plans`
+}
+
+export const getApiPlans = async (options?: RequestInit): Promise<getApiPlansResponse> => {
+  return customFetch<getApiPlansResponse>(getGetApiPlansUrl(), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetApiPlansQueryKey = () => {
+  return ["api", "plans"] as const
+}
+
+export const getGetApiPlansQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiPlans>>,
+  TError = unknown
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiPlans>>, TError, TData>>
+  request?: SecondParameter<typeof customFetch>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetApiPlansQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiPlans>>> = ({ signal }) =>
+    getApiPlans({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiPlans>>,
+    TError,
+    TData
+  >
+}
+
+export type GetApiPlansQueryResult = NonNullable<Awaited<ReturnType<typeof getApiPlans>>>
+export type GetApiPlansQueryError = unknown
+
+/**
+ * @summary List Plans
+ */
+
+export function useGetApiPlans<TData = Awaited<ReturnType<typeof getApiPlans>>, TError = unknown>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiPlans>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiPlansQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
  * Delete a project permanently
  * @summary Delete Project
  */
@@ -8246,83 +8333,6 @@ export function useGetNuxtIslandParam1<TData = Awaited<ReturnType<typeof getNuxt
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getGetNuxtIslandParam1QueryOptions(param1, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
-
-  return query
-}
-
-export type getApiNuxtIconCollectionResponse200 = {
-  data: void
-  status: 200
-}
-
-export type getApiNuxtIconCollectionResponseSuccess = getApiNuxtIconCollectionResponse200 & {
-  headers: Headers
-}
-export type getApiNuxtIconCollectionResponse = getApiNuxtIconCollectionResponseSuccess
-
-export const getGetApiNuxtIconCollectionUrl = (collection: string) => {
-  return `/api/_nuxt_icon/${collection}`
-}
-
-export const getApiNuxtIconCollection = async (
-  collection: string,
-  options?: RequestInit
-): Promise<getApiNuxtIconCollectionResponse> => {
-  return customFetch<getApiNuxtIconCollectionResponse>(getGetApiNuxtIconCollectionUrl(collection), {
-    ...options,
-    method: "GET"
-  })
-}
-
-export const getGetApiNuxtIconCollectionQueryKey = (collection?: MaybeRef<string>) => {
-  return ["api", "_nuxt_icon", collection] as const
-}
-
-export const getGetApiNuxtIconCollectionQueryOptions = <
-  TData = Awaited<ReturnType<typeof getApiNuxtIconCollection>>,
-  TError = unknown
->(
-  collection: MaybeRef<string>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiNuxtIconCollection>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = getGetApiNuxtIconCollectionQueryKey(collection)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiNuxtIconCollection>>> = ({ signal }) =>
-    getApiNuxtIconCollection(unref(collection), { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: computed(() => !!unref(collection)), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getApiNuxtIconCollection>>,
-    TError,
-    TData
-  >
-}
-
-export type GetApiNuxtIconCollectionQueryResult = NonNullable<Awaited<ReturnType<typeof getApiNuxtIconCollection>>>
-export type GetApiNuxtIconCollectionQueryError = unknown
-
-export function useGetApiNuxtIconCollection<
-  TData = Awaited<ReturnType<typeof getApiNuxtIconCollection>>,
-  TError = unknown
->(
-  collection: MaybeRef<string>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiNuxtIconCollection>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient
-): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetApiNuxtIconCollectionQueryOptions(collection, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>

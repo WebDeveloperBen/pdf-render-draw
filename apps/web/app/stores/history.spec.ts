@@ -1131,10 +1131,7 @@ describe("History Store", () => {
       annotationStore.addAnnotation(fill)
 
       const snapshot = { ...fill }
-      historyStore.recordExecutedBatchUpdate(
-        [{ before: snapshot, after: { ...snapshot } }],
-        "No-op move"
-      )
+      historyStore.recordExecutedBatchUpdate([{ before: snapshot, after: { ...snapshot } }], "No-op move")
 
       // No history entry should be created for identical before/after
       expect(historyStore.canUndo).toBe(false)

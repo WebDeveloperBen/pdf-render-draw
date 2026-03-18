@@ -1,7 +1,11 @@
 <template>
   <ClientOnly>
-    <VDatePicker ref="datepickerRef" :trim-weeks="props.trimWeeks || true" :is-dark="$colorMode.value == 'dark'"
-      v-bind="$attrs">
+    <VDatePicker
+      ref="datepickerRef"
+      :trim-weeks="props.trimWeeks || true"
+      :is-dark="$colorMode.value == 'dark'"
+      v-bind="$attrs"
+    >
       <template v-for="(_, slot) in $slots" #[slot]="scope">
         <slot :name="slot" v-bind="scope" />
       </template>
@@ -17,7 +21,10 @@ defineOptions({ inheritAttrs: false })
 const datepickerRef = useTemplateRef("datepickerRef")
 
 // @ts-expect-error - This is a hacky way to get the props from the Calendar and DatePicker components
-interface Props extends /* @vue-ignore */ Partial<InstanceType<typeof Calendar>["$props"]>, /* @vue-ignore */ Omit<Partial<InstanceType<typeof DatePicker>["$props"]>, "attributes"> { }
+interface Props
+  extends
+    /* @vue-ignore */ Partial<InstanceType<typeof Calendar>["$props"]>,
+    /* @vue-ignore */ Omit<Partial<InstanceType<typeof DatePicker>["$props"]>, "attributes"> {}
 
 const props = defineProps<Props & { trimWeeks?: boolean }>()
 defineExpose({ datepickerRef })
@@ -150,7 +157,7 @@ defineExpose({ datepickerRef })
   @apply decoration-accent-foreground/60 underline-offset-2 hover:underline;
 }
 
-.vc-highlights+.vc-day-content {
+.vc-highlights + .vc-day-content {
   @apply hover:bg-accent/5;
 }
 

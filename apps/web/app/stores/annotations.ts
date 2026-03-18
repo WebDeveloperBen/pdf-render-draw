@@ -478,11 +478,7 @@ export const useAnnotationStore = defineStore("annotations", () => {
           _debug: watch(
             annotations,
             (newVal) => {
-              debugLog(
-                "AnnotationStore",
-                "Annotations changed! Count:",
-                newVal.length
-              )
+              debugLog("AnnotationStore", "Annotations changed! Count:", newVal.length)
             },
             { deep: true }
           )

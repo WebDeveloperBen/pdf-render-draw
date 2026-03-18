@@ -39,7 +39,7 @@ export const auth = betterAuth({
           const event = useEvent()
           event.context.cloudflare?.context?.waitUntil(promise)
         } catch {
-          promise.catch(() => { })
+          promise.catch(() => {})
         }
       }
     }

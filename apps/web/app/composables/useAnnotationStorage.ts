@@ -203,16 +203,19 @@ export function useAnnotationStorage() {
     await database.pendingOperations.where("annotationId").anyOf(annotationIds).delete()
 
     // Update sync status and advance to the confirmed server version.
-    await database.annotations.where("id").anyOf(annotationIds).modify((record) => {
-      const operation = operationByAnnotationId.get(record.id)
-      if (!operation) {
-        record.syncStatus = "synced"
-        return
-      }
+    await database.annotations
+      .where("id")
+      .anyOf(annotationIds)
+      .modify((record) => {
+        const operation = operationByAnnotationId.get(record.id)
+        if (!operation) {
+          record.syncStatus = "synced"
+          return
+        }
 
-      record.syncStatus = "synced"
-      record.version = Math.max(record.version, operation.localVersion + 1)
-    })
+        record.syncStatus = "synced"
+        record.version = Math.max(record.version, operation.localVersion + 1)
+      })
   }
 
   /**

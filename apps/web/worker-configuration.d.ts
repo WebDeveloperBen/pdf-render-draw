@@ -9358,7 +9358,7 @@ type AIGatewayHeaders = {
   [key: string]: string | number | boolean | object
 }
 type AIGatewayUniversalRequest = {
-  provider: AIGatewayProviders | string  
+  provider: AIGatewayProviders | string
   endpoint: string
   headers: Partial<AIGatewayHeaders>
   query: unknown
@@ -9375,7 +9375,7 @@ declare abstract class AiGateway {
       extraHeaders?: object
     }
   ): Promise<Response>
-  getUrl(provider?: AIGatewayProviders | string): Promise<string>  
+  getUrl(provider?: AIGatewayProviders | string): Promise<string>
 }
 /**
  * @deprecated AutoRAG has been replaced by AI Search. Use AiSearchInternalError instead.

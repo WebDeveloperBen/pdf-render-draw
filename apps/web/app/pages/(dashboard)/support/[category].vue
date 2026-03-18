@@ -18,8 +18,8 @@ if (!category.value) {
 useSeoMeta({ title: `${category.value.name} - Help & Support` })
 
 const categoryIcons: Record<string, Component> = {
-  "rocket": Rocket,
-  "ruler": Ruler,
+  rocket: Rocket,
+  ruler: Ruler,
   "pen-tool": PenTool,
   "folder-open": FolderOpen,
   "credit-card": CreditCard

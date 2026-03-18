@@ -187,6 +187,9 @@ export default defineEventHandler(async (event) => {
   // Validate body
   const body = await readValidatedBody(event, bodySchema.parse)
 
+  // Check project quota before creating
+  await requireProjectQuota(event)
+
   // Get active organization - all projects belong to an organization
   const activeOrgId = session.session.activeOrganizationId
 

@@ -100,10 +100,7 @@ export default defineEventHandler(async (event) => {
     updatedAt: now
   }))
 
-  const savedRows =
-    insertRows.length === 0
-      ? []
-      : await db.insert(detectedRoom).values(insertRows).returning()
+  const savedRows = insertRows.length === 0 ? [] : await db.insert(detectedRoom).values(insertRows).returning()
 
   return {
     savedCount: savedRows.length,

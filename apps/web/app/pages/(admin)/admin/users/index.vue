@@ -27,14 +27,14 @@ const {
   onUpdateSorting
 } = useAdminPagination({
   defaultPageSize: 20,
-  defaultSort: { id: 'createdAt', desc: true }
+  defaultSort: { id: "createdAt", desc: true }
 })
 
 // Orval query params
 const params = computed<GetApiAdminUsersParams>(() => ({
   page: page.value,
   limit: pageSize.value,
-  sortBy: sortBy.value as GetApiAdminUsersParams['sortBy'],
+  sortBy: sortBy.value as GetApiAdminUsersParams["sortBy"],
   sortOrder: sortOrder.value,
   search: debouncedSearch.value || undefined
 }))
@@ -86,9 +86,7 @@ const columns: ColumnDef<GetApiAdminUsers200UsersItem>[] = [
       const user = row.original
       return h("div", { class: "flex items-center gap-2" }, [
         h("span", {}, user.email),
-        user.emailVerified
-          ? h(CheckCircle, { class: "size-4 text-green-500", title: "Email verified" })
-          : null
+        user.emailVerified ? h(CheckCircle, { class: "size-4 text-green-500", title: "Email verified" }) : null
       ])
     }
   },

@@ -9,7 +9,8 @@ import {
   ChevronRight,
   ChevronsUpDown,
   Shield,
-  LogOut
+  LogOut,
+  CreditCard
 } from "lucide-vue-next"
 
 const runtimeConfig = useRuntimeConfig()
@@ -64,6 +65,7 @@ const navOrg = computed(() => {
           ? [
               { title: "Members", url: "/organisation/members" },
               { title: "Invitations", url: "/organisation/invitations" },
+              { title: "Billing", url: "/organisation/billing" },
               { title: "Settings", url: "/organisation/settings" }
             ]
           : [])

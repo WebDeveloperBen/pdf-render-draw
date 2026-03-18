@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import type { WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
-import { ArrowLeft, ArrowRight, Calculator, Check, ClipboardCheck, FileText, Layers, Megaphone, Ruler, Target, Users } from "lucide-vue-next"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calculator,
+  Check,
+  ClipboardCheck,
+  FileText,
+  Layers,
+  Megaphone,
+  Ruler,
+  Target,
+  Users
+} from "lucide-vue-next"
 import type { Component } from "vue"
 
 definePageMeta({

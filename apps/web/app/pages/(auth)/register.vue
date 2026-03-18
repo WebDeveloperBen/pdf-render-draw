@@ -76,9 +76,13 @@ const submit = handleSubmit(async (values) => {
                 <template #label>
                   <span class="text-sm">
                     I agree to the
-                    <NuxtLink to="/terms" target="_blank" class="text-primary underline-offset-2 hover:underline">Terms of Service</NuxtLink>
+                    <NuxtLink to="/terms" target="_blank" class="text-primary underline-offset-2 hover:underline"
+                      >Terms of Service</NuxtLink
+                    >
                     and
-                    <NuxtLink to="/privacy" target="_blank" class="text-primary underline-offset-2 hover:underline">Privacy Policy</NuxtLink>
+                    <NuxtLink to="/privacy" target="_blank" class="text-primary underline-offset-2 hover:underline"
+                      >Privacy Policy</NuxtLink
+                    >
                   </span>
                 </template>
               </UiVeeCheckbox>

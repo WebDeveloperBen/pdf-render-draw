@@ -124,7 +124,7 @@ export const useEditorMarquee = createSharedComposable(() => {
     coordinates.clearSvgCache()
 
     // Enter cooldown — prevents click from clearing selection
-    const returnTo = intersectingIds.length > 0 ? "selected" as const : "idle" as const
+    const returnTo = intersectingIds.length > 0 ? ("selected" as const) : ("idle" as const)
     interactionMode.endInteraction(returnTo)
 
     // Reset frozen bounds when selection changes

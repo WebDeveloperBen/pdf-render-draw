@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 import type { AdminStats } from "@shared/types/admin.types"
-import { Activity, AlertCircle, ArrowRight, Ban, Building2, FolderOpen, RefreshCw, ScrollText, Shield, Users } from "lucide-vue-next"
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Ban,
+  Building2,
+  FolderOpen,
+  RefreshCw,
+  ScrollText,
+  Shield,
+  Users
+} from "lucide-vue-next"
 import type { Component } from "vue"
 
 definePageMeta({

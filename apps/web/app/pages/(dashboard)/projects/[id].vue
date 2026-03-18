@@ -6,7 +6,52 @@ import type {
 } from "#shared/types/projects.types"
 import type { Annotation } from "#shared/types/annotations.types"
 import { toast } from "vue-sonner"
-import { ArrowLeft, ArrowRight, Building2, Calculator, Clock, Copy, Download, Expand, Eye, File, FilePen, FilePlus, FileText, Files, Folder, Globe, Hammer, HardDrive, Home, Infinity as InfinityIcon, Info, Layers, Link, Lock, Mail, MapPin, MessageSquare, MoreVertical, PenTool, PencilRuler, Phone, Plus, Search, Send, Share2, StickyNote, Store, Tags, Trash, Upload, UploadCloud, Users, Wrench, X } from "lucide-vue-next"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Calculator,
+  Clock,
+  Copy,
+  Download,
+  Expand,
+  Eye,
+  File,
+  FilePen,
+  FilePlus,
+  FileText,
+  Files,
+  Folder,
+  Globe,
+  Hammer,
+  HardDrive,
+  Home,
+  Infinity as InfinityIcon,
+  Info,
+  Layers,
+  Link,
+  Lock,
+  Mail,
+  MapPin,
+  MessageSquare,
+  MoreVertical,
+  PenTool,
+  PencilRuler,
+  Phone,
+  Plus,
+  Search,
+  Send,
+  Share2,
+  StickyNote,
+  Store,
+  Tags,
+  Trash,
+  Upload,
+  UploadCloud,
+  Users,
+  Wrench,
+  X
+} from "lucide-vue-next"
 import type { Component } from "vue"
 
 const route = useRoute("projects-id")
@@ -733,7 +778,10 @@ onMounted(() => {
                           :disabled="exportingFileId === file.id || downloadingFileId === file.id"
                           @click.stop
                         >
-                          <UiSpinner v-if="exportingFileId === file.id || downloadingFileId === file.id" class="size-4" />
+                          <UiSpinner
+                            v-if="exportingFileId === file.id || downloadingFileId === file.id"
+                            class="size-4"
+                          />
                           <Download v-else class="size-4" />
                         </UiButton>
                       </UiDropdownMenuTrigger>
@@ -818,10 +866,7 @@ onMounted(() => {
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center gap-2 min-w-0">
                     <UiBadge :variant="share.shareType === 'private' ? 'default' : 'secondary'" class="shrink-0">
-                      <component
-                        :is="share.shareType === 'private' ? Users : Globe"
-                        class="size-3 mr-1"
-                      />
+                      <component :is="share.shareType === 'private' ? Users : Globe" class="size-3 mr-1" />
                       {{ share.shareType === "private" ? "Private" : "Public" }}
                     </UiBadge>
                     <span v-if="share.name" class="font-medium truncate">{{ share.name }}</span>
@@ -1339,7 +1384,8 @@ onMounted(() => {
               <div class="px-4 py-3 border-t bg-muted/30 flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">Click to edit</span>
                 <ArrowRight
-                  class="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  class="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all"
+                />
               </div>
             </button>
           </div>

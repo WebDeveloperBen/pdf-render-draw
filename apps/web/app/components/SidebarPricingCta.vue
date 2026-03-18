@@ -3,10 +3,25 @@ import { Sparkles } from "lucide-vue-next"
 
 const { state } = useSidebar()
 const isCollapsed = computed(() => state.value === "collapsed")
+const { planName, isFreeTier, limits } = useSubscription()
+
+// Only show CTA for users who could benefit from upgrading
+const showCta = computed(() => isFreeTier.value || planName.value === "starter")
+
+const displayPlanName = computed(() => {
+  if (planName.value === "free") return "Free"
+  if (planName.value === "starter") return "Starter"
+  return planName.value
+})
+
+const projectsLabel = computed(() => {
+  const p = limits.value.projects
+  return p === -1 ? "Unlimited projects" : `${p} project${p !== 1 ? "s" : ""}`
+})
 </script>
 
 <template>
-  <div class="px-2 pb-2">
+  <div v-if="showCta" class="px-2 pb-2">
     <!-- Collapsed state: just show icon -->
     <NuxtLink
       v-if="isCollapsed"
@@ -32,8 +47,8 @@ const isCollapsed = computed(() => state.value === "collapsed")
             <Sparkles class="size-3.5 text-primary" />
           </div>
           <div class="flex flex-col">
-            <span class="text-xs font-semibold text-foreground">Free Plan</span>
-            <span class="text-[10px] text-muted-foreground">1 project</span>
+            <span class="text-xs font-semibold text-foreground">{{ displayPlanName }} Plan</span>
+            <span class="text-[10px] text-muted-foreground">{{ projectsLabel }}</span>
           </div>
         </div>
 

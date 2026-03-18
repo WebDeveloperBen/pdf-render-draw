@@ -180,6 +180,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Require at least starter plan for sharing
+  await requirePlan(event, "starter")
+
   // Check permission to share projects
   await requirePermission(event, { project: ["share"] })
 

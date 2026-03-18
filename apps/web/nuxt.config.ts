@@ -161,7 +161,6 @@ export default defineNuxtConfig({
     classSuffix: ""
   },
 
-
   app: {
     head: {
       script: [
@@ -189,12 +188,12 @@ export default defineNuxtConfig({
       process.env.NITRO_PRESET === "node-server"
         ? undefined
         : {
-          alias: {
-            pg: "unenv/mock/proxy",
-            "@react-email/render": "unenv/mock/proxy",
-            "@aws-sdk/client-s3": "unenv/mock/proxy"
-          }
-        },
+            alias: {
+              pg: "unenv/mock/proxy",
+              "@react-email/render": "unenv/mock/proxy",
+              "@aws-sdk/client-s3": "unenv/mock/proxy"
+            }
+          },
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,

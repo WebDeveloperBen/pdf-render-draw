@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import type { WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
-import { ArrowLeft, ArrowRight, Check, CheckCircle, CreditCard, Crown, RotateCcw, ShieldCheck, Sparkles, Star, Users } from "lucide-vue-next"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CheckCircle,
+  CreditCard,
+  Crown,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Users
+} from "lucide-vue-next"
 
 definePageMeta({
   layout: "wizard"
@@ -59,6 +71,8 @@ const plans = [
   }
 ]
 
+const { checkout, isLoading: isCheckoutLoading } = useCheckout()
+
 const handleComplete = async () => {
   isSubmitting.value = true
 
@@ -75,12 +89,10 @@ const handleComplete = async () => {
 
     // Redirect based on plan selection
     if (selectedPlan.value === "enterprise") {
-      // For enterprise, redirect to contact sales
-      navigateTo("/contact-sales")
+      navigateTo("/support")
     } else {
-      // For paid plans, redirect to Stripe checkout
-      // In production, you'd create a Stripe checkout session here
-      navigateTo("/checkout?plan=" + selectedPlan.value)
+      // Trigger real Stripe checkout
+      await checkout(selectedPlan.value)
     }
   } catch (error: any) {
     toast.error(error.data?.statusMessage || "Failed to complete onboarding")

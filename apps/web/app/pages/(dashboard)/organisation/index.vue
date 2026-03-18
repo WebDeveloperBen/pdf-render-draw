@@ -1,6 +1,17 @@
 <script setup lang="ts">
-import { ArrowRight, Building2, CreditCard, FolderOpen, HardDrive, Pencil, Settings, UserPlus, Users } from "lucide-vue-next"
+import {
+  ArrowRight,
+  Building2,
+  CreditCard,
+  FolderOpen,
+  HardDrive,
+  Pencil,
+  Settings,
+  UserPlus,
+  Users
+} from "lucide-vue-next"
 const { activeOrg, isOrgAdmin, isOrgOwner, workspaceName, hasActiveOrganization, isLoading } = useActiveOrganization()
+const { planName, isCanceling, limits } = useSubscription()
 
 // Redirect to dashboard if no active org (only after loading completes)
 watch(
@@ -72,8 +83,13 @@ useSeoMeta({
           <CreditCard class="size-4 text-muted-foreground" />
         </UiCardHeader>
         <UiCardContent>
-          <div class="text-2xl font-bold">Free</div>
-          <p class="text-xs text-muted-foreground">Current subscription</p>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-bold capitalize">{{ planName }}</span>
+            <UiBadge v-if="isCanceling" variant="destructive" size="sm">Cancelling</UiBadge>
+          </div>
+          <NuxtLink to="/organisation/billing" class="text-xs text-muted-foreground hover:text-primary hover:underline">
+            Manage billing
+          </NuxtLink>
         </UiCardContent>
       </UiCard>
 
@@ -84,7 +100,9 @@ useSeoMeta({
         </UiCardHeader>
         <UiCardContent>
           <div class="text-2xl font-bold">0 MB</div>
-          <p class="text-xs text-muted-foreground">of 100 MB used</p>
+          <p class="text-xs text-muted-foreground">
+            of {{ limits.storageMb === -1 ? "Unlimited" : `${limits.storageMb} MB` }} used
+          </p>
         </UiCardContent>
       </UiCard>
     </div>

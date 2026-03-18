@@ -74,7 +74,13 @@ export const useEditorScale = createSharedComposable(() => {
    * Update scale as mouse moves
    */
   function updateScale(event: EditorInputEvent) {
-    if (!interactionMode.isMode("scaling") || !scaleStartPoint.value || !scaleOriginalBounds.value || !scaleHandle.value) return
+    if (
+      !interactionMode.isMode("scaling") ||
+      !scaleStartPoint.value ||
+      !scaleOriginalBounds.value ||
+      !scaleHandle.value
+    )
+      return
 
     const svgPoint = coordinates.convertToSvgPoint(event)
     if (!svgPoint) return

@@ -68,9 +68,7 @@ describe("useAnnotationStorage", () => {
   })
 
   it("marks synced even when no pending operation exists for the annotation", async () => {
-    await storage.bulkSaveFromServer(fileId, [
-      { ...createMeasurement(), version: 1, deletedAt: null }
-    ])
+    await storage.bulkSaveFromServer(fileId, [{ ...createMeasurement(), version: 1, deletedAt: null }])
 
     // markSynced without a prior saveToLocal — no pending operation
     await storage.markSynced(["measure-1"])

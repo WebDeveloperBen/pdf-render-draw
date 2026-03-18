@@ -142,7 +142,15 @@
 
 <script lang="ts" setup generic="T extends object">
 import CheckBox from "@/components/ui/Checkbox/Checkbox.vue"
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ChevronsLeft, ChevronsRight, ChevronsUpDown } from "lucide-vue-next"
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronsUpDown
+} from "lucide-vue-next"
 import {
   FlexRender,
   getCoreRowModel,
@@ -392,7 +400,6 @@ function toggleColumnVisibility(column: any) {
   }
 }
 
- 
 const pageSize = computed({
   get() {
     if (props.manualPagination) return props.pageSize.toString()

@@ -3,7 +3,28 @@ import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
 import { useRoomDetection } from "@/composables/editor/useRoomDetection"
 import { useFeatureFlags } from "@/composables/useFeatureFlags"
-import { ArrowLeft, Brain, Bug, ChevronLeft, ChevronRight, CloudCheck, CloudOff, CloudUpload, Crosshair, Download, FileText, Minus, MousePointer2, PanelLeft, Plus, RotateCcw, RotateCw, ScanLine, TextSearch, WifiOff } from "lucide-vue-next"
+import {
+  ArrowLeft,
+  Brain,
+  Bug,
+  ChevronLeft,
+  ChevronRight,
+  CloudCheck,
+  CloudOff,
+  CloudUpload,
+  Crosshair,
+  Download,
+  FileText,
+  Minus,
+  MousePointer2,
+  PanelLeft,
+  Plus,
+  RotateCcw,
+  RotateCw,
+  ScanLine,
+  TextSearch,
+  WifiOff
+} from "lucide-vue-next"
 
 definePageMeta({
   layout: "editor"
@@ -869,7 +890,6 @@ if (typeof window !== "undefined") {
   color: var(--muted-foreground);
   font-size: 14px;
 }
-
 
 .error-link:hover {
   opacity: 0.9;

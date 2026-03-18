@@ -2,7 +2,24 @@
 import { useQuery, keepPreviousData } from "@tanstack/vue-query"
 import type { ColumnDef } from "@tanstack/vue-table"
 import { getGetApiAdminAuditLogQueryKey } from "~/models/api"
-import { Activity, Ban, CreditCard, Edit, ExternalLink, Eye, Info, RefreshCw, ScrollText, Search, Trash2, Undo2, UserCheck, UserMinus, UserPlus, X } from "lucide-vue-next"
+import {
+  Activity,
+  Ban,
+  CreditCard,
+  Edit,
+  ExternalLink,
+  Eye,
+  Info,
+  RefreshCw,
+  ScrollText,
+  Search,
+  Trash2,
+  Undo2,
+  UserCheck,
+  UserMinus,
+  UserPlus,
+  X
+} from "lucide-vue-next"
 import type { Component } from "vue"
 
 definePageMeta({
@@ -26,11 +43,10 @@ interface AuditEntry {
 }
 
 // Pagination & search state
-const { page, pageSize, search, debouncedSearch, pageIndex, onUpdatePageIndex, onUpdatePageSize } =
-  useAdminPagination({
-    defaultPageSize: 50,
-    defaultSort: { id: "createdAt", desc: true }
-  })
+const { page, pageSize, search, debouncedSearch, pageIndex, onUpdatePageIndex, onUpdatePageSize } = useAdminPagination({
+  defaultPageSize: 50,
+  defaultSort: { id: "createdAt", desc: true }
+})
 
 // Filters
 const actionTypeFilter = ref("")
@@ -65,9 +81,7 @@ const { data, isLoading, isFetching, refetch } = useQuery({
 
 // Derived state
 const items = computed(() => data.value?.entries ?? [])
-const pagination = computed(
-  () => data.value?.pagination ?? { page: 1, limit: 50, total: 0, totalPages: 0 }
-)
+const pagination = computed(() => data.value?.pagination ?? { page: 1, limit: 50, total: 0, totalPages: 0 })
 const actionTypes = computed(() => data.value?.actionTypes ?? [])
 const pageCount = computed(() => pagination.value.totalPages)
 const totalRows = computed(() => pagination.value.total)

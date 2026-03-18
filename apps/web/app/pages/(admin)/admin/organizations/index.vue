@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { keepPreviousData } from "@tanstack/vue-query"
 import type { ColumnDef } from "@tanstack/vue-table"
-import type { GetApiAdminOrganizations200, GetApiAdminOrganizations200OrganizationsItem, GetApiAdminOrganizationsParams } from "~/models/api"
+import type {
+  GetApiAdminOrganizations200,
+  GetApiAdminOrganizations200OrganizationsItem,
+  GetApiAdminOrganizationsParams
+} from "~/models/api"
 import { useGetApiAdminOrganizations } from "~/models/api"
 import { Building2, Eye, RefreshCw, Search, Users } from "lucide-vue-next"
 
@@ -26,13 +30,13 @@ const {
   onUpdateSorting
 } = useAdminPagination({
   defaultPageSize: 20,
-  defaultSort: { id: 'createdAt', desc: true }
+  defaultSort: { id: "createdAt", desc: true }
 })
 
 const params = computed<GetApiAdminOrganizationsParams>(() => ({
   page: page.value,
   limit: pageSize.value,
-  sortBy: sortBy.value as 'createdAt' | 'name',
+  sortBy: sortBy.value as "createdAt" | "name",
   sortOrder: sortOrder.value,
   search: debouncedSearch.value || undefined
 }))
@@ -65,12 +69,8 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
       const org = row.original
       return h("div", { class: "flex items-center gap-3" }, [
         h(resolveComponent("UiAvatar"), { class: "size-10 rounded-lg" }, () => [
-          org.logo
-            ? h(resolveComponent("UiAvatarImage"), { src: org.logo, alt: org.name })
-            : null,
-          h(resolveComponent("UiAvatarFallback"), { class: "rounded-lg" }, () =>
-            org.name[0]?.toUpperCase()
-          )
+          org.logo ? h(resolveComponent("UiAvatarImage"), { src: org.logo, alt: org.name }) : null,
+          h(resolveComponent("UiAvatarFallback"), { class: "rounded-lg" }, () => org.name[0]?.toUpperCase())
         ]),
         h("div", {}, [
           h("p", { class: "font-medium" }, org.name),
@@ -82,8 +82,7 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
   {
     accessorKey: "slug",
     header: "Slug",
-    cell: ({ row }) =>
-      h("span", { class: "text-muted-foreground" }, `@${row.original.slug}`)
+    cell: ({ row }) => h("span", { class: "text-muted-foreground" }, `@${row.original.slug}`)
   },
   {
     accessorKey: "memberCount",
@@ -97,8 +96,7 @@ const columns: ColumnDef<GetApiAdminOrganizations200OrganizationsItem>[] = [
   {
     accessorKey: "createdAt",
     header: "Created",
-    cell: ({ row }) =>
-      h("span", { class: "text-muted-foreground" }, formatDate(row.original.createdAt))
+    cell: ({ row }) => h("span", { class: "text-muted-foreground" }, formatDate(row.original.createdAt))
   },
   {
     id: "actions",

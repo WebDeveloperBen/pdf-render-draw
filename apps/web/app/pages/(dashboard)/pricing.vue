@@ -1,102 +1,102 @@
 <script setup lang="ts">
-import { Building2, Calendar, Check, ChevronDown, Mail, X } from "lucide-vue-next"
+import { Building2, Calendar, Check, ChevronDown, Loader2, Mail, X } from "lucide-vue-next"
+import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "@shared/types/billing"
+import type { PlanLimits, PlanFeatures } from "@shared/types/billing"
+
 useSeoMeta({ title: "Pricing" })
 
-interface PricingFeature {
-  text: string
-  included: boolean
-  tooltip?: string
+const { data: plansData } = useGetApiPlans()
+const { planName, isFreeTier } = useSubscription()
+const { checkout, isLoading } = useCheckout()
+
+// Free tier is defined locally (no Stripe product)
+const freeTier = {
+  name: "Free",
+  description: "Perfect for trying out PDF annotations",
+  amount: 0,
+  currency: "aud",
+  interval: "forever",
+  limits: FREE_TIER_LIMITS,
+  features: FREE_TIER_FEATURES,
+  displayOrder: 0
 }
 
-interface PricingTier {
-  name: string
-  description: string
-  price: number | null
-  priceLabel?: string
-  interval: string
-  subtext?: string
-  badge?: string
-  highlighted?: boolean
-  features: PricingFeature[]
-  cta: string
-  ctaVariant: "default" | "outline" | "secondary"
+// Combine free tier + API plans
+const allPlans = computed(() => {
+  const apiPlans = plansData.value?.plans ?? []
+  return [freeTier, ...apiPlans]
+})
+
+function isCurrentPlan(plan: { name: string }) {
+  const name = plan.name.toLowerCase()
+  return name === planName.value || (name === "free" && isFreeTier.value)
 }
 
-const tiers: PricingTier[] = [
-  {
-    name: "Free",
-    description: "Perfect for trying out PDF annotations",
-    price: 0,
-    interval: "forever",
-    features: [
-      { text: "1 project", included: true },
-      { text: "Basic annotation tools", included: true },
-      { text: "Export to PDF", included: true },
-      { text: "25 MB file size limit", included: true },
-      { text: "Community support", included: true },
-      { text: "Cloud sync", included: false },
-      { text: "Team collaboration", included: false },
-      { text: "Priority support", included: false }
-    ],
-    cta: "Current Plan",
-    ctaVariant: "outline"
-  },
-  {
-    name: "Pro",
-    description: "For professionals who need more power",
-    price: 29,
-    interval: "month",
-    badge: "Most Popular",
-    highlighted: true,
-    features: [
-      { text: "Unlimited projects", included: true },
-      { text: "All annotation tools", included: true },
-      { text: "Export to PDF, PNG, SVG", included: true },
-      { text: "50 MB file size limit", included: true },
-      { text: "Cloud sync & backup", included: true },
-      { text: "Email support", included: true },
-      { text: "Measurement presets", included: true },
-      { text: "Priority support", included: true }
-    ],
-    cta: "Upgrade to Pro",
-    ctaVariant: "default"
-  },
-  {
-    name: "Team",
-    description: "Collaborate with your entire crew",
-    price: 79,
-    interval: "month",
-    subtext: "Includes 3 seats, then $10/seat",
-    features: [
-      { text: "Everything in Pro", included: true },
-      { text: "3 team members included", included: true },
-      { text: "$10/month per additional seat", included: true },
-      { text: "Real-time collaboration", included: true },
-      { text: "Shared project libraries", included: true },
-      { text: "Role-based permissions", included: true },
-      { text: "Priority support", included: true },
-      { text: "Custom branding", included: true }
-    ],
-    cta: "Get Team",
-    ctaVariant: "secondary"
+function ctaLabel(plan: { name: string }) {
+  const name = plan.name.toLowerCase()
+  if (isCurrentPlan(plan)) return "Current Plan"
+  if (name === "enterprise") return "Contact Sales"
+  return `Upgrade to ${plan.name}`
+}
+
+function handleUpgrade(plan: { name: string }) {
+  if (plan.name.toLowerCase() === "enterprise") {
+    navigateTo("/support")
+    return
   }
-]
+  checkout(plan.name)
+}
+
+function isHighlighted(plan: { name: string }) {
+  return plan.name.toLowerCase() === "professional" || plan.name.toLowerCase() === "starter"
+}
+
+function formatPrice(amount: number) {
+  return (amount / 100).toFixed(0)
+}
+
+function getPlanLimits(plan: { limits?: PlanLimits | null }): PlanLimits {
+  return (plan.limits as PlanLimits) ?? FREE_TIER_LIMITS
+}
+
+function getPlanFeatures(plan: { features?: PlanFeatures | null }): PlanFeatures {
+  return (plan.features as PlanFeatures) ?? FREE_TIER_FEATURES
+}
+
+function buildFeatureList(plan: { name: string; limits?: PlanLimits | null; features?: PlanFeatures | null }) {
+  const limits = getPlanLimits(plan)
+  const features = getPlanFeatures(plan)
+  return [
+    {
+      text:
+        limits.projects === -1 ? "Unlimited projects" : `${limits.projects} project${limits.projects !== 1 ? "s" : ""}`,
+      included: true
+    },
+    { text: features.measurementTools === "all" ? "All annotation tools" : "Basic annotation tools", included: true },
+    { text: `Export to ${features.exportFormats.join(", ").toUpperCase()}`, included: true },
+    { text: `${limits.fileSizeMb} MB file size limit`, included: true },
+    { text: "Cloud sync & backup", included: features.cloudSync },
+    { text: "Measurement presets", included: features.measurementPresets },
+    { text: "Team collaboration", included: features.collaboration },
+    { text: "Custom branding", included: features.customBranding }
+  ]
+}
 
 const faqs = [
   {
-    question: "Can I upgrade from Free to Pro at any time?",
+    question: "Can I upgrade at any time?",
     answer:
-      "Yes! You can upgrade from Free to Pro or Team at any time. Your existing project and annotations will be preserved, and you'll immediately get access to all the features of your new plan."
+      "Yes! You can upgrade from Free to Starter, Professional, or Team at any time. Your existing projects and annotations will be preserved, and you'll immediately get access to all the features of your new plan."
   },
   {
     question: "How does Team seat pricing work?",
     answer:
-      "The Team plan includes 3 seats for $79/month. Need more team members? Simply add additional seats for $10/month each. You can add or remove seats at any time, and billing is prorated."
+      "The Team plan includes 3 seats for $79/month. Need more team members? Simply add additional seats for $25/month each. You can add or remove seats at any time, and billing is prorated."
   },
   {
-    question: "What happens to my project if I downgrade from Pro to Free?",
+    question: "What happens to my projects if I downgrade?",
     answer:
-      "Your project is never deleted. On the Free plan you're limited to 1 project, so you'll need to choose which project to keep active. Other projects will be archived but remain accessible if you upgrade again."
+      "Your projects are never deleted. On the Free plan you're limited to 1 project, so you'll need to choose which project to keep active. Other projects will be archived but remain accessible if you upgrade again."
   },
   {
     question: "What payment methods do you accept?",
@@ -104,9 +104,9 @@ const faqs = [
       "We accept all major credit cards (Visa, Mastercard, American Express). For Enterprise plans with larger teams, we also offer invoice billing with NET 30 terms."
   },
   {
-    question: "Can I switch between Pro and Team plans?",
+    question: "Can I switch between plans?",
     answer:
-      "Absolutely. If you're on Pro and need collaboration features, upgrading to Team is seamless. If you're on Team but working solo, you can downgrade to Pro. Changes take effect immediately with prorated billing."
+      "Absolutely. You can switch between Starter, Professional, and Team plans at any time. Changes take effect immediately with prorated billing."
   }
 ]
 
@@ -127,28 +127,28 @@ function toggleFaq(index: number) {
     </div>
 
     <!-- Pricing Cards -->
-    <div class="grid gap-6 md:grid-cols-3">
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <div
-        v-for="tier in tiers"
-        :key="tier.name"
+        v-for="plan in allPlans"
+        :key="plan.name"
         :class="[
           'relative flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm',
-          tier.highlighted ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary' : 'border-border'
+          isHighlighted(plan) ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary' : 'border-border'
         ]"
       >
         <!-- Badge -->
         <UiBadge
-          v-if="tier.badge"
+          v-if="isHighlighted(plan)"
           variant="default"
           class="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap"
         >
-          {{ tier.badge }}
+          Most Popular
         </UiBadge>
 
         <!-- Header -->
         <div class="flex flex-col space-y-1.5 p-6 pb-2">
-          <h3 class="text-xl font-semibold leading-none tracking-tight">{{ tier.name }}</h3>
-          <p class="text-sm text-muted-foreground">{{ tier.description }}</p>
+          <h3 class="text-xl font-semibold leading-none tracking-tight">{{ plan.name }}</h3>
+          <p class="text-sm text-muted-foreground">{{ plan.description ?? "" }}</p>
         </div>
 
         <!-- Content -->
@@ -156,21 +156,20 @@ function toggleFaq(index: number) {
           <!-- Price -->
           <div>
             <div class="flex items-baseline gap-1">
-              <span v-if="tier.price === 0" class="text-4xl font-bold">Free</span>
-              <template v-else-if="tier.price">
-                <span class="text-4xl font-bold">${{ tier.price }}</span>
-                <span class="text-muted-foreground">/{{ tier.interval }}</span>
+              <span v-if="plan.amount === 0" class="text-4xl font-bold">Free</span>
+              <template v-else>
+                <span class="text-4xl font-bold">${{ formatPrice(plan.amount) }}</span>
+                <span class="text-muted-foreground">/{{ plan.interval }}</span>
               </template>
-              <span v-else class="text-4xl font-bold">{{ tier.priceLabel }}</span>
             </div>
-            <p v-if="tier.subtext" class="mt-1 text-xs text-muted-foreground">
-              {{ tier.subtext }}
+            <p v-if="plan.name.toLowerCase() === 'team'" class="mt-1 text-xs text-muted-foreground">
+              Includes 3 seats, then $25/seat
             </p>
           </div>
 
           <!-- Features -->
           <ul class="space-y-3">
-            <li v-for="feature in tier.features" :key="feature.text" class="flex items-start gap-3">
+            <li v-for="feature in buildFeatureList(plan)" :key="feature.text" class="flex items-start gap-3">
               <component
                 :is="feature.included ? Check : X"
                 :class="['size-4 mt-0.5 shrink-0', feature.included ? 'text-primary' : 'text-muted-foreground/50']"
@@ -184,24 +183,15 @@ function toggleFaq(index: number) {
 
         <!-- Footer -->
         <div class="flex items-center p-6 pt-0">
-          <!-- Free tier - disabled current plan -->
-          <UiButton v-if="tier.name === 'Free'" :variant="tier.ctaVariant" class="w-full" disabled>
-            {{ tier.cta }}
+          <UiButton
+            :variant="isCurrentPlan(plan) ? 'outline' : 'default'"
+            :disabled="isCurrentPlan(plan) || isLoading"
+            class="w-full"
+            @click="handleUpgrade(plan)"
+          >
+            <Loader2 v-if="isLoading" class="mr-2 size-4 animate-spin" />
+            {{ ctaLabel(plan) }}
           </UiButton>
-          <!-- Pro/Team tiers - coming soon with tooltip -->
-          <UiTooltip v-else>
-            <UiTooltipTrigger as-child>
-              <!-- Wrapper span needed because disabled buttons don't receive pointer events -->
-              <span class="inline-block w-full">
-                <UiButton :variant="tier.ctaVariant" class="w-full pointer-events-none" disabled>
-                  {{ tier.cta }}
-                </UiButton>
-              </span>
-            </UiTooltipTrigger>
-            <UiTooltipContent>
-              <p>Coming soon</p>
-            </UiTooltipContent>
-          </UiTooltip>
         </div>
       </div>
     </div>
@@ -247,10 +237,11 @@ function toggleFaq(index: number) {
               <th class="px-4 py-4 text-center font-medium">Free</th>
               <th class="px-4 py-4 text-center font-medium">
                 <span class="inline-flex items-center gap-1.5">
-                  Pro
+                  Starter
                   <UiBadge variant="default" size="sm">Popular</UiBadge>
                 </span>
               </th>
+              <th class="px-4 py-4 text-center font-medium">Professional</th>
               <th class="px-4 py-4 pr-6 text-center font-medium">Team</th>
             </tr>
           </thead>
@@ -260,13 +251,14 @@ function toggleFaq(index: number) {
               <td class="py-4 pl-6 text-sm font-medium">Monthly price</td>
               <td class="px-4 py-4 text-center text-sm font-semibold">$0</td>
               <td class="px-4 py-4 text-center text-sm font-semibold text-primary">$29</td>
+              <td class="px-4 py-4 text-center text-sm font-semibold">$79</td>
               <td class="px-4 py-4 pr-6 text-center text-sm font-semibold">$79</td>
             </tr>
 
             <!-- Section: Usage Limits -->
             <tr>
               <td
-                colspan="4"
+                colspan="5"
                 class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 Usage Limits
@@ -275,11 +267,13 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Projects</td>
               <td class="px-4 py-3 text-center text-sm">1</td>
+              <td class="px-4 py-3 text-center text-sm">5</td>
               <td class="px-4 py-3 text-center text-sm font-medium text-primary">Unlimited</td>
               <td class="px-4 py-3 pr-6 text-center text-sm font-medium text-primary">Unlimited</td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">File upload size</td>
+              <td class="px-4 py-3 text-center text-sm">10 MB</td>
               <td class="px-4 py-3 text-center text-sm">25 MB</td>
               <td class="px-4 py-3 text-center text-sm">50 MB</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">50 MB</td>
@@ -288,15 +282,16 @@ function toggleFaq(index: number) {
               <td class="py-3 pl-6 text-sm">Team members</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
+              <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">
-                3 included<br /><span class="text-xs text-muted-foreground">+$10/seat</span>
+                3 included<br /><span class="text-xs text-muted-foreground">+$25/seat</span>
               </td>
             </tr>
 
             <!-- Section: Annotation Tools -->
             <tr>
               <td
-                colspan="4"
+                colspan="5"
                 class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 Annotation Tools
@@ -305,11 +300,15 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Measurement tools</td>
               <td class="px-4 py-3 text-center text-sm">Basic</td>
+              <td class="px-4 py-3 text-center text-sm">Basic</td>
               <td class="px-4 py-3 text-center text-sm">All tools</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">All tools</td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Measurement presets</td>
+              <td class="px-4 py-3 text-center">
+                <X class="mx-auto size-4 text-muted-foreground/50" />
+              </td>
               <td class="px-4 py-3 text-center">
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
@@ -323,6 +322,7 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Export formats</td>
               <td class="px-4 py-3 text-center text-sm">PDF</td>
+              <td class="px-4 py-3 text-center text-sm">PDF</td>
               <td class="px-4 py-3 text-center text-sm">PDF, PNG, SVG</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">PDF, PNG, SVG</td>
             </tr>
@@ -330,7 +330,7 @@ function toggleFaq(index: number) {
             <!-- Section: Storage & Sync -->
             <tr>
               <td
-                colspan="4"
+                colspan="5"
                 class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 Storage & Sync
@@ -338,6 +338,9 @@ function toggleFaq(index: number) {
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Cloud sync & backup</td>
+              <td class="px-4 py-3 text-center">
+                <X class="mx-auto size-4 text-muted-foreground/50" />
+              </td>
               <td class="px-4 py-3 text-center">
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
@@ -356,6 +359,9 @@ function toggleFaq(index: number) {
               <td class="px-4 py-3 text-center">
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
+              <td class="px-4 py-3 text-center">
+                <X class="mx-auto size-4 text-muted-foreground/50" />
+              </td>
               <td class="px-4 py-3 pr-6 text-center">
                 <Check class="mx-auto size-4 text-primary" />
               </td>
@@ -364,7 +370,7 @@ function toggleFaq(index: number) {
             <!-- Section: Collaboration -->
             <tr>
               <td
-                colspan="4"
+                colspan="5"
                 class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 Collaboration
@@ -372,6 +378,9 @@ function toggleFaq(index: number) {
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Real-time collaboration</td>
+              <td class="px-4 py-3 text-center">
+                <X class="mx-auto size-4 text-muted-foreground/50" />
+              </td>
               <td class="px-4 py-3 text-center">
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
@@ -390,12 +399,18 @@ function toggleFaq(index: number) {
               <td class="px-4 py-3 text-center">
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
+              <td class="px-4 py-3 text-center">
+                <X class="mx-auto size-4 text-muted-foreground/50" />
+              </td>
               <td class="px-4 py-3 pr-6 text-center">
                 <Check class="mx-auto size-4 text-primary" />
               </td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Custom branding</td>
+              <td class="px-4 py-3 text-center">
+                <X class="mx-auto size-4 text-muted-foreground/50" />
+              </td>
               <td class="px-4 py-3 text-center">
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
@@ -410,7 +425,7 @@ function toggleFaq(index: number) {
             <!-- Section: Support -->
             <tr>
               <td
-                colspan="4"
+                colspan="5"
                 class="bg-muted/20 py-2 pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 Support
@@ -419,12 +434,14 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Support level</td>
               <td class="px-4 py-3 text-center text-sm">Community</td>
+              <td class="px-4 py-3 text-center text-sm">Email</td>
               <td class="px-4 py-3 text-center text-sm">Priority email</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">Priority email</td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Response time</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">Best effort</td>
+              <td class="px-4 py-3 text-center text-sm">48 hours</td>
               <td class="px-4 py-3 text-center text-sm">24 hours</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">24 hours</td>
             </tr>
@@ -447,8 +464,7 @@ function toggleFaq(index: number) {
             @click="toggleFaq(index)"
           >
             {{ faq.question }}
-            <ChevronDown
-              :class="['size-4 shrink-0 transition-transform', openFaqIndex === index && 'rotate-180']" />
+            <ChevronDown :class="['size-4 shrink-0 transition-transform', openFaqIndex === index && 'rotate-180']" />
           </button>
           <div v-show="openFaqIndex === index" class="pb-4 text-sm text-muted-foreground">
             {{ faq.answer }}
