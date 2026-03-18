@@ -1,6 +1,7 @@
 import tailwindcss from "@tailwindcss/vite"
 import vue from "@vitejs/plugin-vue"
 import { fileURLToPath } from "node:url"
+import { version } from "./package.json"
 
 const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUILD_TARGET === "tauri"
 
@@ -62,6 +63,7 @@ export default defineNuxtConfig({
         brandColor: "#f97316",
         footerText: "Professional PDF annotation tools"
       },
+      appVersion: version,
       // OAuth providers — set to true when env vars are configured
       authProviders: {
         google: !!process.env.GOOGLE_CLIENT_ID,
