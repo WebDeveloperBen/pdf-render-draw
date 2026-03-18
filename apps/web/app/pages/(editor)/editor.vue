@@ -3,7 +3,7 @@ import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
 import { useRoomDetection } from "@/composables/editor/useRoomDetection"
 import { useFeatureFlags } from "@/composables/useFeatureFlags"
-import { AlertCircle, ArrowLeft, Brain, Bug, ChevronLeft, ChevronRight, CloudCheck, CloudOff, CloudUpload, Crosshair, Download, FileText, Minus, MousePointer2, PanelLeft, Plus, RotateCcw, RotateCw, ScanLine, TextSearch, WifiOff } from "lucide-vue-next"
+import { ArrowLeft, Brain, Bug, ChevronLeft, ChevronRight, CloudCheck, CloudOff, CloudUpload, Crosshair, Download, FileText, Minus, MousePointer2, PanelLeft, Plus, RotateCcw, RotateCw, ScanLine, TextSearch, WifiOff } from "lucide-vue-next"
 
 definePageMeta({
   layout: "editor"
@@ -19,9 +19,16 @@ const fileId = ref<string | null>(null)
 
 // File loading state
 const isLoading = ref(true)
-const loadError = ref<string | null>(null)
+const _loadError = ref<string | null>(null)
 const fileName = ref<string>("")
 const pdfUrl = ref<string>("")
+
+// Unified error — catches both file metadata fetch errors and PDF download errors
+const loadError = computed(() => {
+  if (_loadError.value) return _loadError.value
+  if (viewportStore.getLoadError) return viewportStore.getLoadError.message
+  return null
+})
 
 // Editor sync composable - handles persistence automatically via store action interception
 const {
@@ -95,14 +102,14 @@ async function loadFile() {
   const fileIdValue = route.query.fileId as string | undefined
 
   if (!projectIdValue || !fileIdValue) {
-    loadError.value = "Missing project or file ID"
+    _loadError.value = "Missing project or file ID"
     isLoading.value = false
     return
   }
 
   try {
     isLoading.value = true
-    loadError.value = null
+    _loadError.value = null
 
     const response = await $fetch(`/api/projects/${projectIdValue}/files/${fileIdValue}`)
     fileName.value = response.pdfFileName
@@ -115,7 +122,7 @@ async function loadFile() {
     await initializeForFile(fileIdValue)
   } catch (error: unknown) {
     console.error("Failed to load file:", error)
-    loadError.value = error instanceof Error ? error.message : "Failed to load file"
+    _loadError.value = error instanceof Error ? error.message : "Failed to load file"
   } finally {
     isLoading.value = false
   }
@@ -529,17 +536,20 @@ if (typeof window !== "undefined") {
           @contextmenu.prevent
         >
           <!-- Loading state -->
-          <div v-if="isLoading" class="loading-state">
+          <div v-if="isLoading || viewportStore.getPDFLoadingState === 'loading'" class="loading-state">
             <UiSpinner class="size-8 text-primary" />
             <span>Loading file...</span>
           </div>
 
           <!-- Error state -->
-          <div v-else-if="loadError" class="error-state">
-            <AlertCircle class="size-8 text-destructive" />
-            <span>{{ loadError }}</span>
-            <NuxtLink :to="projectId ? `/projects/${projectId}` : '/'" class="error-link"> Return to project </NuxtLink>
-          </div>
+          <BlocksErrorState
+            v-else-if="loadError"
+            title="Failed to load PDF"
+            :description="loadError"
+            back-label="Back to project"
+            :back-to="projectId ? `/projects/${projectId}` : '/'"
+            @retry="loadFile()"
+          />
 
           <!-- Editor -->
           <Editor v-else-if="viewportStore.isPdfLoaded" />
@@ -860,27 +870,6 @@ if (typeof window !== "undefined") {
   font-size: 14px;
 }
 
-/* Error state */
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 16px;
-  color: var(--muted-foreground);
-  font-size: 14px;
-}
-
-.error-link {
-  padding: 8px 16px;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-radius: 6px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
 
 .error-link:hover {
   opacity: 0.9;
