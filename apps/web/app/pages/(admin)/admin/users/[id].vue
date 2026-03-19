@@ -4,7 +4,8 @@ import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
-import type { AdminUserDetail } from "@shared/types/admin.types"
+import { getApiAdminUsersId } from "~/models/api"
+import type { GetApiAdminUsersId200 } from "~/models/api"
 import { AlertCircle, AlertTriangle, ArrowLeft, Ban, Building2, CheckCircle, UserCheck, XCircle } from "lucide-vue-next"
 
 definePageMeta({
@@ -24,7 +25,7 @@ const canBan = computed(() => hasPlatformAdminTier("support"))
 const canImpersonate = computed(() => hasPlatformAdminTier("support"))
 
 // State
-const user = ref<AdminUserDetail | null>(null)
+const user = ref<GetApiAdminUsersId200 | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const showBanDialog = ref(false)
@@ -60,7 +61,8 @@ const fetchUser = async () => {
   isLoading.value = true
   error.value = null
   try {
-    user.value = await $fetch<AdminUserDetail>(`/api/admin/users/${userId.value}`)
+    const response = await getApiAdminUsersId(userId.value)
+    user.value = response.data
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load user"
   } finally {

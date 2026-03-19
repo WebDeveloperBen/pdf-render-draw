@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
-import type { AdminStats } from "@shared/types/admin.types"
+import { getApiAdminBillingOverview, getApiAdminStats } from "~/models/api"
+import type { GetApiAdminBillingOverview200, GetApiAdminStats200 } from "~/models/api"
 import {
   Activity,
   AlertCircle,
@@ -22,7 +23,7 @@ definePageMeta({
 
 useSeoMeta({ title: "Admin Dashboard" })
 
-const stats = ref<AdminStats | null>(null)
+const stats = ref<GetApiAdminStats200 | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 
@@ -30,7 +31,8 @@ const fetchStats = async () => {
   isLoading.value = true
   error.value = null
   try {
-    stats.value = await $fetch<AdminStats>("/api/admin/stats")
+    const response = await getApiAdminStats()
+    stats.value = response.data
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load stats"
   } finally {
@@ -94,26 +96,14 @@ const quickActions: Array<{ title: string; url: string; icon: Component }> = [
 
 // ---- Billing Overview ----
 
-interface BillingOverview {
-  totalOrganizations: number
-  statuses: {
-    active: number
-    trialing: number
-    pastDue: number
-    canceled: number
-    incomplete: number
-  }
-  noSubscription: number
-  lastSyncedAt: string | null
-}
-
-const billingOverview = ref<BillingOverview | null>(null)
+const billingOverview = ref<GetApiAdminBillingOverview200 | null>(null)
 const isBillingLoading = ref(true)
 
 const fetchBillingOverview = async () => {
   isBillingLoading.value = true
   try {
-    billingOverview.value = await $fetch<BillingOverview>("/api/admin/billing/overview")
+    const response = await getApiAdminBillingOverview()
+    billingOverview.value = response.data
   } catch {
     // Non-critical — dashboard still works without billing
   } finally {

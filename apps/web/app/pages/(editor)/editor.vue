@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
+import { getApiProjectsIdFilesFileId } from "~/models/api"
 import {
   ArrowLeft,
   ChevronLeft,
@@ -126,10 +127,10 @@ async function loadFile() {
     isLoading.value = true
     _loadError.value = null
 
-    const response = await $fetch(`/api/projects/${projectIdValue}/files/${fileIdValue}`)
-    fileName.value = response.pdfFileName
-    pdfUrl.value = response.pdfUrl
-    await viewportStore.loadPdf(response.pdfUrl)
+    const response = await getApiProjectsIdFilesFileId(projectIdValue, fileIdValue)
+    fileName.value = response.data.pdfFileName
+    pdfUrl.value = response.data.pdfUrl
+    await viewportStore.loadPdf(response.data.pdfUrl)
 
     // Set file ID and initialize sync
     fileId.value = fileIdValue

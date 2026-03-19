@@ -17,12 +17,14 @@ describe("Projects API", () => {
   })
 
   async function enableStarterPlanForAcme() {
-    await getTestDb().insert(subscription).values(
-      buildSubscription({
-        id: "sub-acme-starter",
-        referenceId: seed.orgs.acme.id
-      })
-    )
+    await getTestDb()
+      .insert(subscription)
+      .values(
+        buildSubscription({
+          id: "sub-acme-starter",
+          referenceId: seed.orgs.acme.id
+        })
+      )
   }
 
   // ---- GET /api/projects ----
@@ -104,10 +106,14 @@ describe("Projects API", () => {
         pageCount: 5
       }
 
-      const data = await authedFetch<{ id: string; name: string; files: Array<{ id: string }> }>("/api/projects", headers, {
-        method: "POST",
-        body
-      })
+      const data = await authedFetch<{ id: string; name: string; files: Array<{ id: string }> }>(
+        "/api/projects",
+        headers,
+        {
+          method: "POST",
+          body
+        }
+      )
 
       expect(data.name).toBe("New Test Project")
       expect(data.files).toHaveLength(1)
@@ -151,7 +157,10 @@ describe("Projects API", () => {
 
   describe("GET /api/projects/:id", () => {
     it("returns project details", async () => {
-      const data = await authedFetch<{ id: string; name: string }>(`/api/projects/${seed.projects.floorPlan.id}`, headers)
+      const data = await authedFetch<{ id: string; name: string }>(
+        `/api/projects/${seed.projects.floorPlan.id}`,
+        headers
+      )
 
       expect(data.id).toBe(seed.projects.floorPlan.id)
       expect(data.name).toBe("Office Floor Plan")
@@ -170,10 +179,14 @@ describe("Projects API", () => {
 
   describe("PATCH /api/projects/:id", () => {
     it("updates project fields", async () => {
-      const data = await authedFetch<{ id: string; name: string }>(`/api/projects/${seed.projects.floorPlan.id}`, headers, {
-        method: "PATCH",
-        body: { name: "Updated Floor Plan" }
-      })
+      const data = await authedFetch<{ id: string; name: string }>(
+        `/api/projects/${seed.projects.floorPlan.id}`,
+        headers,
+        {
+          method: "PATCH",
+          body: { name: "Updated Floor Plan" }
+        }
+      )
 
       expect(data.name).toBe("Updated Floor Plan")
     })
@@ -200,10 +213,7 @@ describe("Projects API", () => {
       expect(p).toBeUndefined()
 
       // Verify files are cascaded
-      const files = await db
-        .select()
-        .from(projectFile)
-        .where(eq(projectFile.projectId, seed.projects.floorPlan.id))
+      const files = await db.select().from(projectFile).where(eq(projectFile.projectId, seed.projects.floorPlan.id))
       expect(files).toHaveLength(0)
     })
 

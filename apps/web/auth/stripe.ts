@@ -75,24 +75,27 @@ export const stripePlugin = stripe({
           "invoice.finalized": `Invoice finalised (${(amountDue / 100).toFixed(2)} ${currency})`
         }
 
-        await db.insert(schema.billingActivity).values({
-          id: nanoid(),
-          subscriptionId: sub.id,
-          type: "payment",
-          description: descriptions[event.type] || event.type,
-          stripeEventId: event.id,
-          metadata: {
+        await db
+          .insert(schema.billingActivity)
+          .values({
+            id: nanoid(),
+            subscriptionId: sub.id,
+            type: "payment",
+            description: descriptions[event.type] || event.type,
             stripeEventId: event.id,
-            stripeInvoiceId: invoice.id,
-            amountDue,
-            amountPaid,
-            currency: invoice.currency,
-            invoiceStatus: invoice.status
-          },
-          createdAt: new Date()
-        }).onConflictDoNothing({
-          target: schema.billingActivity.stripeEventId
-        })
+            metadata: {
+              stripeEventId: event.id,
+              stripeInvoiceId: invoice.id,
+              amountDue,
+              amountPaid,
+              currency: invoice.currency,
+              invoiceStatus: invoice.status
+            },
+            createdAt: new Date()
+          })
+          .onConflictDoNothing({
+            target: schema.billingActivity.stripeEventId
+          })
       }
     }
   }

@@ -102,10 +102,7 @@ async function resolveSubscriptionItem(items: Stripe.SubscriptionItem[]): Promis
 
   for (const item of items) {
     const plan = plans.find((candidate) => {
-      return (
-        candidate.stripePriceId === item.price.id ||
-        candidate.annualDiscountPriceId === item.price.id
-      )
+      return candidate.stripePriceId === item.price.id || candidate.annualDiscountPriceId === item.price.id
     })
 
     if (!plan) continue

@@ -77,14 +77,11 @@ vi.mock("nanoid", () => ({
   nanoid: () => "mock-nanoid-id"
 }))
 
-vi.stubGlobal(
-  "createError",
-  (opts: { statusCode: number; message: string }) => {
-    const err = new Error(opts.message) as Error & { statusCode: number }
-    err.statusCode = opts.statusCode
-    return err
-  }
-)
+vi.stubGlobal("createError", (opts: { statusCode: number; message: string }) => {
+  const err = new Error(opts.message) as Error & { statusCode: number }
+  err.statusCode = opts.statusCode
+  return err
+})
 
 import { billingSyncService } from "./billing.sync"
 
@@ -162,9 +159,7 @@ function mockStripePrice(overrides: Partial<Stripe.Price> = {}): Stripe.Price {
 }
 
 // Helper: create a mock Stripe subscription
-function mockStripeSubscription(
-  overrides: Partial<Stripe.Subscription> = {}
-): Stripe.Subscription {
+function mockStripeSubscription(overrides: Partial<Stripe.Subscription> = {}): Stripe.Subscription {
   return {
     id: "sub_test123",
     object: "subscription",
@@ -663,9 +658,7 @@ describe("billingSyncService.refreshSubscription", () => {
   it("throws 404 when subscription not found", async () => {
     mockDbQuery.subscription.findFirst.mockResolvedValue(null)
 
-    await expect(
-      billingSyncService.refreshSubscription("nonexistent", "admin-1")
-    ).rejects.toThrow(/not found/)
+    await expect(billingSyncService.refreshSubscription("nonexistent", "admin-1")).rejects.toThrow(/not found/)
   })
 
   it("throws 404 when subscription has no Stripe ID", async () => {
@@ -674,9 +667,7 @@ describe("billingSyncService.refreshSubscription", () => {
       stripeSubscriptionId: null
     })
 
-    await expect(
-      billingSyncService.refreshSubscription("local-sub-1", "admin-1")
-    ).rejects.toThrow(/not found/)
+    await expect(billingSyncService.refreshSubscription("local-sub-1", "admin-1")).rejects.toThrow(/not found/)
   })
 })
 

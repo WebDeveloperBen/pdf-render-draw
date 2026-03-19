@@ -113,6 +113,9 @@ const { openBillingPortal, isLoading } = useCheckout()
           The billing portal is powered by Stripe and lets you update your card, download invoices, and manage your
           subscription.
         </p>
+        <p v-if="planName === 'team'" class="mt-2 text-xs text-muted-foreground">
+          Need more seats? Use Compare Plans to increase your Team seat count before inviting more members.
+        </p>
       </UiCardContent>
     </UiCard>
 

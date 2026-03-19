@@ -19,7 +19,12 @@ mockNuxtImport("useCheckout", () => {
     isLoading: ref(false)
   })
 })
-mockNuxtImport("navigateTo", () => (...args: unknown[]) => mockState.navigateTo(...args))
+mockNuxtImport(
+  "navigateTo",
+  () =>
+    (...args: unknown[]) =>
+      mockState.navigateTo(...args)
+)
 
 vi.mock("~/utils/auth-client", () => ({
   authClient: {
@@ -40,10 +45,31 @@ vi.mock("vue-sonner", async (importOriginal) => {
 })
 
 describe("Onboarding plan page", () => {
+  const globalStubs = {
+    UiButton: {
+      template: "<button @click=\"$emit('click')\"><slot /></button>"
+    },
+    UiCard: { template: "<div><slot /></div>" },
+    UiCardHeader: { template: "<div><slot /></div>" },
+    UiCardTitle: { template: "<div><slot /></div>" },
+    UiCardDescription: { template: "<div><slot /></div>" },
+    UiCardContent: { template: "<div><slot /></div>" },
+    UiBadge: { template: "<span><slot /></span>" },
+    UiSpinner: { template: "<span>Loading</span>" },
+    UiNumberField: {
+      props: ["modelValue"],
+      template: "<div><slot /></div>"
+    },
+    UiNumberFieldDecrement: { template: "<button>-</button>" },
+    UiNumberFieldInput: { template: "<input />" },
+    UiNumberFieldIncrement: { template: "<button>+</button>" }
+  }
+
   beforeEach(() => {
     mockState.wizardData = {
       companyName: "Acme Build",
-      role: "Estimator"
+      role: "Estimator",
+      teamSize: "small"
     }
     mockState.checkout.mockReset()
     mockState.fetch.mockReset()
@@ -58,18 +84,7 @@ describe("Onboarding plan page", () => {
   it("persists onboarding data and starts checkout for standard plans", async () => {
     const wrapper = await mountSuspended(OnboardingPlanPage, {
       global: {
-        stubs: {
-          UiButton: {
-            template: "<button @click=\"$emit('click')\"><slot /></button>"
-          },
-          UiCard: { template: "<div><slot /></div>" },
-          UiCardHeader: { template: "<div><slot /></div>" },
-          UiCardTitle: { template: "<div><slot /></div>" },
-          UiCardDescription: { template: "<div><slot /></div>" },
-          UiCardContent: { template: "<div><slot /></div>" },
-          UiBadge: { template: "<span><slot /></span>" },
-          UiSpinner: { template: "<span>Loading</span>" }
-        }
+        stubs: globalStubs
       }
     })
 
@@ -86,25 +101,14 @@ describe("Onboarding plan page", () => {
         selectedPlan: "professional"
       })
     })
-    expect(mockState.checkout).toHaveBeenCalledWith("professional")
+    expect(mockState.checkout).toHaveBeenCalledWith("professional", undefined)
     expect(mockState.toastSuccess).toHaveBeenCalledWith("Profile completed!")
   })
 
   it("persists onboarding data and skips Stripe checkout for the free plan", async () => {
     const wrapper = await mountSuspended(OnboardingPlanPage, {
       global: {
-        stubs: {
-          UiButton: {
-            template: "<button @click=\"$emit('click')\"><slot /></button>"
-          },
-          UiCard: { template: "<div><slot /></div>" },
-          UiCardHeader: { template: "<div><slot /></div>" },
-          UiCardTitle: { template: "<div><slot /></div>" },
-          UiCardDescription: { template: "<div><slot /></div>" },
-          UiCardContent: { template: "<div><slot /></div>" },
-          UiBadge: { template: "<span><slot /></span>" },
-          UiSpinner: { template: "<span>Loading</span>" }
-        }
+        stubs: globalStubs
       }
     })
 
@@ -126,5 +130,31 @@ describe("Onboarding plan page", () => {
     })
     expect(mockState.checkout).not.toHaveBeenCalled()
     expect(mockState.navigateTo).toHaveBeenCalledWith("/")
+  })
+
+  it("prefills Team seats from company size and passes them into checkout", async () => {
+    const wrapper = await mountSuspended(OnboardingPlanPage, {
+      global: {
+        stubs: globalStubs
+      }
+    })
+
+    const teamCardButton = wrapper.findAll("button").find((button) => button.text().includes("Select Team"))
+    expect(teamCardButton).toBeTruthy()
+    await teamCardButton?.trigger("click")
+
+    const startTrialButton = wrapper.findAll("button").find((button) => button.text().includes("Start Free Trial"))
+    expect(startTrialButton).toBeTruthy()
+    await startTrialButton?.trigger("click")
+
+    expect(mockState.fetch).toHaveBeenCalledWith("/api/user/onboarding", {
+      method: "POST",
+      body: expect.objectContaining({
+        selectedPlan: "team",
+        selectedSeats: 3,
+        teamSize: "small"
+      })
+    })
+    expect(mockState.checkout).toHaveBeenCalledWith("team", { seats: 3 })
   })
 })

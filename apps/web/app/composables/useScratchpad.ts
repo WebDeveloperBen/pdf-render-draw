@@ -11,7 +11,14 @@ export interface ScratchpadPreset {
 }
 
 export const SCRATCHPAD_PRESETS: ScratchpadPreset[] = [
-  { key: "building-plan", label: "Building Plan", description: "A3 Landscape", width: 1191, height: 842, popular: true },
+  {
+    key: "building-plan",
+    label: "Building Plan",
+    description: "A3 Landscape",
+    width: 1191,
+    height: 842,
+    popular: true
+  },
   { key: "quick-sketch", label: "Quick Sketch", description: "A4 Landscape", width: 842, height: 595 },
   { key: "large-plan", label: "Large Plan", description: "A2 Landscape", width: 1684, height: 1191 },
   { key: "site-notes", label: "Site Notes", description: "A4 Portrait", width: 595, height: 842 }

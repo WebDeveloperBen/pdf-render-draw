@@ -2,12 +2,15 @@
 import { Building2, Calendar, Check, ChevronDown, Loader2, Mail, X } from "lucide-vue-next"
 import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "@shared/types/billing"
 import type { PlanLimits, PlanFeatures } from "@shared/types/billing"
+import { clampSeatCount, DEFAULT_TEAM_SEAT_COUNT } from "@shared/utils/billing-seats"
 
 useSeoMeta({ title: "Pricing" })
 
 const { data: plansData } = useGetApiPlans()
-const { planName, isFreeTier } = useSubscription()
+const { subscription, planName, isFreeTier } = useSubscription()
 const { checkout, isLoading } = useCheckout()
+const teamSeatCount = ref(DEFAULT_TEAM_SEAT_COUNT)
+const hasEditedTeamSeatCount = ref(false)
 
 type PricingPlan = {
   id: string
@@ -76,17 +79,21 @@ function isCurrentPlan(plan: PricingPlan) {
 
 function ctaLabel(plan: PricingPlan) {
   const name = normalisePlanName(plan.name)
+  if (name === "team" && isCurrentPlan(plan) && hasSeatChangePending.value) return "Update Team seats"
   if (isCurrentPlan(plan)) return "Current Plan"
   if (name === "enterprise") return "Contact Sales"
   return `Upgrade to ${displayPlanName(plan.name)}`
 }
 
 function handleUpgrade(plan: PricingPlan) {
-  if (normalisePlanName(plan.name) === "enterprise") {
+  const name = normalisePlanName(plan.name)
+
+  if (name === "enterprise") {
     navigateTo("/support")
     return
   }
-  checkout(plan.name)
+
+  checkout(plan.name, name === "team" ? { seats: clampSeatCount(teamSeatCount.value) } : undefined)
 }
 
 function isHighlighted(plan: PricingPlan) {
@@ -105,6 +112,51 @@ function getPlanLimits(plan: PricingPlan): PlanLimits {
 function getPlanFeatures(plan: PricingPlan): PlanFeatures {
   return plan.features ?? FREE_TIER_FEATURES
 }
+
+const currentTeamSeats = computed(() => {
+  if (normalisePlanName(planName.value) !== "team") {
+    return null
+  }
+
+  return clampSeatCount(subscription.value?.seats, DEFAULT_TEAM_SEAT_COUNT)
+})
+
+const minimumTeamSeatCount = computed(() => currentTeamSeats.value ?? 1)
+
+const hasSeatChangePending = computed(() => {
+  if (normalisePlanName(planName.value) !== "team") {
+    return false
+  }
+
+  return clampSeatCount(teamSeatCount.value) !== currentTeamSeats.value
+})
+
+function isUpgradeDisabled(plan: PricingPlan) {
+  const name = normalisePlanName(plan.name)
+
+  if (name === "team" && isCurrentPlan(plan)) {
+    return !hasSeatChangePending.value || isLoading.value
+  }
+
+  return isCurrentPlan(plan) || isLoading.value
+}
+
+function updateTeamSeatCount(value: number | null | undefined) {
+  hasEditedTeamSeatCount.value = true
+  teamSeatCount.value = Math.max(clampSeatCount(value), minimumTeamSeatCount.value)
+}
+
+watch(
+  () => subscription.value?.seats,
+  (seatCount) => {
+    if (hasEditedTeamSeatCount.value) {
+      return
+    }
+
+    teamSeatCount.value = Math.max(clampSeatCount(seatCount, DEFAULT_TEAM_SEAT_COUNT), minimumTeamSeatCount.value)
+  },
+  { immediate: true }
+)
 
 function buildFeatureList(plan: PricingPlan) {
   const limits = getPlanLimits(plan)
@@ -210,6 +262,30 @@ function toggleFaq(index: number) {
             </p>
           </div>
 
+          <div v-if="normalisePlanName(plan.name) === 'team'" class="space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="font-medium">Seats</span>
+              <span class="text-muted-foreground">
+                {{ isCurrentPlan(plan) && currentTeamSeats ? `Current: ${currentTeamSeats}` : "Choose seats" }}
+              </span>
+            </div>
+            <UiNumberField
+              :model-value="teamSeatCount"
+              :min="minimumTeamSeatCount"
+              :step="1"
+              @update:model-value="updateTeamSeatCount"
+            >
+              <UiNumberFieldDecrement />
+              <UiNumberFieldInput class="text-center font-semibold" />
+              <UiNumberFieldIncrement />
+            </UiNumberField>
+            <p class="text-xs text-muted-foreground">
+              {{ clampSeatCount(teamSeatCount) }} active {{ clampSeatCount(teamSeatCount) === 1 ? "seat" : "seats" }}
+              billed at checkout.
+              <span v-if="isCurrentPlan(plan) && currentTeamSeats"> Use this control to add more seats.</span>
+            </p>
+          </div>
+
           <!-- Features -->
           <ul class="space-y-3">
             <li v-for="feature in buildFeatureList(plan)" :key="feature.text" class="flex items-start gap-3">
@@ -228,7 +304,7 @@ function toggleFaq(index: number) {
         <div class="flex items-center p-6 pt-0">
           <UiButton
             :variant="isCurrentPlan(plan) ? 'outline' : 'default'"
-            :disabled="isCurrentPlan(plan) || isLoading"
+            :disabled="isUpgradeDisabled(plan)"
             class="w-full"
             @click="handleUpgrade(plan)"
           >

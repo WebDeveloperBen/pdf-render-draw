@@ -132,4 +132,36 @@ describe("InviteDialog", () => {
     expect(mockState.inviteMember).not.toHaveBeenCalled()
     expect(mockState.toastError).toHaveBeenCalledWith("No active workplace")
   })
+
+  it("surfaces seat-cap errors from the server", async () => {
+    mockState.inviteMember.mockResolvedValue({
+      error: {
+        message:
+          "This organisation has used all 3 billed seats. Increase your seat count before inviting or adding another member."
+      }
+    })
+
+    const wrapper = await mountSuspended(InviteDialog, {
+      props: { open: true },
+      global: {
+        stubs: {
+          UiDialog: { template: "<div><slot /></div>" },
+          UiDialogContent: { template: "<div><slot /></div>" },
+          UiDialogHeader: { template: "<div><slot /></div>" },
+          UiDialogTitle: { template: "<div><slot /></div>" },
+          UiDialogDescription: { template: "<div><slot /></div>" },
+          UiDialogFooter: { template: "<div><slot /></div>" },
+          UiFormBuilder: { template: "<div data-test='form-builder' />" },
+          UiButton: { template: "<button @click=\"$emit('click')\"><slot /></button>" }
+        }
+      }
+    })
+
+    await wrapper.findAll("button")[1]?.trigger("click")
+
+    expect(mockState.toastError).toHaveBeenCalledWith(
+      "This organisation has used all 3 billed seats. Increase your seat count before inviting or adding another member."
+    )
+    expect(wrapper.emitted("update:open")).toBeFalsy()
+  })
 })

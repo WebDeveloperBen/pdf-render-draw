@@ -225,8 +225,9 @@ export type GetApiAdminOrganizationsIdBilling200PlanTier =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminOrganizationsIdBilling200PlanTier = {
-  freemium: "freemium",
-  pro: "pro",
+  free: "free",
+  starter: "starter",
+  professional: "professional",
   team: "team",
   enterprise: "enterprise"
 } as const
@@ -410,8 +411,9 @@ export type GetApiAdminSubscriptionsId200PlanTier =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptionsId200PlanTier = {
-  freemium: "freemium",
-  pro: "pro",
+  free: "free",
+  starter: "starter",
+  professional: "professional",
   team: "team",
   enterprise: "enterprise"
 } as const
@@ -595,8 +597,9 @@ export type GetApiAdminSubscriptions200SubscriptionsItemPlanTier =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAdminSubscriptions200SubscriptionsItemPlanTier = {
-  freemium: "freemium",
-  pro: "pro",
+  free: "free",
+  starter: "starter",
+  professional: "professional",
   team: "team",
   enterprise: "enterprise"
 } as const
@@ -1382,6 +1385,13 @@ export type GetApiProjectsIdFilesFileId200 = {
 }
 
 export type PatchApiProjectsIdFilesFileIdBody = {
+  /** Display name for the file */
+  pdfFileName?: string
+  /**
+   * Number of pages in the PDF
+   * @minimum 0
+   */
+  pageCount?: number
   /**
    * Number of annotations on the file
    * @minimum 0
@@ -2165,6 +2175,65 @@ export type PatchApiUserProfile200 = {
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+export type getResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getResponseSuccess = getResponse200 & {
+  headers: Headers
+}
+export type getResponse = getResponseSuccess
+
+export const getGetUrl = () => {
+  return ``
+}
+
+export const get = async (options?: RequestInit): Promise<getResponse> => {
+  return customFetch<getResponse>(getGetUrl(), {
+    ...options,
+    method: "GET"
+  })
+}
+
+export const getGetQueryKey = () => {
+  return [] as const
+}
+
+export const getGetQueryOptions = <TData = Awaited<ReturnType<typeof get>>, TError = unknown>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof get>>, TError, TData>>
+  request?: SecondParameter<typeof customFetch>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof get>>> = ({ signal }) => get({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof get>>, TError, TData>
+}
+
+export type GetQueryResult = NonNullable<Awaited<ReturnType<typeof get>>>
+export type GetQueryError = unknown
+
+export function useGet<TData = Awaited<ReturnType<typeof get>>, TError = unknown>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof get>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
 export type getApiDevEmailsTemplateResponse200 = {
   data: void
   status: 200
@@ -2307,6 +2376,116 @@ export function useGetApiDevEmails<TData = Awaited<ReturnType<typeof getApiDevEm
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
 
   return query
+}
+
+export type deleteApiTestStateResponse200 = {
+  data: void
+  status: 200
+}
+
+export type deleteApiTestStateResponseSuccess = deleteApiTestStateResponse200 & {
+  headers: Headers
+}
+export type deleteApiTestStateResponse = deleteApiTestStateResponseSuccess
+
+export const getDeleteApiTestStateUrl = () => {
+  return `/api/_test/state`
+}
+
+export const deleteApiTestState = async (options?: RequestInit): Promise<deleteApiTestStateResponse> => {
+  return customFetch<deleteApiTestStateResponse>(getDeleteApiTestStateUrl(), {
+    ...options,
+    method: "DELETE"
+  })
+}
+
+export const getDeleteApiTestStateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteApiTestState>>, TError, void, TContext>
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<Awaited<ReturnType<typeof deleteApiTestState>>, TError, void, TContext> => {
+  const mutationKey = ["deleteApiTestState"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiTestState>>, void> = () => {
+    return deleteApiTestState(requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type DeleteApiTestStateMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiTestState>>>
+
+export type DeleteApiTestStateMutationError = unknown
+
+export const useDeleteApiTestState = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteApiTestState>>, TError, void, TContext>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<Awaited<ReturnType<typeof deleteApiTestState>>, TError, void, TContext> => {
+  const mutationOptions = getDeleteApiTestStateMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+export type patchApiTestStateResponse200 = {
+  data: void
+  status: 200
+}
+
+export type patchApiTestStateResponseSuccess = patchApiTestStateResponse200 & {
+  headers: Headers
+}
+export type patchApiTestStateResponse = patchApiTestStateResponseSuccess
+
+export const getPatchApiTestStateUrl = () => {
+  return `/api/_test/state`
+}
+
+export const patchApiTestState = async (options?: RequestInit): Promise<patchApiTestStateResponse> => {
+  return customFetch<patchApiTestStateResponse>(getPatchApiTestStateUrl(), {
+    ...options,
+    method: "PATCH"
+  })
+}
+
+export const getPatchApiTestStateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof patchApiTestState>>, TError, void, TContext>
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<Awaited<ReturnType<typeof patchApiTestState>>, TError, void, TContext> => {
+  const mutationKey = ["patchApiTestState"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiTestState>>, void> = () => {
+    return patchApiTestState(requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PatchApiTestStateMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiTestState>>>
+
+export type PatchApiTestStateMutationError = unknown
+
+export const usePatchApiTestState = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof patchApiTestState>>, TError, void, TContext>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient
+): UseMutationReturnType<Awaited<ReturnType<typeof patchApiTestState>>, TError, void, TContext> => {
+  const mutationOptions = getPatchApiTestStateMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
 }
 
 /**
@@ -4694,73 +4873,6 @@ export function useGetApiDashboardStats<TData = Awaited<ReturnType<typeof getApi
   return query
 }
 
-export type getApiFeaturesResponse200 = {
-  data: void
-  status: 200
-}
-
-export type getApiFeaturesResponseSuccess = getApiFeaturesResponse200 & {
-  headers: Headers
-}
-export type getApiFeaturesResponse = getApiFeaturesResponseSuccess
-
-export const getGetApiFeaturesUrl = () => {
-  return `/api/features`
-}
-
-export const getApiFeatures = async (options?: RequestInit): Promise<getApiFeaturesResponse> => {
-  return customFetch<getApiFeaturesResponse>(getGetApiFeaturesUrl(), {
-    ...options,
-    method: "GET"
-  })
-}
-
-export const getGetApiFeaturesQueryKey = () => {
-  return ["api", "features"] as const
-}
-
-export const getGetApiFeaturesQueryOptions = <
-  TData = Awaited<ReturnType<typeof getApiFeatures>>,
-  TError = unknown
->(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFeatures>>, TError, TData>>
-  request?: SecondParameter<typeof customFetch>
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = getGetApiFeaturesQueryKey()
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiFeatures>>> = ({ signal }) =>
-    getApiFeatures({ signal, ...requestOptions })
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getApiFeatures>>,
-    TError,
-    TData
-  >
-}
-
-export type GetApiFeaturesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiFeatures>>>
-export type GetApiFeaturesQueryError = unknown
-
-export function useGetApiFeatures<TData = Awaited<ReturnType<typeof getApiFeatures>>, TError = unknown>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFeatures>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient
-): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetApiFeaturesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
-
-  return query
-}
-
 /**
  * Get all annotations for a file
  * @summary Get Annotations
@@ -5125,363 +5237,6 @@ export const usePostApiFilesFileIdAnnotationsSync = <TError = void, TContext = u
   TContext
 > => {
   const mutationOptions = getPostApiFilesFileIdAnnotationsSyncMutationOptions(options)
-
-  return useMutation(mutationOptions, queryClient)
-}
-
-export type patchApiFilesFileIdDetectedRoomsRoomIdResponse200 = {
-  data: void
-  status: 200
-}
-
-export type patchApiFilesFileIdDetectedRoomsRoomIdResponseSuccess =
-  patchApiFilesFileIdDetectedRoomsRoomIdResponse200 & {
-    headers: Headers
-  }
-export type patchApiFilesFileIdDetectedRoomsRoomIdResponse = patchApiFilesFileIdDetectedRoomsRoomIdResponseSuccess
-
-export const getPatchApiFilesFileIdDetectedRoomsRoomIdUrl = (fileId: string, roomId: string) => {
-  return `/api/files/${fileId}/detected-rooms/${roomId}`
-}
-
-export const patchApiFilesFileIdDetectedRoomsRoomId = async (
-  fileId: string,
-  roomId: string,
-  options?: RequestInit
-): Promise<patchApiFilesFileIdDetectedRoomsRoomIdResponse> => {
-  return customFetch<patchApiFilesFileIdDetectedRoomsRoomIdResponse>(
-    getPatchApiFilesFileIdDetectedRoomsRoomIdUrl(fileId, roomId),
-    {
-      ...options,
-      method: "PATCH"
-    }
-  )
-}
-
-export const getPatchApiFilesFileIdDetectedRoomsRoomIdMutationOptions = <
-  TError = unknown,
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
-    TError,
-    { fileId: string; roomId: string },
-    TContext
-  >
-  request?: SecondParameter<typeof customFetch>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
-  TError,
-  { fileId: string; roomId: string },
-  TContext
-> => {
-  const mutationKey = ["patchApiFilesFileIdDetectedRoomsRoomId"]
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
-    { fileId: string; roomId: string }
-  > = (props) => {
-    const { fileId, roomId } = props ?? {}
-
-    return patchApiFilesFileIdDetectedRoomsRoomId(fileId, roomId, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type PatchApiFilesFileIdDetectedRoomsRoomIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>
->
-
-export type PatchApiFilesFileIdDetectedRoomsRoomIdMutationError = unknown
-
-export const usePatchApiFilesFileIdDetectedRoomsRoomId = <TError = unknown, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
-      TError,
-      { fileId: string; roomId: string },
-      TContext
-    >
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient
-): UseMutationReturnType<
-  Awaited<ReturnType<typeof patchApiFilesFileIdDetectedRoomsRoomId>>,
-  TError,
-  { fileId: string; roomId: string },
-  TContext
-> => {
-  const mutationOptions = getPatchApiFilesFileIdDetectedRoomsRoomIdMutationOptions(options)
-
-  return useMutation(mutationOptions, queryClient)
-}
-
-export type getApiFilesFileIdDetectedRoomsResponse200 = {
-  data: void
-  status: 200
-}
-
-export type getApiFilesFileIdDetectedRoomsResponseSuccess = getApiFilesFileIdDetectedRoomsResponse200 & {
-  headers: Headers
-}
-export type getApiFilesFileIdDetectedRoomsResponse = getApiFilesFileIdDetectedRoomsResponseSuccess
-
-export const getGetApiFilesFileIdDetectedRoomsUrl = (fileId: string) => {
-  return `/api/files/${fileId}/detected-rooms`
-}
-
-export const getApiFilesFileIdDetectedRooms = async (
-  fileId: string,
-  options?: RequestInit
-): Promise<getApiFilesFileIdDetectedRoomsResponse> => {
-  return customFetch<getApiFilesFileIdDetectedRoomsResponse>(getGetApiFilesFileIdDetectedRoomsUrl(fileId), {
-    ...options,
-    method: "GET"
-  })
-}
-
-export const getGetApiFilesFileIdDetectedRoomsQueryKey = (fileId?: MaybeRef<string>) => {
-  return ["api", "files", fileId, "detected-rooms"] as const
-}
-
-export const getGetApiFilesFileIdDetectedRoomsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>,
-  TError = unknown
->(
-  fileId: MaybeRef<string>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = getGetApiFilesFileIdDetectedRoomsQueryKey(fileId)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>> = ({ signal }) =>
-    getApiFilesFileIdDetectedRooms(unref(fileId), { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: computed(() => !!unref(fileId)), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>,
-    TError,
-    TData
-  >
-}
-
-export type GetApiFilesFileIdDetectedRoomsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>
->
-export type GetApiFilesFileIdDetectedRoomsQueryError = unknown
-
-export function useGetApiFilesFileIdDetectedRooms<
-  TData = Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>,
-  TError = unknown
->(
-  fileId: MaybeRef<string>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiFilesFileIdDetectedRooms>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient
-): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetApiFilesFileIdDetectedRoomsQueryOptions(fileId, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
-
-  return query
-}
-
-export type postApiFilesFileIdDetectedRoomsPocOcrDetectResponse200 = {
-  data: void
-  status: 200
-}
-
-export type postApiFilesFileIdDetectedRoomsPocOcrDetectResponseSuccess =
-  postApiFilesFileIdDetectedRoomsPocOcrDetectResponse200 & {
-    headers: Headers
-  }
-export type postApiFilesFileIdDetectedRoomsPocOcrDetectResponse =
-  postApiFilesFileIdDetectedRoomsPocOcrDetectResponseSuccess
-
-export const getPostApiFilesFileIdDetectedRoomsPocOcrDetectUrl = (fileId: string) => {
-  return `/api/files/${fileId}/detected-rooms/poc-ocr-detect`
-}
-
-export const postApiFilesFileIdDetectedRoomsPocOcrDetect = async (
-  fileId: string,
-  options?: RequestInit
-): Promise<postApiFilesFileIdDetectedRoomsPocOcrDetectResponse> => {
-  return customFetch<postApiFilesFileIdDetectedRoomsPocOcrDetectResponse>(
-    getPostApiFilesFileIdDetectedRoomsPocOcrDetectUrl(fileId),
-    {
-      ...options,
-      method: "POST"
-    }
-  )
-}
-
-export const getPostApiFilesFileIdDetectedRoomsPocOcrDetectMutationOptions = <
-  TError = unknown,
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
-    TError,
-    { fileId: string },
-    TContext
-  >
-  request?: SecondParameter<typeof customFetch>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
-  TError,
-  { fileId: string },
-  TContext
-> => {
-  const mutationKey = ["postApiFilesFileIdDetectedRoomsPocOcrDetect"]
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
-    { fileId: string }
-  > = (props) => {
-    const { fileId } = props ?? {}
-
-    return postApiFilesFileIdDetectedRoomsPocOcrDetect(fileId, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type PostApiFilesFileIdDetectedRoomsPocOcrDetectMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>
->
-
-export type PostApiFilesFileIdDetectedRoomsPocOcrDetectMutationError = unknown
-
-export const usePostApiFilesFileIdDetectedRoomsPocOcrDetect = <TError = unknown, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
-      TError,
-      { fileId: string },
-      TContext
-    >
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient
-): UseMutationReturnType<
-  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocOcrDetect>>,
-  TError,
-  { fileId: string },
-  TContext
-> => {
-  const mutationOptions = getPostApiFilesFileIdDetectedRoomsPocOcrDetectMutationOptions(options)
-
-  return useMutation(mutationOptions, queryClient)
-}
-
-export type postApiFilesFileIdDetectedRoomsPocSaveResponse200 = {
-  data: void
-  status: 200
-}
-
-export type postApiFilesFileIdDetectedRoomsPocSaveResponseSuccess =
-  postApiFilesFileIdDetectedRoomsPocSaveResponse200 & {
-    headers: Headers
-  }
-export type postApiFilesFileIdDetectedRoomsPocSaveResponse = postApiFilesFileIdDetectedRoomsPocSaveResponseSuccess
-
-export const getPostApiFilesFileIdDetectedRoomsPocSaveUrl = (fileId: string) => {
-  return `/api/files/${fileId}/detected-rooms/poc-save`
-}
-
-export const postApiFilesFileIdDetectedRoomsPocSave = async (
-  fileId: string,
-  options?: RequestInit
-): Promise<postApiFilesFileIdDetectedRoomsPocSaveResponse> => {
-  return customFetch<postApiFilesFileIdDetectedRoomsPocSaveResponse>(
-    getPostApiFilesFileIdDetectedRoomsPocSaveUrl(fileId),
-    {
-      ...options,
-      method: "POST"
-    }
-  )
-}
-
-export const getPostApiFilesFileIdDetectedRoomsPocSaveMutationOptions = <
-  TError = unknown,
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
-    TError,
-    { fileId: string },
-    TContext
-  >
-  request?: SecondParameter<typeof customFetch>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
-  TError,
-  { fileId: string },
-  TContext
-> => {
-  const mutationKey = ["postApiFilesFileIdDetectedRoomsPocSave"]
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
-    { fileId: string }
-  > = (props) => {
-    const { fileId } = props ?? {}
-
-    return postApiFilesFileIdDetectedRoomsPocSave(fileId, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type PostApiFilesFileIdDetectedRoomsPocSaveMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>
->
-
-export type PostApiFilesFileIdDetectedRoomsPocSaveMutationError = unknown
-
-export const usePostApiFilesFileIdDetectedRoomsPocSave = <TError = unknown, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
-      TError,
-      { fileId: string },
-      TContext
-    >
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient
-): UseMutationReturnType<
-  Awaited<ReturnType<typeof postApiFilesFileIdDetectedRoomsPocSave>>,
-  TError,
-  { fileId: string },
-  TContext
-> => {
-  const mutationOptions = getPostApiFilesFileIdDetectedRoomsPocSaveMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -6501,7 +6256,7 @@ export function useGetApiProjectsIdFilesFileId<
 }
 
 /**
- * Update a file in a project (annotation count, last viewed)
+ * Update a file in a project (name, page count, annotation count, last viewed)
  * @summary Update Project File
  */
 export type patchApiProjectsIdFilesFileIdResponse200 = {

@@ -85,7 +85,10 @@ export default defineEventHandler(async (event) => {
   const { firstName, lastName } = result.data
   const orgSlug = `${authUser.email.split("@")[0]}-${authUser.id.slice(0, 8)}`
 
-  const [existingOrg] = await db.select({ id: organization.id }).from(organization).where(eq(organization.slug, orgSlug))
+  const [existingOrg] = await db
+    .select({ id: organization.id })
+    .from(organization)
+    .where(eq(organization.slug, orgSlug))
   if (existingOrg) {
     throw createError({
       statusCode: 409,

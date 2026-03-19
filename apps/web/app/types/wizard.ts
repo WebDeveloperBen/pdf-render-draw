@@ -16,6 +16,7 @@ export interface WizardData {
 
   // Step 4: Plan
   selectedPlan?: OnboardingPlanId
+  selectedSeats?: number
 }
 
 export type WizardStep = "personal" | "company" | "usecase" | "plan"

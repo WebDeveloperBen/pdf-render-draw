@@ -141,10 +141,9 @@ describe("Admin API", () => {
 
   describe("GET /api/admin/users/:id", () => {
     it("returns user details", async () => {
-      const data = await $fetch<{ id: string; email: string }>(
-        `/api/admin/users/${seed.users.regularUser.id}`,
-        { headers: adminHeaders }
-      )
+      const data = await $fetch<{ id: string; email: string }>(`/api/admin/users/${seed.users.regularUser.id}`, {
+        headers: adminHeaders
+      })
 
       expect(data.id).toBe(seed.users.regularUser.id)
       expect(data.email).toBe(seed.users.regularUser.email)
@@ -178,10 +177,9 @@ describe("Admin API", () => {
 
   describe("GET /api/admin/organizations/:id", () => {
     it("returns organization details", async () => {
-      const data = await $fetch<{ id: string; name: string }>(
-        `/api/admin/organizations/${seed.orgs.acme.id}`,
-        { headers: adminHeaders }
-      )
+      const data = await $fetch<{ id: string; name: string }>(`/api/admin/organizations/${seed.orgs.acme.id}`, {
+        headers: adminHeaders
+      })
 
       expect(data.id).toBe(seed.orgs.acme.id)
       expect(data.name).toBe("Acme Construction")
@@ -350,7 +348,10 @@ describe("Admin API", () => {
       })
 
       const db = getTestDb()
-      const [deletedOrg] = await db.select({ id: organization.id }).from(organization).where(eq(organization.id, seed.orgs.demo.id))
+      const [deletedOrg] = await db
+        .select({ id: organization.id })
+        .from(organization)
+        .where(eq(organization.id, seed.orgs.demo.id))
       const demoProjects = await db
         .select({ id: project.id, organizationId: project.organizationId })
         .from(project)
@@ -422,10 +423,9 @@ describe("Admin API", () => {
         })
       )
 
-      const data = await $fetch<{ id: string; plan: string }>(
-        "/api/admin/subscriptions/sub-detail-001",
-        { headers: adminHeaders }
-      )
+      const data = await $fetch<{ id: string; plan: string }>("/api/admin/subscriptions/sub-detail-001", {
+        headers: adminHeaders
+      })
 
       expect(data.id).toBe("sub-detail-001")
       expect(data.plan).toBe("Starter")

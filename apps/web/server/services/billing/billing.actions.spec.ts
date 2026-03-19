@@ -1,21 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // Use vi.hoisted() so mock references are available inside vi.mock() factories
-const {
-  mockStripeSubUpdate,
-  mockStripeSubCancel,
-  mockStripeBillingPortalCreate,
-  mockDbQuery,
-  mockDbUpdate
-} = vi.hoisted(() => ({
-  mockStripeSubUpdate: vi.fn(),
-  mockStripeSubCancel: vi.fn(),
-  mockStripeBillingPortalCreate: vi.fn(),
-  mockDbQuery: {
-    subscription: { findFirst: vi.fn() }
-  },
-  mockDbUpdate: vi.fn()
-}))
+const { mockStripeSubUpdate, mockStripeSubCancel, mockStripeBillingPortalCreate, mockDbQuery, mockDbUpdate } =
+  vi.hoisted(() => ({
+    mockStripeSubUpdate: vi.fn(),
+    mockStripeSubCancel: vi.fn(),
+    mockStripeBillingPortalCreate: vi.fn(),
+    mockDbQuery: {
+      subscription: { findFirst: vi.fn() }
+    },
+    mockDbUpdate: vi.fn()
+  }))
 
 vi.mock("@auth", () => ({
   stripeClient: {
@@ -52,14 +47,11 @@ vi.mock("../../utils/audit", () => ({
   logAdminAction: vi.fn().mockResolvedValue(undefined)
 }))
 
-vi.stubGlobal(
-  "createError",
-  (opts: { statusCode: number; message: string }) => {
-    const err = new Error(opts.message) as Error & { statusCode: number }
-    err.statusCode = opts.statusCode
-    return err
-  }
-)
+vi.stubGlobal("createError", (opts: { statusCode: number; message: string }) => {
+  const err = new Error(opts.message) as Error & { statusCode: number }
+  err.statusCode = opts.statusCode
+  return err
+})
 
 import { billingActionsService } from "./billing.actions"
 import { billingService } from "./billing.service"
@@ -463,9 +455,7 @@ describe("Stripe API failure handling", () => {
 
   it("propagates Stripe error on billing portal creation", async () => {
     mockDbQuery.subscription.findFirst.mockResolvedValue(mockLocalSub)
-    mockStripeBillingPortalCreate.mockRejectedValue(
-      new Error("Stripe: portal_not_configured")
-    )
+    mockStripeBillingPortalCreate.mockRejectedValue(new Error("Stripe: portal_not_configured"))
 
     await expect(
       billingActionsService.generateBillingPortalLink({

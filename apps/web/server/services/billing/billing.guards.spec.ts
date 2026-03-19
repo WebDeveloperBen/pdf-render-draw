@@ -30,14 +30,11 @@ import {
 } from "./billing.guards"
 
 // Mock createError (auto-imported from h3 in the source)
-vi.stubGlobal(
-  "createError",
-  (opts: { statusCode: number; statusMessage: string }) => {
-    const err = new Error(opts.statusMessage) as Error & { statusCode: number }
-    err.statusCode = opts.statusCode
-    return err
-  }
-)
+vi.stubGlobal("createError", (opts: { statusCode: number; statusMessage: string }) => {
+  const err = new Error(opts.statusMessage) as Error & { statusCode: number }
+  err.statusCode = opts.statusCode
+  return err
+})
 
 function mockEvent() {
   return { headers: new Headers(), context: {} } as any
@@ -65,9 +62,7 @@ function setupAuth(billing: Partial<OrgBillingContext> = {}, userId = "user-1", 
 }
 
 function setupNoSession() {
-  mockRequireAuth.mockRejectedValue(
-    Object.assign(new Error("Unauthorized"), { statusCode: 401 })
-  )
+  mockRequireAuth.mockRejectedValue(Object.assign(new Error("Unauthorized"), { statusCode: 401 }))
 }
 
 describe("getOrgBillingContext", () => {
@@ -159,7 +154,9 @@ describe("requireFeatureAccess", () => {
 
   it("throws 403 when measurementTools is 'basic'", async () => {
     setupAuth() // free tier, measurementTools = "basic"
-    await expect(requireFeatureAccess(mockEvent(), "measurementTools")).rejects.toThrow(/does not include measurementTools/)
+    await expect(requireFeatureAccess(mockEvent(), "measurementTools")).rejects.toThrow(
+      /does not include measurementTools/
+    )
   })
 
   it("allows access when exportFormats has multiple items", async () => {
@@ -218,9 +215,7 @@ describe("requireFileSizeLimit", () => {
 
   it("throws 413 when file exceeds the limit", () => {
     const ctx = freeBilling()
-    expect(() => requireFileSizeLimit(ctx, 15 * 1024 * 1024)).toThrow(
-      /File size exceeds your plan limit of 10 MB/
-    )
+    expect(() => requireFileSizeLimit(ctx, 15 * 1024 * 1024)).toThrow(/File size exceeds your plan limit of 10 MB/)
   })
 
   it("allows exactly at the limit", () => {
@@ -264,9 +259,7 @@ describe("requirePlan - tier boundaries", () => {
 
   it("starter cannot access professional-gated features", async () => {
     setupAuth({ planName: "starter" })
-    await expect(requirePlan(mockEvent(), "professional")).rejects.toThrow(
-      /requires the professional plan/
-    )
+    await expect(requirePlan(mockEvent(), "professional")).rejects.toThrow(/requires the professional plan/)
   })
 
   it("free cannot access any paid-gated features", async () => {

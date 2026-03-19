@@ -5,6 +5,15 @@ import type {
   ProjectFileWithUploader
 } from "#shared/types/projects.types"
 import type { Annotation } from "#shared/types/annotations.types"
+import {
+  deleteApiProjectsId,
+  deleteApiProjectsIdFilesFileId,
+  deleteApiProjectsIdSharesShareId,
+  getApiFilesFileIdAnnotations,
+  getApiProjectsId,
+  getApiProjectsIdFiles,
+  getApiProjectsIdShares
+} from "~/models/api"
 import { toast } from "vue-sonner"
 import {
   ArrowLeft,
@@ -63,13 +72,13 @@ async function handleExportFile(file: ProjectFileWithUploader) {
 
   try {
     // Fetch annotations for this file
-    const response = await $fetch<{ annotations: Annotation[] }>(`/api/files/${file.id}/annotations`)
+    const response = await getApiFilesFileIdAnnotations(file.id)
 
     // Export the PDF with annotations
     const exportFileName = file.pdfFileName.replace(/\.pdf$/i, "-annotated.pdf")
     await exportWithAnnotations({
       pdfUrl: file.pdfUrl,
-      annotations: response.annotations,
+      annotations: (response.data.annotations as Annotation[]) ?? [],
       filename: exportFileName
     })
   } catch (error: any) {
@@ -174,11 +183,11 @@ const categoryConfig: Record<string, { label: string; icon: Component }> = {
 const fetchProject = async () => {
   isLoading.value = true
   try {
-    const data = await $fetch<ProjectWithRelations>(`/api/projects/${projectId}`)
-    project.value = data
+    const response = await getApiProjectsId(projectId)
+    project.value = response.data as ProjectWithRelations
     // Set breadcrumb label to project name
-    if (data.name) {
-      setLabel(projectId, data.name)
+    if (response.data.name) {
+      setLabel(projectId, response.data.name)
     }
   } catch (error: any) {
     toast.error(error.data?.statusMessage || "Failed to load project")
@@ -196,8 +205,8 @@ onUnmounted(() => {
 // Fetch shares
 const fetchShares = async () => {
   try {
-    const data = await $fetch<ProjectShareWithRelations[]>(`/api/projects/${projectId}/shares`)
-    shares.value = data
+    const response = await getApiProjectsIdShares(projectId)
+    shares.value = response.data as ProjectShareWithRelations[]
   } catch (error: any) {
     toast.error("Failed to load shares")
   }
@@ -206,8 +215,8 @@ const fetchShares = async () => {
 // Fetch files
 const fetchFiles = async () => {
   try {
-    const data = await $fetch<ProjectFileWithUploader[]>(`/api/projects/${projectId}/files`)
-    files.value = data
+    const response = await getApiProjectsIdFiles(projectId)
+    files.value = response.data as ProjectFileWithUploader[]
   } catch (error: any) {
     toast.error("Failed to load files")
   }
@@ -274,9 +283,7 @@ async function confirmDeleteFile() {
   isDeletingFile.value = fileId
 
   try {
-    await $fetch(`/api/projects/${projectId}/files/${fileId}`, {
-      method: "DELETE"
-    })
+    await deleteApiProjectsIdFilesFileId(projectId, fileId)
 
     files.value = files.value.filter((f) => f.id !== fileId)
     toast.success("File deleted")
@@ -299,9 +306,7 @@ const formatFileSize = (bytes: number) => {
 // Delete share
 const handleDeleteShare = async (shareId: string) => {
   try {
-    await $fetch(`/api/projects/${projectId}/shares/${shareId}`, {
-      method: "DELETE"
-    })
+    await deleteApiProjectsIdSharesShareId(projectId, shareId)
 
     shares.value = shares.value.filter((s: ProjectShareWithRelations) => s.id !== shareId)
     toast.success("Share deleted")
@@ -319,9 +324,7 @@ function promptDeleteProject() {
 async function confirmDeleteProject() {
   isDeleting.value = true
   try {
-    await $fetch(`/api/projects/${projectId}`, {
-      method: "DELETE"
-    })
+    await deleteApiProjectsId(projectId)
 
     toast.success("Project deleted")
     navigateTo("/projects")
@@ -347,7 +350,6 @@ const formatDate = (date: Date | string | null) => {
     day: "numeric"
   })
 }
-
 
 // Check if project has location info
 const hasLocationInfo = computed(() => {
@@ -393,8 +395,10 @@ onMounted(() => {
           <div class="flex items-center gap-3 flex-wrap">
             <h1 class="text-2xl font-bold lg:text-3xl">{{ project.name }}</h1>
             <!-- Priority Badge -->
-            <UiBadge v-if="project.priority && project.priority !== 'normal'"
-              :class="[priorityConfig[project.priority]?.color, priorityConfig[project.priority]?.bgColor]">
+            <UiBadge
+              v-if="project.priority && project.priority !== 'normal'"
+              :class="[priorityConfig[project.priority]?.color, priorityConfig[project.priority]?.bgColor]"
+            >
               {{ priorityConfig[project.priority]?.label }}
             </UiBadge>
             <!-- Category Badge -->
@@ -540,7 +544,8 @@ onMounted(() => {
             <!-- Empty state with prominent CTA -->
             <div v-if="files.length === 0" class="text-center py-16">
               <div
-                class="mx-auto size-20 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+                class="mx-auto size-20 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4"
+              >
                 <FilePlus class="size-10 text-primary" />
               </div>
               <h3 class="font-semibold text-lg mb-1">No files yet</h3>
@@ -563,24 +568,31 @@ onMounted(() => {
 
             <!-- File cards grid -->
             <div v-else class="grid gap-4 sm:grid-cols-2">
-              <div v-for="file in sortedFiles" :key="file.id"
+              <div
+                v-for="file in sortedFiles"
+                :key="file.id"
                 class="group relative border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
-                @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)">
+                @click="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
+              >
                 <!-- Card header with PDF preview placeholder -->
                 <div
-                  class="relative h-32 bg-linear-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
+                  class="relative h-32 bg-linear-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center"
+                >
                   <FileText class="size-16 text-slate-300 dark:text-slate-600" />
                   <!-- Overlay on hover -->
                   <div
-                    class="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    class="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
                     <div class="text-center text-primary-foreground">
                       <PencilRuler class="size-8 mx-auto mb-2" />
                       <span class="font-medium">Open in Editor</span>
                     </div>
                   </div>
                   <!-- Annotation badge -->
-                  <div v-if="file.annotationCount > 0"
-                    class="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium">
+                  <div
+                    v-if="file.annotationCount > 0"
+                    class="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium"
+                  >
                     <PenTool class="size-3 text-primary" />
                     {{ file.annotationCount }}
                   </div>
@@ -598,8 +610,11 @@ onMounted(() => {
 
                 <!-- Always visible actions bar -->
                 <div class="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
-                  <UiButton size="sm" class="flex-1 mr-2"
-                    @click.stop="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)">
+                  <UiButton
+                    size="sm"
+                    class="flex-1 mr-2"
+                    @click.stop="navigateTo(`/editor?projectId=${projectId}&fileId=${file.id}`)"
+                  >
                     <PencilRuler class="size-4 mr-2" />
                     Edit
                   </UiButton>
@@ -607,22 +622,34 @@ onMounted(() => {
                     <!-- Download dropdown -->
                     <UiDropdownMenu>
                       <UiDropdownMenuTrigger as-child>
-                        <UiButton variant="ghost" size="icon"
-                          :disabled="exportingFileId === file.id || downloadingFileId === file.id" @click.stop>
-                          <UiSpinner v-if="exportingFileId === file.id || downloadingFileId === file.id"
-                            class="size-4" />
+                        <UiButton
+                          variant="ghost"
+                          size="icon"
+                          :disabled="exportingFileId === file.id || downloadingFileId === file.id"
+                          @click.stop
+                        >
+                          <UiSpinner
+                            v-if="exportingFileId === file.id || downloadingFileId === file.id"
+                            class="size-4"
+                          />
                           <Download v-else class="size-4" />
                         </UiButton>
                       </UiDropdownMenuTrigger>
                       <UiDropdownMenuContent align="end" @click.stop>
-                        <UiDropdownMenuItem title="Download with Annotations" :disabled="exportingFileId === file.id"
-                          @click="handleExportFile(file)">
+                        <UiDropdownMenuItem
+                          title="Download with Annotations"
+                          :disabled="exportingFileId === file.id"
+                          @click="handleExportFile(file)"
+                        >
                           <template #icon>
                             <FilePen class="size-4" />
                           </template>
                         </UiDropdownMenuItem>
-                        <UiDropdownMenuItem title="Download Original" :disabled="downloadingFileId === file.id"
-                          @click="handleDownloadOriginal(file)">
+                        <UiDropdownMenuItem
+                          title="Download Original"
+                          :disabled="downloadingFileId === file.id"
+                          @click="handleDownloadOriginal(file)"
+                        >
                           <template #icon>
                             <File class="size-4" />
                           </template>
@@ -642,8 +669,11 @@ onMounted(() => {
                             <Pencil class="size-4" />
                           </template>
                         </UiDropdownMenuItem>
-                        <UiDropdownMenuItem title="Delete File" class="text-destructive focus:text-destructive"
-                          @click="promptDeleteFile(file)">
+                        <UiDropdownMenuItem
+                          title="Delete File"
+                          class="text-destructive focus:text-destructive"
+                          @click="promptDeleteFile(file)"
+                        >
                           <template #icon>
                             <Trash class="size-4" />
                           </template>
@@ -682,8 +712,11 @@ onMounted(() => {
             </div>
 
             <div v-else class="space-y-3">
-              <div v-for="share in shares" :key="share.id"
-                class="p-4 border rounded-xl hover:bg-muted/50 transition-colors">
+              <div
+                v-for="share in shares"
+                :key="share.id"
+                class="p-4 border rounded-xl hover:bg-muted/50 transition-colors"
+              >
                 <!-- Header row -->
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center gap-2 min-w-0">
@@ -710,18 +743,26 @@ onMounted(() => {
                 </div>
 
                 <!-- Recipients row (for private shares) -->
-                <div v-if="share.shareType === 'private' && share.recipients?.length"
-                  class="flex items-center gap-2 mb-2">
+                <div
+                  v-if="share.shareType === 'private' && share.recipients?.length"
+                  class="flex items-center gap-2 mb-2"
+                >
                   <div class="flex -space-x-2">
-                    <UiAvatar v-for="(recipient, idx) in share.recipients.slice(0, 4)" :key="recipient.id"
-                      class="size-6 border-2 border-background" :style="{ zIndex: share.recipients.length - idx }">
+                    <UiAvatar
+                      v-for="(recipient, idx) in share.recipients.slice(0, 4)"
+                      :key="recipient.id"
+                      class="size-6 border-2 border-background"
+                      :style="{ zIndex: share.recipients.length - idx }"
+                    >
                       <UiAvatarImage v-if="recipient.user?.image" :src="recipient.user.image" />
                       <UiAvatarFallback class="text-[10px] bg-secondary">
                         {{ recipient.email[0]?.toUpperCase() || "?" }}
                       </UiAvatarFallback>
                     </UiAvatar>
-                    <div v-if="share.recipients.length > 4"
-                      class="flex size-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium border-2 border-background">
+                    <div
+                      v-if="share.recipients.length > 4"
+                      class="flex size-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium border-2 border-background"
+                    >
                       +{{ share.recipients.length - 4 }}
                     </div>
                   </div>
@@ -779,13 +820,19 @@ onMounted(() => {
               <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Client</p>
               <div class="space-y-1.5">
                 <p v-if="project.clientName" class="text-sm font-medium">{{ project.clientName }}</p>
-                <a v-if="project.clientEmail" :href="`mailto:${project.clientEmail}`"
-                  class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a
+                  v-if="project.clientEmail"
+                  :href="`mailto:${project.clientEmail}`"
+                  class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   <Mail class="size-3.5" />
                   {{ project.clientEmail }}
                 </a>
-                <a v-if="project.clientPhone" :href="`tel:${project.clientPhone}`"
-                  class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a
+                  v-if="project.clientPhone"
+                  :href="`tel:${project.clientPhone}`"
+                  class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   <Phone class="size-3.5" />
                   {{ project.clientPhone }}
                 </a>
@@ -867,24 +914,42 @@ onMounted(() => {
     </div>
 
     <!-- Modals -->
-    <ModalsCreateShareModal v-model:open="showShareDialog" :project-id="projectId" :project-name="project?.name || ''"
-      @created="(share) => shares.unshift(share)" />
+    <ModalsCreateShareModal
+      v-model:open="showShareDialog"
+      :project-id="projectId"
+      :project-name="project?.name || ''"
+      @created="(share) => shares.unshift(share)"
+    />
     <ModalsAddFileModal v-model:open="showAddFileDialog" :project-id="projectId" @added="handleFileAdded" />
     <ModalsFileSelectorModal v-model:open="showFileSelector" :project-id="projectId" :files="files" />
-    <ModalsEditFileModal v-model:open="showEditFileDialog" :project-id="projectId" :file="fileToEdit"
-      @updated="handleFileUpdated" />
+    <ModalsEditFileModal
+      v-model:open="showEditFileDialog"
+      :project-id="projectId"
+      :file="fileToEdit"
+      @updated="handleFileUpdated"
+    />
 
     <!-- Delete Project Confirmation Modal -->
-    <UiDeleteConfirmModal v-model:open="showDeleteProjectModal" title="Delete Project"
+    <UiDeleteConfirmModal
+      v-model:open="showDeleteProjectModal"
+      title="Delete Project"
       description="This will permanently delete the project, all files, annotations, and shares. This action cannot be undone."
-      :item-name="project?.name || ''" :is-deleting="isDeleting" :require-confirmation="true"
-      confirm-text="Delete Project" @confirm="confirmDeleteProject" />
+      :item-name="project?.name || ''"
+      :is-deleting="isDeleting"
+      :require-confirmation="true"
+      confirm-text="Delete Project"
+      @confirm="confirmDeleteProject"
+    />
 
     <!-- Delete File Confirmation Modal -->
-    <UiDeleteConfirmModal v-model:open="showDeleteFileModal" title="Delete File"
+    <UiDeleteConfirmModal
+      v-model:open="showDeleteFileModal"
+      title="Delete File"
       description="This will permanently delete the file and all its annotations. This action cannot be undone."
-      :item-name="fileToDelete?.pdfFileName || ''" :is-deleting="isDeletingFile === fileToDelete?.id"
-      confirm-text="Delete File" @confirm="confirmDeleteFile" />
-
+      :item-name="fileToDelete?.pdfFileName || ''"
+      :is-deleting="isDeletingFile === fileToDelete?.id"
+      confirm-text="Delete File"
+      @confirm="confirmDeleteFile"
+    />
   </div>
 </template>

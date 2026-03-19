@@ -67,11 +67,7 @@ describe("Upload API", () => {
 
     it("returns 413 when the upload exceeds the plan limit", async () => {
       const form = new FormData()
-      form.append(
-        "pdf",
-        new Blob([new Uint8Array(11 * 1024 * 1024)], { type: "application/pdf" }),
-        "too-large.pdf"
-      )
+      form.append("pdf", new Blob([new Uint8Array(11 * 1024 * 1024)], { type: "application/pdf" }), "too-large.pdf")
 
       await expectError("/api/upload/pdf", 413, {
         method: "POST",

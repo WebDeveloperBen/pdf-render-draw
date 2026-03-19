@@ -1,11 +1,13 @@
 import { betterAuth } from "better-auth/minimal"
 import { admin, openAPI, organization, magicLink, testUtils } from "better-auth/plugins"
+import { APIError } from "better-auth/api"
 import { apiKey } from "@better-auth/api-key"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { eq } from "drizzle-orm"
+import { and, count, eq, inArray } from "drizzle-orm"
 import { db } from "./server/utils/drizzle"
 import * as schema from "./shared/db/schema"
 import { ac, roles } from "./shared/auth/access-control"
+import { getOrganizationMemberLimit } from "./shared/utils/billing-seats"
 import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
 import { sendMagicLinkEmail, sendOrganizationInviteEmail } from "./server/services/email/email.service"
 import {
@@ -19,6 +21,61 @@ import {
 } from "./auth/index"
 
 export { stripeClient }
+
+const ACTIVE_ORGANIZATION_SUBSCRIPTION_STATUSES = ["active", "trialing"] as const
+
+async function getActiveOrganizationSubscription(organizationId: string) {
+  return db.query.subscription.findFirst({
+    where: and(
+      eq(schema.subscription.referenceId, organizationId),
+      inArray(schema.subscription.status, ACTIVE_ORGANIZATION_SUBSCRIPTION_STATUSES)
+    )
+  })
+}
+
+async function getOrganizationSeatLimit(organizationId: string) {
+  const subscription = await getActiveOrganizationSubscription(organizationId)
+  return getOrganizationMemberLimit(subscription?.plan, subscription?.seats)
+}
+
+async function countOrganizationMembers(organizationId: string) {
+  const [result] = await db
+    .select({ count: count() })
+    .from(schema.member)
+    .where(eq(schema.member.organizationId, organizationId))
+
+  return result?.count ?? 0
+}
+
+async function countPendingOrganizationInvitations(organizationId: string) {
+  const [result] = await db
+    .select({ count: count() })
+    .from(schema.invitation)
+    .where(and(eq(schema.invitation.organizationId, organizationId), eq(schema.invitation.status, "pending")))
+
+  return result?.count ?? 0
+}
+
+async function assertOrganizationHasSeatCapacity(organizationId: string, additionalReservedSeats = 0) {
+  const [seatLimit, memberCount, pendingInvitationCount] = await Promise.all([
+    getOrganizationSeatLimit(organizationId),
+    countOrganizationMembers(organizationId),
+    countPendingOrganizationInvitations(organizationId)
+  ])
+
+  const reservedSeats = memberCount + pendingInvitationCount + additionalReservedSeats
+
+  if (reservedSeats <= seatLimit) {
+    return
+  }
+
+  const message =
+    seatLimit <= 1
+      ? "Your current plan only allows one organisation member. Upgrade to Team before inviting more people."
+      : `This organisation has used all ${seatLimit} billed seats. Increase your seat count before inviting or adding another member.`
+
+  throw new APIError("FORBIDDEN", { message })
+}
 
 export const auth = betterAuth({
   telemetry: { enabled: false },
@@ -49,6 +106,18 @@ export const auth = betterAuth({
       ac,
       roles,
       teams: { enabled: true },
+      membershipLimit: async (_user, organization) => getOrganizationSeatLimit(organization.id),
+      organizationHooks: {
+        beforeCreateInvitation: async ({ organization }) => {
+          await assertOrganizationHasSeatCapacity(organization.id, 1)
+        },
+        beforeAcceptInvitation: async ({ organization }) => {
+          await assertOrganizationHasSeatCapacity(organization.id)
+        },
+        beforeAddMember: async ({ organization }) => {
+          await assertOrganizationHasSeatCapacity(organization.id, 1)
+        }
+      },
       async sendInvitationEmail({ email, organization, inviter, invitation }) {
         const invitationUrl = `${process.env.NUXT_BETTER_AUTH_URL}/invite/${invitation.id}`
         await sendOrganizationInviteEmail(

@@ -21,7 +21,7 @@ type PermissionCheck = {
 /** Cached auth + billing context attached to every authenticated request. */
 export interface AuthContext {
   session: Awaited<ReturnType<typeof auth.api.getSession>>
-  user: { id: string; email: string;[key: string]: unknown }
+  user: { id: string; email: string; [key: string]: unknown }
   orgId: string | null
   billing: OrgBillingContext
 }
@@ -103,10 +103,7 @@ async function resolveBillingContext(orgId: string | null): Promise<OrgBillingCo
   const db = useDrizzle()
 
   const orgSub = await db.query.subscription.findFirst({
-    where: and(
-      eq(subscription.referenceId, orgId),
-      inArray(subscription.status, ["active", "trialing"])
-    )
+    where: and(eq(subscription.referenceId, orgId), inArray(subscription.status, ["active", "trialing"]))
   })
 
   if (!orgSub) {
@@ -122,7 +119,10 @@ async function resolveBillingContext(orgId: string | null): Promise<OrgBillingCo
   const plan =
     (orgSub.stripePriceId
       ? await db.query.stripePlan.findFirst({
-          where: or(eq(stripePlan.stripePriceId, orgSub.stripePriceId), eq(stripePlan.annualDiscountPriceId, orgSub.stripePriceId))
+          where: or(
+            eq(stripePlan.stripePriceId, orgSub.stripePriceId),
+            eq(stripePlan.annualDiscountPriceId, orgSub.stripePriceId)
+          )
         })
       : null) ??
     (await db.query.stripePlan.findFirst({

@@ -133,10 +133,15 @@ const formatFileSize = (bytes: number) => {
       </UiDialogHeader>
 
       <div class="space-y-4 py-4">
-        <div v-if="!uploadedFile"
+        <div
+          v-if="!uploadedFile"
           class="border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer"
           :class="isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'"
-          @click="fileInputRef?.click()" @dragover="handleDragOver" @dragleave="handleDragLeave" @drop="handleDrop">
+          @click="fileInputRef?.click()"
+          @dragover="handleDragOver"
+          @dragleave="handleDragLeave"
+          @drop="handleDrop"
+        >
           <input ref="fileInputRef" type="file" accept="application/pdf" class="hidden" @change="handleFileSelect" />
 
           <div v-if="isUploading" class="space-y-3">

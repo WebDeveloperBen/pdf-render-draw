@@ -1,4 +1,7 @@
-import { sendPasswordResetEmail, sendVerificationEmail as deliverVerificationEmail } from "../server/services/email/email.service"
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail as deliverVerificationEmail
+} from "../server/services/email/email.service"
 
 export const emailVerificationConfig = {
   async sendVerificationEmail({ user, url }: { user: { email?: string }; url: string }) {

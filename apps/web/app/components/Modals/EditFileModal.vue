@@ -28,13 +28,10 @@ async function handleSave() {
 
   isSaving.value = true
   try {
-    const updated = await $fetch<ProjectFileWithUploader>(
-      `/api/projects/${props.projectId}/files/${props.file.id}`,
-      {
-        method: "PATCH",
-        body: { pdfFileName: editFileName.value.trim() }
-      }
-    )
+    const updated = await $fetch<ProjectFileWithUploader>(`/api/projects/${props.projectId}/files/${props.file.id}`, {
+      method: "PATCH",
+      body: { pdfFileName: editFileName.value.trim() }
+    })
 
     emit("updated", updated)
     toast.success("File updated")

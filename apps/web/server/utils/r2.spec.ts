@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import {
-  deleteMultipleFromR2,
-  existsInR2,
-  uploadPdf,
-  uploadToR2
-} from "./r2"
+import { deleteMultipleFromR2, existsInR2, uploadPdf, uploadToR2 } from "./r2"
 import { getTestR2Store, getTestState, resetTestState } from "./test-state"
 
 describe("R2 utilities", () => {
@@ -31,10 +26,7 @@ describe("R2 utilities", () => {
     store?.set("pdfs/one.pdf", new Uint8Array([1]))
     store?.set("pdfs/two.pdf", new Uint8Array([2]))
 
-    await deleteMultipleFromR2([
-      "http://example.test/storage/pdfs/one.pdf",
-      "https://cdn.example.test/pdfs/two.pdf"
-    ])
+    await deleteMultipleFromR2(["http://example.test/storage/pdfs/one.pdf", "https://cdn.example.test/pdfs/two.pdf"])
 
     expect(store?.has("pdfs/one.pdf")).toBe(false)
     expect(store?.has("pdfs/two.pdf")).toBe(false)

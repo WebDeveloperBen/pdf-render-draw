@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { OnboardingPlanId, WizardData } from "~/types/wizard"
+import { clampSeatCount, getDefaultTeamSeatCount } from "@shared/utils/billing-seats"
+import { postApiUserOnboarding } from "~/models/api"
 import { toast } from "vue-sonner"
 import {
   ArrowLeft,
@@ -20,11 +22,13 @@ definePageMeta({
 })
 
 const wizardData = useState<WizardData>("wizard-data", () => ({}))
-const session = authClient.useSession()
 const runtimeConfig = useRuntimeConfig()
 const freeTrialPeriodInDays = runtimeConfig.public.sales.freeTrialPeriodInDays
 
 const selectedPlan = ref<OnboardingPlanId>("professional")
+const teamSeats = ref(
+  clampSeatCount(wizardData.value.selectedSeats, getDefaultTeamSeatCount(wizardData.value.teamSize))
+)
 const isSubmitting = ref(false)
 
 type OnboardingPlan = {
@@ -100,18 +104,48 @@ const plans: OnboardingPlan[] = [
   }
 ]
 
-const { checkout, isLoading: isCheckoutLoading } = useCheckout()
+const { checkout } = useCheckout()
+
+watch(
+  () => wizardData.value.teamSize,
+  (teamSize) => {
+    if (selectedPlan.value !== "team" || wizardData.value.selectedSeats) {
+      return
+    }
+
+    teamSeats.value = getDefaultTeamSeatCount(teamSize)
+  },
+  { immediate: true }
+)
+
+watch(selectedPlan, (plan) => {
+  if (plan !== "team") {
+    return
+  }
+
+  teamSeats.value = clampSeatCount(wizardData.value.selectedSeats, getDefaultTeamSeatCount(wizardData.value.teamSize))
+})
+
+const selectedPlanConfig = computed<OnboardingPlan>(
+  () => plans.find((plan) => plan.id === selectedPlan.value) ?? plans[0]!
+)
+const teamSeatSummary = computed(() => {
+  const seatCount = clampSeatCount(teamSeats.value)
+  return `${seatCount} ${seatCount === 1 ? "seat" : "seats"} selected`
+})
+const teamMonthlyEstimate = computed(() => clampSeatCount(teamSeats.value) * 79)
 
 const handleComplete = async () => {
   isSubmitting.value = true
 
   try {
     wizardData.value.selectedPlan = selectedPlan.value
+    wizardData.value.selectedSeats = selectedPlan.value === "team" ? clampSeatCount(teamSeats.value) : undefined
 
     // Save wizard data to backend
-    await $fetch("/api/user/onboarding", {
-      method: "POST",
-      body: wizardData.value
+    await postApiUserOnboarding({
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(wizardData.value)
     })
 
     toast.success("Profile completed!")
@@ -123,7 +157,10 @@ const handleComplete = async () => {
       navigateTo("/")
     } else {
       // Trigger real Stripe checkout
-      await checkout(selectedPlan.value)
+      await checkout(
+        selectedPlan.value,
+        selectedPlan.value === "team" ? { seats: clampSeatCount(teamSeats.value) } : undefined
+      )
     }
   } catch (error: any) {
     toast.error(error.data?.statusMessage || "Failed to complete onboarding")
@@ -166,7 +203,9 @@ const handleBack = () => {
     </div>
 
     <!-- Plans Grid -->
-    <div class="grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 mt-4 md:grid-cols-2 xl:grid-cols-4">
+    <div
+      class="grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 mt-4 md:grid-cols-2 xl:grid-cols-4"
+    >
       <div v-for="plan in plans" :key="plan.id" class="relative">
         <!-- Popular Badge (overlaps card from above) -->
         <div v-if="plan.popular" class="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
@@ -279,6 +318,39 @@ const handleBack = () => {
       </div>
     </div>
 
+    <UiCard
+      v-if="selectedPlan === 'team'"
+      class="border-2 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 bg-linear-to-br from-background via-background to-primary/5"
+    >
+      <UiCardContent class="p-6 sm:p-8">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div class="space-y-2">
+            <p class="text-sm font-semibold text-primary flex items-center gap-2">
+              <Users class="size-4" />
+              Team seats
+            </p>
+            <h3 class="text-xl font-semibold">Choose how many people need access</h3>
+            <p class="max-w-2xl text-sm text-muted-foreground">
+              Team is billed per active seat. We’ve prefilled this from your company size, and you can change it now
+              before heading to Stripe.
+            </p>
+          </div>
+
+          <div class="w-full max-w-sm space-y-3">
+            <UiNumberField v-model="teamSeats" :min="1" :step="1">
+              <UiNumberFieldDecrement />
+              <UiNumberFieldInput class="text-center font-semibold" />
+              <UiNumberFieldIncrement />
+            </UiNumberField>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted-foreground">{{ teamSeatSummary }}</span>
+              <span class="font-medium">${{ teamMonthlyEstimate }}/month</span>
+            </div>
+          </div>
+        </div>
+      </UiCardContent>
+    </UiCard>
+
     <!-- Summary Card -->
     <UiCard class="border-2 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
       <UiCardContent class="p-6 sm:p-8">
@@ -289,12 +361,12 @@ const handleBack = () => {
               <CheckCircle class="size-4 text-primary" />
               You've selected
             </p>
-            <p class="text-2xl sm:text-3xl font-bold">{{ plans.find((p) => p.id === selectedPlan)?.name }} Plan</p>
+            <p class="text-2xl sm:text-3xl font-bold">{{ selectedPlanConfig.name }} Plan</p>
             <p class="text-sm text-muted-foreground flex items-center gap-2">
               <Users class="size-4" />
-              {{ plans.find((p) => p.id === selectedPlan)?.seats }}
-              <span v-if="plans.find((p) => p.id === selectedPlan)?.seatsNote" class="text-muted-foreground/70">
-                ({{ plans.find((p) => p.id === selectedPlan)?.seatsNote }})
+              {{ selectedPlan === "team" ? teamSeatSummary : selectedPlanConfig.seats }}
+              <span v-if="selectedPlanConfig.seatsNote" class="text-muted-foreground/70">
+                ({{ selectedPlanConfig.seatsNote }})
               </span>
             </p>
           </div>
@@ -305,13 +377,10 @@ const handleBack = () => {
             </p>
             <div class="flex items-baseline gap-2">
               <span class="text-4xl font-bold">
-                {{ plans.find((p) => p.id === selectedPlan)?.price }}
+                {{ selectedPlan === "team" ? `$${teamMonthlyEstimate}` : selectedPlanConfig.price }}
               </span>
-              <span
-                v-if="plans.find((p) => p.id === selectedPlan)?.period"
-                class="text-base font-medium text-muted-foreground"
-              >
-                {{ plans.find((p) => p.id === selectedPlan)?.period }}
+              <span v-if="selectedPlanConfig.period" class="text-base font-medium text-muted-foreground">
+                {{ selectedPlanConfig.period }}
               </span>
             </div>
           </div>
@@ -381,7 +450,13 @@ const handleBack = () => {
         <UiSpinner v-if="isSubmitting" class="size-5 mr-2" />
         <template v-else>
           <span class="font-bold text-lg">
-                {{ selectedPlan === "enterprise" ? "Contact Sales" : selectedPlan === "free" ? "Continue on Free" : "Start Free Trial" }}
+            {{
+              selectedPlan === "enterprise"
+                ? "Contact Sales"
+                : selectedPlan === "free"
+                  ? "Continue on Free"
+                  : "Start Free Trial"
+            }}
           </span>
           <ArrowRight class="size-6 ml-3 group-hover:translate-x-1 transition-transform" />
         </template>

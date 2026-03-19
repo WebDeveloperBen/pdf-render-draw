@@ -93,14 +93,10 @@ export async function seedStandardScenario(db: TestDb): Promise<SeededData> {
   })
 
   // Insert users
-  await db
-    .insert(user)
-    .values([adminData.user, userData.user, teamData.user, guestData.user])
+  await db.insert(user).values([adminData.user, userData.user, teamData.user, guestData.user])
 
   // Insert accounts
-  await db
-    .insert(account)
-    .values([adminData.account, userData.account, teamData.account, guestData.account])
+  await db.insert(account).values([adminData.account, userData.account, teamData.account, guestData.account])
 
   // 2. Organizations
   const acmeOrg = buildOrg({

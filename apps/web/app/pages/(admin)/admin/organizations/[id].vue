@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { AdminOrganizationDetail } from "@shared/types/admin.types"
+import { getApiAdminOrganizationsId } from "~/models/api"
+import type { GetApiAdminOrganizationsId200 } from "~/models/api"
 import { AlertCircle, ArrowLeft, Users } from "lucide-vue-next"
 
 definePageMeta({
@@ -11,7 +12,7 @@ const route = useRoute("admin-organizations-id")
 const orgId = computed(() => route.params.id)
 
 // State
-const org = ref<AdminOrganizationDetail | null>(null)
+const org = ref<GetApiAdminOrganizationsId200 | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 
@@ -20,7 +21,8 @@ const fetchOrg = async () => {
   isLoading.value = true
   error.value = null
   try {
-    org.value = await $fetch<AdminOrganizationDetail>(`/api/admin/organizations/${orgId.value}`)
+    const response = await getApiAdminOrganizationsId(orgId.value)
+    org.value = response.data
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load organization"
   } finally {

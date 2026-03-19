@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ChevronsUpDown, Search, Loader2, Check, X } from "lucide-vue-next"
 import { useDebounceFn } from "@vueuse/core"
-import type { AdminUser, AdminUsersResponse } from "@shared/types/admin.types"
+import { getApiAdminUsers } from "~/models/api"
+import type { GetApiAdminUsers200UsersItem } from "~/models/api"
 
 const props = defineProps<{
   placeholder?: string
 }>()
 
 const emit = defineEmits<{
-  select: [user: AdminUser]
+  select: [user: GetApiAdminUsers200UsersItem]
 }>()
 
 const modelValue = defineModel<string>({ default: "" })
@@ -16,8 +17,8 @@ const modelValue = defineModel<string>({ default: "" })
 const searchQuery = ref("")
 const isOpen = ref(false)
 const isLoading = ref(false)
-const users = ref<AdminUser[]>([])
-const selectedUser = ref<AdminUser | null>(null)
+const users = ref<GetApiAdminUsers200UsersItem[]>([])
+const selectedUser = ref<GetApiAdminUsers200UsersItem | null>(null)
 
 // Search users with debounce
 const searchUsers = useDebounceFn(async () => {
@@ -28,15 +29,13 @@ const searchUsers = useDebounceFn(async () => {
 
   isLoading.value = true
   try {
-    const response = await $fetch<AdminUsersResponse>("/api/admin/users", {
-      query: {
-        search: searchQuery.value,
-        limit: 10,
-        sortBy: "name",
-        sortOrder: "asc"
-      }
+    const response = await getApiAdminUsers({
+      search: searchQuery.value,
+      limit: 10,
+      sortBy: "name",
+      sortOrder: "asc"
     })
-    users.value = response.users
+    users.value = response.data.users ?? []
   } catch (error) {
     console.error("Failed to search users:", error)
     users.value = []
@@ -49,7 +48,7 @@ watch(searchQuery, () => {
   searchUsers()
 })
 
-const selectUser = (user: AdminUser) => {
+const selectUser = (user: GetApiAdminUsers200UsersItem) => {
   selectedUser.value = user
   modelValue.value = user.id
   emit("select", user)

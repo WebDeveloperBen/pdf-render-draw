@@ -32,7 +32,8 @@ export const billingActionsService = {
       ? {
           status: testState.billing.cancelStatus,
           cancel_at_period_end: params.mode === "at_period_end",
-          cancel_at: params.mode === "at_period_end" ? Math.floor((localSub.periodEnd?.getTime() ?? Date.now()) / 1000) : null,
+          cancel_at:
+            params.mode === "at_period_end" ? Math.floor((localSub.periodEnd?.getTime() ?? Date.now()) / 1000) : null,
           canceled_at: params.mode === "immediately" ? testNow : null,
           ended_at: params.mode === "immediately" ? testNow : null
         }

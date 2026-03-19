@@ -87,27 +87,15 @@ function computeDataFreshness(lastActivityAt: Date | null): DataFreshness {
   return "stale"
 }
 
-function computeAllowedActions(
-  status: string,
-  cancelAtPeriodEnd: boolean | null,
-  adminTier: string
-): AllowedAction[] {
+function computeAllowedActions(status: string, cancelAtPeriodEnd: boolean | null, adminTier: string): AllowedAction[] {
   const actions: AllowedAction[] = []
   if (["support", "admin", "owner"].includes(adminTier)) actions.push("refresh")
-  if (
-    ["support", "admin", "owner"].includes(adminTier) &&
-    ["active", "trialing", "past_due"].includes(status)
-  )
+  if (["support", "admin", "owner"].includes(adminTier) && ["active", "trialing", "past_due"].includes(status))
     actions.push("send_billing_portal_link")
-  if (
-    ["admin", "owner"].includes(adminTier) &&
-    ["active", "trialing"].includes(status) &&
-    !cancelAtPeriodEnd
-  )
+  if (["admin", "owner"].includes(adminTier) && ["active", "trialing"].includes(status) && !cancelAtPeriodEnd)
     actions.push("cancel_at_period_end")
   if (["admin", "owner"].includes(adminTier) && cancelAtPeriodEnd) actions.push("reactivate")
-  if (adminTier === "owner" && ["active", "trialing", "past_due"].includes(status))
-    actions.push("cancel_immediately")
+  if (adminTier === "owner" && ["active", "trialing", "past_due"].includes(status)) actions.push("cancel_immediately")
   return actions
 }
 

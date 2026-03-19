@@ -69,8 +69,15 @@ function isJsonBody(body: TestRequestOptions["body"]): body is JsonBody {
     return false
   }
 
-  return !(body instanceof ReadableStream || body instanceof Blob || body instanceof ArrayBuffer || body instanceof FormData || body instanceof URLSearchParams)
-    && !ArrayBuffer.isView(body)
+  return (
+    !(
+      body instanceof ReadableStream ||
+      body instanceof Blob ||
+      body instanceof ArrayBuffer ||
+      body instanceof FormData ||
+      body instanceof URLSearchParams
+    ) && !ArrayBuffer.isView(body)
+  )
 }
 
 export async function testFetch<T = unknown>(path: string, options: TestRequestOptions = {}): Promise<T> {

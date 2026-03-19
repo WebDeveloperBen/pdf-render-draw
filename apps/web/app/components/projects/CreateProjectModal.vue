@@ -338,7 +338,6 @@ async function handleSubmit() {
   }
 }
 
-
 // ============================================
 // MODAL LIFECYCLE
 // ============================================
@@ -434,7 +433,9 @@ watch(isOpen, (open) => {
                 <p class="text-sm text-muted-foreground">
                   <template v-if="activeStep === 'details'">Basic project information</template>
                   <template v-else-if="activeStep === 'location'">Job site and client details</template>
-                  <template v-else-if="activeStep === 'files'">Upload a building plan or start with a blank page</template>
+                  <template v-else-if="activeStep === 'files'"
+                    >Upload a building plan or start with a blank page</template
+                  >
                   <template v-else>Additional notes and organisation</template>
                 </p>
               </div>
@@ -575,26 +576,26 @@ watch(isOpen, (open) => {
               <!-- FILES STEP -->
               <div v-else-if="activeStep === 'files'" class="flex-1 flex flex-col min-h-0">
                 <!-- Scratchpad chosen -->
-                <div v-if="useScratchpad && !uploadedFile" class="flex-1 flex flex-col items-center justify-center text-center min-h-100">
+                <div
+                  v-if="useScratchpad && !uploadedFile"
+                  class="flex-1 flex flex-col items-center justify-center text-center min-h-100"
+                >
                   <div class="space-y-4">
                     <div class="size-24 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
                       <FilePlus class="size-12 text-primary" />
                     </div>
                     <div>
                       <p class="text-xl font-semibold">Starting with a blank page</p>
-                      <p class="text-muted-foreground mt-2">A scratchpad will be created when you finish setting up the project</p>
+                      <p class="text-muted-foreground mt-2">
+                        A scratchpad will be created when you finish setting up the project
+                      </p>
                     </div>
-                    <UiButton variant="outline" @click="useScratchpad = false">
-                      Upload a PDF instead
-                    </UiButton>
+                    <UiButton variant="outline" @click="useScratchpad = false"> Upload a PDF instead </UiButton>
                   </div>
                 </div>
 
                 <!-- No file yet — upload drop zone -->
-                <div
-                  v-else-if="!uploadedFile"
-                  class="flex-1 flex flex-col min-h-100"
-                >
+                <div v-else-if="!uploadedFile" class="flex-1 flex flex-col min-h-100">
                   <div
                     class="flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center transition-all cursor-pointer"
                     :class="

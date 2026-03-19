@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
 import {
+  getApiAdminSubscriptionsId,
+  getApiAdminSubscriptionsIdActivity,
+  postApiAdminSubscriptionsIdCancel,
+  postApiAdminSubscriptionsIdReactivate,
+  postApiAdminSubscriptionsIdRefresh,
+  postApiAdminSubscriptionsIdSendBillingPortalLink
+} from "~/models/api"
+import type { GetApiAdminSubscriptionsId200, GetApiAdminSubscriptionsIdActivity200ActivitiesItem } from "~/models/api"
+import {
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
@@ -31,15 +40,16 @@ const subscriptionId = computed(() => route.params.id)
 // State
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const detail = ref<any>(null)
-const activities = ref<any[]>([])
+const detail = ref<GetApiAdminSubscriptionsId200 | null>(null)
+const activities = ref<GetApiAdminSubscriptionsIdActivity200ActivitiesItem[]>([])
 
 // Fetch subscription detail
 const fetchDetail = async () => {
   isLoading.value = true
   error.value = null
   try {
-    detail.value = await $fetch(`/api/admin/subscriptions/${subscriptionId.value}`)
+    const response = await getApiAdminSubscriptionsId(subscriptionId.value)
+    detail.value = response.data
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load subscription"
   } finally {
@@ -50,8 +60,8 @@ const fetchDetail = async () => {
 // Fetch activity timeline
 const fetchActivity = async () => {
   try {
-    const response = await $fetch<{ activities: any[] }>(`/api/admin/subscriptions/${subscriptionId.value}/activity`)
-    activities.value = response.activities
+    const response = await getApiAdminSubscriptionsIdActivity(subscriptionId.value)
+    activities.value = response.data.activities ?? []
   } catch {
     // Non-critical — don't block the page
   }
@@ -62,7 +72,7 @@ const isRefreshing = ref(false)
 const handleRefresh = async () => {
   isRefreshing.value = true
   try {
-    await $fetch(`/api/admin/subscriptions/${subscriptionId.value}/refresh`, { method: "POST" })
+    await postApiAdminSubscriptionsIdRefresh(subscriptionId.value)
     toast.success("Subscription refreshed from Stripe")
     await fetchDetail()
     await fetchActivity()
@@ -91,9 +101,9 @@ const handleCancel = async () => {
   }
   isCancelling.value = true
   try {
-    await $fetch(`/api/admin/subscriptions/${subscriptionId.value}/cancel`, {
-      method: "POST",
-      body: { mode: cancelMode.value, reason: cancelReason.value }
+    await postApiAdminSubscriptionsIdCancel(subscriptionId.value, {
+      mode: cancelMode.value,
+      reason: cancelReason.value
     })
     toast.success(
       cancelMode.value === "at_period_end"
@@ -116,9 +126,8 @@ const isReactivating = ref(false)
 const handleReactivate = async () => {
   isReactivating.value = true
   try {
-    await $fetch(`/api/admin/subscriptions/${subscriptionId.value}/reactivate`, {
-      method: "POST",
-      body: { reason: "Admin reactivated scheduled cancellation" }
+    await postApiAdminSubscriptionsIdReactivate(subscriptionId.value, {
+      reason: "Admin reactivated scheduled cancellation"
     })
     toast.success("Scheduled cancellation reversed")
     await fetchDetail()
@@ -135,14 +144,11 @@ const isGeneratingPortal = ref(false)
 const handleBillingPortal = async () => {
   isGeneratingPortal.value = true
   try {
-    const result = await $fetch<{ url: string }>(
-      `/api/admin/subscriptions/${subscriptionId.value}/send-billing-portal-link`,
-      {
-        method: "POST",
-        body: { returnUrl: window.location.href }
-      }
-    )
-    await navigator.clipboard.writeText(result.url)
+    const result = await postApiAdminSubscriptionsIdSendBillingPortalLink(subscriptionId.value, {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ returnUrl: window.location.href })
+    })
+    await navigator.clipboard.writeText(result.data.url)
     toast.success("Billing portal link copied to clipboard")
   } catch (e: any) {
     toast.error(e.data?.message || "Failed to generate portal link")

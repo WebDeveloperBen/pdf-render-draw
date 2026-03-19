@@ -15,13 +15,15 @@ describe("Files API", () => {
 
   beforeEach(async () => {
     seed = await seedStandardScenario(getTestDb())
-    await getTestDb().insert(subscription).values(
-      buildSubscription({
-        id: "sub-sync-001",
-        referenceId: seed.orgs.acme.id,
-        plan: "Starter"
-      })
-    )
+    await getTestDb()
+      .insert(subscription)
+      .values(
+        buildSubscription({
+          id: "sub-sync-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter"
+        })
+      )
     headers = await createAuthenticatedUser(seed.users.regularUser.id, seed.orgs.acme.id)
   })
 
@@ -93,11 +95,9 @@ describe("Files API", () => {
       })
 
       // Verify the file is gone
-      await expectError(
-        `/api/projects/${seed.projects.floorPlan.id}/files/${seed.files.floorPlanFile.id}`,
-        404,
-        { headers }
-      )
+      await expectError(`/api/projects/${seed.projects.floorPlan.id}/files/${seed.files.floorPlanFile.id}`, 404, {
+        headers
+      })
     })
   })
 
@@ -113,7 +113,12 @@ describe("Files API", () => {
         projectId: seed.projects.floorPlan.id,
         type: "measure",
         pageNum: 1,
-        data: { points: [{ x: 0, y: 0 }, { x: 100, y: 100 }] },
+        data: {
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 100 }
+          ]
+        },
         createdBy: seed.users.regularUser.id,
         version: 1
       })
@@ -122,10 +127,7 @@ describe("Files API", () => {
         annotations: Array<{ id: string; type: string }>
         meta: { count: number }
         viewportState: unknown
-      }>(
-        `/api/files/${seed.files.floorPlanFile.id}/annotations`,
-        { headers }
-      )
+      }>(`/api/files/${seed.files.floorPlanFile.id}/annotations`, { headers })
 
       expect(data.annotations.length).toBe(1)
       expect(data.meta.count).toBe(1)
@@ -155,7 +157,13 @@ describe("Files API", () => {
         success: boolean
         applied: string[]
         conflicts: Array<unknown>
-        viewportState: { scale: number; rotation: number; scrollLeft: number; scrollTop: number; currentPage: number } | null
+        viewportState: {
+          scale: number
+          rotation: number
+          scrollLeft: number
+          scrollTop: number
+          currentPage: number
+        } | null
       }>(`/api/files/${seed.files.floorPlanFile.id}/annotations/sync`, {
         method: "POST",
         headers,
@@ -201,7 +209,13 @@ describe("Files API", () => {
 
       const persisted = await $fetch<{
         annotations: Array<{ id: string; type: string }>
-        viewportState: { scale: number; rotation: number; scrollLeft: number; scrollTop: number; currentPage: number } | null
+        viewportState: {
+          scale: number
+          rotation: number
+          scrollLeft: number
+          scrollTop: number
+          currentPage: number
+        } | null
       }>(`/api/files/${seed.files.floorPlanFile.id}/annotations`, { headers })
 
       expect(persisted.annotations).toEqual([
@@ -271,17 +285,24 @@ describe("Files API", () => {
 
     it("returns version conflicts for stale updates", async () => {
       const annotationId = randomUUID()
-      await getTestDb().insert(annotation).values({
-        id: annotationId,
-        fileId: seed.files.floorPlanFile.id,
-        projectId: seed.projects.floorPlan.id,
-        type: "measure",
-        pageNum: 1,
-        data: { points: [{ x: 0, y: 0 }, { x: 1, y: 1 }] },
-        createdBy: seed.users.regularUser.id,
-        modifiedBy: seed.users.regularUser.id,
-        version: 2
-      })
+      await getTestDb()
+        .insert(annotation)
+        .values({
+          id: annotationId,
+          fileId: seed.files.floorPlanFile.id,
+          projectId: seed.projects.floorPlan.id,
+          type: "measure",
+          pageNum: 1,
+          data: {
+            points: [
+              { x: 0, y: 0 },
+              { x: 1, y: 1 }
+            ]
+          },
+          createdBy: seed.users.regularUser.id,
+          modifiedBy: seed.users.regularUser.id,
+          version: 2
+        })
 
       const response = await $fetch<{
         applied: string[]
@@ -303,7 +324,10 @@ describe("Files API", () => {
                 type: "measure",
                 pageNum: 1,
                 rotation: 0,
-                points: [{ x: 10, y: 10 }, { x: 20, y: 20 }]
+                points: [
+                  { x: 10, y: 10 },
+                  { x: 20, y: 20 }
+                ]
               },
               localVersion: 1,
               timestamp: new Date().toISOString()
@@ -329,19 +353,26 @@ describe("Files API", () => {
       const earlier = new Date(Date.now() - 60_000)
       const updatedAnnotationId = randomUUID()
 
-      await getTestDb().insert(annotation).values({
-        id: updatedAnnotationId,
-        fileId: seed.files.floorPlanFile.id,
-        projectId: seed.projects.floorPlan.id,
-        type: "line",
-        pageNum: 1,
-        data: { points: [{ x: 1, y: 1 }, { x: 2, y: 2 }] },
-        createdBy: seed.users.regularUser.id,
-        modifiedBy: seed.users.regularUser.id,
-        version: 3,
-        createdAt: earlier,
-        updatedAt: new Date()
-      })
+      await getTestDb()
+        .insert(annotation)
+        .values({
+          id: updatedAnnotationId,
+          fileId: seed.files.floorPlanFile.id,
+          projectId: seed.projects.floorPlan.id,
+          type: "line",
+          pageNum: 1,
+          data: {
+            points: [
+              { x: 1, y: 1 },
+              { x: 2, y: 2 }
+            ]
+          },
+          createdBy: seed.users.regularUser.id,
+          modifiedBy: seed.users.regularUser.id,
+          version: 3,
+          createdAt: earlier,
+          updatedAt: new Date()
+        })
 
       const response = await $fetch<{
         serverUpdates: Array<{ id: string; version: number }>

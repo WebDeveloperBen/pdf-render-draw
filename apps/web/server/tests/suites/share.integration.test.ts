@@ -59,10 +59,7 @@ describe("Share API", () => {
 
     it("allows authenticated recipient to access private share", async () => {
       // Guest user is a recipient of the private share
-      const guestHeaders = await createAuthenticatedUser(
-        seed.users.guest.id,
-        seed.orgs.acme.id
-      )
+      const guestHeaders = await createAuthenticatedUser(seed.users.guest.id, seed.orgs.acme.id)
 
       const data = await $fetch<{
         id: string
@@ -77,7 +74,10 @@ describe("Share API", () => {
       const db = getTestDb()
       const crypto = await import("crypto")
       const hashedPassword = crypto.createHash("sha256").update("secret123").digest("hex")
-      await db.update(projectShare).set({ password: hashedPassword }).where(eq(projectShare.id, seed.shares.publicShare.id))
+      await db
+        .update(projectShare)
+        .set({ password: hashedPassword })
+        .where(eq(projectShare.id, seed.shares.publicShare.id))
 
       // Without password
       await expectError(`/api/share/${seed.shares.publicShare.token}`, 400)

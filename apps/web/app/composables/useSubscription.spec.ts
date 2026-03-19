@@ -54,7 +54,7 @@ describe("useSubscription", () => {
             measurementTools: "advanced",
             exportFormats: ["pdf", "png"]
           }
-        },
+        }
       }
     }
 
