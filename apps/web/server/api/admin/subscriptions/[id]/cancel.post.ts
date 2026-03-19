@@ -12,7 +12,17 @@ defineRouteMeta({
     summary: "Cancel Subscription",
     description:
       "Cancel a subscription at period end or immediately. Requires admin tier for at_period_end, owner tier for immediately.",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
+        description: "Subscription ID"
+      }
+    ],
     requestBody: {
+      required: true,
       content: {
         "application/json": {
           schema: {
@@ -27,7 +37,20 @@ defineRouteMeta({
       }
     },
     responses: {
-      200: { description: "Subscription cancelled" },
+      200: {
+        description: "Subscription cancelled",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" }
+              },
+              required: ["success"]
+            }
+          }
+        }
+      },
       403: { description: "Forbidden - requires admin or owner tier" },
       404: { description: "Subscription not found" }
     }

@@ -5,6 +5,32 @@ defineRouteMeta({
     tags: ["Admin Billing"],
     summary: "Generate Billing Portal Link",
     description: "Generate a Stripe billing portal session URL for the subscription's customer. Requires support tier.",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
+        description: "Subscription ID"
+      }
+    ],
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              returnUrl: {
+                type: "string",
+                format: "uri",
+                nullable: true,
+                description: "Optional return URL for the Stripe billing portal"
+              }
+            }
+          }
+        }
+      }
+    },
     responses: {
       200: {
         description: "Portal link generated",

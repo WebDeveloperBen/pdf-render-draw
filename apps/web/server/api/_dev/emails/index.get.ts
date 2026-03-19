@@ -1,3 +1,24 @@
+defineRouteMeta({
+  openAPI: {
+    tags: ["Dev"],
+    summary: "List Email Previews",
+    description: "List development-only email preview templates",
+    responses: {
+      200: {
+        description: "HTML email preview index",
+        content: {
+          "text/html": {
+            schema: {
+              type: "string"
+            }
+          }
+        }
+      },
+      404: { description: "Not found in production" }
+    }
+  }
+})
+
 export default defineEventHandler((event) => {
   // Only allow in development
   if (process.env.NODE_ENV === "production") {

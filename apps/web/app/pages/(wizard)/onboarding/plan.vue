@@ -2,6 +2,7 @@
 import type { OnboardingPlanId, WizardData } from "~/types/wizard"
 import { clampSeatCount, getDefaultTeamSeatCount } from "@shared/utils/billing-seats"
 import { postApiUserOnboarding } from "~/models/api"
+import type { PostApiUserOnboardingBody } from "~/models/api"
 import { toast } from "vue-sonner"
 import {
   ArrowLeft,
@@ -143,10 +144,17 @@ const handleComplete = async () => {
     wizardData.value.selectedSeats = selectedPlan.value === "team" ? clampSeatCount(teamSeats.value) : undefined
 
     // Save wizard data to backend
-    await postApiUserOnboarding({
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(wizardData.value)
-    })
+    const onboardingPayload: PostApiUserOnboardingBody = {
+      firstName: wizardData.value.firstName,
+      lastName: wizardData.value.lastName,
+      companyName: wizardData.value.companyName,
+      role: wizardData.value.role,
+      teamSize: wizardData.value.teamSize,
+      selectedPlan: wizardData.value.selectedPlan,
+      selectedSeats: wizardData.value.selectedSeats
+    }
+
+    await postApiUserOnboarding(onboardingPayload)
 
     toast.success("Profile completed!")
 

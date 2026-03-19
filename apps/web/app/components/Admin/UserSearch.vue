@@ -35,7 +35,9 @@ const searchUsers = useDebounceFn(async () => {
       sortBy: "name",
       sortOrder: "asc"
     })
-    users.value = response.data.users ?? []
+    users.value = ((response.data as { users?: GetApiAdminUsers200UsersItem[] } | undefined)?.users ?? []).filter(
+      Boolean
+    )
   } catch (error) {
     console.error("Failed to search users:", error)
     users.value = []

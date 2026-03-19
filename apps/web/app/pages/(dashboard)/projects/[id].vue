@@ -78,7 +78,7 @@ async function handleExportFile(file: ProjectFileWithUploader) {
     const exportFileName = file.pdfFileName.replace(/\.pdf$/i, "-annotated.pdf")
     await exportWithAnnotations({
       pdfUrl: file.pdfUrl,
-      annotations: (response.data.annotations as Annotation[]) ?? [],
+      annotations: ((response.data as { annotations?: Annotation[] } | undefined)?.annotations ?? []) as Annotation[],
       filename: exportFileName
     })
   } catch (error: any) {
@@ -184,10 +184,11 @@ const fetchProject = async () => {
   isLoading.value = true
   try {
     const response = await getApiProjectsId(projectId)
-    project.value = response.data as ProjectWithRelations
+    const projectData = response.data as unknown as ProjectWithRelations
+    project.value = projectData
     // Set breadcrumb label to project name
-    if (response.data.name) {
-      setLabel(projectId, response.data.name)
+    if (projectData.name) {
+      setLabel(projectId, projectData.name)
     }
   } catch (error: any) {
     toast.error(error.data?.statusMessage || "Failed to load project")
@@ -206,7 +207,7 @@ onUnmounted(() => {
 const fetchShares = async () => {
   try {
     const response = await getApiProjectsIdShares(projectId)
-    shares.value = response.data as ProjectShareWithRelations[]
+    shares.value = response.data as unknown as ProjectShareWithRelations[]
   } catch (error: any) {
     toast.error("Failed to load shares")
   }
@@ -216,7 +217,7 @@ const fetchShares = async () => {
 const fetchFiles = async () => {
   try {
     const response = await getApiProjectsIdFiles(projectId)
-    files.value = response.data as ProjectFileWithUploader[]
+    files.value = response.data as unknown as ProjectFileWithUploader[]
   } catch (error: any) {
     toast.error("Failed to load files")
   }

@@ -62,7 +62,7 @@ const fetchUser = async () => {
   error.value = null
   try {
     const response = await getApiAdminUsersId(userId.value)
-    user.value = response.data
+    user.value = response.data as GetApiAdminUsersId200
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load user"
   } finally {

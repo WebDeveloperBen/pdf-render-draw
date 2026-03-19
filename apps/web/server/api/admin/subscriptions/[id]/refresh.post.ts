@@ -5,8 +5,40 @@ defineRouteMeta({
     tags: ["Admin Billing"],
     summary: "Refresh Subscription",
     description: "Refresh a single subscription from Stripe to update local data",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
+        description: "Subscription ID"
+      }
+    ],
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            additionalProperties: false
+          }
+        }
+      }
+    },
     responses: {
-      200: { description: "Subscription refreshed" },
+      200: {
+        description: "Subscription refreshed",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" }
+              },
+              required: ["success"]
+            }
+          }
+        }
+      },
       403: { description: "Forbidden - requires support tier" },
       404: { description: "Subscription not found" }
     }

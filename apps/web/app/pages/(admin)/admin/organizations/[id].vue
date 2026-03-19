@@ -22,7 +22,7 @@ const fetchOrg = async () => {
   error.value = null
   try {
     const response = await getApiAdminOrganizationsId(orgId.value)
-    org.value = response.data
+    org.value = response.data as GetApiAdminOrganizationsId200
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load organization"
   } finally {

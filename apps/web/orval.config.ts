@@ -19,7 +19,7 @@ export default defineConfig({
       }
     },
     input: {
-      target: "http://localhost:3000/_docs/openapi.json"
+      target: ".generated/openapi.orval.json"
     }
   }
 })

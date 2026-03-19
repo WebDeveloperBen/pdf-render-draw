@@ -33,3 +33,4 @@ coverage/**
 apps/web/app/tests/e2e/screenshots/**
 apps/native/src-tauri/.tauri.release.*.json
 apps/native/src-tauri/embedded.provisionprofile
+apps/web/.generated/*

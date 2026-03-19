@@ -4,6 +4,39 @@ import VerificationEmail from "~~/server/services/email/VerificationEmail.vue"
 import MagicLinkEmail from "~~/server/services/email/MagicLinkEmail.vue"
 import OrganizationInviteEmail from "~~/server/services/email/OrganizationInviteEmail.vue"
 
+defineRouteMeta({
+  openAPI: {
+    tags: ["Dev"],
+    summary: "Render Email Preview",
+    description: "Render a development-only preview for a specific email template",
+    parameters: [
+      {
+        name: "template",
+        in: "path",
+        required: true,
+        schema: {
+          type: "string",
+          enum: ["password-reset", "verification", "magic-link", "organization-invite"]
+        },
+        description: "Email template slug"
+      }
+    ],
+    responses: {
+      200: {
+        description: "Rendered email HTML",
+        content: {
+          "text/html": {
+            schema: {
+              type: "string"
+            }
+          }
+        }
+      },
+      404: { description: "Template not found or disabled in production" }
+    }
+  }
+})
+
 export default defineEventHandler(async (event) => {
   // Only allow in development
   if (process.env.NODE_ENV === "production") {

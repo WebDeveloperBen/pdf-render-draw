@@ -49,7 +49,7 @@ const fetchDetail = async () => {
   error.value = null
   try {
     const response = await getApiAdminSubscriptionsId(subscriptionId.value)
-    detail.value = response.data
+    detail.value = response.data as GetApiAdminSubscriptionsId200
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load subscription"
   } finally {
@@ -61,7 +61,9 @@ const fetchDetail = async () => {
 const fetchActivity = async () => {
   try {
     const response = await getApiAdminSubscriptionsIdActivity(subscriptionId.value)
-    activities.value = response.data.activities ?? []
+    activities.value =
+      (response.data as { activities?: GetApiAdminSubscriptionsIdActivity200ActivitiesItem[] } | undefined)
+        ?.activities ?? []
   } catch {
     // Non-critical — don't block the page
   }
@@ -72,7 +74,7 @@ const isRefreshing = ref(false)
 const handleRefresh = async () => {
   isRefreshing.value = true
   try {
-    await postApiAdminSubscriptionsIdRefresh(subscriptionId.value)
+    await postApiAdminSubscriptionsIdRefresh(subscriptionId.value, {})
     toast.success("Subscription refreshed from Stripe")
     await fetchDetail()
     await fetchActivity()
@@ -145,10 +147,9 @@ const handleBillingPortal = async () => {
   isGeneratingPortal.value = true
   try {
     const result = await postApiAdminSubscriptionsIdSendBillingPortalLink(subscriptionId.value, {
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ returnUrl: window.location.href })
+      returnUrl: window.location.href
     })
-    await navigator.clipboard.writeText(result.data.url)
+    await navigator.clipboard.writeText((result.data as { url: string }).url)
     toast.success("Billing portal link copied to clipboard")
   } catch (e: any) {
     toast.error(e.data?.message || "Failed to generate portal link")
@@ -158,12 +159,12 @@ const handleBillingPortal = async () => {
 }
 
 // Helpers
-const formatDate = (date: string | null) => {
+const formatDate = (date: string | null | undefined) => {
   if (!date) return "—"
   return new Date(date).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })
 }
 
-const formatRelativeTime = (date: string | null) => {
+const formatRelativeTime = (date: string | null | undefined) => {
   if (!date) return "Never"
   const diff = Date.now() - new Date(date).getTime()
   const hours = Math.floor(diff / (1000 * 60 * 60))

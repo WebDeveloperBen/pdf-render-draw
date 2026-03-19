@@ -32,7 +32,7 @@ const fetchStats = async () => {
   error.value = null
   try {
     const response = await getApiAdminStats()
-    stats.value = response.data
+    stats.value = response.data as GetApiAdminStats200
   } catch (e: any) {
     error.value = e.data?.message || "Failed to load stats"
   } finally {
@@ -103,7 +103,7 @@ const fetchBillingOverview = async () => {
   isBillingLoading.value = true
   try {
     const response = await getApiAdminBillingOverview()
-    billingOverview.value = response.data
+    billingOverview.value = response.data as GetApiAdminBillingOverview200
   } catch {
     // Non-critical — dashboard still works without billing
   } finally {

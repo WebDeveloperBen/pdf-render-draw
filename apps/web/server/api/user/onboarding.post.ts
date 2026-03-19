@@ -6,6 +6,28 @@ defineRouteMeta({
     tags: ["User"],
     summary: "Complete Onboarding",
     description: "Complete user onboarding process",
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              firstName: { type: "string" },
+              lastName: { type: "string" },
+              companyName: { type: "string" },
+              role: { type: "string" },
+              teamSize: { type: "string" },
+              selectedPlan: {
+                type: "string",
+                enum: ["free", "professional", "team", "enterprise"]
+              },
+              selectedSeats: { type: "integer", minimum: 1 }
+            }
+          }
+        }
+      }
+    },
     responses: {
       200: {
         description: "Onboarding completed successfully",

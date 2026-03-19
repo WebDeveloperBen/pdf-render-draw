@@ -6,7 +6,7 @@ import OnboardingPlanPage from "./plan.vue"
 const mockState = vi.hoisted(() => ({
   wizardData: {} as Record<string, unknown>,
   checkout: vi.fn(),
-  fetch: vi.fn(),
+  postOnboarding: vi.fn(),
   navigateTo: vi.fn(),
   toastSuccess: vi.fn(),
   toastError: vi.fn()
@@ -32,6 +32,10 @@ vi.mock("~/utils/auth-client", () => ({
   }
 }))
 
+vi.mock("~/models/api", () => ({
+  postApiUserOnboarding: (...args: unknown[]) => mockState.postOnboarding(...args)
+}))
+
 vi.mock("vue-sonner", async (importOriginal) => {
   const actual = await importOriginal<typeof import("vue-sonner")>()
   return {
@@ -45,6 +49,12 @@ vi.mock("vue-sonner", async (importOriginal) => {
 })
 
 describe("Onboarding plan page", () => {
+  function expectPostedOnboardingData(expected: Record<string, unknown>) {
+    expect(mockState.postOnboarding).toHaveBeenCalled()
+    const [request] = mockState.postOnboarding.mock.calls.at(-1) ?? []
+    expect(request).toEqual(expect.objectContaining(expected))
+  }
+
   const globalStubs = {
     UiButton: {
       template: "<button @click=\"$emit('click')\"><slot /></button>"
@@ -72,13 +82,12 @@ describe("Onboarding plan page", () => {
       teamSize: "small"
     }
     mockState.checkout.mockReset()
-    mockState.fetch.mockReset()
+    mockState.postOnboarding.mockReset()
     mockState.navigateTo.mockReset()
     mockState.toastSuccess.mockReset()
     mockState.toastError.mockReset()
-    mockState.fetch.mockResolvedValue({ success: true })
+    mockState.postOnboarding.mockResolvedValue({ data: { success: true } })
     mockState.checkout.mockResolvedValue(undefined)
-    vi.stubGlobal("$fetch", (...args: unknown[]) => mockState.fetch(...args))
   })
 
   it("persists onboarding data and starts checkout for standard plans", async () => {
@@ -93,13 +102,10 @@ describe("Onboarding plan page", () => {
 
     await startTrialButton?.trigger("click")
 
-    expect(mockState.fetch).toHaveBeenCalledWith("/api/user/onboarding", {
-      method: "POST",
-      body: expect.objectContaining({
-        companyName: "Acme Build",
-        role: "Estimator",
-        selectedPlan: "professional"
-      })
+    expectPostedOnboardingData({
+      companyName: "Acme Build",
+      role: "Estimator",
+      selectedPlan: "professional"
     })
     expect(mockState.checkout).toHaveBeenCalledWith("professional", undefined)
     expect(mockState.toastSuccess).toHaveBeenCalledWith("Profile completed!")
@@ -120,13 +126,10 @@ describe("Onboarding plan page", () => {
     expect(continueButton).toBeTruthy()
     await continueButton?.trigger("click")
 
-    expect(mockState.fetch).toHaveBeenCalledWith("/api/user/onboarding", {
-      method: "POST",
-      body: expect.objectContaining({
-        companyName: "Acme Build",
-        role: "Estimator",
-        selectedPlan: "free"
-      })
+    expectPostedOnboardingData({
+      companyName: "Acme Build",
+      role: "Estimator",
+      selectedPlan: "free"
     })
     expect(mockState.checkout).not.toHaveBeenCalled()
     expect(mockState.navigateTo).toHaveBeenCalledWith("/")
@@ -147,13 +150,10 @@ describe("Onboarding plan page", () => {
     expect(startTrialButton).toBeTruthy()
     await startTrialButton?.trigger("click")
 
-    expect(mockState.fetch).toHaveBeenCalledWith("/api/user/onboarding", {
-      method: "POST",
-      body: expect.objectContaining({
-        selectedPlan: "team",
-        selectedSeats: 3,
-        teamSize: "small"
-      })
+    expectPostedOnboardingData({
+      selectedPlan: "team",
+      selectedSeats: 3,
+      teamSize: "small"
     })
     expect(mockState.checkout).toHaveBeenCalledWith("team", { seats: 3 })
   })

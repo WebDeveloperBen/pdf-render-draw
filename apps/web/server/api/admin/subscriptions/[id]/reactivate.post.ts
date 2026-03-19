@@ -10,7 +10,17 @@ defineRouteMeta({
     tags: ["Admin Billing"],
     summary: "Reactivate Subscription",
     description: "Reverse a scheduled cancellation (cancel_at_period_end). Requires admin tier.",
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
+        description: "Subscription ID"
+      }
+    ],
     requestBody: {
+      required: true,
       content: {
         "application/json": {
           schema: {
@@ -24,7 +34,20 @@ defineRouteMeta({
       }
     },
     responses: {
-      200: { description: "Subscription reactivated" },
+      200: {
+        description: "Subscription reactivated",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                success: { type: "boolean" }
+              },
+              required: ["success"]
+            }
+          }
+        }
+      },
       400: { description: "Subscription is not scheduled for cancellation" },
       403: { description: "Forbidden - requires admin tier" },
       404: { description: "Subscription not found" }

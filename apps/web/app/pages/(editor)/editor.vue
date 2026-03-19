@@ -128,9 +128,10 @@ async function loadFile() {
     _loadError.value = null
 
     const response = await getApiProjectsIdFilesFileId(projectIdValue, fileIdValue)
-    fileName.value = response.data.pdfFileName
-    pdfUrl.value = response.data.pdfUrl
-    await viewportStore.loadPdf(response.data.pdfUrl)
+    const fileData = response.data as { pdfFileName: string; pdfUrl: string }
+    fileName.value = fileData.pdfFileName
+    pdfUrl.value = fileData.pdfUrl
+    await viewportStore.loadPdf(fileData.pdfUrl)
 
     // Set file ID and initialize sync
     fileId.value = fileIdValue
@@ -743,9 +744,11 @@ if (typeof window !== "undefined") {
   color: white;
   border-color: hsl(150, 60%, 40%);
 }
+
 .room-text-wall-btn:hover:not(:disabled) {
   background: hsl(150, 60%, 35%);
 }
+
 .room-text-wall-btn:disabled {
   opacity: 0.5;
 }
@@ -755,9 +758,11 @@ if (typeof window !== "undefined") {
   color: white;
   border-color: hsl(270, 60%, 50%);
 }
+
 .room-ocr-btn:hover:not(:disabled) {
   background: hsl(270, 60%, 45%);
 }
+
 .room-ocr-btn:disabled {
   opacity: 0.5;
 }
