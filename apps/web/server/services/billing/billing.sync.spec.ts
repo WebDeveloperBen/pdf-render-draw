@@ -52,6 +52,7 @@ vi.mock("@shared/db/schema", () => ({
     stripeProductId: "stripeProductId",
     stripePriceId: "stripePriceId",
     annualDiscountPriceId: "annualDiscountPriceId",
+    seatPriceId: "seatPriceId",
     limits: "limits",
     active: "active"
   },
@@ -114,6 +115,7 @@ function setupDbMocks() {
     })
   }))
   mockDbExecute.mockResolvedValue({ rows: [{ locked: true }] })
+  mockDbQuery.stripePlan.findMany.mockResolvedValue([])
 }
 
 // Helper: create a mock Stripe product
@@ -136,6 +138,7 @@ function mockStripeProduct(overrides: Partial<Stripe.Product> = {}): Stripe.Prod
       feature_measurement_presets: "true",
       display_order: "2"
     },
+    default_price: null,
     ...overrides
   } as Stripe.Product
 }
@@ -244,7 +247,7 @@ describe("billingSyncService.syncPlans", () => {
     await billingSyncService.syncPlans()
 
     expect(mockDbInsert).toHaveBeenCalled()
-    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
+    expect(mockDbUpdate).toHaveBeenCalledTimes(2)
   })
 
   it("populates limits from metadata for existing plan with null limits", async () => {
@@ -267,7 +270,41 @@ describe("billingSyncService.syncPlans", () => {
 
     await billingSyncService.syncPlans()
 
-    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
+    expect(mockDbUpdate).toHaveBeenCalledTimes(2)
+  })
+
+  it("populates seatPriceId from metadata when the local plan has not been configured yet", async () => {
+    const price = mockStripePrice({
+      product: mockStripeProduct({
+        name: "Team",
+        metadata: {
+          limit_projects: "unlimited",
+          limit_storage_mb: "500",
+          limit_file_size_mb: "50",
+          limit_included_seats: "3",
+          seat_price_id: "price_team_seat"
+        }
+      })
+    })
+
+    mockStripePricesList.mockResolvedValue({
+      data: [price],
+      has_more: false
+    })
+
+    mockDbQuery.stripePlan.findFirst.mockResolvedValue({
+      id: "existing-team-plan",
+      stripePriceId: "price_test123",
+      seatPriceId: null,
+      limits: null
+    })
+    mockDbQuery.stripePlan.findMany.mockResolvedValue([
+      { stripeProductId: "prod_test123", stripePriceId: "price_test123", active: true }
+    ])
+
+    await billingSyncService.syncPlans()
+
+    expect(mockDbUpdate).toHaveBeenCalledTimes(2)
   })
 
   it("skips non-recurring prices", async () => {
@@ -412,6 +449,93 @@ describe("billingSyncService.upsertSubscription", () => {
 
     expect(mockDbQuery.organization.findFirst).toHaveBeenCalled()
   })
+
+  it("resolves the matching plan item and seat quantity from a multi-item subscription", async () => {
+    const stripeSub = mockStripeSubscription({
+      items: {
+        object: "list",
+        data: [
+          {
+            id: "si_seat",
+            price: {
+              id: "price_team_seat",
+              product: mockStripeProduct({ name: "Team Seats" }),
+              lookup_key: "team-seat",
+              recurring: { interval: "month" }
+            },
+            quantity: 7,
+            current_period_start: Math.floor(Date.now() / 1000),
+            current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+          },
+          {
+            id: "si_plan",
+            price: {
+              id: "price_team_base",
+              product: mockStripeProduct({ name: "Team" }),
+              lookup_key: "team",
+              recurring: { interval: "month" }
+            },
+            quantity: 1,
+            current_period_start: Math.floor(Date.now() / 1000),
+            current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+          }
+        ]
+      } as unknown as Stripe.ApiList<Stripe.SubscriptionItem>
+    })
+
+    mockDbQuery.organization.findFirst.mockResolvedValue({ id: "org-123" })
+    mockDbQuery.subscription.findFirst.mockResolvedValue(null)
+    mockDbQuery.stripePlan.findMany.mockResolvedValue([
+      {
+        id: "plan-team",
+        name: "Team",
+        stripePriceId: "price_team_base",
+        annualDiscountPriceId: null,
+        seatPriceId: "price_team_seat"
+      }
+    ])
+
+    await billingSyncService.upsertSubscription(stripeSub)
+
+    expect(mockDbInsert).toHaveBeenCalled()
+    const insertValues = mockDbInsert.mock.results[0]?.value.values.mock.calls[0]?.[0]
+    expect(insertValues.plan).toBe("Team")
+    expect(insertValues.stripePriceId).toBe("price_team_base")
+    expect(insertValues.seats).toBe(7)
+  })
+
+  it("falls back to the only item when a single-item subscription has no cached plan match", async () => {
+    const stripeSub = mockStripeSubscription({
+      items: {
+        object: "list",
+        data: [
+          {
+            id: "si_only",
+            price: {
+              id: "price_unknown",
+              product: mockStripeProduct({ name: "Legacy Plan" }),
+              lookup_key: "legacy-plan",
+              recurring: { interval: "month" }
+            },
+            quantity: 3,
+            current_period_start: Math.floor(Date.now() / 1000),
+            current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+          }
+        ]
+      } as unknown as Stripe.ApiList<Stripe.SubscriptionItem>
+    })
+
+    mockDbQuery.organization.findFirst.mockResolvedValue({ id: "org-123" })
+    mockDbQuery.subscription.findFirst.mockResolvedValue(null)
+    mockDbQuery.stripePlan.findMany.mockResolvedValue([])
+
+    await billingSyncService.upsertSubscription(stripeSub)
+
+    const insertValues = mockDbInsert.mock.results[0]?.value.values.mock.calls[0]?.[0]
+    expect(insertValues.plan).toBe("Legacy Plan")
+    expect(insertValues.stripePriceId).toBe("price_unknown")
+    expect(insertValues.seats).toBe(3)
+  })
 })
 
 describe("billingSyncService.fullSync", () => {
@@ -547,7 +671,9 @@ describe("billingSyncService.refreshSubscription", () => {
 
     await billingSyncService.refreshSubscription("local-sub-1", "admin-1")
 
-    expect(mockStripeSubscriptionsRetrieve).toHaveBeenCalledWith("sub_stripe_123")
+    expect(mockStripeSubscriptionsRetrieve).toHaveBeenCalledWith("sub_stripe_123", {
+      expand: ["items.data.price.product"]
+    })
   })
 
   it("throws 404 when subscription not found", async () => {
@@ -606,6 +732,53 @@ describe("billingSyncService.syncPlans - edge cases", () => {
 
     mockStripePricesList.mockResolvedValue({
       data: [price],
+      has_more: false
+    })
+    mockDbQuery.stripePlan.findFirst.mockResolvedValue(null)
+    mockDbQuery.stripePlan.findMany.mockResolvedValue([])
+
+    await billingSyncService.syncPlans()
+
+    expect(mockDbInsert).toHaveBeenCalled()
+  })
+
+  it("skips local-only free prices from Stripe", async () => {
+    const freePrice = mockStripePrice({
+      unit_amount: 0,
+      product: mockStripeProduct({ name: "Free" })
+    })
+
+    mockStripePricesList.mockResolvedValue({
+      data: [freePrice],
+      has_more: false
+    })
+    mockDbQuery.stripePlan.findMany.mockResolvedValue([])
+
+    await billingSyncService.syncPlans()
+
+    expect(mockDbInsert).not.toHaveBeenCalled()
+  })
+
+  it("throws when multiple monthly prices exist without a deterministic primary", async () => {
+    const monthlyA = mockStripePrice({ id: "price_month_a", created: 1 })
+    const monthlyB = mockStripePrice({ id: "price_month_b", created: 2 })
+
+    mockStripePricesList.mockResolvedValue({
+      data: [monthlyA, monthlyB],
+      has_more: false
+    })
+    mockDbQuery.stripePlan.findMany.mockResolvedValue([])
+
+    await expect(billingSyncService.syncPlans()).rejects.toThrow(/Multiple active month prices/)
+  })
+
+  it("uses the Stripe default price when multiple monthly prices exist", async () => {
+    const product = mockStripeProduct({ default_price: "price_month_b" as any })
+    const monthlyA = mockStripePrice({ id: "price_month_a", created: 1, product })
+    const monthlyB = mockStripePrice({ id: "price_month_b", created: 2, product })
+
+    mockStripePricesList.mockResolvedValue({
+      data: [monthlyA, monthlyB],
       has_more: false
     })
     mockDbQuery.stripePlan.findFirst.mockResolvedValue(null)

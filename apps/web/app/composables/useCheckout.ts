@@ -8,6 +8,7 @@ import { subscriptionClient$ } from "~/utils/auth-client"
 export function useCheckout() {
   const isLoading = ref(false)
   const { activeOrg } = useActiveOrganization()
+  const { subscription } = useSubscription()
 
   async function checkout(planName: string, options?: { seats?: number; annual?: boolean }) {
     const orgId = activeOrg.value?.data?.id
@@ -22,8 +23,12 @@ export function useCheckout() {
       const { error } = await subscriptionClient$.upgrade({
         plan: planName.toLowerCase(),
         referenceId: orgId,
+        customerType: "organization",
         successUrl: `${window.location.origin}/checkout/success`,
         cancelUrl: `${window.location.origin}/checkout/cancel`,
+        ...(subscription.value?.stripeSubscriptionId
+          ? { subscriptionId: subscription.value.stripeSubscriptionId }
+          : {}),
         ...(options?.seats ? { seats: options.seats } : {}),
         ...(options?.annual ? { annual: true } : {})
       })
@@ -50,6 +55,7 @@ export function useCheckout() {
     try {
       await subscriptionClient$.billingPortal({
         referenceId: orgId,
+        customerType: "organization",
         returnUrl: `${window.location.origin}${returnPath}`
       })
     } catch (err: unknown) {

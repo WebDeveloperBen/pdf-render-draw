@@ -1,4 +1,5 @@
 export { createAuditHook } from "./audit"
+export { backgroundTasksConfig } from "./background-tasks"
 export { stripeClient, stripePlugin } from "./stripe"
 export { emailVerificationConfig, emailAndPasswordConfig } from "./email"
 export { socialProviders } from "./providers"

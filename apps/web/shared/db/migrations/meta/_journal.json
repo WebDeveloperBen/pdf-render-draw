@@ -127,6 +127,13 @@
       "when": 1773921947164,
       "tag": "0017_bumpy_dakota_north",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1773924382382,
+      "tag": "0018_sweet_nova",
+      "breakpoints": true
     }
   ]
 }

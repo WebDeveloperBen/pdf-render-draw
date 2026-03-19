@@ -4,6 +4,7 @@ import { ref } from "vue"
 
 const mockState = vi.hoisted(() => ({
   activeOrgId: "org-123",
+  subscription: null as { stripeSubscriptionId?: string | null } | null,
   upgrade: vi.fn(),
   billingPortal: vi.fn(),
   toastError: vi.fn()
@@ -20,6 +21,12 @@ mockNuxtImport("useActiveOrganization", () => {
           }
         : null
     )
+  })
+})
+
+mockNuxtImport("useSubscription", () => {
+  return () => ({
+    subscription: ref(mockState.subscription)
   })
 })
 
@@ -49,6 +56,7 @@ import { useCheckout } from "./useCheckout"
 describe("useCheckout", () => {
   beforeEach(() => {
     mockState.activeOrgId = "org-123"
+    mockState.subscription = null
     mockState.upgrade.mockReset()
     mockState.billingPortal.mockReset()
     mockState.toastError.mockReset()
@@ -74,10 +82,30 @@ describe("useCheckout", () => {
       expect.objectContaining({
         plan: "professional",
         referenceId: "org-123",
+        customerType: "organization",
         seats: 5,
         annual: true,
         successUrl: "http://localhost:3000/checkout/success",
         cancelUrl: "http://localhost:3000/checkout/cancel"
+      })
+    )
+  })
+
+  it("passes the existing Stripe subscription ID when upgrading an active organisation subscription", async () => {
+    mockState.subscription = {
+      stripeSubscriptionId: "sub_existing_123"
+    }
+    mockState.upgrade.mockResolvedValue({ error: null })
+
+    const { checkout } = useCheckout()
+    await checkout("Starter")
+
+    expect(mockState.upgrade).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plan: "starter",
+        referenceId: "org-123",
+        customerType: "organization",
+        subscriptionId: "sub_existing_123"
       })
     )
   })
@@ -90,6 +118,7 @@ describe("useCheckout", () => {
 
     expect(mockState.billingPortal).toHaveBeenCalledWith({
       referenceId: "org-123",
+      customerType: "organization",
       returnUrl: "http://localhost:3000/organisation/billing"
     })
   })

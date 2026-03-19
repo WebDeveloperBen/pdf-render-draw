@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { and, eq, gt } from "drizzle-orm"
 import { parseFeaturesFromMetadata } from "../../services/billing/billing.helpers"
 
 defineRouteMeta({
@@ -46,7 +46,7 @@ export default defineEventHandler(async () => {
   const db = useDrizzle()
 
   const plans = await db.query.stripePlan.findMany({
-    where: eq(stripePlan.active, true)
+    where: and(eq(stripePlan.active, true), gt(stripePlan.amount, 0))
   })
 
   return {

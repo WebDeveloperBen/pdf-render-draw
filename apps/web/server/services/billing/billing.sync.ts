@@ -24,6 +24,28 @@ type PlanVariant = {
   product: Stripe.Product
 }
 
+type CachedPlan = typeof schema.stripePlan.$inferSelect
+
+type ResolvedSubscriptionItem = {
+  plan: CachedPlan | null
+  planItem: Stripe.SubscriptionItem
+  seats: number | null
+}
+
+function isLocalOnlyPlanVariant(variant: PlanVariant): boolean {
+  const name = variant.product.name.trim().toLowerCase()
+  const lookupKey = variant.price.lookup_key?.trim().toLowerCase()
+  const metadata = { ...variant.product.metadata, ...variant.price.metadata }
+
+  return (
+    (variant.price.unit_amount ?? 0) === 0 ||
+    name === "free" ||
+    lookupKey === "free" ||
+    metadata.plan_scope === "local" ||
+    metadata.billing_managed === "false"
+  )
+}
+
 function getExpandedProduct(price: Stripe.Price): Stripe.Product | null {
   const product = price.product
   if (!price.recurring || typeof product === "string" || !product || product.deleted) {
@@ -33,26 +55,97 @@ function getExpandedProduct(price: Stripe.Price): Stripe.Product | null {
   return product
 }
 
-function sortPlanVariants(a: PlanVariant, b: PlanVariant): number {
-  const rank = (variant: PlanVariant) => {
-    if (variant.price.recurring?.interval === "month") return 0
-    if (variant.price.recurring?.interval === "year") return 1
-    return 2
+function getDefaultPriceId(product: Stripe.Product): string | null {
+  if (!product.default_price) return null
+  return typeof product.default_price === "string" ? product.default_price : product.default_price.id
+}
+
+function selectVariantForInterval(variants: PlanVariant[], interval: "month" | "year"): PlanVariant | null {
+  const matches = variants.filter((variant) => variant.price.recurring?.interval === interval)
+  if (matches.length === 0) return null
+  if (matches.length === 1) return matches[0]!
+
+  const defaultPriceId = getDefaultPriceId(matches[0]!.product)
+  if (defaultPriceId) {
+    const defaultVariant = matches.find((variant) => variant.price.id === defaultPriceId)
+    if (defaultVariant) return defaultVariant
   }
 
-  return rank(a) - rank(b) || a.price.created - b.price.created || a.price.id.localeCompare(b.price.id)
+  const labelledPrimary = matches.filter((variant) => (variant.price.metadata?.billing_primary ?? "") === "true")
+  if (labelledPrimary.length === 1) return labelledPrimary[0]!
+
+  throw new Error(
+    `Multiple active ${interval} prices found for Stripe product ${matches[0]!.product.id}. Mark one as the default Stripe price or set price metadata billing_primary=true.`
+  )
 }
 
 function selectPrimaryVariant(variants: PlanVariant[]): PlanVariant {
-  return [...variants].sort(sortPlanVariants)[0]!
+  const monthly = selectVariantForInterval(variants, "month")
+  if (monthly) return monthly
+
+  const yearly = selectVariantForInterval(variants, "year")
+  if (yearly) return yearly
+
+  throw new Error(`No supported recurring price found for Stripe product ${variants[0]?.product.id ?? "unknown"}`)
 }
 
 function selectAnnualVariant(variants: PlanVariant[], primary: PlanVariant): PlanVariant | null {
-  return (
-    variants.find(
-      ({ price }) => price.recurring?.interval === "year" && price.id !== primary.price.id
-    ) ?? null
-  )
+  const annual = selectVariantForInterval(variants, "year")
+  if (!annual || annual.price.id === primary.price.id) return null
+  return annual
+}
+
+function parseSeatPriceIdFromMetadata(metadata: Record<string, unknown>): string | null {
+  const directValue = metadata.seat_price_id ?? metadata.seatPriceId
+  return typeof directValue === "string" && directValue.trim().length > 0 ? directValue : null
+}
+
+function resolveSeats(
+  items: Stripe.SubscriptionItem[],
+  planItem: Stripe.SubscriptionItem,
+  seatPriceId: string | null
+): number | null {
+  if (seatPriceId) {
+    const seatItem = items.find((item) => item.price.id === seatPriceId)
+    if (seatItem) return seatItem.quantity ?? 1
+  }
+
+  return planItem.quantity ?? null
+}
+
+async function resolveSubscriptionItem(items: Stripe.SubscriptionItem[]): Promise<ResolvedSubscriptionItem | null> {
+  if (items.length === 0) return null
+
+  const plans = await db.query.stripePlan.findMany()
+
+  for (const item of items) {
+    const plan = plans.find((candidate) => {
+      return (
+        candidate.stripePriceId === item.price.id ||
+        candidate.annualDiscountPriceId === item.price.id ||
+        candidate.seatPriceId === item.price.id
+      )
+    })
+
+    if (!plan) continue
+    if (plan.seatPriceId && item.price.id === plan.seatPriceId) continue
+
+    return {
+      plan,
+      planItem: item,
+      seats: resolveSeats(items, item, plan.seatPriceId ?? null)
+    }
+  }
+
+  if (items.length === 1) {
+    return {
+      plan: null,
+      planItem: items[0]!,
+      seats: items[0]!.quantity ?? null
+    }
+  }
+
+  return null
 }
 
 async function acquireBillingSyncLock(): Promise<boolean> {
@@ -126,7 +219,7 @@ export const billingSyncService = {
       while (hasMore) {
         const params: Stripe.SubscriptionListParams = {
           limit: 100,
-          expand: ["data.customer"]
+          expand: ["data.customer", "data.items.data.price.product"]
         }
         if (startingAfter) {
           params.starting_after = startingAfter
@@ -217,7 +310,9 @@ export const billingSyncService = {
         .set({ status: testState.billing.refreshStatus })
         .where(eq(schema.subscription.id, localSub.id))
     } else {
-      const stripeSub = await stripeClient.subscriptions.retrieve(localSub.stripeSubscriptionId)
+      const stripeSub = await stripeClient.subscriptions.retrieve(localSub.stripeSubscriptionId, {
+        expand: ["items.data.price.product"]
+      })
       await this.upsertSubscription(stripeSub)
     }
 
@@ -250,7 +345,10 @@ export const billingSyncService = {
         const product = getExpandedProduct(price)
         if (!product) continue
 
-        variants.push({ price, product })
+        const variant = { price, product }
+        if (isLocalOnlyPlanVariant(variant)) continue
+
+        variants.push(variant)
       }
 
       hasMore = response.has_more
@@ -314,6 +412,7 @@ export const billingSyncService = {
           limits: existing?.limits ?? parsedLimits,
           trialDays: existing?.trialDays ?? null,
           group: existing?.group ?? null,
+          seatPriceId: existing?.seatPriceId ?? parseSeatPriceIdFromMetadata(mergedMetadata),
           createdAt: existing?.createdAt ?? new Date()
         })
         .onConflictDoUpdate({
@@ -325,6 +424,11 @@ export const billingSyncService = {
         .update(schema.stripePlan)
         .set({ limits: parsedLimits })
         .where(and(eq(schema.stripePlan.stripeProductId, productId), isNull(schema.stripePlan.limits)))
+
+      await db
+        .update(schema.stripePlan)
+        .set({ seatPriceId: parseSeatPriceIdFromMetadata(mergedMetadata) })
+        .where(and(eq(schema.stripePlan.stripeProductId, productId), isNull(schema.stripePlan.seatPriceId)))
     }
 
     const activeProductIds = new Set(plansByProduct.keys())
@@ -357,9 +461,18 @@ export const billingSyncService = {
       where: eq(schema.subscription.stripeSubscriptionId, stripeSub.id)
     })
 
-    const item = stripeSub.items.data[0]
-    const priceId = item?.price?.id ?? null
-    const plan = (item?.price?.product as Stripe.Product)?.name ?? item?.price?.lookup_key ?? "unknown"
+    const resolvedItem = await resolveSubscriptionItem(stripeSub.items.data)
+    if (!resolvedItem) {
+      throw new Error(`Unable to resolve plan item for Stripe subscription ${stripeSub.id}`)
+    }
+
+    const { plan: matchedPlan, planItem } = resolvedItem
+    const priceId = planItem.price.id ?? null
+    const plan =
+      matchedPlan?.name ??
+      (planItem.price.product as Stripe.Product | undefined)?.name ??
+      planItem.price.lookup_key ??
+      "unknown"
 
     const values = {
       plan,
@@ -368,16 +481,16 @@ export const billingSyncService = {
       stripeSubscriptionId: stripeSub.id,
       stripePriceId: priceId,
       status: stripeSub.status,
-      periodStart: item?.current_period_start ? new Date(item.current_period_start * 1000) : null,
-      periodEnd: item?.current_period_end ? new Date(item.current_period_end * 1000) : null,
+      periodStart: planItem.current_period_start ? new Date(planItem.current_period_start * 1000) : null,
+      periodEnd: planItem.current_period_end ? new Date(planItem.current_period_end * 1000) : null,
       cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
       cancelAt: stripeSub.cancel_at ? new Date(stripeSub.cancel_at * 1000) : null,
       canceledAt: stripeSub.canceled_at ? new Date(stripeSub.canceled_at * 1000) : null,
       endedAt: stripeSub.ended_at ? new Date(stripeSub.ended_at * 1000) : null,
-      seats: item?.quantity ?? null,
+      seats: resolvedItem.seats,
       trialStart: stripeSub.trial_start ? new Date(stripeSub.trial_start * 1000) : null,
       trialEnd: stripeSub.trial_end ? new Date(stripeSub.trial_end * 1000) : null,
-      billingInterval: item?.price?.recurring?.interval ?? null,
+      billingInterval: planItem.price?.recurring?.interval ?? null,
       stripeScheduleId: typeof stripeSub.schedule === "string" ? stripeSub.schedule : (stripeSub.schedule?.id ?? null)
     }
 

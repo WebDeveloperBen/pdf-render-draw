@@ -25,7 +25,19 @@ const session = authClient.useSession()
 const selectedPlan = ref<"starter" | "professional" | "enterprise">("professional")
 const isSubmitting = ref(false)
 
-const plans = [
+type OnboardingPlan = {
+  id: "starter" | "professional" | "enterprise"
+  name: string
+  price: string
+  period: string
+  description: string
+  seats: string
+  seatsNote?: string
+  features: string[]
+  popular: boolean
+}
+
+const plans: OnboardingPlan[] = [
   {
     id: "starter",
     name: "Starter",
@@ -42,8 +54,7 @@ const plans = [
     price: "$79",
     period: "/month",
     description: "For growing teams",
-    seats: "3 seats included",
-    seatsNote: "+$25/seat/month",
+    seats: "Multi-user collaboration",
     features: [
       "Unlimited projects",
       "Advanced tools & annotations",

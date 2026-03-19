@@ -35,6 +35,7 @@ defineRouteMeta({
                   nullable: true,
                   properties: {
                     id: { type: "string" },
+                    stripeSubscriptionId: { type: "string", nullable: true },
                     plan: { type: "string" },
                     status: { type: "string" },
                     periodEnd: { type: "string", format: "date-time", nullable: true },
@@ -107,6 +108,7 @@ export default defineEventHandler(async (event) => {
     if (orgSub) {
       subscriptionData = {
         id: orgSub.id,
+        stripeSubscriptionId: orgSub.stripeSubscriptionId,
         plan: orgSub.plan,
         status: orgSub.status,
         periodEnd: orgSub.periodEnd,

@@ -121,7 +121,7 @@ const faqs = [
   {
     question: "How does Team seat pricing work?",
     answer:
-      "The Team plan includes 3 seats for $79/month. Need more team members? Simply add additional seats for $25/month each. You can add or remove seats at any time, and billing is prorated."
+      "The Team plan is designed for organisations that need shared access and collaboration features. If you need a custom seat-based setup, contact support and we'll help configure the right billing arrangement."
   },
   {
     question: "What happens to my projects if I downgrade?",
@@ -193,7 +193,7 @@ function toggleFaq(index: number) {
               </template>
             </div>
             <p v-if="plan.name.toLowerCase() === 'team'" class="mt-1 text-xs text-muted-foreground">
-              Includes 3 seats, then $25/seat
+              Built for shared organisation access
             </p>
           </div>
 

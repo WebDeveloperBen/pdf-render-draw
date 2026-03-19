@@ -2064,6 +2064,8 @@ export type PostApiUserOnboarding200 = {
  */
 export type GetApiUserProfile200Subscription = {
   id?: string
+  /** @nullable */
+  stripeSubscriptionId?: string | null
   plan?: string
   status?: string
   /** @nullable */

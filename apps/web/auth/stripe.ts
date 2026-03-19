@@ -1,6 +1,6 @@
 import { stripe } from "@better-auth/stripe"
 import Stripe from "stripe"
-import { eq, and } from "drizzle-orm"
+import { eq, and, gt } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { db } from "../server/utils/drizzle"
 import * as schema from "../shared/db/schema"
@@ -20,7 +20,7 @@ export const stripePlugin = stripe({
     // Populate via admin "Sync from Stripe" or seed script.
     plans: async () => {
       const plans = await db.query.stripePlan.findMany({
-        where: eq(schema.stripePlan.active, true)
+        where: and(eq(schema.stripePlan.active, true), gt(schema.stripePlan.amount, 0))
       })
 
       return plans.map((plan) => ({
@@ -28,6 +28,7 @@ export const stripePlugin = stripe({
         priceId: plan.stripePriceId,
         annualDiscountPriceId: plan.annualDiscountPriceId ?? undefined,
         lookupKey: plan.lookupKey ?? undefined,
+        seatPriceId: plan.seatPriceId ?? undefined,
         limits: (plan.limits as Record<string, number>) ?? undefined,
         group: plan.group ?? undefined,
         ...(plan.trialDays ? { freeTrial: { days: plan.trialDays } } : {})

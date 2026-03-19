@@ -1,0 +1,1 @@
+ALTER TABLE "stripe_plan" ADD COLUMN "seat_price_id" text;
