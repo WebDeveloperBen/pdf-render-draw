@@ -7,6 +7,16 @@ const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUIL
 const devServerPort = process.env.PORT ? Number(process.env.PORT) : isTauri ? 3001 : 3000
 const devServerHost = process.env.HOST || "0"
 const useNodePgDriver = process.env.VITEST === "true" || process.env.NITRO_PRESET === "node-server"
+const devWatchIgnored = [
+  "**/.git/**",
+  "**/.turbo/**",
+  "**/.nuxt/**",
+  "**/.output/**",
+  "**/dist/**",
+  "**/coverage/**",
+  "**/node_modules/**",
+  "**/.wrangler/**"
+]
 const nitroUnenvAliases = {
   // `resend` references this optional dep even though the app uses
   // `@vue-email/render`, so Nitro still needs a harmless stub at build time.
@@ -98,7 +108,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@vueuse/nuxt",
     "@nuxt/eslint",
-    "@nuxt/test-utils/module",
+    ...(process.env.VITEST ? ["@nuxt/test-utils/module" as const] : []),
     "@nuxtjs/color-mode",
     "motion-v/nuxt",
     "@nuxt/fonts",
@@ -134,6 +144,11 @@ export default defineNuxtConfig({
   },
 
   // required for pdfjs-dist top level await usage
+  watchers: {
+    chokidar: {
+      ignored: devWatchIgnored
+    }
+  },
   vite: {
     plugins: [tailwindcss()],
     build: {
@@ -155,7 +170,10 @@ export default defineNuxtConfig({
     envPrefix: ["VITE_", "TAURI_"],
     server: {
       // Tauri requires a consistent port
-      strictPort: true
+      strictPort: true,
+      watch: {
+        ignored: devWatchIgnored
+      }
     }
   },
 
@@ -192,6 +210,9 @@ export default defineNuxtConfig({
   nitro: {
     preset: process.env.NITRO_PRESET || "cloudflare-module",
     imports: { dirs: ["./shared/db/schema/", "./server/services/"] },
+    watchOptions: {
+      ignored: devWatchIgnored
+    },
     rollupConfig: {
       plugins: [vue()]
     },
