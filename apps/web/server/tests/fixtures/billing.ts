@@ -22,12 +22,15 @@ export function buildStripePlan(overrides: Partial<StripePlanInsert> = {}): Stri
     group: "standard",
     metadata: {
       display_order: "1",
-      exportFormats: "pdf,png",
-      measurementTools: "all",
-      cloudSync: "true",
-      collaboration: "false",
-      customBranding: "false",
-      measurementPresets: "true"
+      feature_export_formats: "pdf,png",
+      feature_measurement_tools: "all",
+      feature_cloud_sync: "true",
+      feature_collaboration: "false",
+      feature_custom_branding: "false",
+      feature_measurement_presets: "true",
+      limit_projects: "10",
+      limit_storage_mb: "500",
+      limit_file_size_mb: "50"
     },
     lastSyncedAt: new Date(),
     createdAt: new Date(),

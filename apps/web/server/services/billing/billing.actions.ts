@@ -4,6 +4,7 @@ import * as schema from "@shared/db/schema"
 import { stripeClient } from "@auth"
 import { billingService } from "./billing.service"
 import { logAdminAction } from "../../utils/audit"
+import { getTestState } from "../../utils/test-state"
 
 export const billingActionsService = {
   /**
@@ -25,14 +26,21 @@ export const billingActionsService = {
       throw createError({ statusCode: 404, message: "Subscription not found or has no Stripe ID" })
     }
 
-    let stripeSub
-    if (params.mode === "at_period_end") {
-      stripeSub = await stripeClient.subscriptions.update(localSub.stripeSubscriptionId, {
-        cancel_at_period_end: true
-      })
-    } else {
-      stripeSub = await stripeClient.subscriptions.cancel(localSub.stripeSubscriptionId)
-    }
+    const testState = getTestState()
+    const testNow = Math.floor(Date.now() / 1000)
+    const stripeSub = testState?.billing.cancelStatus
+      ? {
+          status: testState.billing.cancelStatus,
+          cancel_at_period_end: params.mode === "at_period_end",
+          cancel_at: params.mode === "at_period_end" ? Math.floor((localSub.periodEnd?.getTime() ?? Date.now()) / 1000) : null,
+          canceled_at: params.mode === "immediately" ? testNow : null,
+          ended_at: params.mode === "immediately" ? testNow : null
+        }
+      : params.mode === "at_period_end"
+        ? await stripeClient.subscriptions.update(localSub.stripeSubscriptionId, {
+            cancel_at_period_end: true
+          })
+        : await stripeClient.subscriptions.cancel(localSub.stripeSubscriptionId)
 
     // Update local record
     await db
@@ -101,9 +109,15 @@ export const billingActionsService = {
       throw createError({ statusCode: 400, message: "Subscription is not scheduled for cancellation" })
     }
 
-    const stripeSub = await stripeClient.subscriptions.update(localSub.stripeSubscriptionId, {
-      cancel_at_period_end: false
-    })
+    const testState = getTestState()
+    const stripeSub = testState?.billing.reactivateStatus
+      ? {
+          status: testState.billing.reactivateStatus,
+          cancel_at_period_end: false
+        }
+      : await stripeClient.subscriptions.update(localSub.stripeSubscriptionId, {
+          cancel_at_period_end: false
+        })
 
     // Update local record
     await db
@@ -161,10 +175,13 @@ export const billingActionsService = {
       throw createError({ statusCode: 404, message: "Subscription not found or has no Stripe customer" })
     }
 
-    const session = await stripeClient.billingPortal.sessions.create({
-      customer: localSub.stripeCustomerId,
-      return_url: params.returnUrl
-    })
+    const testState = getTestState()
+    const session = testState?.billing.portalUrl
+      ? { url: testState.billing.portalUrl }
+      : await stripeClient.billingPortal.sessions.create({
+          customer: localSub.stripeCustomerId,
+          return_url: params.returnUrl
+        })
 
     // Record billing activity
     await billingService.recordActivity({

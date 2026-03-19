@@ -2,6 +2,7 @@ import { z } from "zod"
 import { eq, and, isNull, gt, or, inArray } from "drizzle-orm"
 import { randomUUID } from "crypto"
 import { buildConflictServerVersion, isAnnotationScopedToFile } from "@shared/utils/annotation-sync"
+import { requireFeatureAccess } from "../../../../services/billing/billing.guards"
 
 const paramsSchema = z.object({
   fileId: z.uuid({ message: "Invalid file ID" })

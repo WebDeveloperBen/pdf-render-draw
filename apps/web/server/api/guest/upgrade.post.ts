@@ -83,29 +83,39 @@ export default defineEventHandler(async (event) => {
   }
 
   const { firstName, lastName } = result.data
-
-  // Update user: set names, remove guest status
-  await db
-    .update(user)
-    .set({
-      firstName,
-      lastName,
-      name: `${firstName} ${lastName}`,
-      isGuest: false,
-      guestOrganizationId: null
-    })
-    .where(eq(user.id, authUser.id))
-
-  // Create their home organization
   const orgSlug = `${authUser.email.split("@")[0]}-${authUser.id.slice(0, 8)}`
 
-  await auth.api.createOrganization({
+  const [existingOrg] = await db.select({ id: organization.id }).from(organization).where(eq(organization.slug, orgSlug))
+  if (existingOrg) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: "Organization slug already exists"
+    })
+  }
+
+  const createdOrg = await auth.api.createOrganization({
     body: {
       name: `${firstName}'s Organization`,
       slug: orgSlug,
       userId: authUser.id
     }
   })
+
+  try {
+    await db
+      .update(user)
+      .set({
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`,
+        isGuest: false,
+        guestOrganizationId: null
+      })
+      .where(eq(user.id, authUser.id))
+  } catch (error) {
+    await db.delete(organization).where(eq(organization.id, createdOrg.id))
+    throw error
+  }
 
   return {
     success: true,

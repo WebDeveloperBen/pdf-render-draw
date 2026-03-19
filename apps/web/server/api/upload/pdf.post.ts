@@ -1,4 +1,5 @@
 import { uploadPdf } from "../../utils/r2"
+import { requireFileSizeLimit } from "../../services/billing/billing.guards"
 
 // OpenAPI metadata for Orval type generation
 defineRouteMeta({

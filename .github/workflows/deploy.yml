@@ -30,7 +30,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     environment: ${{ inputs.environment || (github.event_name == 'push' && 'prod') || 'dev' }}
     permissions:
       contents: read
@@ -63,6 +63,11 @@ jobs:
 
       - name: Run integration tests
         run: pnpm --filter @pdf-annotator/web test:integration
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+
+      - name: Run prod smoke integration tests
+        run: pnpm --filter @pdf-annotator/web test:integration:prod
         env:
           TESTCONTAINERS_RYUK_DISABLED: "true"
 

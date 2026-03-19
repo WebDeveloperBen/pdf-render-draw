@@ -6,6 +6,7 @@ import * as schema from "@shared/db/schema"
 import { stripeClient } from "@auth"
 import { billingService } from "./billing.service"
 import { parseLimitsFromMetadata } from "./billing.helpers"
+import { getTestState } from "../../utils/test-state"
 
 export const billingSyncService = {
   /**
@@ -37,6 +38,25 @@ export const billingSyncService = {
     let errors = 0
 
     try {
+      const testState = getTestState()
+      if (testState?.billing.fullSyncResult) {
+        const duration = testState.billing.fullSyncResult.duration
+        await db
+          .update(schema.billingSyncLog)
+          .set({
+            status: testState.billing.fullSyncResult.errors > 0 ? "partial" : "success",
+            subscriptionsSynced: testState.billing.fullSyncResult.synced,
+            subscriptionsCreated: testState.billing.fullSyncResult.created,
+            subscriptionsUpdated: testState.billing.fullSyncResult.updated,
+            errors: testState.billing.fullSyncResult.errors,
+            duration,
+            completedAt: new Date()
+          })
+          .where(eq(schema.billingSyncLog.id, syncLogId))
+
+        return testState.billing.fullSyncResult
+      }
+
       // Sync plans/prices first
       await this.syncPlans()
 
@@ -122,9 +142,16 @@ export const billingSyncService = {
       throw createError({ statusCode: 404, message: "Subscription not found or has no Stripe ID" })
     }
 
-    const stripeSub = await stripeClient.subscriptions.retrieve(localSub.stripeSubscriptionId)
-
-    await this.upsertSubscription(stripeSub)
+    const testState = getTestState()
+    if (testState?.billing.refreshStatus) {
+      await db
+        .update(schema.subscription)
+        .set({ status: testState.billing.refreshStatus })
+        .where(eq(schema.subscription.id, localSub.id))
+    } else {
+      const stripeSub = await stripeClient.subscriptions.retrieve(localSub.stripeSubscriptionId)
+      await this.upsertSubscription(stripeSub)
+    }
 
     // Record activity
     await billingService.recordActivity({
@@ -132,7 +159,7 @@ export const billingSyncService = {
       type: "sync",
       description: "Subscription refreshed from Stripe",
       actorId: adminId,
-      metadata: { stripeSubscriptionId: stripeSub.id }
+      metadata: { stripeSubscriptionId: localSub.stripeSubscriptionId }
     })
   },
 

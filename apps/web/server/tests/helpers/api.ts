@@ -10,10 +10,10 @@ export async function authedFetch<T = unknown>(
   headers: AuthHeaders,
   opts: Record<string, unknown> = {}
 ): Promise<T> {
-  return $fetch<T>(path, {
+  return (await $fetch(path, {
     ...opts,
     headers: { ...headers, ...(opts.headers as Record<string, string>) }
-  })
+  })) as T
 }
 
 /**

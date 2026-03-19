@@ -5,7 +5,17 @@ import { createAuthenticatedUser, type AuthHeaders } from "../helpers/auth"
 import { expectError } from "../helpers/api"
 import { getTestDb } from "../helpers/db"
 import { buildSubscription } from "../fixtures/billing"
-import { subscription } from "../../../shared/db/schema"
+import { buildPlatformAdmin } from "../fixtures/admin"
+import { patchServerTestState } from "../helpers/test-state"
+import {
+  adminAuditLog,
+  billingActivity,
+  organization,
+  platform_admin,
+  project,
+  subscription
+} from "../../../shared/db/schema"
+import { eq } from "drizzle-orm"
 
 describe("Admin API", () => {
   let seed: SeededData
@@ -119,6 +129,128 @@ describe("Admin API", () => {
     })
   })
 
+  // ---- POST /api/admin/organizations ----
+
+  describe("POST /api/admin/organizations", () => {
+    it("creates an organization for a user", async () => {
+      const data = await $fetch<{
+        id: string
+        name: string
+        slug: string
+        memberCount: number
+        projectCount: number
+      }>("/api/admin/organizations", {
+        method: "POST",
+        headers: adminHeaders,
+        body: {
+          name: "New Test Org",
+          slug: "new-test-org",
+          userId: seed.users.regularUser.id
+        }
+      })
+
+      expect(data.name).toBe("New Test Org")
+      expect(data.slug).toBe("new-test-org")
+      expect(data.memberCount).toBe(1)
+      expect(data.projectCount).toBe(0)
+    })
+
+    it("returns 400 for duplicate slugs", async () => {
+      await expectError("/api/admin/organizations", 400, {
+        method: "POST",
+        headers: adminHeaders,
+        body: {
+          name: "Duplicate Org",
+          slug: seed.orgs.acme.slug,
+          userId: seed.users.regularUser.id
+        }
+      })
+    })
+  })
+
+  // ---- PATCH /api/admin/organizations/:id ----
+
+  describe("PATCH /api/admin/organizations/:id", () => {
+    it("updates organization details", async () => {
+      const data = await $fetch<{
+        id: string
+        name: string
+        slug: string
+        _count: { members: number; projects: number }
+      }>(`/api/admin/organizations/${seed.orgs.acme.id}`, {
+        method: "PATCH",
+        headers: adminHeaders,
+        body: {
+          name: "Acme Updated",
+          slug: "acme-updated"
+        }
+      })
+
+      expect(data).toEqual(
+        expect.objectContaining({
+          id: seed.orgs.acme.id,
+          name: "Acme Updated",
+          slug: "acme-updated",
+          _count: {
+            members: 4,
+            projects: 2
+          }
+        })
+      )
+    })
+  })
+
+  // ---- DELETE /api/admin/organizations/:id ----
+
+  describe("DELETE /api/admin/organizations/:id", () => {
+    it("deletes an organization and disassociates its projects when requested", async () => {
+      const data = await $fetch<{
+        success: boolean
+        message: string
+        organizationId: string
+        deletedCounts: { members: number; projects: number; invitations: number }
+      }>(`/api/admin/organizations/${seed.orgs.demo.id}`, {
+        method: "DELETE",
+        headers: adminHeaders,
+        body: {
+          confirmation: true,
+          deleteProjects: false
+        }
+      })
+
+      expect(data).toEqual({
+        success: true,
+        message: 'Organization "Demo Corp" has been permanently deleted',
+        organizationId: seed.orgs.demo.id,
+        deletedCounts: {
+          members: 2,
+          projects: 0,
+          invitations: 0
+        }
+      })
+
+      const db = getTestDb()
+      const [deletedOrg] = await db.select({ id: organization.id }).from(organization).where(eq(organization.id, seed.orgs.demo.id))
+      const demoProjects = await db
+        .select({ id: project.id, organizationId: project.organizationId })
+        .from(project)
+        .where(eq(project.id, seed.projects.electrical.id))
+      const auditRows = await db
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "organization_delete"))
+
+      expect(deletedOrg).toBeUndefined()
+      expect(demoProjects).toEqual([
+        {
+          id: seed.projects.electrical.id,
+          organizationId: null
+        }
+      ])
+      expect(auditRows).toHaveLength(1)
+    })
+  })
+
   // ---- GET /api/admin/plans ----
 
   describe("GET /api/admin/plans", () => {
@@ -201,11 +333,95 @@ describe("Admin API", () => {
   // ---- Stripe-calling endpoints: test auth layer only ----
 
   describe("Admin subscription management (auth layer)", () => {
+    it("POST /api/admin/billing/sync - runs and audits successfully", async () => {
+      await patchServerTestState({
+        billing: {
+          fullSyncResult: {
+            synced: 3,
+            created: 1,
+            updated: 2,
+            errors: 0,
+            duration: 25
+          }
+        }
+      })
+
+      const data = await $fetch<{
+        synced: number
+        created: number
+        updated: number
+        errors: number
+      }>("/api/admin/billing/sync", {
+        method: "POST",
+        headers: adminHeaders
+      })
+
+      expect(data).toEqual({
+        synced: 3,
+        created: 1,
+        updated: 2,
+        errors: 0
+      })
+
+      const auditRows = await getTestDb()
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "billing.sync.full"))
+
+      expect(auditRows).toHaveLength(1)
+    })
+
     it("POST /api/admin/billing/sync - requires admin", async () => {
       await expectError("/api/admin/billing/sync", 403, {
         method: "POST",
         headers: userHeaders
       })
+    })
+
+    it("POST /api/admin/subscriptions/:id/cancel - updates the subscription and writes activity", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values(
+        buildSubscription({
+          id: "sub-cancel-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter"
+        })
+      )
+
+      await patchServerTestState({
+        billing: {
+          cancelStatus: "active"
+        }
+      })
+
+      const data = await $fetch<{ success: boolean }>("/api/admin/subscriptions/sub-cancel-001/cancel", {
+        method: "POST",
+        headers: adminHeaders,
+        body: {
+          mode: "at_period_end",
+          reason: "Customer requested cancellation"
+        }
+      })
+
+      const [savedSubscription] = await db
+        .select({
+          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd
+        })
+        .from(subscription)
+        .where(eq(subscription.id, "sub-cancel-001"))
+      const activityRows = await db
+        .select({ id: billingActivity.id })
+        .from(billingActivity)
+        .where(eq(billingActivity.subscriptionId, "sub-cancel-001"))
+      const auditRows = await db
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "billing.subscription.cancel"))
+
+      expect(data).toEqual({ success: true })
+      expect(savedSubscription?.cancelAtPeriodEnd).toBe(true)
+      expect(activityRows).toHaveLength(1)
+      expect(auditRows).toHaveLength(1)
     })
 
     it("POST /api/admin/subscriptions/:id/cancel - requires admin", async () => {
@@ -215,6 +431,76 @@ describe("Admin API", () => {
       })
     })
 
+    it("POST /api/admin/subscriptions/:id/cancel - immediate cancellation requires owner tier", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values(
+        buildSubscription({
+          id: "sub-owner-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter"
+        })
+      )
+      await db.insert(platform_admin).values(
+        buildPlatformAdmin({
+          id: `${seed.users.teamMember.id}-platform-admin`,
+          userId: seed.users.teamMember.id,
+          tier: "admin"
+        })
+      )
+
+      const tieredAdminHeaders = await createAuthenticatedUser(seed.users.teamMember.id, seed.orgs.acme.id)
+
+      await expectError("/api/admin/subscriptions/sub-owner-001/cancel", 403, {
+        method: "POST",
+        headers: tieredAdminHeaders,
+        body: {
+          mode: "immediately",
+          reason: "Owner-only path"
+        }
+      })
+    })
+
+    it("POST /api/admin/subscriptions/:id/reactivate - updates the subscription and writes activity", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values(
+        buildSubscription({
+          id: "sub-reactivate-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter",
+          cancelAtPeriodEnd: true
+        })
+      )
+
+      await patchServerTestState({
+        billing: {
+          reactivateStatus: "active"
+        }
+      })
+
+      const data = await $fetch<{ success: boolean }>("/api/admin/subscriptions/sub-reactivate-001/reactivate", {
+        method: "POST",
+        headers: adminHeaders,
+        body: {
+          reason: "Customer retained"
+        }
+      })
+
+      const [savedSubscription] = await db
+        .select({
+          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd
+        })
+        .from(subscription)
+        .where(eq(subscription.id, "sub-reactivate-001"))
+      const auditRows = await db
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "billing.subscription.reactivate"))
+
+      expect(data).toEqual({ success: true })
+      expect(savedSubscription?.cancelAtPeriodEnd).toBe(false)
+      expect(auditRows).toHaveLength(1)
+    })
+
     it("POST /api/admin/subscriptions/:id/reactivate - requires admin", async () => {
       await expectError("/api/admin/subscriptions/sub-test/reactivate", 403, {
         method: "POST",
@@ -222,11 +508,87 @@ describe("Admin API", () => {
       })
     })
 
+    it("POST /api/admin/subscriptions/:id/refresh - refreshes and audits successfully", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values(
+        buildSubscription({
+          id: "sub-refresh-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter",
+          status: "past_due"
+        })
+      )
+
+      await patchServerTestState({
+        billing: {
+          refreshStatus: "active"
+        }
+      })
+
+      const data = await $fetch<{ success: boolean }>("/api/admin/subscriptions/sub-refresh-001/refresh", {
+        method: "POST",
+        headers: adminHeaders
+      })
+
+      const [savedSubscription] = await db
+        .select({ status: subscription.status })
+        .from(subscription)
+        .where(eq(subscription.id, "sub-refresh-001"))
+      const auditRows = await db
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "billing.sync.refresh"))
+
+      expect(data).toEqual({ success: true })
+      expect(savedSubscription?.status).toBe("active")
+      expect(auditRows).toHaveLength(1)
+    })
+
     it("POST /api/admin/subscriptions/:id/refresh - requires admin", async () => {
       await expectError("/api/admin/subscriptions/sub-test/refresh", 403, {
         method: "POST",
         headers: userHeaders
       })
+    })
+
+    it("POST /api/admin/subscriptions/:id/send-billing-portal-link - returns a link and writes activity", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values(
+        buildSubscription({
+          id: "sub-portal-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter"
+        })
+      )
+
+      await patchServerTestState({
+        billing: {
+          portalUrl: "https://billing.example.com/session/test"
+        }
+      })
+
+      const data = await $fetch<{ url: string }>("/api/admin/subscriptions/sub-portal-001/send-billing-portal-link", {
+        method: "POST",
+        headers: adminHeaders,
+        body: {
+          returnUrl: "https://app.example.com/admin/subscriptions/sub-portal-001"
+        }
+      })
+
+      const activityRows = await db
+        .select({ id: billingActivity.id })
+        .from(billingActivity)
+        .where(eq(billingActivity.subscriptionId, "sub-portal-001"))
+      const auditRows = await db
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "billing.portal_link_generated"))
+
+      expect(data).toEqual({
+        url: "https://billing.example.com/session/test"
+      })
+      expect(activityRows).toHaveLength(1)
+      expect(auditRows).toHaveLength(1)
     })
   })
 })

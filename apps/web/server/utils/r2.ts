@@ -5,6 +5,8 @@
  * URLs stored in DB use the origin + /storage/ prefix (e.g. https://example.com/storage/pdfs/abc.pdf)
  */
 
+import { getTestR2Store, getTestState } from "./test-state"
+
 // ── Types ──
 
 interface R2StorageClient {
@@ -19,7 +21,37 @@ interface R2StorageClient {
 
 // ── Cloudflare R2 Binding ──
 
+function getTestR2Bucket(): R2StorageClient | null {
+  const state = getTestState()
+  const store = getTestR2Store()
+  if (!state || !store) return null
+
+  return {
+    async put(key, body) {
+      if (state.r2.failPut) {
+        throw new Error("[R2] Test override forced put() failure")
+      }
+      store.set(key, body)
+    },
+    async delete(key) {
+      if (Array.isArray(key)) {
+        for (const entry of key) {
+          store.delete(entry)
+        }
+        return
+      }
+      store.delete(key)
+    },
+    async head(key) {
+      return store.has(key) ? {} : null
+    }
+  }
+}
+
 function getR2Bucket(): R2StorageClient {
+  const testBucket = getTestR2Bucket()
+  if (testBucket) return testBucket
+
   // Try globalThis.__env__ (set by nitro-cloudflare-dev in dev, Workers runtime in prod)
   try {
     const env = (globalThis as Record<string, unknown>).__env__ as unknown as Cloudflare.Env | undefined

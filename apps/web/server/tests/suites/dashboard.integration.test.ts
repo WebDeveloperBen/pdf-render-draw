@@ -25,17 +25,22 @@ describe("Dashboard API", () => {
         recentActivity: Array<{ id: string; type: string; projectName: string }>
       }>("/api/dashboard/stats", { headers })
 
-      // regularUser has access to Acme's 2 projects + 1 Demo project
-      expect(data.totalProjects).toBeGreaterThanOrEqual(2)
-      expect(data.totalOrganizations).toBeGreaterThanOrEqual(1)
+      expect(data.totalProjects).toBe(3)
+      expect(data.personalProjects).toBe(0)
+      expect(data.teamProjects).toBe(3)
+      expect(data.totalOrganizations).toBe(2)
+      expect(data.totalShares).toBe(1)
+      expect(data.recentActivity).toHaveLength(3)
+      expect(data.recentActivity.map((item) => item.projectName)).toEqual(
+        expect.arrayContaining(["Office Floor Plan", "Construction Site Plan", "Electrical Layout"])
+      )
       expect(data.recentActivity).toBeInstanceOf(Array)
     })
 
     it("includes share counts for user's projects", async () => {
       const data = await $fetch<{ totalShares: number }>("/api/dashboard/stats", { headers })
 
-      // regularUser created the floor plan project which has a public share
-      expect(data.totalShares).toBeGreaterThanOrEqual(1)
+      expect(data.totalShares).toBe(1)
     })
 
     it("returns 401 without auth", async () => {

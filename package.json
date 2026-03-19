@@ -14,6 +14,7 @@
     "web:check": "pnpm --filter @pdf-annotator/web check",
     "web:test": "pnpm --filter @pdf-annotator/web test",
     "web:test:integration": "pnpm --filter @pdf-annotator/web test:integration",
+    "web:test:integration:prod": "pnpm --filter @pdf-annotator/web test:integration:prod",
     "web:lint": "pnpm --filter @pdf-annotator/web lint",
 
     "db:generate": "pnpm --filter @pdf-annotator/web db:generate",

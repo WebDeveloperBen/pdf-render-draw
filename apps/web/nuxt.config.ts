@@ -7,6 +7,14 @@ const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUIL
 const devServerPort = process.env.PORT ? Number(process.env.PORT) : isTauri ? 3001 : 3000
 const devServerHost = process.env.HOST || "0"
 const useNodePgDriver = process.env.VITEST === "true" || process.env.NITRO_PRESET === "node-server"
+const nitroUnenvAliases = {
+  // `resend` references this optional dep even though the app uses
+  // `@vue-email/render`, so Nitro still needs a harmless stub at build time.
+  "@react-email/render": "unenv/mock/proxy",
+  "@aws-sdk/client-s3": "unenv/mock/proxy",
+  "pg-native": "unenv/mock/proxy",
+  ...(useNodePgDriver ? {} : { pg: "unenv/mock/proxy" })
+}
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -188,17 +196,12 @@ export default defineNuxtConfig({
       plugins: [vue()]
     },
     minify: false,
-    // For Cloudflare Workers: mock pg (prod uses @neondatabase/serverless)
-    // @react-email/render is an optional dep of resend (we use @vue-email/render)
-    unenv: useNodePgDriver
-      ? undefined
-      : {
-          alias: {
-            pg: "unenv/mock/proxy",
-            "@react-email/render": "unenv/mock/proxy",
-            "@aws-sdk/client-s3": "unenv/mock/proxy"
-          }
-        },
+    // Prod smoke still needs the real Node pg driver for the Testcontainers DB,
+    // but the optional resend/R2 deps must stay stubbed so the Cloudflare bundle
+    // can resolve cleanly under Nitro.
+    unenv: {
+      alias: nitroUnenvAliases
+    },
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,

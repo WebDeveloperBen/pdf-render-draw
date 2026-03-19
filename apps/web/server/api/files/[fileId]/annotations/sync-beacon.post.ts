@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { eq, and } from "drizzle-orm"
+import { requireFeatureAccess } from "../../../../services/billing/billing.guards"
 
 /**
  * Lightweight sync endpoint for navigator.sendBeacon()
