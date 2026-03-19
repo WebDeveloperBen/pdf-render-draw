@@ -56,40 +56,15 @@ const toolRegistry = useToolRegistry()
 // Initialise snap provider (sets up reactive watches)
 const { extractPageContent, clearContentCache, clearIndicator } = useSnapProvider()
 
-// Room detection + plan debug overlays
-const {
-  roomLayerEnabled,
-  debugLayerEnabled,
-  detectCurrentPage,
-  handlePageChange,
-  clearCache: clearRoomCache
-} = useRoomDetection()
-
 // Clear snap cache when document changes (new PDF loaded)
 watch(
   () => viewportStore.getDocumentProxy,
   (docProxy, oldProxy) => {
     if (docProxy && docProxy !== oldProxy) {
       clearContentCache()
-      clearRoomCache()
     }
   }
 )
-
-// Clear overlays immediately on page change, then detect for the new page.
-watch(
-  () => viewportStore.getCurrentPage,
-  () => {
-    handlePageChange()
-  }
-)
-
-// Detect when either overlay layer is enabled.
-watch([roomLayerEnabled, debugLayerEnabled], ([roomsEnabled, debugEnabled]) => {
-  if (roomsEnabled || debugEnabled) {
-    detectCurrentPage()
-  }
-})
 
 // Extract PDF content for snapping when page changes or PDF finishes loading
 watch(
@@ -275,14 +250,8 @@ useEventListener(window, "pointerup", (e: EditorInputEvent) => {
     @pointerup="handleMouseUp"
     @pointerleave="handleMouseLeave"
   >
-    <!-- Raw plan debug overlay (edges/nodes) -->
-    <EditorPlanDebugLayer />
-
     <!-- Snap system debug overlay (extracted segments/points) -->
     <EditorSnapDebugLayer />
-
-    <!-- Room detection overlay (renders below annotations) -->
-    <EditorRoomLayer />
 
     <!-- Render all registered tool components dynamically -->
     <template v-for="toolDef in registeredTools" :key="toolDef.type">

@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth/minimal"
-import { admin, openAPI, organization, magicLink } from "better-auth/plugins"
+import { admin, openAPI, organization, magicLink, testUtils } from "better-auth/plugins"
 import { apiKey } from "@better-auth/api-key"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { eq } from "drizzle-orm"
@@ -7,7 +7,7 @@ import { db } from "./server/utils/drizzle"
 import * as schema from "./shared/db/schema"
 import { ac, roles } from "./shared/auth/access-control"
 import { platformAdminPlugin } from "./shared/auth/plugins/platform-admin"
-import { useEvent } from "nitropack/runtime"
+import { useEvent } from "nitropack/runtime/internal/context"
 import { sendMagicLinkEmail, sendOrganizationInviteEmail } from "./server/services/email/email.service"
 import {
   createAuditHook,
@@ -79,7 +79,8 @@ export const auth = betterAuth({
       },
       expiresIn: 60 * 60 * 24 * 7
     }),
-    openAPI()
+    openAPI(),
+    ...(process.env.VITEST ? [testUtils()] : [])
   ],
   database: drizzleAdapter(db, {
     provider: "pg",

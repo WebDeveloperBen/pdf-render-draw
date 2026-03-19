@@ -16,6 +16,7 @@ export default defineConfig({
           include: ["app/**/*.spec.ts"],
           exclude: ["app/tests/e2e/**/*.spec.ts", "node_modules/**"],
           environment: "nuxt",
+          hookTimeout: 30_000,
           environmentOptions: {
             nuxt: {
               mock: {

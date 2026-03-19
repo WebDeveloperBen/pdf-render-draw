@@ -4,6 +4,9 @@ import { fileURLToPath } from "node:url"
 import { version } from "./package.json"
 
 const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.BUILD_TARGET === "tauri"
+const devServerPort = process.env.PORT ? Number(process.env.PORT) : isTauri ? 3001 : 3000
+const devServerHost = process.env.HOST || "0"
+const useNodePgDriver = process.env.VITEST === "true" || process.env.NITRO_PRESET === "node-server"
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -150,8 +153,11 @@ export default defineNuxtConfig({
 
   // Enables the development server to be discoverable by other devices when running on iOS physical devices
   devServer: {
-    host: "0",
-    port: isTauri ? 3001 : 3000 // avoid cached service workers
+    // Nuxt test-utils boots `nuxi _dev` on a random PORT/HOST. Respect those
+    // values so integration tests exercise the same dev Nitro pipeline instead
+    // of diverging onto a separate server config.
+    host: devServerHost,
+    port: devServerPort // avoid cached service workers
   },
 
   colorMode: {
@@ -184,16 +190,15 @@ export default defineNuxtConfig({
     minify: false,
     // For Cloudflare Workers: mock pg (prod uses @neondatabase/serverless)
     // @react-email/render is an optional dep of resend (we use @vue-email/render)
-    unenv:
-      process.env.NITRO_PRESET === "node-server"
-        ? undefined
-        : {
-            alias: {
-              pg: "unenv/mock/proxy",
-              "@react-email/render": "unenv/mock/proxy",
-              "@aws-sdk/client-s3": "unenv/mock/proxy"
-            }
-          },
+    unenv: useNodePgDriver
+      ? undefined
+      : {
+          alias: {
+            pg: "unenv/mock/proxy",
+            "@react-email/render": "unenv/mock/proxy",
+            "@aws-sdk/client-s3": "unenv/mock/proxy"
+          }
+        },
     openAPI: {
       route: "/_docs/openapi.json",
       production: false,

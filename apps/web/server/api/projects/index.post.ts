@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { randomUUID } from "crypto"
 import { eq } from "drizzle-orm"
+import { requireProjectQuota } from "../../services/billing/billing.guards"
 
 const bodySchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be at most 100 characters"),

@@ -13,6 +13,7 @@
     "web:build": "pnpm --filter @pdf-annotator/web build",
     "web:check": "pnpm --filter @pdf-annotator/web check",
     "web:test": "pnpm --filter @pdf-annotator/web test",
+    "web:test:integration": "pnpm --filter @pdf-annotator/web test:integration",
     "web:lint": "pnpm --filter @pdf-annotator/web lint",
 
     "db:generate": "pnpm --filter @pdf-annotator/web db:generate",

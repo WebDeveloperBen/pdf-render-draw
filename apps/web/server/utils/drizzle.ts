@@ -3,6 +3,7 @@ import { drizzle as drizzleNeon } from "drizzle-orm/neon-http"
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres"
 import { neon } from "@neondatabase/serverless"
 import pg from "pg"
+import { getOptionalRuntimeConfig } from "./runtime-config"
 
 /**
  * Database connection supporting both:
@@ -15,7 +16,8 @@ type DrizzleDB = ReturnType<typeof drizzleNeon<typeof schema>> | ReturnType<type
 let _db: DrizzleDB | null = null
 
 function createDb(): DrizzleDB {
-  const connectionString = useRuntimeConfig().databaseUrl || process.env.DATABASE_URL
+  const runtimeConfig = getOptionalRuntimeConfig()
+  const connectionString = runtimeConfig?.databaseUrl || process.env.NUXT_DATABASE_URL || process.env.DATABASE_URL
 
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is required")

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Red Team Audit"
+  short_description: "Audit implementations for bugs and risks"
+  default_prompt: "Use $red-team-audit to inspect this implementation and return only findings."

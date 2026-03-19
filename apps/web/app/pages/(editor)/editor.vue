@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
-import { useRoomDetection } from "@/composables/editor/useRoomDetection"
-import { useFeatureFlags } from "@/composables/useFeatureFlags"
 import {
   ArrowLeft,
-  Brain,
-  Bug,
   ChevronLeft,
   ChevronRight,
   CloudCheck,
@@ -21,8 +17,6 @@ import {
   Plus,
   RotateCcw,
   RotateCw,
-  ScanLine,
-  TextSearch,
   WifiOff
 } from "lucide-vue-next"
 
@@ -184,22 +178,6 @@ function closeSidebar() {
 // Tool registry for drawing tools
 const toolRegistry = useToolRegistry()
 const tools = computed(() => toolRegistry.getCompleteToolbarTools())
-
-// Feature flags
-const { flags } = useFeatureFlags()
-
-// Room detection
-const {
-  roomLayerEnabled,
-  debugLayerEnabled,
-  isDetecting: isDetectingRooms,
-  toggleRoomLayer,
-  toggleDebugLayer,
-  detectWithOCR,
-  detectWithTextWalls,
-  detectedRooms,
-  debugData
-} = useRoomDetection()
 
 // Snap debug
 const { snapDebugEnabled } = useSnapProvider()
@@ -475,63 +453,9 @@ if (typeof window !== "undefined") {
               <MousePointer2 class="size-4" />
               <span class="tool-name">Select</span>
             </button>
-
-            <div
-              v-if="flags.roomDetection || flags.roomSmartDetect || flags.roomAiDetect || flags.roomDebugPlan"
-              class="tool-divider"
-            />
+            <div class="tool-divider" />
 
             <button
-              v-if="flags.roomDetection"
-              :class="['tool-btn room-detect-btn', { active: roomLayerEnabled }]"
-              :title="roomLayerEnabled ? 'Hide detected rooms' : 'Auto-detect rooms from plan'"
-              :disabled="!viewportStore.isPdfLoaded"
-              @click="toggleRoomLayer"
-            >
-              <UiSpinner v-if="isDetectingRooms" class="size-4" />
-              <ScanLine v-else class="size-4" />
-              <span class="tool-name">{{ roomLayerEnabled ? `Rooms (${detectedRooms.length})` : "Detect Rooms" }}</span>
-            </button>
-
-            <button
-              v-if="flags.roomSmartDetect"
-              class="tool-btn room-text-wall-btn"
-              title="Detect rooms from PDF text labels + wall geometry (no AI)"
-              :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
-              @click="detectWithTextWalls"
-            >
-              <UiSpinner v-if="isDetectingRooms" class="size-4" />
-              <TextSearch v-else class="size-4" />
-              <span class="tool-name">Smart Detect</span>
-            </button>
-
-            <button
-              v-if="flags.roomAiDetect"
-              class="tool-btn room-ocr-btn"
-              title="Detect rooms using AI vision (OCR)"
-              :disabled="!viewportStore.isPdfLoaded || isDetectingRooms"
-              @click="detectWithOCR"
-            >
-              <UiSpinner v-if="isDetectingRooms" class="size-4" />
-              <Brain v-else class="size-4" />
-              <span class="tool-name">AI Detect</span>
-            </button>
-
-            <button
-              v-if="flags.roomDebugPlan"
-              :class="['tool-btn room-debug-btn', { active: debugLayerEnabled }]"
-              :title="debugLayerEnabled ? 'Hide raw plan debug overlay' : 'Show raw edges/nodes debug overlay'"
-              :disabled="!viewportStore.isPdfLoaded"
-              @click="toggleDebugLayer"
-            >
-              <Bug class="size-4" />
-              <span class="tool-name">
-                {{ debugLayerEnabled ? `Debug (${debugData?.nodes.length ?? 0} nodes)` : "Debug Plan" }}
-              </span>
-            </button>
-
-            <button
-              v-if="flags.roomDebugPlan"
               :class="['tool-btn room-debug-btn', { active: snapDebugEnabled }]"
               title="Show extracted snap segments overlay"
               :disabled="!viewportStore.isPdfLoaded"

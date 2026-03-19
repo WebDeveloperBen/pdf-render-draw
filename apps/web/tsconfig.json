@@ -2,7 +2,11 @@
   "compilerOptions": {
     "strict": true,
     "removeComments": true,
-    "types": ["@tauri-apps/api", "./tauri.d.ts"]
+    "types": [
+      "@tauri-apps/api",
+      "./tauri.d.ts"
+    ],
+    "composite": true
   },
   // https://nuxt.com/docs/guide/concepts/typescript
   "files": [],

@@ -71,25 +71,8 @@ async function main() {
       "select to_regclass('public.account') is not null as exists"
     )
 
-    const detectedRoomTable = await client.query<{ exists: boolean }>(
-      "select to_regclass('public.detected_room') is not null as exists"
-    )
-
-    const viewportRotationColumn = await client.query<{ data_type: string }>(`
-      select data_type
-      from information_schema.columns
-      where table_schema = 'public'
-        and table_name = 'user_file_state'
-        and column_name = 'viewport_rotation'
-      limit 1
-    `)
-
-    const hasDetectedRoom = Boolean(detectedRoomTable.rows[0]?.exists)
-    const isViewportRotationReal = viewportRotationColumn.rows[0]?.data_type === "real"
-
     const entries = await loadJournalEntries()
     const latest = entries.at(-1)
-    const previous = entries.at(-2)
 
     if (!latest) {
       throw new Error("Could not determine latest migration entry")
@@ -108,27 +91,13 @@ async function main() {
       return
     }
 
-    const isAtPrevious = existingCreatedAt === previous?.when
-    const needsPromotionToLatest = hasDetectedRoom && (isAtPrevious || existingCreatedAt === null)
-
-    if (needsPromotionToLatest && !isViewportRotationReal) {
-      await client.query("alter table public.user_file_state alter column viewport_rotation type real")
-      console.log("Updated user_file_state.viewport_rotation to real.")
-    }
-
-    const baselineEntry =
-      needsPromotionToLatest || (hasDetectedRoom && isViewportRotationReal) ? latest : (previous ?? latest)
-
-    const hash = await sqlFileHash(baselineEntry.tag)
+    const hash = await sqlFileHash(latest.tag)
     await client.query(`insert into drizzle.__drizzle_migrations (hash, created_at) values ($1, $2)`, [
       hash,
-      baselineEntry.when
+      latest.when
     ])
 
-    console.log(`Baseline inserted at ${baselineEntry.tag} (created_at=${baselineEntry.when}).`)
-    if (baselineEntry.tag !== latest.tag) {
-      console.log(`Run pnpm db:migrate next to apply ${latest.tag}.`)
-    }
+    console.log(`Baseline inserted at ${latest.tag} (created_at=${latest.when}).`)
   } finally {
     await client.end()
   }

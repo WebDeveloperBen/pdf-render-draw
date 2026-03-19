@@ -4,29 +4,32 @@ import PasswordResetEmail from "./PasswordResetEmail.vue"
 import VerificationEmail from "./VerificationEmail.vue"
 import MagicLinkEmail from "./MagicLinkEmail.vue"
 import OrganizationInviteEmail from "./OrganizationInviteEmail.vue"
+import { getOptionalRuntimeConfig } from "../../utils/runtime-config"
 
 // Lazy-initialized Resend client
 let resendClient: Resend | null = null
 
 function getResendClient(): Resend {
   if (!resendClient) {
-    const config = useRuntimeConfig()
-    resendClient = new Resend(config.resendApiKey)
+    const config = getOptionalRuntimeConfig()
+    const resendApiKey = config?.resendApiKey || process.env.NUXT_RESEND_API_KEY || ""
+    resendClient = new Resend(resendApiKey)
   }
   return resendClient
 }
 
 function getFromEmail(): string {
-  const config = useRuntimeConfig()
-  return config.emailFrom
+  const config = getOptionalRuntimeConfig()
+  return config?.emailFrom || process.env.EMAIL_FROM || "noreply@bens.digital"
 }
 
 function getEmailBranding() {
-  const config = useRuntimeConfig()
+  const config = getOptionalRuntimeConfig()
+  const appBranding = config?.public?.app
   return {
-    appName: config.app.name,
-    brandColor: config.app.brandColor,
-    footerText: config.app.footerText
+    appName: appBranding?.name || "MetreMate",
+    brandColor: appBranding?.brandColor || "#f97316",
+    footerText: appBranding?.footerText || "Professional PDF annotation tools"
   }
 }
 

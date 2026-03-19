@@ -19,7 +19,6 @@ export * from "./useToolRegistry"
 export * from "./useTransformBase"
 export * from "./useZoom"
 export * from "./useSnapProvider"
-export * from "./useRoomDetection"
 export * from "./useToolViewport"
 export * from "./useEditorTransformFinalise"
 

@@ -11,10 +11,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
+  const appBranding = config.public.app
   const branding = {
-    appName: config.app.name,
-    brandColor: config.app.brandColor,
-    footerText: config.app.footerText
+    appName: appBranding.name,
+    brandColor: appBranding.brandColor,
+    footerText: appBranding.footerText
   }
 
   const templates = {

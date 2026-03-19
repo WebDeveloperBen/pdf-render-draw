@@ -59,7 +59,5 @@ CREATE TABLE "billing_sync_log" (
 	"completed_at" timestamp
 );
 --> statement-breakpoint
-ALTER TABLE "detected_room" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-DROP TABLE "detected_room" CASCADE;--> statement-breakpoint
 ALTER TABLE "user_file_state" ALTER COLUMN "viewport_rotation" SET DATA TYPE integer;--> statement-breakpoint
 ALTER TABLE "organization" ADD COLUMN "stripe_customer_id" text;

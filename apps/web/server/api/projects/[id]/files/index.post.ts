@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { randomUUID } from "crypto"
 import { eq } from "drizzle-orm"
+import { requireFileSizeLimit } from "../../../../services/billing/billing.guards"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
