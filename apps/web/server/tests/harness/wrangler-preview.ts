@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process"
+import { spawn, type ChildProcess } from "node:child_process"
 import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -89,7 +89,7 @@ async function runCommand(command: string, args: string[], cwd: string): Promise
   })
 }
 
-async function waitForHealthyServer(baseUrl: string, child: ChildProcessWithoutNullStreams, logs: string[]) {
+async function waitForHealthyServer(baseUrl: string, child: ChildProcess, logs: string[]) {
   const deadline = Date.now() + 180_000
 
   while (Date.now() < deadline) {

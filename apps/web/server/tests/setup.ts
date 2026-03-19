@@ -17,6 +17,7 @@ setup({
   server: true,
   browser: false,
   dev: true,
+  port: 3000,
   setupTimeout: 240_000
 })
 

@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
   const db = useDrizzle()
 
   // Get current admin's session
-  const currentSession = await auth.api.getSession({ headers: event.headers })
+  const currentSession = await auth.api.getSession({ headers: toWebRequest(event).headers })
   const currentUserId = currentSession?.user?.id
 
   if (!currentUserId) {

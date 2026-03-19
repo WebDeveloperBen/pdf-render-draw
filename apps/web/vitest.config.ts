@@ -35,6 +35,7 @@ export default defineConfig({
           include: ["server/**/*.spec.ts"],
           exclude: ["node_modules/**"],
           environment: "nuxt",
+          hookTimeout: 30_000,
           globals: true
         }
       })

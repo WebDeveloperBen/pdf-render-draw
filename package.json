@@ -13,6 +13,7 @@
     "web:build": "pnpm --filter @pdf-annotator/web build",
     "web:check": "pnpm --filter @pdf-annotator/web check",
     "web:test": "pnpm --filter @pdf-annotator/web test",
+    "web:test:all": "pnpm run web:check && pnpm run web:test --run && pnpm run web:test:integration && pnpm run web:test:integration:prod",
     "web:test:integration": "pnpm --filter @pdf-annotator/web test:integration",
     "web:test:integration:prod": "pnpm --filter @pdf-annotator/web test:integration:prod",
     "web:lint": "pnpm --filter @pdf-annotator/web lint",
@@ -38,6 +39,9 @@
   },
   "devDependencies": {
     "turbo": "^2.8.13"
+  },
+  "engines": {
+    "node": ">=20 <21"
   },
   "packageManager": "pnpm@10.14.0"
 }

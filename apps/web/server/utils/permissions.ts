@@ -1,4 +1,4 @@
-import type { H3Event } from "h3"
+import { toWebRequest, type H3Event } from "h3"
 import { eq, and, inArray } from "drizzle-orm"
 import { auth } from "@auth"
 import type { statements } from "@shared/auth/access-control"
@@ -26,6 +26,18 @@ export interface AuthContext {
   billing: OrgBillingContext
 }
 
+function getAuthHeaders(event: H3Event): Headers {
+  try {
+    return toWebRequest(event).headers
+  } catch {
+    if (event.headers instanceof Headers) {
+      return event.headers
+    }
+
+    return new Headers(event.headers as HeadersInit | undefined)
+  }
+}
+
 // ---- Core: requireAuth ----
 
 /**
@@ -36,7 +48,7 @@ export async function requireAuth(event: H3Event): Promise<AuthContext> {
   // Return cached context if already resolved this request
   if (event.context.auth) return event.context.auth as AuthContext
 
-  const session = await auth.api.getSession({ headers: event.headers })
+  const session = await auth.api.getSession({ headers: getAuthHeaders(event) })
 
   if (!session?.user?.id) {
     throw createError({
@@ -130,7 +142,7 @@ async function resolveBillingContext(orgId: string | null): Promise<OrgBillingCo
  */
 export async function hasPermission(event: H3Event, permissions: PermissionCheck): Promise<boolean> {
   const result = await auth.api.hasPermission({
-    headers: event.headers,
+    headers: getAuthHeaders(event),
     body: { permissions }
   })
 

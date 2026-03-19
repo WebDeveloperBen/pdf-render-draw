@@ -28,7 +28,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-web:
+    name: Validate Web App
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck web app
+        run: pnpm --filter @pdf-annotator/web check
+
+      - name: Run web unit and component tests
+        run: pnpm --filter @pdf-annotator/web test --run
+
+      - name: Run web integration tests
+        run: pnpm --filter @pdf-annotator/web test:integration
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+
+      - name: Run web prod smoke tests
+        run: pnpm --filter @pdf-annotator/web test:integration:prod
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+
   deploy:
+    needs: validate-web
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: ${{ inputs.environment || (github.event_name == 'push' && 'prod') || 'dev' }}
@@ -47,29 +86,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
           cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Type check
-        run: pnpm --filter @pdf-annotator/web check
-        continue-on-error: true
-
-      - name: Run tests
-        run: pnpm --filter @pdf-annotator/web test --run
-        continue-on-error: false
-
-      - name: Run integration tests
-        run: pnpm --filter @pdf-annotator/web test:integration
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: "true"
-
-      - name: Run prod smoke integration tests
-        run: pnpm --filter @pdf-annotator/web test:integration:prod
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: "true"
 
       - name: Build application
         run: pnpm --filter @pdf-annotator/web build
@@ -113,7 +133,6 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
           cache: "pnpm"
 
       - name: Install dependencies

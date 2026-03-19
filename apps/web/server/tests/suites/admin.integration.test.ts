@@ -8,12 +8,17 @@ import { buildSubscription } from "../fixtures/billing"
 import { buildPlatformAdmin } from "../fixtures/admin"
 import { patchServerTestState } from "../helpers/test-state"
 import {
+  account,
   adminAuditLog,
+  apikey,
   billingActivity,
+  member,
   organization,
   platform_admin,
   project,
-  subscription
+  session,
+  subscription,
+  user
 } from "../../../shared/db/schema"
 import { eq } from "drizzle-orm"
 
@@ -59,6 +64,60 @@ describe("Admin API", () => {
       expect(data.organizations.total).toBe(2) // 2 seeded orgs
       expect(data.projects.total).toBe(3) // 3 seeded projects
       expect(data.sessions.active).toBeGreaterThanOrEqual(1)
+    })
+  })
+
+  // ---- GET /api/admin/billing/overview ----
+
+  describe("GET /api/admin/billing/overview", () => {
+    it("returns aggregate billing metrics for the admin dashboard", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values([
+        buildSubscription({
+          id: "sub-overview-active",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter",
+          status: "active",
+          stripeCustomerId: "cus_overview_active",
+          stripeSubscriptionId: "sub_overview_active"
+        }),
+        buildSubscription({
+          id: "sub-overview-trial",
+          referenceId: seed.orgs.demo.id,
+          plan: "Starter",
+          status: "trialing",
+          stripeCustomerId: "cus_overview_trial",
+          stripeSubscriptionId: "sub_overview_trial"
+        })
+      ])
+
+      const data = await $fetch<{
+        totalOrganizations: number
+        statuses: {
+          active: number
+          trialing: number
+          pastDue: number
+          canceled: number
+          incomplete: number
+        }
+        noSubscription: number
+        lastSyncedAt: string | null
+      }>("/api/admin/billing/overview", {
+        headers: adminHeaders
+      })
+
+      expect(data).toEqual({
+        totalOrganizations: 2,
+        statuses: {
+          active: 1,
+          trialing: 1,
+          pastDue: 0,
+          canceled: 0,
+          incomplete: 0
+        },
+        noSubscription: 0,
+        lastSyncedAt: null
+      })
     })
   })
 
@@ -126,6 +185,67 @@ describe("Admin API", () => {
 
       expect(data.id).toBe(seed.orgs.acme.id)
       expect(data.name).toBe("Acme Construction")
+    })
+  })
+
+  // ---- GET /api/admin/organizations/:id/billing ----
+
+  describe("GET /api/admin/organizations/:id/billing", () => {
+    it("returns the free-tier billing summary when the organisation has no subscription", async () => {
+      const data = await $fetch<{
+        hasSubscription: boolean
+        subscription: null
+        planTier: string
+        billingHealth: string
+      }>(`/api/admin/organizations/${seed.orgs.demo.id}/billing`, {
+        headers: adminHeaders
+      })
+
+      expect(data).toEqual({
+        hasSubscription: false,
+        subscription: null,
+        planTier: "free",
+        billingHealth: "inactive"
+      })
+    })
+
+    it("returns the subscription summary for subscribed organisations", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values(
+        buildSubscription({
+          id: "sub-org-billing-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter",
+          status: "active",
+          cancelAtPeriodEnd: true
+        })
+      )
+
+      const data = await $fetch<{
+        hasSubscription: boolean
+        subscription: {
+          id: string
+          plan: string
+          status: string
+          cancelAtPeriodEnd: boolean | null
+        } | null
+        planTier: string
+        billingHealth: string
+      }>(`/api/admin/organizations/${seed.orgs.acme.id}/billing`, {
+        headers: adminHeaders
+      })
+
+      expect(data.hasSubscription).toBe(true)
+      expect(data.subscription).toEqual(
+        expect.objectContaining({
+          id: "sub-org-billing-001",
+          plan: "Starter",
+          status: "active",
+          cancelAtPeriodEnd: true
+        })
+      )
+      expect(data.planTier).toBe("starter")
+      expect(data.billingHealth).toBe("at_risk")
     })
   })
 
@@ -312,6 +432,73 @@ describe("Admin API", () => {
     })
   })
 
+  // ---- GET /api/admin/subscriptions/:id/activity ----
+
+  describe("GET /api/admin/subscriptions/:id/activity", () => {
+    it("returns the activity timeline with actor details", async () => {
+      const db = getTestDb()
+      await db.insert(subscription).values(
+        buildSubscription({
+          id: "sub-activity-001",
+          referenceId: seed.orgs.acme.id,
+          plan: "Starter"
+        })
+      )
+      await db.insert(billingActivity).values([
+        {
+          id: "billing-activity-001",
+          subscriptionId: "sub-activity-001",
+          type: "admin_action",
+          description: "Subscription refreshed",
+          actorId: seed.users.admin.id,
+          metadata: { source: "admin-panel" },
+          createdAt: new Date("2025-01-02T00:00:00.000Z")
+        },
+        {
+          id: "billing-activity-002",
+          subscriptionId: "sub-activity-001",
+          type: "payment",
+          description: "Invoice paid",
+          actorId: null,
+          metadata: null,
+          createdAt: new Date("2025-01-01T00:00:00.000Z")
+        }
+      ])
+
+      const data = await $fetch<{
+        activities: Array<{
+          id: string
+          type: string
+          description: string
+          actorName: string | null
+          actorEmail: string | null
+        }>
+      }>("/api/admin/subscriptions/sub-activity-001/activity?limit=10&offset=0", {
+        headers: adminHeaders
+      })
+
+      expect(data.activities).toHaveLength(2)
+      expect(data.activities[0]).toEqual(
+        expect.objectContaining({
+          id: "billing-activity-001",
+          type: "admin_action",
+          description: "Subscription refreshed",
+          actorName: "Platform Owner",
+          actorEmail: seed.users.admin.email
+        })
+      )
+      expect(data.activities[1]).toEqual(
+        expect.objectContaining({
+          id: "billing-activity-002",
+          type: "payment",
+          description: "Invoice paid",
+          actorName: null,
+          actorEmail: null
+        })
+      )
+    })
+  })
+
   // ---- GET /api/admin/audit-log ----
 
   describe("GET /api/admin/audit-log", () => {
@@ -327,6 +514,119 @@ describe("Admin API", () => {
       expect(data.entries).toBeInstanceOf(Array)
       expect(data.pagination.total).toBeGreaterThanOrEqual(0)
       expect(data.actionTypes).toBeInstanceOf(Array)
+    })
+  })
+
+  // ---- DELETE /api/admin/users/:id ----
+
+  describe("DELETE /api/admin/users/:id", () => {
+    it("soft deletes a user by banning them and revoking active credentials", async () => {
+      const data = await $fetch<{
+        success: boolean
+        message: string
+        userId: string
+        hardDelete: boolean
+      }>(`/api/admin/users/${seed.users.regularUser.id}`, {
+        method: "DELETE",
+        headers: adminHeaders,
+        body: {
+          confirmation: true
+        }
+      })
+
+      const db = getTestDb()
+      const [savedUser] = await db
+        .select({
+          banned: user.banned,
+          banReason: user.banReason
+        })
+        .from(user)
+        .where(eq(user.id, seed.users.regularUser.id))
+      const revokedSessions = await db
+        .select({ id: session.id })
+        .from(session)
+        .where(eq(session.userId, seed.users.regularUser.id))
+      const revokedApiKeys = await db
+        .select({ id: apikey.id })
+        .from(apikey)
+        .where(eq(apikey.userId, seed.users.regularUser.id))
+      const auditRows = await db
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "user_soft_delete"))
+
+      expect(data).toEqual({
+        success: true,
+        message: `User ${seed.users.regularUser.email} has been deactivated`,
+        userId: seed.users.regularUser.id,
+        hardDelete: false
+      })
+      expect(savedUser).toEqual({
+        banned: true,
+        banReason: "Account deleted by administrator"
+      })
+      expect(revokedSessions).toHaveLength(0)
+      expect(revokedApiKeys).toHaveLength(0)
+      expect(auditRows).toHaveLength(1)
+    })
+
+    it("hard deletes a user and their auth records", async () => {
+      await createAuthenticatedUser(seed.users.teamMember.id, seed.orgs.acme.id)
+
+      const data = await $fetch<{
+        success: boolean
+        message: string
+        userId: string
+        hardDelete: boolean
+      }>(`/api/admin/users/${seed.users.teamMember.id}`, {
+        method: "DELETE",
+        headers: adminHeaders,
+        body: {
+          confirmation: true,
+          hardDelete: true
+        }
+      })
+
+      const db = getTestDb()
+      const [deletedUser] = await db.select({ id: user.id }).from(user).where(eq(user.id, seed.users.teamMember.id))
+      const linkedAccounts = await db
+        .select({ id: account.id })
+        .from(account)
+        .where(eq(account.userId, seed.users.teamMember.id))
+      const memberships = await db
+        .select({ id: member.id })
+        .from(member)
+        .where(eq(member.userId, seed.users.teamMember.id))
+      const deletedSessions = await db
+        .select({ id: session.id })
+        .from(session)
+        .where(eq(session.userId, seed.users.teamMember.id))
+      const auditRows = await db
+        .select({ actionType: adminAuditLog.actionType })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.actionType, "user_hard_delete"))
+
+      expect(data).toEqual({
+        success: true,
+        message: `User ${seed.users.teamMember.email} has been permanently deleted`,
+        userId: seed.users.teamMember.id,
+        hardDelete: true
+      })
+      expect(deletedUser).toBeUndefined()
+      expect(linkedAccounts).toHaveLength(0)
+      expect(memberships).toHaveLength(0)
+      expect(deletedSessions).toHaveLength(0)
+      expect(auditRows).toHaveLength(1)
+    })
+
+    it("rejects self-deletion through the admin route", async () => {
+      await expectError(`/api/admin/users/${seed.users.admin.id}`, 400, {
+        method: "DELETE",
+        headers: adminHeaders,
+        body: {
+          confirmation: true
+        }
+      })
     })
   })
 

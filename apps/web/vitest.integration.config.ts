@@ -14,6 +14,7 @@ export default defineConfig({
     globalSetup: ["./server/tests/global-setup.ts"],
     setupFiles: ["./server/tests/setup.ts"],
     include: ["server/tests/suites/**/*.integration.test.ts"],
+    exclude: ["server/tests/suites/**/*.prod.integration.test.ts"],
     testTimeout: 30_000,
     hookTimeout: 240_000,
     globals: true,

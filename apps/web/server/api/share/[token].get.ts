@@ -136,7 +136,7 @@ export default defineEventHandler(async (event) => {
 
   // Handle private shares - require authentication and valid recipient
   if (share.shareType === "private") {
-    const session = await auth.api.getSession({ headers: event.headers })
+    const session = await auth.api.getSession({ headers: toWebRequest(event).headers })
 
     if (!session) {
       throw createError({
@@ -249,7 +249,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // For notes, user must be authenticated (private share) and notes must be allowed
-  const session = await auth.api.getSession({ headers: event.headers })
+  const session = await auth.api.getSession({ headers: toWebRequest(event).headers })
   const canAddNotes = share.allowNotes && share.shareType === "private" && !!session
 
   return {

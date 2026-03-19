@@ -1,9 +1,8 @@
-import { $fetch } from "@nuxt/test-utils/e2e"
 import { describe, it, expect, beforeEach } from "vitest"
 import { seedStandardScenario, type SeededData } from "../fixtures/seed"
 import { buildSubscription } from "../fixtures/billing"
 import { createAuthenticatedUser, getAuthHeaders, type AuthHeaders } from "../helpers/auth"
-import { expectError } from "../helpers/api"
+import { authedFetch, expectError } from "../helpers/api"
 import { getTestDb } from "../helpers/db"
 import { project, projectFile, subscription } from "../../../shared/db/schema"
 import { eq } from "drizzle-orm"
@@ -30,7 +29,7 @@ describe("Projects API", () => {
 
   describe("GET /api/projects", () => {
     it("returns projects for the active org", async () => {
-      const data = await $fetch<Array<{ id: string; name: string }>>("/api/projects", { headers })
+      const data = await authedFetch<Array<{ id: string; name: string }>>("/api/projects", headers)
 
       // Acme has floorPlan and sitePlan
       expect(data.length).toBe(2)
@@ -40,7 +39,7 @@ describe("Projects API", () => {
     })
 
     it("does not return projects from other orgs", async () => {
-      const data = await $fetch<Array<{ id: string; name: string }>>("/api/projects", { headers })
+      const data = await authedFetch<Array<{ id: string; name: string }>>("/api/projects", headers)
 
       const names = data.map((p) => p.name)
       // Electrical Layout belongs to Demo Corp
@@ -59,27 +58,27 @@ describe("Projects API", () => {
     })
 
     it("supports search filter", async () => {
-      const data = await $fetch<Array<{ name: string }>>("/api/projects?search=Floor", { headers })
+      const data = await authedFetch<Array<{ name: string }>>("/api/projects?search=Floor", headers)
 
       expect(data.length).toBe(1)
       expect(data[0].name).toBe("Office Floor Plan")
     })
 
     it("supports pagination", async () => {
-      const data = await $fetch<Array<{ id: string }>>("/api/projects?limit=1&offset=0", { headers })
+      const data = await authedFetch<Array<{ id: string }>>("/api/projects?limit=1&offset=0", headers)
 
       expect(data.length).toBe(1)
     })
 
     it("includes creator, organization, and counts", async () => {
-      const data = await $fetch<
+      const data = await authedFetch<
         Array<{
           name: string
           creator: { id: string; name: string }
           organization: { id: string; name: string }
           _count: { shares: number; files: number }
         }>
-      >("/api/projects", { headers })
+      >("/api/projects", headers)
 
       const floorPlan = data.find((p) => p.name === "Office Floor Plan")
       expect(floorPlan).toBeDefined()
@@ -105,10 +104,9 @@ describe("Projects API", () => {
         pageCount: 5
       }
 
-      const data = await $fetch<{ id: string; name: string; files: Array<{ id: string }> }>("/api/projects", {
+      const data = await authedFetch<{ id: string; name: string; files: Array<{ id: string }> }>("/api/projects", headers, {
         method: "POST",
-        body,
-        headers
+        body
       })
 
       expect(data.name).toBe("New Test Project")
@@ -153,9 +151,7 @@ describe("Projects API", () => {
 
   describe("GET /api/projects/:id", () => {
     it("returns project details", async () => {
-      const data = await $fetch<{ id: string; name: string }>(`/api/projects/${seed.projects.floorPlan.id}`, {
-        headers
-      })
+      const data = await authedFetch<{ id: string; name: string }>(`/api/projects/${seed.projects.floorPlan.id}`, headers)
 
       expect(data.id).toBe(seed.projects.floorPlan.id)
       expect(data.name).toBe("Office Floor Plan")
@@ -174,10 +170,9 @@ describe("Projects API", () => {
 
   describe("PATCH /api/projects/:id", () => {
     it("updates project fields", async () => {
-      const data = await $fetch<{ id: string; name: string }>(`/api/projects/${seed.projects.floorPlan.id}`, {
+      const data = await authedFetch<{ id: string; name: string }>(`/api/projects/${seed.projects.floorPlan.id}`, headers, {
         method: "PATCH",
-        body: { name: "Updated Floor Plan" },
-        headers
+        body: { name: "Updated Floor Plan" }
       })
 
       expect(data.name).toBe("Updated Floor Plan")
@@ -195,9 +190,8 @@ describe("Projects API", () => {
 
   describe("DELETE /api/projects/:id", () => {
     it("deletes a project and its files", async () => {
-      await $fetch(`/api/projects/${seed.projects.floorPlan.id}`, {
-        method: "DELETE",
-        headers
+      await authedFetch(`/api/projects/${seed.projects.floorPlan.id}`, headers, {
+        method: "DELETE"
       })
 
       // Verify project is gone
@@ -222,9 +216,9 @@ describe("Projects API", () => {
 
   describe("GET /api/projects/:id/shares", () => {
     it("lists shares for a project", async () => {
-      const data = await $fetch<Array<{ id: string; shareType: string }>>(
+      const data = await authedFetch<Array<{ id: string; shareType: string }>>(
         `/api/projects/${seed.projects.floorPlan.id}/shares`,
-        { headers }
+        headers
       )
 
       expect(data.length).toBeGreaterThanOrEqual(1)
@@ -236,8 +230,9 @@ describe("Projects API", () => {
     it("creates a new share", async () => {
       await enableStarterPlanForAcme()
 
-      const data = await $fetch<{ id: string; token: string }>(
+      const data = await authedFetch<{ id: string; token: string }>(
         `/api/projects/${seed.projects.floorPlan.id}/shares`,
+        headers,
         {
           method: "POST",
           body: {
@@ -245,8 +240,7 @@ describe("Projects API", () => {
             shareType: "public",
             allowDownload: true,
             allowNotes: false
-          },
-          headers
+          }
         }
       )
 
@@ -259,9 +253,9 @@ describe("Projects API", () => {
 
   describe("GET /api/projects/:id/files", () => {
     it("lists files for a project", async () => {
-      const data = await $fetch<Array<{ id: string; pdfFileName: string }>>(
+      const data = await authedFetch<Array<{ id: string; pdfFileName: string }>>(
         `/api/projects/${seed.projects.floorPlan.id}/files`,
-        { headers }
+        headers
       )
 
       expect(data.length).toBe(1)

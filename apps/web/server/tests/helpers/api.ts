@@ -1,5 +1,5 @@
-import { $fetch } from "@nuxt/test-utils/e2e"
 import type { AuthHeaders } from "./auth"
+import { expectHttpError, testFetch, type TestRequestOptions } from "./http"
 
 /**
  * Make an authenticated API call. Merges auth headers with request options.
@@ -8,12 +8,12 @@ import type { AuthHeaders } from "./auth"
 export async function authedFetch<T = unknown>(
   path: string,
   headers: AuthHeaders,
-  opts: Record<string, unknown> = {}
+  opts: TestRequestOptions = {}
 ): Promise<T> {
-  return (await $fetch(path, {
+  return await testFetch<T>(path, {
     ...opts,
-    headers: { ...headers, ...(opts.headers as Record<string, string>) }
-  })) as T
+    headers: { ...headers, ...(opts.headers ?? {}) }
+  })
 }
 
 /**
@@ -23,21 +23,7 @@ export async function authedFetch<T = unknown>(
 export async function expectError(
   path: string,
   expectedStatus: number,
-  opts: Record<string, unknown> = {}
+  opts: TestRequestOptions = {}
 ): Promise<{ statusCode: number; statusMessage: string; data?: unknown }> {
-  try {
-    await $fetch(path, opts)
-    throw new Error(`Expected ${expectedStatus} error but request succeeded`)
-  } catch (error: unknown) {
-    const fetchError = error as { status?: number; statusCode?: number; data?: unknown; statusMessage?: string }
-    const status = fetchError.status ?? fetchError.statusCode
-    if (status !== expectedStatus) {
-      throw new Error(`Expected ${expectedStatus} but got ${status}: ${JSON.stringify(fetchError.data)}`)
-    }
-    return {
-      statusCode: expectedStatus,
-      statusMessage: fetchError.statusMessage ?? "",
-      data: fetchError.data
-    }
-  }
+  return await expectHttpError(path, expectedStatus, opts)
 }

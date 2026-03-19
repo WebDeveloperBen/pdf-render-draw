@@ -1,4 +1,5 @@
 import type { TestCookie, TestHelpers } from "better-auth/plugins"
+import { buildUrl, waitForTestServer } from "./http"
 
 export type AuthHeaders = Record<string, string>
 
@@ -19,6 +20,12 @@ function toAuthHeaders(cookies: TestCookie[]): AuthHeaders {
  * which is only available after the test server boots.
  */
 async function getTestContext(): Promise<AuthTestContext> {
+  await waitForTestServer()
+
+  const baseUrl = buildUrl("/").toString().replace(/\/$/, "")
+  process.env.BETTER_AUTH_URL = baseUrl
+  process.env.NUXT_PUBLIC_BETTER_AUTH_URL = baseUrl
+
   const { auth } = await import("@auth")
   const ctx = await auth.$context
   const test = (ctx as Record<string, unknown>).test as TestHelpers | undefined

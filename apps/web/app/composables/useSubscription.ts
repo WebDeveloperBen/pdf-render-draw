@@ -8,9 +8,10 @@ import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "@shared/types/billing"
  */
 export function useSubscription() {
   const { data: profile, suspense, refetch } = useGetApiUserProfile()
+  const profileData = computed(() => profile.value?.data ?? null)
 
-  const subscription = computed(() => profile.value?.subscription ?? null)
-  const billing = computed(() => profile.value?.billing ?? null)
+  const subscription = computed(() => profileData.value?.subscription ?? null)
+  const billing = computed(() => profileData.value?.billing ?? null)
 
   // Plan identity
   const planName = computed(() => (billing.value?.plan as string) ?? "free")
@@ -28,8 +29,10 @@ export function useSubscription() {
   const trialEnd = computed(() => (subscription.value?.trialEnd ? new Date(subscription.value.trialEnd) : null))
 
   // Limits (for UI display — backend enforces)
-  const limits = computed<PlanLimits>(() => (billing.value?.limits as PlanLimits) ?? FREE_TIER_LIMITS)
-  const features = computed<PlanFeatures>(() => (billing.value?.features as PlanFeatures) ?? FREE_TIER_FEATURES)
+  const limits = computed<PlanLimits>(() => (billing.value?.limits as unknown as PlanLimits) ?? FREE_TIER_LIMITS)
+  const features = computed<PlanFeatures>(
+    () => (billing.value?.features as unknown as PlanFeatures) ?? FREE_TIER_FEATURES
+  )
 
   // Convenience checks
   const canUseFeature = (feature: keyof PlanFeatures): boolean => {

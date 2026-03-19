@@ -97,4 +97,44 @@ describe("User API", () => {
       await expectError("/api/user/invitations", 401)
     })
   })
+
+  // ---- POST /api/user/onboarding ----
+
+  describe("POST /api/user/onboarding", () => {
+    it("accepts onboarding completion payloads for authenticated users", async () => {
+      const before = await $fetch<{ updatedAt: string }>("/api/user/profile", {
+        headers
+      })
+
+      const data = await $fetch<{ success: boolean; message: string }>("/api/user/onboarding", {
+        method: "POST",
+        headers,
+        body: {
+          companyName: "Acme Fitout",
+          role: "estimator",
+          selectedPlan: "starter",
+          teamSize: "2-5"
+        }
+      })
+
+      const after = await $fetch<{ updatedAt: string }>("/api/user/profile", {
+        headers
+      })
+
+      expect(data).toEqual({
+        success: true,
+        message: "Onboarding completed successfully"
+      })
+      expect(new Date(after.updatedAt).getTime()).toBeGreaterThanOrEqual(new Date(before.updatedAt).getTime())
+    })
+
+    it("returns 401 without auth", async () => {
+      await expectError("/api/user/onboarding", 401, {
+        method: "POST",
+        body: {
+          selectedPlan: "starter"
+        }
+      })
+    })
+  })
 })

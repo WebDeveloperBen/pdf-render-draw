@@ -9,8 +9,23 @@ const { data: plansData } = useGetApiPlans()
 const { planName, isFreeTier } = useSubscription()
 const { checkout, isLoading } = useCheckout()
 
+type PricingPlan = {
+  id: string
+  name: string
+  description: string
+  amount: number
+  currency: string
+  interval: string
+  limits: PlanLimits
+  features: PlanFeatures
+  displayOrder: number
+  trialDays: number | null
+  stripePriceId: string | null
+}
+
 // Free tier is defined locally (no Stripe product)
-const freeTier = {
+const freeTier: PricingPlan = {
+  id: "free",
   name: "Free",
   description: "Perfect for trying out PDF annotations",
   amount: 0,
@@ -18,28 +33,43 @@ const freeTier = {
   interval: "forever",
   limits: FREE_TIER_LIMITS,
   features: FREE_TIER_FEATURES,
-  displayOrder: 0
+  displayOrder: 0,
+  trialDays: null,
+  stripePriceId: null
 }
 
 // Combine free tier + API plans
-const allPlans = computed(() => {
-  const apiPlans = plansData.value?.plans ?? []
+const allPlans = computed<PricingPlan[]>(() => {
+  const apiPlans = (plansData.value?.data.plans ?? []).map<PricingPlan>((plan) => ({
+    id: plan.id ?? plan.stripePriceId ?? plan.name ?? "plan",
+    name: plan.name ?? "Plan",
+    description: plan.description ?? "",
+    amount: plan.amount ?? 0,
+    currency: plan.currency ?? "aud",
+    interval: plan.interval ?? "month",
+    limits: (plan.limits as unknown as PlanLimits) ?? FREE_TIER_LIMITS,
+    features: (plan.features as unknown as PlanFeatures) ?? FREE_TIER_FEATURES,
+    displayOrder: plan.displayOrder ?? 0,
+    trialDays: plan.trialDays ?? null,
+    stripePriceId: plan.stripePriceId ?? null
+  }))
+
   return [freeTier, ...apiPlans]
 })
 
-function isCurrentPlan(plan: { name: string }) {
+function isCurrentPlan(plan: PricingPlan) {
   const name = plan.name.toLowerCase()
   return name === planName.value || (name === "free" && isFreeTier.value)
 }
 
-function ctaLabel(plan: { name: string }) {
+function ctaLabel(plan: PricingPlan) {
   const name = plan.name.toLowerCase()
   if (isCurrentPlan(plan)) return "Current Plan"
   if (name === "enterprise") return "Contact Sales"
   return `Upgrade to ${plan.name}`
 }
 
-function handleUpgrade(plan: { name: string }) {
+function handleUpgrade(plan: PricingPlan) {
   if (plan.name.toLowerCase() === "enterprise") {
     navigateTo("/support")
     return
@@ -47,7 +77,7 @@ function handleUpgrade(plan: { name: string }) {
   checkout(plan.name)
 }
 
-function isHighlighted(plan: { name: string }) {
+function isHighlighted(plan: PricingPlan) {
   return plan.name.toLowerCase() === "professional" || plan.name.toLowerCase() === "starter"
 }
 
@@ -55,15 +85,15 @@ function formatPrice(amount: number) {
   return (amount / 100).toFixed(0)
 }
 
-function getPlanLimits(plan: { limits?: PlanLimits | null }): PlanLimits {
-  return (plan.limits as PlanLimits) ?? FREE_TIER_LIMITS
+function getPlanLimits(plan: PricingPlan): PlanLimits {
+  return plan.limits ?? FREE_TIER_LIMITS
 }
 
-function getPlanFeatures(plan: { features?: PlanFeatures | null }): PlanFeatures {
-  return (plan.features as PlanFeatures) ?? FREE_TIER_FEATURES
+function getPlanFeatures(plan: PricingPlan): PlanFeatures {
+  return plan.features ?? FREE_TIER_FEATURES
 }
 
-function buildFeatureList(plan: { name: string; limits?: PlanLimits | null; features?: PlanFeatures | null }) {
+function buildFeatureList(plan: PricingPlan) {
   const limits = getPlanLimits(plan)
   const features = getPlanFeatures(plan)
   return [

@@ -19,7 +19,7 @@ const schema = toTypedSchema(
     lastName: z.string().min(1, "Last name is required"),
     email: z.email("Please enter a valid email"),
     password: z.string().min(8, "Password must be at least 8 characters"),
-    terms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms and conditions" }) })
+    terms: z.boolean().refine((value) => value, { message: "You must accept the terms and conditions" })
   })
 )
 

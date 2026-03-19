@@ -3,8 +3,14 @@ import { ArrowLeft, Rocket, Ruler, PenTool, FolderOpen, CreditCard } from "lucid
 import type { Component } from "vue"
 import faqData from "@/data/faq.json"
 
-const route = useRoute()
-const categorySlug = computed(() => route.params.category as string)
+const route = useRoute() as { params: { category?: string | string[] } }
+const categorySlug = computed(() => {
+  const category = route.params.category
+  if (Array.isArray(category)) {
+    return category[0] ?? ""
+  }
+  return typeof category === "string" ? category : ""
+})
 
 const category = computed(() => faqData.categories.find((c) => c.slug === categorySlug.value))
 
