@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid"
 import type { H3Event } from "h3"
 import { db } from "./drizzle"
-import * as schema from "@shared/db/schema"
+import * as schema from "#shared/db/schema"
 
 /**
  * Shared utility for logging admin actions to the audit log.

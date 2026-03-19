@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { eq } from "drizzle-orm"
-import { sanitiseProjectSharesForProjectResponse } from "@shared/utils/project-share"
+import { sanitiseProjectSharesForProjectResponse } from "#shared/utils/project-share"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" })
@@ -27,109 +27,7 @@ defineRouteMeta({
         content: {
           "application/json": {
             schema: {
-              type: "object",
-              properties: {
-                id: { type: "string" },
-                name: { type: "string" },
-                description: { type: "string", nullable: true },
-                reference: { type: "string", nullable: true },
-                category: { type: "string", nullable: true },
-                siteAddress: { type: "string", nullable: true },
-                suburb: { type: "string", nullable: true },
-                postcode: { type: "string", nullable: true },
-                clientName: { type: "string", nullable: true },
-                clientEmail: { type: "string", nullable: true },
-                clientPhone: { type: "string", nullable: true },
-                priority: { type: "string" },
-                tags: { type: "array", items: { type: "string" } },
-                notes: { type: "string", nullable: true },
-                annotationCount: { type: "number" },
-                lastViewedAt: { type: "string", format: "date-time", nullable: true },
-                createdBy: { type: "string" },
-                organizationId: { type: "string", nullable: true },
-                createdAt: { type: "string", format: "date-time" },
-                updatedAt: { type: "string", format: "date-time" },
-                creator: {
-                  type: "object",
-                  properties: {
-                    id: { type: "string" },
-                    name: { type: "string" },
-                    email: { type: "string" },
-                    image: { type: "string", nullable: true }
-                  },
-                  required: ["id", "name", "email"]
-                },
-                organization: {
-                  type: "object",
-                  nullable: true,
-                  properties: {
-                    id: { type: "string" },
-                    name: { type: "string" },
-                    slug: { type: "string" },
-                    logo: { type: "string", nullable: true }
-                  }
-                },
-                files: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string" },
-                      pdfUrl: { type: "string" },
-                      pdfFileName: { type: "string" },
-                      pdfFileSize: { type: "number" },
-                      pageCount: { type: "number" },
-                      annotationCount: { type: "number" },
-                      uploadedBy: { type: "string" },
-                      lastViewedAt: { type: "string", format: "date-time", nullable: true },
-                      createdAt: { type: "string", format: "date-time" },
-                      updatedAt: { type: "string", format: "date-time" },
-                      uploader: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string" },
-                          name: { type: "string" },
-                          email: { type: "string" },
-                          image: { type: "string", nullable: true }
-                        },
-                        required: ["id", "name", "email"]
-                      }
-                    },
-                    required: [
-                      "id",
-                      "pdfUrl",
-                      "pdfFileName",
-                      "pdfFileSize",
-                      "pageCount",
-                      "annotationCount",
-                      "uploadedBy",
-                      "createdAt",
-                      "updatedAt",
-                      "uploader"
-                    ]
-                  }
-                },
-                shares: { type: "array", items: { type: "object" } },
-                _count: {
-                  type: "object",
-                  properties: { shares: { type: "number" }, files: { type: "number" } },
-                  required: ["shares", "files"]
-                }
-              },
-              required: [
-                "id",
-                "name",
-                "priority",
-                "tags",
-                "annotationCount",
-                "createdBy",
-                "createdAt",
-                "updatedAt",
-                "creator",
-                "files",
-                "shares",
-                "_count"
-              ]
+              type: "object"
             }
           }
         }
@@ -210,6 +108,7 @@ export default defineEventHandler(async (event) => {
   const files = await db
     .select({
       id: projectFile.id,
+      projectId: projectFile.projectId,
       pdfUrl: projectFile.pdfUrl,
       pdfFileName: projectFile.pdfFileName,
       pdfFileSize: projectFile.pdfFileSize,

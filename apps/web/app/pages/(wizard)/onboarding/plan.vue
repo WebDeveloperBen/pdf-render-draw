@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { OnboardingPlanId, WizardData } from "~/types/wizard"
-import { clampSeatCount, getDefaultTeamSeatCount } from "@shared/utils/billing-seats"
+import { clampSeatCount, getDefaultTeamSeatCount } from "#shared/utils/billing-seats"
 import { postApiUserOnboarding } from "~/models/api"
 import type { PostApiUserOnboardingBody } from "~/models/api"
 import { toast } from "vue-sonner"

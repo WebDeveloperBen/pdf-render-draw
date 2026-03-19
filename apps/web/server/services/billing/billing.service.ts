@@ -1,7 +1,7 @@
 import { eq, and, count, sql, like, or, inArray, desc } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { db } from "../../utils/drizzle"
-import * as schema from "@shared/db/schema"
+import * as schema from "#shared/db/schema"
 import type {
   PlanTier,
   BillingHealth,

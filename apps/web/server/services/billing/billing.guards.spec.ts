@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "@shared/types/billing"
+import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "#shared/types/billing"
 import type { OrgBillingContext } from "./billing.types"
 
 // Use vi.hoisted() so mock references are available inside vi.mock() factories

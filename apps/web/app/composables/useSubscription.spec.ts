@@ -36,24 +36,22 @@ describe("useSubscription", () => {
 
   it("derives paid-plan state, feature gating, and limit checks from the profile payload", () => {
     mockState.profile = {
-      data: {
-        subscription: {
-          status: "trialing",
-          cancelAtPeriodEnd: true,
-          trialEnd: "2026-05-01T00:00:00.000Z"
+      subscription: {
+        status: "trialing",
+        cancelAtPeriodEnd: true,
+        trialEnd: "2026-05-01T00:00:00.000Z"
+      },
+      billing: {
+        plan: "professional",
+        limits: {
+          projects: 25,
+          storageMb: 2000,
+          fileSizeMb: 100
         },
-        billing: {
-          plan: "professional",
-          limits: {
-            projects: 25,
-            storageMb: 2000,
-            fileSizeMb: 100
-          },
-          features: {
-            cloudSync: true,
-            measurementTools: "advanced",
-            exportFormats: ["pdf", "png"]
-          }
+        features: {
+          cloudSync: true,
+          measurementTools: "advanced",
+          exportFormats: ["pdf", "png"]
         }
       }
     }

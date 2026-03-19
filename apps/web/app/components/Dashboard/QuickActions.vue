@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ProjectListItem } from "#shared/types/projects.types"
 import { FolderOpen, Plus, FilePlus, HelpCircle, ArrowRight } from "lucide-vue-next"
 
 /**
@@ -10,7 +11,7 @@ defineProps<{
 }>()
 
 // Fetch project count during async setup
-const projects = await $fetch<ProjectWithRelations[]>("/api/projects", {
+const projects = await $fetch<ProjectListItem[]>("/api/projects", {
   query: {
     limit: 1
   }

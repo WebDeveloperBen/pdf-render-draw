@@ -28,71 +28,7 @@ defineRouteMeta({
             schema: {
               type: "array",
               items: {
-                type: "object",
-                properties: {
-                  id: { type: "string" },
-                  projectId: { type: "string" },
-                  token: { type: "string" },
-                  createdBy: { type: "string" },
-                  name: { type: "string", nullable: true },
-                  shareType: { type: "string", enum: ["public", "private"] },
-                  message: { type: "string", nullable: true },
-                  expiresAt: { type: "string", format: "date-time", nullable: true },
-                  password: { type: "string", nullable: true },
-                  allowDownload: { type: "boolean" },
-                  allowNotes: { type: "boolean" },
-                  viewCount: { type: "number" },
-                  lastViewedAt: { type: "string", format: "date-time", nullable: true },
-                  createdAt: { type: "string", format: "date-time" },
-                  updatedAt: { type: "string", format: "date-time" },
-                  creator: {
-                    type: "object",
-                    nullable: true,
-                    properties: {
-                      id: { type: "string" },
-                      name: { type: "string" },
-                      email: { type: "string" }
-                    }
-                  },
-                  recipients: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        email: { type: "string" },
-                        status: { type: "string" },
-                        invitedAt: { type: "string", format: "date-time" },
-                        firstViewedAt: { type: "string", format: "date-time", nullable: true },
-                        lastViewedAt: { type: "string", format: "date-time", nullable: true },
-                        viewCount: { type: "number" },
-                        user: {
-                          type: "object",
-                          nullable: true,
-                          properties: {
-                            id: { type: "string" },
-                            name: { type: "string" },
-                            image: { type: "string", nullable: true }
-                          }
-                        }
-                      },
-                      required: ["id", "email", "status", "invitedAt", "viewCount"]
-                    }
-                  }
-                },
-                required: [
-                  "id",
-                  "projectId",
-                  "token",
-                  "createdBy",
-                  "shareType",
-                  "allowDownload",
-                  "allowNotes",
-                  "viewCount",
-                  "createdAt",
-                  "updatedAt",
-                  "recipients"
-                ]
+                type: "object"
               }
             }
           }

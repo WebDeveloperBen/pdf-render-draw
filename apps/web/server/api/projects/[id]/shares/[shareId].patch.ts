@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { eq, and } from "drizzle-orm"
-import { hashSharePassword } from "@shared/utils/project-share"
+import { hashSharePassword } from "#shared/utils/project-share"
 
 const paramsSchema = z.object({
   id: z.uuid({ message: "Invalid project ID" }),

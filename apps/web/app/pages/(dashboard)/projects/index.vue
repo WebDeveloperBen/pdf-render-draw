@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectWithRelations } from "#shared/types/projects.types"
+import type { ProjectListItem } from "#shared/types/projects.types"
 import { toast } from "vue-sonner"
 import { FileText, FolderOpen, MessageSquare, Plus, Search, Share2 } from "lucide-vue-next"
 
@@ -7,7 +7,7 @@ useSeoMeta({ title: "Projects" })
 
 const route = useRoute()
 const isLoading = ref(true)
-const projects = ref<ProjectWithRelations[]>([])
+const projects = ref<ProjectListItem[]>([])
 const searchQuery = ref("")
 const showCreateDialog = ref(false)
 
@@ -15,7 +15,7 @@ const showCreateDialog = ref(false)
 const fetchProjects = async () => {
   isLoading.value = true
   try {
-    const response = await $fetch<ProjectWithRelations[]>("/api/projects", {
+    const response = await $fetch<ProjectListItem[]>("/api/projects", {
       query: {
         search: searchQuery.value || undefined,
         sortBy: "updatedAt",

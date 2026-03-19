@@ -28,43 +28,7 @@ defineRouteMeta({
             schema: {
               type: "array",
               items: {
-                type: "object",
-                properties: {
-                  id: { type: "string" },
-                  projectId: { type: "string" },
-                  pdfUrl: { type: "string" },
-                  pdfFileName: { type: "string" },
-                  pdfFileSize: { type: "number" },
-                  pageCount: { type: "number" },
-                  annotationCount: { type: "number" },
-                  uploadedBy: { type: "string" },
-                  lastViewedAt: { type: "string", format: "date-time", nullable: true },
-                  createdAt: { type: "string", format: "date-time" },
-                  updatedAt: { type: "string", format: "date-time" },
-                  uploader: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string" },
-                      name: { type: "string" },
-                      email: { type: "string" },
-                      image: { type: "string", nullable: true }
-                    },
-                    required: ["id", "name", "email"]
-                  }
-                },
-                required: [
-                  "id",
-                  "projectId",
-                  "pdfUrl",
-                  "pdfFileName",
-                  "pdfFileSize",
-                  "pageCount",
-                  "annotationCount",
-                  "uploadedBy",
-                  "createdAt",
-                  "updatedAt",
-                  "uploader"
-                ]
+                type: "object"
               }
             }
           }

@@ -43,6 +43,70 @@ export class ApiError extends Error {
   }
 }
 
+export const isApiError = (value: unknown): value is ApiError => value instanceof ApiError
+
+export const getApiErrorMessage = (value: unknown, fallback = "Request failed") => {
+  if (isApiError(value)) {
+    return value.message
+  }
+
+  if (value instanceof Error) {
+    return value.message
+  }
+
+  return fallback
+}
+
+type ApiResponseLike = {
+  status: number
+  data: unknown
+}
+
+type SuccessStatus = 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 226
+
+export type SuccessResponse<T> = Extract<T, { status: SuccessStatus }>
+export type SuccessData<T> = SuccessResponse<T> extends { data: infer TData } ? TData : never
+
+export const successData = <TResponse extends ApiResponseLike>(
+  response: TResponse | null | undefined
+): SuccessData<TResponse> | undefined => {
+  if (!response || response.status < 200 || response.status >= 300) {
+    return undefined
+  }
+
+  return response.data as SuccessData<TResponse>
+}
+
+export const expectSuccessData = <TResponse extends ApiResponseLike>(
+  response: TResponse | null | undefined,
+  fallback = "Expected a successful API response"
+): SuccessData<TResponse> => {
+  const data = successData(response)
+  if (data === undefined) {
+    throw new Error(fallback)
+  }
+
+  return data
+}
+
+export type WithResponseDataOptions<TResponse extends ApiResponseLike, TError> = {
+  query?: Partial<UseQueryOptions<TResponse, TError, SuccessData<TResponse>>>
+  request?: RequestInit
+}
+
+export const selectSuccessResponseData = <TResponse extends ApiResponseLike>(response: TResponse) =>
+  expectSuccessData(response)
+
+export const withResponseData = <TResponse extends ApiResponseLike, TError = unknown>(
+  options?: WithResponseDataOptions<TResponse, TError>
+): WithResponseDataOptions<TResponse, TError> => ({
+  ...options,
+  query: {
+    ...options?.query,
+    select: selectSuccessResponseData
+  }
+})
+
 /**
  * Custom fetch function for orval-generated API calls.
  *
@@ -60,13 +124,25 @@ export const customFetch = async <T>(url: string, options?: RequestInit): Promis
 
   // Handle empty responses (204 No Content, etc.)
   const body = [204, 205, 304].includes(response.status) ? null : await response.text()
-  const data = body ? JSON.parse(body) : {}
+  let data: unknown = {}
+
+  if (body) {
+    try {
+      data = JSON.parse(body)
+    } catch {
+      data = body
+    }
+  }
 
   // Throw on non-2xx so vue-query error handling triggers
   if (!response.ok) {
-    const message = data?.detail || data?.message || `Request failed with status ${response.status}`
+    const message =
+      (data as { detail?: string; message?: string })?.detail ||
+      (data as { detail?: string; message?: string })?.message ||
+      `Request failed with status ${response.status}`
     throw new ApiError(response.status, message, data)
   }
 
   return { data, status: response.status, headers: response.headers } as T
 }
+import type { UseQueryOptions } from "@tanstack/vue-query"

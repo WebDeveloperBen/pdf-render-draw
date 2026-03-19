@@ -1,72 +1,39 @@
-import type { InferSelectModel, InferInsertModel } from "drizzle-orm"
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
+import type { z } from "zod"
 import type { project, projectFile, projectShare, projectShareRecipient } from "../db/schema"
+import {
+  projectFileWithUploaderSchema,
+  projectListItemSchema,
+  projectShareRecipientSchema,
+  projectShareSchema,
+  projectShareWithRelationsSchema,
+  projectWithRelationsSchema
+} from "../schemas/projects"
 
 // Share types
 export type ShareType = "public" | "private"
 export type RecipientStatus = "pending" | "viewed" | "expired"
 
-// Base types inferred from Drizzle schema
-export type Project = InferSelectModel<typeof project>
+// Database row types
+export type ProjectRecord = InferSelectModel<typeof project>
 export type ProjectInsert = InferInsertModel<typeof project>
 
-export type ProjectFile = InferSelectModel<typeof projectFile>
+export type ProjectFileRecord = InferSelectModel<typeof projectFile>
 export type ProjectFileInsert = InferInsertModel<typeof projectFile>
 
-export type ProjectShare = InferSelectModel<typeof projectShare>
+export type ProjectShareRecord = InferSelectModel<typeof projectShare>
 export type ProjectShareInsert = InferInsertModel<typeof projectShare>
 
-export type ProjectShareRecipient = InferSelectModel<typeof projectShareRecipient>
+export type ProjectShareRecipientRecord = InferSelectModel<typeof projectShareRecipient>
 export type ProjectShareRecipientInsert = InferInsertModel<typeof projectShareRecipient>
 
-// Project file with uploader info
-export interface ProjectFileWithUploader extends ProjectFile {
-  uploader: {
-    id: string
-    name: string
-    email: string
-    image: string | null
-  }
-}
-
-// Extended types with relations
-export interface ProjectWithRelations extends Project {
-  creator: {
-    id: string
-    name: string
-    email: string
-    image: string | null
-  }
-  organization: {
-    id: string
-    name: string
-    slug: string
-    logo: string | null
-  } | null
-  shares: ProjectShare[]
-  files: ProjectFile[]
-  _count?: {
-    shares: number
-    files: number
-  }
-}
-
-export interface ProjectShareRecipientWithUser extends ProjectShareRecipient {
-  user?: {
-    id: string
-    name: string
-    image: string | null
-  }
-}
-
-export interface ProjectShareWithRelations extends ProjectShare {
-  project: Project
-  creator: {
-    id: string
-    name: string
-    email: string
-  }
-  recipients?: ProjectShareRecipientWithUser[]
-}
+// API response types inferred from shared schemas
+export type ProjectFileWithUploader = z.infer<typeof projectFileWithUploaderSchema>
+export type ProjectListItem = z.infer<typeof projectListItemSchema>
+export type ProjectShare = z.infer<typeof projectShareSchema>
+export type ProjectShareRecipientWithUser = z.infer<typeof projectShareRecipientSchema>
+export type ProjectShareWithRelations = z.infer<typeof projectShareWithRelationsSchema>
+export type ProjectWithRelations = z.infer<typeof projectWithRelationsSchema>
 
 // Dashboard statistics
 export interface DashboardStats {
@@ -104,7 +71,6 @@ export interface CreateProjectInput {
   name: string
   description?: string
   organizationId?: string | null
-  // Initial file data (first file in project)
   pdfUrl: string
   pdfFileName: string
   pdfFileSize: number

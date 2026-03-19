@@ -10,6 +10,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
 import { AlertCircle, Download, ExternalLink, Eye, File, FileText, Key, Lock, Unlock } from "lucide-vue-next"
+import { isApiError, withResponseData } from "~/utils/customFetch"
 
 definePageMeta({
   layout: false // No layout for public page
@@ -26,18 +27,17 @@ const {
   data: shareResponse,
   error,
   status
-} = useGetApiShareToken(token, urlPassword.value ? { password: urlPassword.value } : undefined)
+} = useGetApiShareToken(token, urlPassword.value ? { password: urlPassword.value } : undefined, withResponseData())
 
-// Extract data from response
-const shareData = computed(() => (shareResponse.value?.status === 200 ? shareResponse.value.data : null))
+const shareData = computed(() => shareResponse.value ?? null)
 
 // Error state helpers
 const requiresPassword = computed(() => {
-  return error.value && shareResponse.value?.status === 400
+  return isApiError(error.value) && error.value.status === 400
 })
 
 const requiresAuth = computed(() => {
-  return error.value && shareResponse.value?.status === 403
+  return isApiError(error.value) && error.value.status === 403
 })
 
 // Password form schema

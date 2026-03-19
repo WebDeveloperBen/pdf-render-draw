@@ -32,6 +32,7 @@ import { uploadBlankPdf } from "~/composables/useScratchpad"
 import type { ProjectWithRelations } from "#shared/types/projects.types"
 import { usePostApiProjects } from "@/models/api"
 import { toast } from "vue-sonner"
+import { expectSuccessData } from "~/utils/customFetch"
 
 // API mutation hook
 const { mutateAsync: createProject, isPending: isCreating } = usePostApiProjects()
@@ -330,7 +331,7 @@ async function handleSubmit() {
       throw new Error("Failed to create project")
     }
 
-    emit("created", response as unknown as ProjectWithRelations)
+    emit("created", expectSuccessData(response, "Failed to create project"))
     toast.success("Project created successfully")
     closeModal()
   } catch (error: any) {

@@ -1,4 +1,4 @@
-import * as schema from "@shared/db/schema"
+import * as schema from "#shared/db/schema"
 import { useRuntimeConfig } from "#imports"
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http"
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres"

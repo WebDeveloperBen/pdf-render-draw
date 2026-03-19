@@ -2,8 +2,9 @@
 import { keepPreviousData } from "@tanstack/vue-query"
 import type { ColumnDef } from "@tanstack/vue-table"
 import type { GetApiAdminUsers200, GetApiAdminUsers200UsersItem, GetApiAdminUsersParams } from "~/models/api"
-import { useGetApiAdminUsers } from "~/models/api"
+import { getApiAdminUsers, useGetApiAdminUsers } from "~/models/api"
 import { CheckCircle, Eye, RefreshCw, Search, Users } from "lucide-vue-next"
+import { withResponseData } from "~/utils/customFetch"
 
 definePageMeta({
   layout: "admin",
@@ -40,14 +41,14 @@ const params = computed<GetApiAdminUsersParams>(() => ({
 }))
 
 // Use Orval-generated hook
-const { data, isLoading, isFetching, refetch } = useGetApiAdminUsers(params, {
+const usersQueryOptions = withResponseData<Awaited<ReturnType<typeof getApiAdminUsers>>>({
   query: { placeholderData: keepPreviousData }
 })
 
-// Extract data from response wrapper
-const response = computed(() => data.value?.data as GetApiAdminUsers200 | undefined)
-const items = computed(() => response.value?.users ?? [])
-const pagination = computed(() => response.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
+const { data, isLoading, isFetching, refetch } = useGetApiAdminUsers(params, usersQueryOptions)
+
+const items = computed(() => data.value?.users ?? [])
+const pagination = computed(() => data.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
 const pageCount = computed(() => pagination.value.totalPages)
 const totalRows = computed(() => pagination.value.total)
 

@@ -891,37 +891,288 @@ export type GetApiFilesFileIdAnnotationsParams = {
   includeDeleted?: boolean
 }
 
-/**
- * Annotation data (type varies by annotation type)
- */
-export type GetApiFilesFileIdAnnotations200AnnotationsItem = { [key: string]: unknown }
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfPointsItem0 = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfPointsItem1 = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfMidpoint = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfDeletedAt = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOf = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "measure"
+  points: [
+    GetApiFilesFileIdAnnotations200AnnotationsItemOneOfPointsItem0,
+    GetApiFilesFileIdAnnotations200AnnotationsItemOneOfPointsItem1
+  ]
+  distance: number
+  midpoint: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfMidpoint
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfDeletedAt
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSixPointsItem = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSixCenter = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSixDeletedAt = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSix = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "area"
+  points: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSixPointsItem[]
+  area: number
+  center: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSixCenter
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSixDeletedAt
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroPointsItem = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItemStart = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItemEnd = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItemMidpoint = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItem = {
+  start: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItemStart
+  end: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItemEnd
+  length: number
+  midpoint: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItemMidpoint
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroCenter = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroDeletedAt = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezero = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "perimeter"
+  points: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroPointsItem[]
+  segments: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroSegmentsItem[]
+  totalLength: number
+  center: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroCenter
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezeroDeletedAt
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOneeightPointsItem = {
+  x: number
+  y: number
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOneeightDeletedAt = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOneeight = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "line"
+  points: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOneeightPointsItem[]
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOneeightDeletedAt
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwooneDeletedAt = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwoone = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "fill"
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+  opacity: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwooneDeletedAt
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwothreeDeletedAt = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwothree = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "text"
+  x: number
+  y: number
+  width: number
+  height: number
+  content: string
+  fontSize: number
+  color: string
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwothreeDeletedAt
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwofiveLabel = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwofiveDeletedAt = string | null
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwofive = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "count"
+  x: number
+  y: number
+  width: number
+  height: number
+  number: number
+  label?: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwofiveLabel
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwofiveDeletedAt
+}
+
+export type GetApiFilesFileIdAnnotations200AnnotationsItem =
+  | GetApiFilesFileIdAnnotations200AnnotationsItemOneOf
+  | GetApiFilesFileIdAnnotations200AnnotationsItemOneOfSix
+  | GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOnezero
+  | GetApiFilesFileIdAnnotations200AnnotationsItemOneOfOneeight
+  | GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwoone
+  | GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwothree
+  | GetApiFilesFileIdAnnotations200AnnotationsItemOneOfTwofive
+
+export type GetApiFilesFileIdAnnotations200MetaLastModified = string | null
 
 export type GetApiFilesFileIdAnnotations200Meta = {
   count: number
-  /** @nullable */
-  lastModified?: string | null
+  lastModified: GetApiFilesFileIdAnnotations200MetaLastModified
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   serverTime: string
 }
 
-/**
- * User-specific viewport state
- * @nullable
- */
-export type GetApiFilesFileIdAnnotations200ViewportState = {
-  scale?: number
-  rotation?: number
-  scrollLeft?: number
-  scrollTop?: number
-  currentPage?: number
-} | null
+export type GetApiFilesFileIdAnnotations200ViewportStateAnyOf = {
+  scale: number
+  rotation: number
+  scrollLeft: number
+  scrollTop: number
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  currentPage: number
+}
+
+export type GetApiFilesFileIdAnnotations200ViewportState = GetApiFilesFileIdAnnotations200ViewportStateAnyOf | null
 
 export type GetApiFilesFileIdAnnotations200 = {
   annotations: GetApiFilesFileIdAnnotations200AnnotationsItem[]
   meta: GetApiFilesFileIdAnnotations200Meta
-  /**
-   * User-specific viewport state
-   * @nullable
-   */
   viewportState?: GetApiFilesFileIdAnnotations200ViewportState
 }
 
@@ -960,36 +1211,237 @@ export const PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType = {
   delete: "delete"
 } as const
 
-/**
- * Annotation data (varies by type)
- */
-export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotation = { [key: string]: unknown }
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfPointsItem0 = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfPointsItem1 = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfMidpoint = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOf = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "measure"
+  points: [
+    PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfPointsItem0,
+    PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfPointsItem1
+  ]
+  distance: number
+  midpoint: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfMidpoint
+  labelRotation: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfFivePointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfFiveCenter = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfFive = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "area"
+  points: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfFivePointsItem[]
+  area: number
+  center: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfFiveCenter
+  labelRotation: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightPointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItemStart = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItemEnd = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItemMidpoint = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItem = {
+  start: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItemStart
+  end: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItemEnd
+  length: number
+  midpoint: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItemMidpoint
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightCenter = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEight = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "perimeter"
+  points: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightPointsItem[]
+  segments: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightSegmentsItem[]
+  totalLength: number
+  center: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEightCenter
+  labelRotation: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnefivePointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnefive = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "line"
+  points: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnefivePointsItem[]
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOneseven = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "fill"
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+  opacity: number
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOneeight = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "text"
+  x: number
+  y: number
+  width: number
+  height: number
+  content: string
+  fontSize: number
+  color: string
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnenineLabel = string | null
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnenine = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "count"
+  x: number
+  y: number
+  width: number
+  height: number
+  number: number
+  label?: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnenineLabel
+}
+
+export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotation =
+  | PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOf
+  | PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfFive
+  | PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfEight
+  | PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnefive
+  | PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOneseven
+  | PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOneeight
+  | PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotationOneOfOnenine
 
 export type PostApiFilesFileIdAnnotationsSyncBodyOperationsItem = {
   type: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemType
-  /** Annotation data (varies by type) */
   annotation: PostApiFilesFileIdAnnotationsSyncBodyOperationsItemAnnotation
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
   localVersion: number
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   timestamp: string
 }
 
-/**
- * Optional viewport state to sync
- */
 export type PostApiFilesFileIdAnnotationsSyncBodyViewportState = {
-  scale?: number
-  rotation?: number
-  scrollLeft?: number
-  scrollTop?: number
-  currentPage?: number
+  scale: number
+  rotation: number
+  scrollLeft: number
+  scrollTop: number
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  currentPage: number
 }
 
 export type PostApiFilesFileIdAnnotationsSyncBody = {
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   clientTime: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   lastSyncTime?: string
   /** @maxItems 100 */
   operations: PostApiFilesFileIdAnnotationsSyncBodyOperationsItem[]
-  /** Optional viewport state to sync */
   viewportState?: PostApiFilesFileIdAnnotationsSyncBodyViewportState
 }
 
@@ -1003,50 +1455,555 @@ export const PostApiFilesFileIdAnnotationsSync200ConflictsItemReason = {
   validation_error: "validation_error"
 } as const
 
-/**
- * @nullable
- */
-export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersion = { [key: string]: unknown } | null
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfPointsItem0 = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfPointsItem1 = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfMidpoint = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOf = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "measure"
+  points: [
+    PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfPointsItem0,
+    PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfPointsItem1
+  ]
+  distance: number
+  midpoint: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfMidpoint
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSixPointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSixCenter = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSixDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSix = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "area"
+  points: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSixPointsItem[]
+  area: number
+  center: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSixCenter
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSixDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroPointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItemStart = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItemEnd = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItemMidpoint = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItem = {
+  start: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItemStart
+  end: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItemEnd
+  length: number
+  midpoint: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItemMidpoint
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroCenter = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezero = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "perimeter"
+  points: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroPointsItem[]
+  segments: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroSegmentsItem[]
+  totalLength: number
+  center: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroCenter
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezeroDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOneeightPointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOneeightDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOneeight = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "line"
+  points: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOneeightPointsItem[]
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOneeightDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwooneDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwoone = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "fill"
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+  opacity: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwooneDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwothreeDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwothree = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "text"
+  x: number
+  y: number
+  width: number
+  height: number
+  content: string
+  fontSize: number
+  color: string
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwothreeDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwofiveLabel = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwofiveDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwofive = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "count"
+  x: number
+  y: number
+  width: number
+  height: number
+  number: number
+  label?: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwofiveLabel
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwofiveDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOf =
+  | PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOf
+  | PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfSix
+  | PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOnezero
+  | PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfOneeight
+  | PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwoone
+  | PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwothree
+  | PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOfOneOfTwofive
+
+export type PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersion =
+  PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersionAnyOf | null
 
 export type PostApiFilesFileIdAnnotationsSync200ConflictsItem = {
   annotationId: string
   reason: PostApiFilesFileIdAnnotationsSync200ConflictsItemReason
-  /** @nullable */
   serverVersion: PostApiFilesFileIdAnnotationsSync200ConflictsItemServerVersion
   message?: string
 }
 
-export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItem = { [key: string]: unknown }
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfPointsItem0 = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfPointsItem1 = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfMidpoint = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOf = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "measure"
+  points: [
+    PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfPointsItem0,
+    PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfPointsItem1
+  ]
+  distance: number
+  midpoint: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfMidpoint
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSixPointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSixCenter = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSixDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSix = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "area"
+  points: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSixPointsItem[]
+  area: number
+  center: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSixCenter
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSixDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroPointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItemStart = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItemEnd = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItemMidpoint = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItem = {
+  start: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItemStart
+  end: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItemEnd
+  length: number
+  midpoint: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItemMidpoint
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroCenter = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezero = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "perimeter"
+  points: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroPointsItem[]
+  segments: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroSegmentsItem[]
+  totalLength: number
+  center: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroCenter
+  labelRotation: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezeroDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOneeightPointsItem = {
+  x: number
+  y: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOneeightDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOneeight = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "line"
+  points: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOneeightPointsItem[]
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOneeightDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwooneDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwoone = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "fill"
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+  opacity: number
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwooneDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwothreeDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwothree = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "text"
+  x: number
+  y: number
+  width: number
+  height: number
+  content: string
+  fontSize: number
+  color: string
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwothreeDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwofiveLabel = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwofiveDeletedAt = string | null
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwofive = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  pageNum: number
+  rotation: number
+  labelScale?: number
+  type: "count"
+  x: number
+  y: number
+  width: number
+  height: number
+  number: number
+  label?: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwofiveLabel
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  version: number
+  deletedAt: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwofiveDeletedAt
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ServerUpdatesItem =
+  | PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOf
+  | PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfSix
+  | PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOnezero
+  | PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfOneeight
+  | PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwoone
+  | PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwothree
+  | PostApiFilesFileIdAnnotationsSync200ServerUpdatesItemOneOfTwofive
 
 export type PostApiFilesFileIdAnnotationsSync200Meta = {
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   serverTime: string
   syncId: string
 }
 
-/**
- * Current user viewport state after sync
- * @nullable
- */
-export type PostApiFilesFileIdAnnotationsSync200ViewportState = {
-  scale?: number
-  rotation?: number
-  scrollLeft?: number
-  scrollTop?: number
-  currentPage?: number
-} | null
+export type PostApiFilesFileIdAnnotationsSync200ViewportStateAnyOf = {
+  scale: number
+  rotation: number
+  scrollLeft: number
+  scrollTop: number
+  /**
+   * @minimum 1
+   * @maximum 9007199254740991
+   */
+  currentPage: number
+}
+
+export type PostApiFilesFileIdAnnotationsSync200ViewportState =
+  PostApiFilesFileIdAnnotationsSync200ViewportStateAnyOf | null
 
 export type PostApiFilesFileIdAnnotationsSync200 = {
   success: boolean
-  /** IDs of successfully applied operations */
   applied: string[]
   conflicts: PostApiFilesFileIdAnnotationsSync200ConflictsItem[]
-  /** Annotations changed by other clients since lastSyncTime */
   serverUpdates: PostApiFilesFileIdAnnotationsSync200ServerUpdatesItem[]
   meta: PostApiFilesFileIdAnnotationsSync200Meta
-  /**
-   * Current user viewport state after sync
-   * @nullable
-   */
   viewportState?: PostApiFilesFileIdAnnotationsSync200ViewportState
 }
 
@@ -1225,36 +2182,52 @@ export type GetApiHealth200 = {
   timestamp: string
 }
 
-/**
- * @nullable
- */
-export type GetApiPlans200PlansItemLimits = { [key: string]: unknown } | null
+export type GetApiPlans200PlansItemDescription = string | null
 
-/**
- * @nullable
- */
-export type GetApiPlans200PlansItemFeatures = { [key: string]: unknown } | null
+export type GetApiPlans200PlansItemLimits = {
+  projects: number
+  storageMb: number
+  fileSizeMb: number
+}
+
+export type GetApiPlans200PlansItemFeaturesMeasurementTools =
+  (typeof GetApiPlans200PlansItemFeaturesMeasurementTools)[keyof typeof GetApiPlans200PlansItemFeaturesMeasurementTools]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiPlans200PlansItemFeaturesMeasurementTools = {
+  basic: "basic",
+  all: "all"
+} as const
+
+export type GetApiPlans200PlansItemFeatures = {
+  exportFormats: string[]
+  measurementTools: GetApiPlans200PlansItemFeaturesMeasurementTools
+  cloudSync: boolean
+  collaboration: boolean
+  customBranding: boolean
+  measurementPresets: boolean
+  sla?: boolean
+  dedicatedSupport?: boolean
+}
+
+export type GetApiPlans200PlansItemTrialDays = number | null
 
 export type GetApiPlans200PlansItem = {
-  id?: string
-  name?: string
-  /** @nullable */
-  description?: string | null
-  amount?: number
-  currency?: string
-  interval?: string
-  /** @nullable */
-  limits?: GetApiPlans200PlansItemLimits
-  /** @nullable */
-  features?: GetApiPlans200PlansItemFeatures
-  displayOrder?: number
-  /** @nullable */
-  trialDays?: number | null
-  stripePriceId?: string
+  id: string
+  name: string
+  description: GetApiPlans200PlansItemDescription
+  amount: number
+  currency: string
+  interval: string
+  limits: GetApiPlans200PlansItemLimits
+  features: GetApiPlans200PlansItemFeatures
+  displayOrder: number
+  trialDays: GetApiPlans200PlansItemTrialDays
+  stripePriceId: string
 }
 
 export type GetApiPlans200 = {
-  plans?: GetApiPlans200PlansItem[]
+  plans: GetApiPlans200PlansItem[]
 }
 
 export type DeleteApiProjectsId200 = {
@@ -1262,49 +2235,112 @@ export type DeleteApiProjectsId200 = {
   message: string
 }
 
+export type GetApiProjectsId200Description = string | null
+
+export type GetApiProjectsId200Reference = string | null
+
+export type GetApiProjectsId200Category = string | null
+
+export type GetApiProjectsId200SiteAddress = string | null
+
+export type GetApiProjectsId200Suburb = string | null
+
+export type GetApiProjectsId200Postcode = string | null
+
+export type GetApiProjectsId200ClientName = string | null
+
+export type GetApiProjectsId200ClientEmail = string | null
+
+export type GetApiProjectsId200ClientPhone = string | null
+
+export type GetApiProjectsId200Notes = string | null
+
+export type GetApiProjectsId200LastViewedAt = string | null
+
+export type GetApiProjectsId200OrganizationId = string | null
+
+export type GetApiProjectsId200CreatorImage = string | null
+
 export type GetApiProjectsId200Creator = {
   id: string
   name: string
   email: string
-  /** @nullable */
-  image?: string | null
+  image: GetApiProjectsId200CreatorImage
 }
 
-/**
- * @nullable
- */
-export type GetApiProjectsId200Organization = {
-  id?: string
-  name?: string
-  slug?: string
-  /** @nullable */
-  logo?: string | null
-} | null
+export type GetApiProjectsId200OrganizationAnyOfLogo = string | null
+
+export type GetApiProjectsId200OrganizationAnyOf = {
+  id: string
+  name: string
+  slug: string
+  logo: GetApiProjectsId200OrganizationAnyOfLogo
+}
+
+export type GetApiProjectsId200Organization = GetApiProjectsId200OrganizationAnyOf | null
+
+export type GetApiProjectsId200FilesItemLastViewedAt = string | null
+
+export type GetApiProjectsId200FilesItemUploaderImage = string | null
 
 export type GetApiProjectsId200FilesItemUploader = {
   id: string
   name: string
   email: string
-  /** @nullable */
-  image?: string | null
+  image: GetApiProjectsId200FilesItemUploaderImage
 }
 
 export type GetApiProjectsId200FilesItem = {
   id: string
+  projectId: string
   pdfUrl: string
   pdfFileName: string
   pdfFileSize: number
   pageCount: number
   annotationCount: number
   uploadedBy: string
-  /** @nullable */
-  lastViewedAt?: string | null
+  lastViewedAt: GetApiProjectsId200FilesItemLastViewedAt
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   updatedAt: string
   uploader: GetApiProjectsId200FilesItemUploader
 }
 
-export type GetApiProjectsId200SharesItem = { [key: string]: unknown }
+export type GetApiProjectsId200SharesItemName = string | null
+
+export type GetApiProjectsId200SharesItemShareType =
+  (typeof GetApiProjectsId200SharesItemShareType)[keyof typeof GetApiProjectsId200SharesItemShareType]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiProjectsId200SharesItemShareType = {
+  public: "public",
+  private: "private"
+} as const
+
+export type GetApiProjectsId200SharesItemMessage = string | null
+
+export type GetApiProjectsId200SharesItemExpiresAt = string | null
+
+export type GetApiProjectsId200SharesItemLastViewedAt = string | null
+
+export type GetApiProjectsId200SharesItem = {
+  id: string
+  projectId: string
+  createdBy: string
+  name: GetApiProjectsId200SharesItemName
+  shareType: GetApiProjectsId200SharesItemShareType
+  message: GetApiProjectsId200SharesItemMessage
+  expiresAt: GetApiProjectsId200SharesItemExpiresAt
+  allowDownload: boolean
+  allowNotes: boolean
+  viewCount: number
+  lastViewedAt: GetApiProjectsId200SharesItemLastViewedAt
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
+  createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
+  updatedAt: string
+}
 
 export type _GetApiProjectsId200Count = {
   shares: number
@@ -1314,39 +2350,28 @@ export type _GetApiProjectsId200Count = {
 export type GetApiProjectsId200 = {
   id: string
   name: string
-  /** @nullable */
-  description?: string | null
-  /** @nullable */
-  reference?: string | null
-  /** @nullable */
-  category?: string | null
-  /** @nullable */
-  siteAddress?: string | null
-  /** @nullable */
-  suburb?: string | null
-  /** @nullable */
-  postcode?: string | null
-  /** @nullable */
-  clientName?: string | null
-  /** @nullable */
-  clientEmail?: string | null
-  /** @nullable */
-  clientPhone?: string | null
+  description: GetApiProjectsId200Description
+  reference: GetApiProjectsId200Reference
+  category: GetApiProjectsId200Category
+  siteAddress: GetApiProjectsId200SiteAddress
+  suburb: GetApiProjectsId200Suburb
+  postcode: GetApiProjectsId200Postcode
+  clientName: GetApiProjectsId200ClientName
+  clientEmail: GetApiProjectsId200ClientEmail
+  clientPhone: GetApiProjectsId200ClientPhone
   priority: string
   tags: string[]
-  /** @nullable */
-  notes?: string | null
+  notes: GetApiProjectsId200Notes
   annotationCount: number
-  /** @nullable */
-  lastViewedAt?: string | null
+  lastViewedAt: GetApiProjectsId200LastViewedAt
   createdBy: string
-  /** @nullable */
-  organizationId?: string | null
+  organizationId: GetApiProjectsId200OrganizationId
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   updatedAt: string
   creator: GetApiProjectsId200Creator
-  /** @nullable */
-  organization?: GetApiProjectsId200Organization
+  organization: GetApiProjectsId200Organization
   files: GetApiProjectsId200FilesItem[]
   shares: GetApiProjectsId200SharesItem[]
   _count: _GetApiProjectsId200Count
@@ -1509,12 +2534,15 @@ export type PatchApiProjectsIdFilesFileId200 = {
   uploader: PatchApiProjectsIdFilesFileId200Uploader
 }
 
+export type GetApiProjectsIdFiles200ItemLastViewedAt = string | null
+
+export type GetApiProjectsIdFiles200ItemUploaderImage = string | null
+
 export type GetApiProjectsIdFiles200ItemUploader = {
   id: string
   name: string
   email: string
-  /** @nullable */
-  image?: string | null
+  image: GetApiProjectsIdFiles200ItemUploaderImage
 }
 
 export type GetApiProjectsIdFiles200Item = {
@@ -1526,9 +2554,10 @@ export type GetApiProjectsIdFiles200Item = {
   pageCount: number
   annotationCount: number
   uploadedBy: string
-  /** @nullable */
-  lastViewedAt?: string | null
+  lastViewedAt: GetApiProjectsIdFiles200ItemLastViewedAt
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   updatedAt: string
   uploader: GetApiProjectsIdFiles200ItemUploader
 }
@@ -1643,6 +2672,8 @@ export type PatchApiProjectsIdSharesShareId200 = {
   creator?: PatchApiProjectsIdSharesShareId200Creator
 }
 
+export type GetApiProjectsIdShares200ItemName = string | null
+
 export type GetApiProjectsIdShares200ItemShareType =
   (typeof GetApiProjectsIdShares200ItemShareType)[keyof typeof GetApiProjectsIdShares200ItemShareType]
 
@@ -1652,61 +2683,67 @@ export const GetApiProjectsIdShares200ItemShareType = {
   private: "private"
 } as const
 
-/**
- * @nullable
- */
-export type GetApiProjectsIdShares200ItemCreator = {
-  id?: string
-  name?: string
-  email?: string
-} | null
+export type GetApiProjectsIdShares200ItemMessage = string | null
 
-/**
- * @nullable
- */
-export type GetApiProjectsIdShares200ItemRecipientsItemUser = {
-  id?: string
-  name?: string
-  /** @nullable */
-  image?: string | null
-} | null
+export type GetApiProjectsIdShares200ItemExpiresAt = string | null
+
+export type GetApiProjectsIdShares200ItemLastViewedAt = string | null
+
+export type GetApiProjectsIdShares200ItemPassword = string | null
+
+export type GetApiProjectsIdShares200ItemCreatorAnyOf = {
+  id: string
+  name: string
+  email: string
+}
+
+export type GetApiProjectsIdShares200ItemCreator = GetApiProjectsIdShares200ItemCreatorAnyOf | null
+
+export type GetApiProjectsIdShares200ItemRecipientsItemFirstViewedAt = string | null
+
+export type GetApiProjectsIdShares200ItemRecipientsItemLastViewedAt = string | null
+
+export type GetApiProjectsIdShares200ItemRecipientsItemUserAnyOfImage = string | null
+
+export type GetApiProjectsIdShares200ItemRecipientsItemUserAnyOf = {
+  id: string
+  name: string
+  image: GetApiProjectsIdShares200ItemRecipientsItemUserAnyOfImage
+}
+
+export type GetApiProjectsIdShares200ItemRecipientsItemUser =
+  GetApiProjectsIdShares200ItemRecipientsItemUserAnyOf | null
 
 export type GetApiProjectsIdShares200ItemRecipientsItem = {
   id: string
   email: string
   status: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   invitedAt: string
-  /** @nullable */
-  firstViewedAt?: string | null
-  /** @nullable */
-  lastViewedAt?: string | null
+  firstViewedAt: GetApiProjectsIdShares200ItemRecipientsItemFirstViewedAt
+  lastViewedAt: GetApiProjectsIdShares200ItemRecipientsItemLastViewedAt
   viewCount: number
-  /** @nullable */
   user?: GetApiProjectsIdShares200ItemRecipientsItemUser
 }
 
 export type GetApiProjectsIdShares200Item = {
   id: string
   projectId: string
-  token: string
   createdBy: string
-  /** @nullable */
-  name?: string | null
+  name: GetApiProjectsIdShares200ItemName
   shareType: GetApiProjectsIdShares200ItemShareType
-  /** @nullable */
-  message?: string | null
-  /** @nullable */
-  expiresAt?: string | null
-  /** @nullable */
-  password?: string | null
+  message: GetApiProjectsIdShares200ItemMessage
+  expiresAt: GetApiProjectsIdShares200ItemExpiresAt
   allowDownload: boolean
   allowNotes: boolean
   viewCount: number
-  /** @nullable */
-  lastViewedAt?: string | null
+  lastViewedAt: GetApiProjectsIdShares200ItemLastViewedAt
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   updatedAt: string
-  /** @nullable */
+  token: string
+  password: GetApiProjectsIdShares200ItemPassword
   creator?: GetApiProjectsIdShares200ItemCreator
   recipients: GetApiProjectsIdShares200ItemRecipientsItem[]
 }
@@ -1844,24 +2881,49 @@ export const GetApiProjectsSortOrder = {
   desc: "desc"
 } as const
 
+export type GetApiProjects200ItemDescription = string | null
+
+export type GetApiProjects200ItemReference = string | null
+
+export type GetApiProjects200ItemCategory = string | null
+
+export type GetApiProjects200ItemSiteAddress = string | null
+
+export type GetApiProjects200ItemSuburb = string | null
+
+export type GetApiProjects200ItemPostcode = string | null
+
+export type GetApiProjects200ItemClientName = string | null
+
+export type GetApiProjects200ItemClientEmail = string | null
+
+export type GetApiProjects200ItemClientPhone = string | null
+
+export type GetApiProjects200ItemNotes = string | null
+
+export type GetApiProjects200ItemLastViewedAt = string | null
+
+export type GetApiProjects200ItemOrganizationId = string | null
+
+export type GetApiProjects200ItemCreatorImage = string | null
+
 export type GetApiProjects200ItemCreator = {
   id: string
   name: string
   email: string
-  /** @nullable */
-  image?: string | null
+  image: GetApiProjects200ItemCreatorImage
 }
 
-/**
- * @nullable
- */
-export type GetApiProjects200ItemOrganization = {
-  id?: string
-  name?: string
-  slug?: string
-  /** @nullable */
-  logo?: string | null
-} | null
+export type GetApiProjects200ItemOrganizationAnyOfLogo = string | null
+
+export type GetApiProjects200ItemOrganizationAnyOf = {
+  id: string
+  name: string
+  slug: string
+  logo: GetApiProjects200ItemOrganizationAnyOfLogo
+}
+
+export type GetApiProjects200ItemOrganization = GetApiProjects200ItemOrganizationAnyOf | null
 
 export type GetApiProjects200ItemSharesItem = { [key: string]: unknown }
 
@@ -1873,19 +2935,28 @@ export type _GetApiProjects200ItemCount = {
 export type GetApiProjects200Item = {
   id: string
   name: string
-  /** @nullable */
-  description?: string | null
+  description: GetApiProjects200ItemDescription
+  reference: GetApiProjects200ItemReference
+  category: GetApiProjects200ItemCategory
+  siteAddress: GetApiProjects200ItemSiteAddress
+  suburb: GetApiProjects200ItemSuburb
+  postcode: GetApiProjects200ItemPostcode
+  clientName: GetApiProjects200ItemClientName
+  clientEmail: GetApiProjects200ItemClientEmail
+  clientPhone: GetApiProjects200ItemClientPhone
+  priority: string
+  tags: string[]
+  notes: GetApiProjects200ItemNotes
   annotationCount: number
-  /** @nullable */
-  lastViewedAt?: string | null
+  lastViewedAt: GetApiProjects200ItemLastViewedAt
   createdBy: string
-  /** @nullable */
-  organizationId?: string | null
+  organizationId: GetApiProjects200ItemOrganizationId
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   updatedAt: string
   creator: GetApiProjects200ItemCreator
-  /** @nullable */
-  organization?: GetApiProjects200ItemOrganization
+  organization: GetApiProjects200ItemOrganization
   shares: GetApiProjects200ItemSharesItem[]
   _count: _GetApiProjects200ItemCount
 }
@@ -1970,36 +3041,112 @@ export type PostApiProjectsBody = {
   pageCount?: number
 }
 
+export type PostApiProjects201Description = string | null
+
+export type PostApiProjects201Reference = string | null
+
+export type PostApiProjects201Category = string | null
+
+export type PostApiProjects201SiteAddress = string | null
+
+export type PostApiProjects201Suburb = string | null
+
+export type PostApiProjects201Postcode = string | null
+
+export type PostApiProjects201ClientName = string | null
+
+export type PostApiProjects201ClientEmail = string | null
+
+export type PostApiProjects201ClientPhone = string | null
+
+export type PostApiProjects201Notes = string | null
+
+export type PostApiProjects201LastViewedAt = string | null
+
+export type PostApiProjects201OrganizationId = string | null
+
+export type PostApiProjects201CreatorImage = string | null
+
 export type PostApiProjects201Creator = {
   id: string
   name: string
   email: string
-  /** @nullable */
-  image?: string | null
+  image: PostApiProjects201CreatorImage
 }
 
-/**
- * @nullable
- */
-export type PostApiProjects201Organization = {
-  id?: string
-  name?: string
-  slug?: string
-  /** @nullable */
-  logo?: string | null
-} | null
+export type PostApiProjects201OrganizationAnyOfLogo = string | null
+
+export type PostApiProjects201OrganizationAnyOf = {
+  id: string
+  name: string
+  slug: string
+  logo: PostApiProjects201OrganizationAnyOfLogo
+}
+
+export type PostApiProjects201Organization = PostApiProjects201OrganizationAnyOf | null
+
+export type PostApiProjects201FilesItemLastViewedAt = string | null
+
+export type PostApiProjects201FilesItemUploaderImage = string | null
+
+export type PostApiProjects201FilesItemUploader = {
+  id: string
+  name: string
+  email: string
+  image: PostApiProjects201FilesItemUploaderImage
+}
 
 export type PostApiProjects201FilesItem = {
   id: string
+  projectId: string
   pdfUrl: string
   pdfFileName: string
   pdfFileSize: number
   pageCount: number
   annotationCount: number
+  uploadedBy: string
+  lastViewedAt: PostApiProjects201FilesItemLastViewedAt
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
+  updatedAt: string
+  uploader: PostApiProjects201FilesItemUploader
 }
 
-export type PostApiProjects201SharesItem = { [key: string]: unknown }
+export type PostApiProjects201SharesItemName = string | null
+
+export type PostApiProjects201SharesItemShareType =
+  (typeof PostApiProjects201SharesItemShareType)[keyof typeof PostApiProjects201SharesItemShareType]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PostApiProjects201SharesItemShareType = {
+  public: "public",
+  private: "private"
+} as const
+
+export type PostApiProjects201SharesItemMessage = string | null
+
+export type PostApiProjects201SharesItemExpiresAt = string | null
+
+export type PostApiProjects201SharesItemLastViewedAt = string | null
+
+export type PostApiProjects201SharesItem = {
+  id: string
+  projectId: string
+  createdBy: string
+  name: PostApiProjects201SharesItemName
+  shareType: PostApiProjects201SharesItemShareType
+  message: PostApiProjects201SharesItemMessage
+  expiresAt: PostApiProjects201SharesItemExpiresAt
+  allowDownload: boolean
+  allowNotes: boolean
+  viewCount: number
+  lastViewedAt: PostApiProjects201SharesItemLastViewedAt
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
+  createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
+  updatedAt: string
+}
 
 export type _PostApiProjects201Count = {
   shares: number
@@ -2009,39 +3156,28 @@ export type _PostApiProjects201Count = {
 export type PostApiProjects201 = {
   id: string
   name: string
-  /** @nullable */
-  description?: string | null
-  /** @nullable */
-  reference?: string | null
-  /** @nullable */
-  category?: string | null
-  /** @nullable */
-  siteAddress?: string | null
-  /** @nullable */
-  suburb?: string | null
-  /** @nullable */
-  postcode?: string | null
-  /** @nullable */
-  clientName?: string | null
-  /** @nullable */
-  clientEmail?: string | null
-  /** @nullable */
-  clientPhone?: string | null
+  description: PostApiProjects201Description
+  reference: PostApiProjects201Reference
+  category: PostApiProjects201Category
+  siteAddress: PostApiProjects201SiteAddress
+  suburb: PostApiProjects201Suburb
+  postcode: PostApiProjects201Postcode
+  clientName: PostApiProjects201ClientName
+  clientEmail: PostApiProjects201ClientEmail
+  clientPhone: PostApiProjects201ClientPhone
   priority: string
   tags: string[]
-  /** @nullable */
-  notes?: string | null
+  notes: PostApiProjects201Notes
   annotationCount: number
-  /** @nullable */
-  lastViewedAt?: string | null
+  lastViewedAt: PostApiProjects201LastViewedAt
   createdBy: string
-  /** @nullable */
-  organizationId?: string | null
+  organizationId: PostApiProjects201OrganizationId
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   updatedAt: string
   creator: PostApiProjects201Creator
-  /** @nullable */
-  organization?: PostApiProjects201Organization
+  organization: PostApiProjects201Organization
   files: PostApiProjects201FilesItem[]
   shares: PostApiProjects201SharesItem[]
   _count: _PostApiProjects201Count
@@ -2175,67 +3311,105 @@ export type PostApiUserOnboarding200 = {
   message: string
 }
 
-/**
- * @nullable
- */
-export type GetApiUserProfile200Subscription = {
-  id?: string
-  /** @nullable */
-  stripeSubscriptionId?: string | null
-  plan?: string
-  status?: string
-  /** @nullable */
-  periodEnd?: string | null
-  /** @nullable */
-  cancelAtPeriodEnd?: boolean | null
-  /** @nullable */
-  trialEnd?: string | null
-  /** @nullable */
-  seats?: number | null
-  /** @nullable */
-  billingInterval?: string | null
-} | null
+export type GetApiUserProfile200Name = string | null
 
-export type GetApiUserProfile200BillingLimits = { [key: string]: unknown }
+export type GetApiUserProfile200FirstName = string | null
 
-export type GetApiUserProfile200BillingFeatures = { [key: string]: unknown }
+export type GetApiUserProfile200LastName = string | null
+
+export type GetApiUserProfile200EmailVerified = boolean | null
+
+export type GetApiUserProfile200Image = string | null
+
+export type GetApiUserProfile200Role = string | null
+
+export type GetApiUserProfile200BanReason = string | null
+
+export type GetApiUserProfile200BanExpires = string | null
+
+export type GetApiUserProfile200GuestOrganizationId = string | null
+
+export type GetApiUserProfile200ActiveOrganizationId = string | null
+
+export type GetApiUserProfile200SubscriptionAnyOfStripeSubscriptionId = string | null
+
+export type GetApiUserProfile200SubscriptionAnyOfPeriodEnd = string | null
+
+export type GetApiUserProfile200SubscriptionAnyOfCancelAtPeriodEnd = boolean | null
+
+export type GetApiUserProfile200SubscriptionAnyOfTrialEnd = string | null
+
+export type GetApiUserProfile200SubscriptionAnyOfSeats = number | null
+
+export type GetApiUserProfile200SubscriptionAnyOfBillingInterval = string | null
+
+export type GetApiUserProfile200SubscriptionAnyOf = {
+  id: string
+  stripeSubscriptionId: GetApiUserProfile200SubscriptionAnyOfStripeSubscriptionId
+  plan: string
+  status: string
+  periodEnd: GetApiUserProfile200SubscriptionAnyOfPeriodEnd
+  cancelAtPeriodEnd: GetApiUserProfile200SubscriptionAnyOfCancelAtPeriodEnd
+  trialEnd: GetApiUserProfile200SubscriptionAnyOfTrialEnd
+  seats: GetApiUserProfile200SubscriptionAnyOfSeats
+  billingInterval: GetApiUserProfile200SubscriptionAnyOfBillingInterval
+}
+
+export type GetApiUserProfile200Subscription = GetApiUserProfile200SubscriptionAnyOf | null
+
+export type GetApiUserProfile200BillingLimits = {
+  projects: number
+  storageMb: number
+  fileSizeMb: number
+}
+
+export type GetApiUserProfile200BillingFeaturesMeasurementTools =
+  (typeof GetApiUserProfile200BillingFeaturesMeasurementTools)[keyof typeof GetApiUserProfile200BillingFeaturesMeasurementTools]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetApiUserProfile200BillingFeaturesMeasurementTools = {
+  basic: "basic",
+  all: "all"
+} as const
+
+export type GetApiUserProfile200BillingFeatures = {
+  exportFormats: string[]
+  measurementTools: GetApiUserProfile200BillingFeaturesMeasurementTools
+  cloudSync: boolean
+  collaboration: boolean
+  customBranding: boolean
+  measurementPresets: boolean
+  sla?: boolean
+  dedicatedSupport?: boolean
+}
 
 export type GetApiUserProfile200Billing = {
-  plan?: string
-  limits?: GetApiUserProfile200BillingLimits
-  features?: GetApiUserProfile200BillingFeatures
+  plan: string
+  limits: GetApiUserProfile200BillingLimits
+  features: GetApiUserProfile200BillingFeatures
 }
 
 export type GetApiUserProfile200 = {
   id: string
-  /** @nullable */
-  name?: string | null
-  /** @nullable */
-  firstName?: string | null
-  /** @nullable */
-  lastName?: string | null
+  name: GetApiUserProfile200Name
+  firstName: GetApiUserProfile200FirstName
+  lastName: GetApiUserProfile200LastName
   email: string
-  /** @nullable */
-  emailVerified?: boolean | null
-  /** @nullable */
-  image?: string | null
-  /** @nullable */
-  role?: string | null
+  emailVerified: GetApiUserProfile200EmailVerified
+  image: GetApiUserProfile200Image
+  role: GetApiUserProfile200Role
   banned: boolean
-  /** @nullable */
-  banReason?: string | null
-  /** @nullable */
-  banExpires?: string | null
+  banReason: GetApiUserProfile200BanReason
+  banExpires: GetApiUserProfile200BanExpires
   isGuest: boolean
-  /** @nullable */
-  guestOrganizationId?: string | null
+  guestOrganizationId: GetApiUserProfile200GuestOrganizationId
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   createdAt: string
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   updatedAt: string
-  /** @nullable */
-  activeOrganizationId?: string | null
-  /** @nullable */
-  subscription?: GetApiUserProfile200Subscription
-  billing?: GetApiUserProfile200Billing
+  activeOrganizationId: GetApiUserProfile200ActiveOrganizationId
+  subscription: GetApiUserProfile200Subscription
+  billing: GetApiUserProfile200Billing
 }
 
 export type PatchApiUserProfileBody = {

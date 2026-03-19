@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useEditorSync, type SyncState } from "@/composables/useEditorSync"
+import { useEditorSync } from "@/composables/useEditorSync"
 import type { ViewportState } from "@/composables/useViewportStorage"
 import { getApiProjectsIdFilesFileId } from "~/models/api"
+import { expectSuccessData, getApiErrorMessage } from "~/utils/customFetch"
 import {
   ArrowLeft,
   ChevronLeft,
@@ -127,8 +128,10 @@ async function loadFile() {
     isLoading.value = true
     _loadError.value = null
 
-    const response = await getApiProjectsIdFilesFileId(projectIdValue, fileIdValue)
-    const fileData = response.data as { pdfFileName: string; pdfUrl: string }
+    const fileData = expectSuccessData(
+      await getApiProjectsIdFilesFileId(projectIdValue, fileIdValue),
+      "Failed to load file metadata"
+    )
     fileName.value = fileData.pdfFileName
     pdfUrl.value = fileData.pdfUrl
     await viewportStore.loadPdf(fileData.pdfUrl)
@@ -139,7 +142,7 @@ async function loadFile() {
     await initializeForFile(fileIdValue)
   } catch (error: unknown) {
     console.error("Failed to load file:", error)
-    _loadError.value = error instanceof Error ? error.message : "Failed to load file"
+    _loadError.value = getApiErrorMessage(error, "Failed to load file")
   } finally {
     isLoading.value = false
   }

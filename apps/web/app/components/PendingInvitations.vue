@@ -1,36 +1,27 @@
 <script setup lang="ts">
 import { Mail, Building2, Check, X, Loader2 } from "lucide-vue-next"
 import { toast } from "vue-sonner"
-import { useGetApiUserInvitations, getGetApiUserInvitationsQueryKey } from "@/models/api"
+import {
+  useGetApiUserInvitations,
+  getGetApiUserInvitationsQueryKey,
+  type GetApiUserInvitations200Item
+} from "@/models/api"
 import { useQueryClient } from "@tanstack/vue-query"
-
-interface PendingInvitation {
-  id: string
-  email: string
-  role: string
-  status: string
-  createdAt: string
-  expiresAt: string
-  organizationId: string
-  organizationName: string
-  organizationSlug: string
-  inviterName: string
-  inviterEmail: string
-}
+import { withResponseData } from "~/utils/customFetch"
 
 const { switchOrganization, refreshOrganizations } = useActiveOrganization()
 const queryClient = useQueryClient()
 
-const { data: response, isPending } = useGetApiUserInvitations<{ data: PendingInvitation[] }>()
+const { data: invitations, isPending } = useGetApiUserInvitations(withResponseData())
 
-const invitations = computed(() => response.value?.data ?? [])
+const invitationList = computed(() => invitations.value ?? [])
 
 const refresh = () => queryClient.invalidateQueries({ queryKey: getGetApiUserInvitationsQueryKey() })
 
 const isAccepting = ref<string | null>(null)
 const isRejecting = ref<string | null>(null)
 
-const handleAccept = async (invitation: PendingInvitation) => {
+const handleAccept = async (invitation: GetApiUserInvitations200Item) => {
   isAccepting.value = invitation.id
   try {
     const result = await authClient.organization.acceptInvitation({
@@ -59,7 +50,7 @@ const handleAccept = async (invitation: PendingInvitation) => {
   }
 }
 
-const handleReject = async (invitation: PendingInvitation) => {
+const handleReject = async (invitation: GetApiUserInvitations200Item) => {
   isRejecting.value = invitation.id
   try {
     const result = await authClient.organization.rejectInvitation({
@@ -99,15 +90,15 @@ const formatTimeAgo = (date: string) => {
     <div class="h-24 bg-muted rounded-lg" />
   </div>
 
-  <div v-else-if="invitations.length" class="space-y-3">
+  <div v-else-if="invitationList.length" class="space-y-3">
     <div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
       <Mail class="size-4" />
       <span>Pending Invitations</span>
-      <UiBadge variant="secondary" class="ml-auto">{{ invitations.length }}</UiBadge>
+      <UiBadge variant="secondary" class="ml-auto">{{ invitationList.length }}</UiBadge>
     </div>
 
     <div class="space-y-2">
-      <UiCard v-for="invite in invitations" :key="invite.id" class="border-primary/20 bg-primary/5">
+      <UiCard v-for="invite in invitationList" :key="invite.id" class="border-primary/20 bg-primary/5">
         <UiCardContent class="p-4">
           <div class="flex items-center gap-3">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">

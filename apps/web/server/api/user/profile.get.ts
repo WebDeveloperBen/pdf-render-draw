@@ -12,49 +12,7 @@ defineRouteMeta({
         content: {
           "application/json": {
             schema: {
-              type: "object",
-              properties: {
-                id: { type: "string" },
-                name: { type: "string", nullable: true },
-                firstName: { type: "string", nullable: true },
-                lastName: { type: "string", nullable: true },
-                email: { type: "string" },
-                emailVerified: { type: "boolean", nullable: true },
-                image: { type: "string", nullable: true },
-                role: { type: "string", nullable: true },
-                banned: { type: "boolean" },
-                banReason: { type: "string", nullable: true },
-                banExpires: { type: "string", format: "date-time", nullable: true },
-                isGuest: { type: "boolean" },
-                guestOrganizationId: { type: "string", nullable: true },
-                createdAt: { type: "string", format: "date-time" },
-                updatedAt: { type: "string", format: "date-time" },
-                activeOrganizationId: { type: "string", nullable: true },
-                subscription: {
-                  type: "object",
-                  nullable: true,
-                  properties: {
-                    id: { type: "string" },
-                    stripeSubscriptionId: { type: "string", nullable: true },
-                    plan: { type: "string" },
-                    status: { type: "string" },
-                    periodEnd: { type: "string", format: "date-time", nullable: true },
-                    cancelAtPeriodEnd: { type: "boolean", nullable: true },
-                    trialEnd: { type: "string", format: "date-time", nullable: true },
-                    seats: { type: "number", nullable: true },
-                    billingInterval: { type: "string", nullable: true }
-                  }
-                },
-                billing: {
-                  type: "object",
-                  properties: {
-                    plan: { type: "string" },
-                    limits: { type: "object" },
-                    features: { type: "object" }
-                  }
-                }
-              },
-              required: ["id", "email", "banned", "isGuest", "createdAt", "updatedAt"]
+              type: "object"
             }
           }
         }

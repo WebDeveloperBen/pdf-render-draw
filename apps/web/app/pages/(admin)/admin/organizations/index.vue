@@ -6,8 +6,9 @@ import type {
   GetApiAdminOrganizations200OrganizationsItem,
   GetApiAdminOrganizationsParams
 } from "~/models/api"
-import { useGetApiAdminOrganizations } from "~/models/api"
+import { getApiAdminOrganizations, useGetApiAdminOrganizations } from "~/models/api"
 import { Building2, Eye, RefreshCw, Search, Users } from "lucide-vue-next"
+import { withResponseData } from "~/utils/customFetch"
 
 definePageMeta({
   layout: "admin",
@@ -41,13 +42,14 @@ const params = computed<GetApiAdminOrganizationsParams>(() => ({
   search: debouncedSearch.value || undefined
 }))
 
-const { data, isLoading, isFetching, refetch } = useGetApiAdminOrganizations(params, {
+const organizationsQueryOptions = withResponseData<Awaited<ReturnType<typeof getApiAdminOrganizations>>>({
   query: { placeholderData: keepPreviousData }
 })
 
-const response = computed(() => data.value?.data as GetApiAdminOrganizations200 | undefined)
-const items = computed(() => response.value?.organizations ?? [])
-const pagination = computed(() => response.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
+const { data, isLoading, isFetching, refetch } = useGetApiAdminOrganizations(params, organizationsQueryOptions)
+
+const items = computed(() => data.value?.organizations ?? [])
+const pagination = computed(() => data.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
 const pageCount = computed(() => pagination.value.totalPages)
 const totalRows = computed(() => pagination.value.total)
 

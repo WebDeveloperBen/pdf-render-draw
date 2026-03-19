@@ -3,6 +3,7 @@ import { ChevronsUpDown, Search, Loader2, Check, X } from "lucide-vue-next"
 import { useDebounceFn } from "@vueuse/core"
 import { getApiAdminUsers } from "~/models/api"
 import type { GetApiAdminUsers200UsersItem } from "~/models/api"
+import { expectSuccessData } from "~/utils/customFetch"
 
 const props = defineProps<{
   placeholder?: string
@@ -35,9 +36,7 @@ const searchUsers = useDebounceFn(async () => {
       sortBy: "name",
       sortOrder: "asc"
     })
-    users.value = ((response.data as { users?: GetApiAdminUsers200UsersItem[] } | undefined)?.users ?? []).filter(
-      Boolean
-    )
+    users.value = expectSuccessData(response, "Failed to search users").users.filter(Boolean)
   } catch (error) {
     console.error("Failed to search users:", error)
     users.value = []

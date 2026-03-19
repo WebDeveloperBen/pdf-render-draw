@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Building2, Calendar, Check, ChevronDown, Loader2, Mail, X } from "lucide-vue-next"
-import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "@shared/types/billing"
-import type { PlanLimits, PlanFeatures } from "@shared/types/billing"
-import { clampSeatCount, DEFAULT_TEAM_SEAT_COUNT } from "@shared/utils/billing-seats"
+import { FREE_TIER_LIMITS, FREE_TIER_FEATURES } from "#shared/types/billing"
+import type { PlanLimits, PlanFeatures } from "#shared/types/billing"
+import { clampSeatCount, DEFAULT_TEAM_SEAT_COUNT } from "#shared/utils/billing-seats"
+import { withResponseData } from "~/utils/customFetch"
 
 useSeoMeta({ title: "Pricing" })
 
-const { data: plansData } = useGetApiPlans()
+const { data: plansData } = useGetApiPlans(withResponseData())
 const { subscription, planName, isFreeTier } = useSubscription()
 const { checkout, isLoading } = useCheckout()
 const teamSeatCount = ref(DEFAULT_TEAM_SEAT_COUNT)
@@ -53,7 +54,7 @@ const freeTier: PricingPlan = {
 
 // Combine free tier + API plans
 const allPlans = computed<PricingPlan[]>(() => {
-  const apiPlans = (plansData.value?.data.plans ?? [])
+  const apiPlans = (plansData.value?.plans ?? [])
     .filter((plan) => normalisePlanName(plan.name ?? "") !== "starter")
     .map<PricingPlan>((plan) => ({
       id: plan.id ?? plan.stripePriceId ?? plan.name ?? "plan",
@@ -62,8 +63,8 @@ const allPlans = computed<PricingPlan[]>(() => {
       amount: plan.amount ?? 0,
       currency: plan.currency ?? "aud",
       interval: plan.interval ?? "month",
-      limits: (plan.limits as unknown as PlanLimits) ?? FREE_TIER_LIMITS,
-      features: (plan.features as unknown as PlanFeatures) ?? FREE_TIER_FEATURES,
+      limits: plan.limits ?? FREE_TIER_LIMITS,
+      features: plan.features ?? FREE_TIER_FEATURES,
       displayOrder: plan.displayOrder ?? 0,
       trialDays: plan.trialDays ?? null,
       stripePriceId: plan.stripePriceId ?? null

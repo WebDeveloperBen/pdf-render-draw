@@ -7,8 +7,9 @@ import type {
   GetApiAdminSubscriptions200SubscriptionsItem,
   GetApiAdminSubscriptionsParams
 } from "~/models/api"
-import { useGetApiAdminSubscriptions } from "~/models/api"
+import { getApiAdminSubscriptions, postApiAdminBillingSync, useGetApiAdminSubscriptions } from "~/models/api"
 import { CreditCard, Eye, RefreshCw, Search } from "lucide-vue-next"
+import { expectSuccessData, getApiErrorMessage, withResponseData } from "~/utils/customFetch"
 
 definePageMeta({
   layout: "admin",
@@ -60,13 +61,14 @@ const params = computed<GetApiAdminSubscriptionsParams>(() => ({
   plan: planFilter.value || undefined
 }))
 
-const { data, isLoading, isFetching, refetch } = useGetApiAdminSubscriptions(params, {
+const subscriptionsQueryOptions = withResponseData<Awaited<ReturnType<typeof getApiAdminSubscriptions>>>({
   query: { placeholderData: keepPreviousData }
 })
 
-const response = computed(() => data.value?.data as GetApiAdminSubscriptions200 | undefined)
-const items = computed(() => response.value?.subscriptions ?? [])
-const pagination = computed(() => response.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
+const { data, isLoading, isFetching, refetch } = useGetApiAdminSubscriptions(params, subscriptionsQueryOptions)
+
+const items = computed(() => data.value?.subscriptions ?? [])
+const pagination = computed(() => data.value?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 })
 const pageCount = computed(() => pagination.value.totalPages)
 const totalRows = computed(() => pagination.value.total)
 
@@ -96,19 +98,14 @@ const isSyncing = ref(false)
 const handleSync = async () => {
   isSyncing.value = true
   try {
-    const result = await $fetch<{ synced: number; created: number; updated: number; errors: number }>(
-      "/api/admin/billing/sync",
-      {
-        method: "POST",
-        body: { mode: "full" }
-      }
-    )
+    const response = await postApiAdminBillingSync({ mode: "full" })
+    const result = expectSuccessData(response, "Sync returned no result")
     toast.success(
       `Synced ${result.synced} subscriptions (${result.created} created, ${result.updated} updated${result.errors > 0 ? `, ${result.errors} errors` : ""})`
     )
     await refetch()
   } catch (e: any) {
-    toast.error(e.data?.message || "Sync failed")
+    toast.error(getApiErrorMessage(e, "Sync failed"))
   } finally {
     isSyncing.value = false
   }

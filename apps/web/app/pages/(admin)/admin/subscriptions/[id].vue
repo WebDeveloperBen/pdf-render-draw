@@ -9,6 +9,7 @@ import {
   postApiAdminSubscriptionsIdSendBillingPortalLink
 } from "~/models/api"
 import type { GetApiAdminSubscriptionsId200, GetApiAdminSubscriptionsIdActivity200ActivitiesItem } from "~/models/api"
+import { expectSuccessData, getApiErrorMessage } from "~/utils/customFetch"
 import {
   AlertCircle,
   AlertTriangle,
@@ -49,9 +50,9 @@ const fetchDetail = async () => {
   error.value = null
   try {
     const response = await getApiAdminSubscriptionsId(subscriptionId.value)
-    detail.value = response.data as GetApiAdminSubscriptionsId200
+    detail.value = expectSuccessData(response, "Failed to load subscription")
   } catch (e: any) {
-    error.value = e.data?.message || "Failed to load subscription"
+    error.value = getApiErrorMessage(e, "Failed to load subscription")
   } finally {
     isLoading.value = false
   }
@@ -61,9 +62,7 @@ const fetchDetail = async () => {
 const fetchActivity = async () => {
   try {
     const response = await getApiAdminSubscriptionsIdActivity(subscriptionId.value)
-    activities.value =
-      (response.data as { activities?: GetApiAdminSubscriptionsIdActivity200ActivitiesItem[] } | undefined)
-        ?.activities ?? []
+    activities.value = expectSuccessData(response, "Failed to load subscription activity").activities ?? []
   } catch {
     // Non-critical — don't block the page
   }
@@ -79,7 +78,7 @@ const handleRefresh = async () => {
     await fetchDetail()
     await fetchActivity()
   } catch (e: any) {
-    toast.error(e.data?.message || "Refresh failed")
+    toast.error(getApiErrorMessage(e, "Refresh failed"))
   } finally {
     isRefreshing.value = false
   }
@@ -117,7 +116,7 @@ const handleCancel = async () => {
     await fetchDetail()
     await fetchActivity()
   } catch (e: any) {
-    toast.error(e.data?.message || "Cancellation failed")
+    toast.error(getApiErrorMessage(e, "Cancellation failed"))
   } finally {
     isCancelling.value = false
   }
@@ -135,7 +134,7 @@ const handleReactivate = async () => {
     await fetchDetail()
     await fetchActivity()
   } catch (e: any) {
-    toast.error(e.data?.message || "Reactivation failed")
+    toast.error(getApiErrorMessage(e, "Reactivation failed"))
   } finally {
     isReactivating.value = false
   }
@@ -149,10 +148,11 @@ const handleBillingPortal = async () => {
     const result = await postApiAdminSubscriptionsIdSendBillingPortalLink(subscriptionId.value, {
       returnUrl: window.location.href
     })
-    await navigator.clipboard.writeText((result.data as { url: string }).url)
+    const data = expectSuccessData(result, "Failed to generate billing portal link")
+    await navigator.clipboard.writeText(data.url)
     toast.success("Billing portal link copied to clipboard")
   } catch (e: any) {
-    toast.error(e.data?.message || "Failed to generate portal link")
+    toast.error(getApiErrorMessage(e, "Failed to generate portal link"))
   } finally {
     isGeneratingPortal.value = false
   }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getApiAdminOrganizationsId } from "~/models/api"
 import type { GetApiAdminOrganizationsId200 } from "~/models/api"
+import { expectSuccessData, getApiErrorMessage } from "~/utils/customFetch"
 import { AlertCircle, ArrowLeft, Users } from "lucide-vue-next"
 
 definePageMeta({
@@ -22,9 +23,9 @@ const fetchOrg = async () => {
   error.value = null
   try {
     const response = await getApiAdminOrganizationsId(orgId.value)
-    org.value = response.data as GetApiAdminOrganizationsId200
+    org.value = expectSuccessData(response, "Failed to load organization")
   } catch (e: any) {
-    error.value = e.data?.message || "Failed to load organization"
+    error.value = getApiErrorMessage(e, "Failed to load organization")
   } finally {
     isLoading.value = false
   }

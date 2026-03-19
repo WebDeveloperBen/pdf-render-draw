@@ -1,41 +1,15 @@
 import { z } from "zod"
 import { eq, and, isNull, gt, or, inArray } from "drizzle-orm"
 import { randomUUID } from "crypto"
-import { buildConflictServerVersion, isAnnotationScopedToFile } from "@shared/utils/annotation-sync"
+import { buildConflictServerVersion, isAnnotationScopedToFile } from "#shared/utils/annotation-sync"
+import { syncRequestSchema } from "#shared/schemas/annotations"
 import { requireFeatureAccess } from "../../../../services/billing/billing.guards"
 
 const paramsSchema = z.object({
   fileId: z.uuid({ message: "Invalid file ID" })
 })
 
-const syncOperationSchema = z.object({
-  type: z.enum(["create", "update", "delete"]),
-  annotation: z
-    .object({
-      id: z.string().uuid(),
-      type: z.enum(["measure", "area", "perimeter", "line", "fill", "text", "count"]),
-      pageNum: z.number().int().min(1),
-      rotation: z.number().default(0)
-    })
-    .passthrough(), // Allow additional fields for annotation data
-  localVersion: z.number().int().min(0),
-  timestamp: z.string().datetime()
-})
-
-const viewportStateSchema = z.object({
-  scale: z.number().min(0.1).max(10),
-  rotation: z.number().min(0).max(360),
-  scrollLeft: z.number(),
-  scrollTop: z.number(),
-  currentPage: z.number().int().min(1)
-})
-
-const bodySchema = z.object({
-  clientTime: z.string().datetime(),
-  lastSyncTime: z.string().datetime().optional(),
-  operations: z.array(syncOperationSchema).max(100), // Limit batch size
-  viewportState: viewportStateSchema.optional() // Optional viewport state to sync
-})
+const bodySchema = syncRequestSchema
 
 // OpenAPI metadata for Orval type generation
 defineRouteMeta({
@@ -57,40 +31,7 @@ defineRouteMeta({
       content: {
         "application/json": {
           schema: {
-            type: "object",
-            properties: {
-              clientTime: { type: "string", format: "date-time" },
-              lastSyncTime: { type: "string", format: "date-time" },
-              operations: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    type: { type: "string", enum: ["create", "update", "delete"] },
-                    annotation: {
-                      type: "object",
-                      description: "Annotation data (varies by type)"
-                    },
-                    localVersion: { type: "number" },
-                    timestamp: { type: "string", format: "date-time" }
-                  },
-                  required: ["type", "annotation", "localVersion", "timestamp"]
-                },
-                maxItems: 100
-              },
-              viewportState: {
-                type: "object",
-                description: "Optional viewport state to sync",
-                properties: {
-                  scale: { type: "number" },
-                  rotation: { type: "number" },
-                  scrollLeft: { type: "number" },
-                  scrollTop: { type: "number" },
-                  currentPage: { type: "number" }
-                }
-              }
-            },
-            required: ["clientTime", "operations"]
+            type: "object"
           }
         }
       }
@@ -101,54 +42,7 @@ defineRouteMeta({
         content: {
           "application/json": {
             schema: {
-              type: "object",
-              properties: {
-                success: { type: "boolean" },
-                applied: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "IDs of successfully applied operations"
-                },
-                conflicts: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      annotationId: { type: "string" },
-                      reason: { type: "string", enum: ["version_mismatch", "deleted", "validation_error"] },
-                      serverVersion: { type: "object", nullable: true },
-                      message: { type: "string" }
-                    },
-                    required: ["annotationId", "reason", "serverVersion"]
-                  }
-                },
-                serverUpdates: {
-                  type: "array",
-                  items: { type: "object" },
-                  description: "Annotations changed by other clients since lastSyncTime"
-                },
-                meta: {
-                  type: "object",
-                  properties: {
-                    serverTime: { type: "string", format: "date-time" },
-                    syncId: { type: "string" }
-                  },
-                  required: ["serverTime", "syncId"]
-                },
-                viewportState: {
-                  type: "object",
-                  nullable: true,
-                  description: "Current user viewport state after sync",
-                  properties: {
-                    scale: { type: "number" },
-                    rotation: { type: "number" },
-                    scrollLeft: { type: "number" },
-                    scrollTop: { type: "number" },
-                    currentPage: { type: "number" }
-                  }
-                }
-              },
-              required: ["success", "applied", "conflicts", "serverUpdates", "meta"]
+              type: "object"
             }
           }
         }

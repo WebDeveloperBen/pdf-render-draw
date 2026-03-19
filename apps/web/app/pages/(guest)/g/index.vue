@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useGetApiGuestShares, type GetApiGuestShares200Item } from "@/models/api"
+import { useGetApiGuestShares } from "@/models/api"
 import { AlertCircle, Building2, Calendar, File, FileText, FolderOpen } from "lucide-vue-next"
+import { withResponseData } from "~/utils/customFetch"
 
 definePageMeta({
   layout: "guest",
@@ -12,8 +13,8 @@ const route = useRoute()
 const shareId = route.query.share as string | undefined
 
 // Fetch shares accessible to this user using generated API hook
-const { data: response, status, error } = useGetApiGuestShares<{ data: GetApiGuestShares200Item[] }>()
-const shares = computed(() => response.value?.data ?? [])
+const { data: shares, status, error } = useGetApiGuestShares(withResponseData())
+const shareList = computed(() => shares.value ?? [])
 const errorMessage = computed(() => {
   const err = error.value as { message?: string } | null
   return err?.message || "Unknown error"
@@ -22,7 +23,7 @@ const errorMessage = computed(() => {
 // If we came from a magic link with a share ID, redirect to that share
 onMounted(() => {
   if (shareId && shares.value) {
-    const matchingShare = shares.value.find((s) => s.shareId === shareId)
+    const matchingShare = shareList.value.find((s) => s.shareId === shareId)
     if (matchingShare) {
       navigateTo(`/g/projects/${matchingShare.share.token}`)
     }
@@ -67,7 +68,7 @@ useSeoMeta({
     </UiCard>
 
     <!-- Empty state -->
-    <UiCard v-else-if="!shares || shares.length === 0">
+    <UiCard v-else-if="!shareList || shareList.length === 0">
       <UiCardContent class="flex flex-col items-center gap-4 py-12">
         <div class="flex size-16 items-center justify-center rounded-full bg-muted">
           <FolderOpen class="size-8 text-muted-foreground" />
@@ -81,7 +82,7 @@ useSeoMeta({
 
     <!-- Projects grid -->
     <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <NuxtLink v-for="item in shares" :key="item.id" :to="`/g/projects/${item.share.token}`" class="group">
+      <NuxtLink v-for="item in shareList" :key="item.id" :to="`/g/projects/${item.share.token}`" class="group">
         <UiCard class="overflow-hidden transition-all hover:shadow-md hover:border-primary/50">
           <!-- Thumbnail -->
           <div class="aspect-4/3 bg-muted relative overflow-hidden">

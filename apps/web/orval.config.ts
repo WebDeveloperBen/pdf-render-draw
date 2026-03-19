@@ -15,6 +15,11 @@ export default defineConfig({
           // Custom fetch that throws on non-2xx responses for proper vue-query error handling
           path: "./app/utils/customFetch.ts",
           name: "customFetch"
+        },
+        query: {
+          useQuery: true,
+          useMutation: true,
+          useInfinite: false
         }
       }
     },

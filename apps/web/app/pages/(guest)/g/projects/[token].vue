@@ -3,7 +3,8 @@ import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import type { FormBuilder } from "@/components/ui/FormBuilder/FormBuilder.vue"
-import { useGetApiShareToken, type GetApiShareToken200 } from "@/models/api"
+import { useGetApiShareToken } from "@/models/api"
+import { isApiError, withResponseData } from "~/utils/customFetch"
 import {
   AlertCircle,
   ArrowLeft,
@@ -36,24 +37,22 @@ const {
   status,
   error,
   refetch
-} = useGetApiShareToken<{ data: GetApiShareToken200 }>(
+} = useGetApiShareToken(
   token,
-  computed(() => ({ password: passwordParam.value }))
+  computed(() => ({ password: passwordParam.value })),
+  withResponseData()
 )
 
-// Extract the actual share data
-const shareData = computed(() => response.value?.data)
+const shareData = computed(() => response.value)
 
 // Handle password-protected shares
-const typedError = computed(
-  () => error.value as { statusCode?: number; statusMessage?: string; message?: string } | null
-)
+const typedError = computed(() => (isApiError(error.value) ? error.value : null))
 
 const requiresPassword = computed(() => {
-  return typedError.value?.statusCode === 400 && typedError.value?.statusMessage === "Password required for this share"
+  return typedError.value?.status === 400 && typedError.value?.message === "Password required for this share"
 })
 
-const errorMessage = computed(() => typedError.value?.statusMessage || typedError.value?.message || "Unknown error")
+const errorMessage = computed(() => typedError.value?.message || "Unknown error")
 
 // Password form schema
 const passwordSchema = toTypedSchema(
@@ -91,7 +90,7 @@ const submitPassword = passwordForm.handleSubmit(async (values) => {
 
     // If still an error after refetch, it's an invalid password
     if (error.value) {
-      passwordForm.setFieldError("password", typedError.value?.statusMessage || "Invalid password")
+      passwordForm.setFieldError("password", typedError.value?.message || "Invalid password")
     }
   } finally {
     isSubmittingPassword.value = false

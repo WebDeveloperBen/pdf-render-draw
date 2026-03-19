@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm"
 import { db } from "../../utils/drizzle"
-import * as schema from "@shared/db/schema"
+import * as schema from "#shared/db/schema"
 import { stripeClient } from "@auth"
 import { billingService } from "./billing.service"
 import { logAdminAction } from "../../utils/audit"

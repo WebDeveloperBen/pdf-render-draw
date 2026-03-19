@@ -48,38 +48,7 @@ defineRouteMeta({
         content: {
           "application/json": {
             schema: {
-              type: "object",
-              properties: {
-                annotations: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    description: "Annotation data (type varies by annotation type)"
-                  }
-                },
-                meta: {
-                  type: "object",
-                  properties: {
-                    count: { type: "number" },
-                    lastModified: { type: "string", format: "date-time", nullable: true },
-                    serverTime: { type: "string", format: "date-time" }
-                  },
-                  required: ["count", "serverTime"]
-                },
-                viewportState: {
-                  type: "object",
-                  nullable: true,
-                  description: "User-specific viewport state",
-                  properties: {
-                    scale: { type: "number" },
-                    rotation: { type: "number" },
-                    scrollLeft: { type: "number" },
-                    scrollTop: { type: "number" },
-                    currentPage: { type: "number" }
-                  }
-                }
-              },
-              required: ["annotations", "meta"]
+              type: "object"
             }
           }
         }

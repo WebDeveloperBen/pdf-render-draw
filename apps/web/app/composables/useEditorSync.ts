@@ -3,9 +3,20 @@ import { useViewportStorage, type ViewportState } from "@/composables/useViewpor
 import { useOnline } from "@vueuse/core"
 import { getApiFilesFileIdAnnotations, postApiFilesFileIdAnnotationsSync } from "~/models/api"
 import type {
+  GetApiFilesFileIdAnnotations200,
   PostApiFilesFileIdAnnotationsSync200,
   PostApiFilesFileIdAnnotationsSyncBody
 } from "~/models/api"
+import { expectSuccessData } from "~/utils/customFetch"
+
+type ServerAnnotation = GetApiFilesFileIdAnnotations200["annotations"][number]
+type SyncResponseConflict = PostApiFilesFileIdAnnotationsSync200["conflicts"][number]
+type SyncResponseServerAnnotation = PostApiFilesFileIdAnnotationsSync200["serverUpdates"][number]
+
+function toClientAnnotation(annotation: ServerAnnotation | SyncResponseServerAnnotation): Annotation {
+  const { id, type, pageNum, version: _version, deletedAt: _deletedAt, ...data } = annotation
+  return { id, type, pageNum, ...data } as Annotation
+}
 
 export type SyncState = "idle" | "syncing" | "error" | "offline"
 
@@ -91,7 +102,7 @@ export function useEditorSync(options: EditorSyncOptions) {
     try {
       const meta = await storage.getSyncMeta(currentFileId)
 
-      const formattedOps = operations.map((op) => ({
+      const formattedOps: PostApiFilesFileIdAnnotationsSyncBody["operations"] = operations.map((op) => ({
         type: op.type,
         annotation: op.annotation,
         localVersion: op.localVersion,
@@ -120,18 +131,15 @@ export function useEditorSync(options: EditorSyncOptions) {
       const syncPayload: PostApiFilesFileIdAnnotationsSyncBody = {
         clientTime: new Date().toISOString(),
         lastSyncTime: meta?.lastSyncTime || undefined,
-        operations: formattedOps as unknown as PostApiFilesFileIdAnnotationsSyncBody["operations"],
+        operations: formattedOps,
         viewportState: viewportStateToSync || undefined
       }
 
-      const response = await postApiFilesFileIdAnnotationsSync(currentFileId, syncPayload)
-      const {
-        applied,
-        conflicts,
-        serverUpdates,
-        meta: responseMeta,
-        viewportState: returnedViewportState
-      } = response.data as PostApiFilesFileIdAnnotationsSync200
+      const response = expectSuccessData(
+        await postApiFilesFileIdAnnotationsSync(currentFileId, syncPayload),
+        "Sync failed"
+      )
+      const { applied, conflicts, serverUpdates, meta: responseMeta, viewportState: returnedViewportState } = response
 
       // Handle viewport state
       if (viewportStateToSync) {
@@ -140,7 +148,7 @@ export function useEditorSync(options: EditorSyncOptions) {
       }
 
       if (returnedViewportState) {
-        currentViewportState.value = returnedViewportState as ViewportState
+        currentViewportState.value = returnedViewportState
       }
 
       // Handle annotation sync results
@@ -148,46 +156,21 @@ export function useEditorSync(options: EditorSyncOptions) {
         await storage.markSynced(applied)
       }
 
-      for (const conflict of conflicts as Array<{
-        annotationId: string
-        reason: string
-        serverVersion: Record<string, unknown> | null
-      }>) {
+      for (const conflict of conflicts as SyncResponseConflict[]) {
         if (conflict.serverVersion) {
-          const sv = conflict.serverVersion as {
-            id: string
-            type: string
-            pageNum: number
-            version: number
-            deletedAt: string | null
-            [key: string]: unknown
-          }
-          await storage.applyServerUpdates(currentFileId, [sv])
-          const { id, type, pageNum, version: _v, deletedAt: _d, ...data } = sv
-          const ann = { id, type, pageNum, ...data } as Annotation
-          annotationStore.updateAnnotationFromServer(ann)
+          await storage.applyServerUpdates(currentFileId, [conflict.serverVersion])
+          annotationStore.updateAnnotationFromServer(toClientAnnotation(conflict.serverVersion))
         }
         await storage.markSynced([conflict.annotationId])
       }
 
-      const typedServerUpdates = serverUpdates as Array<{
-        id: string
-        type: string
-        pageNum: number
-        version: number
-        deletedAt: string | null
-        [key: string]: unknown
-      }>
-
-      if (typedServerUpdates.length > 0) {
-        await storage.applyServerUpdates(currentFileId, typedServerUpdates)
-        for (const update of typedServerUpdates) {
+      if (serverUpdates.length > 0) {
+        await storage.applyServerUpdates(currentFileId, serverUpdates)
+        for (const update of serverUpdates) {
           if (update.deletedAt) {
             annotationStore.removeAnnotationFromServer(update.id)
           } else {
-            const { id, type, pageNum, version: _v, deletedAt: _d, ...data } = update
-            const ann = { id, type, pageNum, ...data } as Annotation
-            annotationStore.updateAnnotationFromServer(ann)
+            annotationStore.updateAnnotationFromServer(toClientAnnotation(update))
           }
         }
       }
@@ -271,27 +254,14 @@ export function useEditorSync(options: EditorSyncOptions) {
       if (isOnline.value) {
         const meta = await storage.getSyncMeta(newFileId)
 
-        const response = await getApiFilesFileIdAnnotations(newFileId, {
-          since: meta?.lastSyncTime || undefined,
-          includeDeleted: true
-        })
-
-        const {
-          annotations: serverAnnotations,
-          meta: responseMeta,
-          viewportState: serverViewport
-        } = response.data as unknown as {
-          annotations: Array<{
-            id: string
-            type: string
-            pageNum: number
-            version: number
-            deletedAt: string | null
-            [key: string]: unknown
-          }>
-          meta: { serverTime: string; lastModified: string | null }
-          viewportState: ViewportState | null
-        }
+        const response = expectSuccessData(
+          await getApiFilesFileIdAnnotations(newFileId, {
+            since: meta?.lastSyncTime || undefined,
+            includeDeleted: true
+          }),
+          "Failed to load annotations"
+        )
+        const { annotations: serverAnnotations, meta: responseMeta, viewportState: serverViewport } = response
 
         // Handle viewport state from server
         if (serverViewport) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PlanFeatures } from "@shared/types/billing"
+import type { PlanFeatures } from "#shared/types/billing"
 
 const props = defineProps<{
   feature?: keyof PlanFeatures

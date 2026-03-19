@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/vue-query"
 import { authClient } from "~/utils/auth-client"
-import type { statements } from "@shared/auth/access-control"
-import type { PlatformAdminTier } from "@shared/auth/plugins/platform-admin"
+import type { statements } from "#shared/auth/access-control"
+import type { PlatformAdminTier } from "#shared/auth/plugins/platform-admin"
 
 type Statements = typeof statements
 type Resource = keyof Statements

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ProjectListItem } from "#shared/types/projects.types"
 import { FolderOpen, Plus, FileText, File, MessageSquare, ArrowRight } from "lucide-vue-next"
 
 /**
@@ -10,7 +11,7 @@ defineProps<{
 }>()
 
 // Fetch projects during async setup
-const projects = await $fetch<ProjectWithRelations[]>("/api/projects", {
+const projects = await $fetch<ProjectListItem[]>("/api/projects", {
   query: {
     sortBy: "updatedAt",
     sortOrder: "desc",
@@ -81,7 +82,7 @@ const formatDate = (date: Date | string | null) => {
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
             <div class="flex items-center gap-1">
               <File class="size-3" />
-              {{ project.pageCount }} {{ project.pageCount === 1 ? "page" : "pages" }}
+              {{ project._count.files }} {{ project._count.files === 1 ? "file" : "files" }}
             </div>
             <div class="flex items-center gap-1">
               <MessageSquare class="size-3" />

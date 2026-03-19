@@ -6,6 +6,7 @@ import { z } from "zod"
 import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
 import { getApiAdminUsersId } from "~/models/api"
 import type { GetApiAdminUsersId200 } from "~/models/api"
+import { expectSuccessData, getApiErrorMessage } from "~/utils/customFetch"
 import { AlertCircle, AlertTriangle, ArrowLeft, Ban, Building2, CheckCircle, UserCheck, XCircle } from "lucide-vue-next"
 
 definePageMeta({
@@ -62,9 +63,9 @@ const fetchUser = async () => {
   error.value = null
   try {
     const response = await getApiAdminUsersId(userId.value)
-    user.value = response.data as GetApiAdminUsersId200
+    user.value = expectSuccessData(response, "Failed to load user")
   } catch (e: any) {
-    error.value = e.data?.message || "Failed to load user"
+    error.value = getApiErrorMessage(e, "Failed to load user")
   } finally {
     isLoading.value = false
   }

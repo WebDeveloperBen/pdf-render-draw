@@ -15,6 +15,7 @@ import {
   getApiProjectsIdShares
 } from "~/models/api"
 import { toast } from "vue-sonner"
+import { expectSuccessData, getApiErrorMessage } from "~/utils/customFetch"
 import {
   ArrowLeft,
   Building2,
@@ -72,17 +73,20 @@ async function handleExportFile(file: ProjectFileWithUploader) {
 
   try {
     // Fetch annotations for this file
-    const response = await getApiFilesFileIdAnnotations(file.id)
+    const annotationsResponse = expectSuccessData(
+      await getApiFilesFileIdAnnotations(file.id),
+      "Failed to load annotations"
+    )
 
     // Export the PDF with annotations
     const exportFileName = file.pdfFileName.replace(/\.pdf$/i, "-annotated.pdf")
     await exportWithAnnotations({
       pdfUrl: file.pdfUrl,
-      annotations: ((response.data as { annotations?: Annotation[] } | undefined)?.annotations ?? []) as Annotation[],
+      annotations: annotationsResponse.annotations,
       filename: exportFileName
     })
   } catch (error: any) {
-    toast.error(error.data?.statusMessage || "Failed to export PDF")
+    toast.error(getApiErrorMessage(error, "Failed to export PDF"))
   } finally {
     exportingFileId.value = null
   }
@@ -183,15 +187,14 @@ const categoryConfig: Record<string, { label: string; icon: Component }> = {
 const fetchProject = async () => {
   isLoading.value = true
   try {
-    const response = await getApiProjectsId(projectId)
-    const projectData = response.data as unknown as ProjectWithRelations
+    const projectData = expectSuccessData(await getApiProjectsId(projectId), "Failed to load project")
     project.value = projectData
     // Set breadcrumb label to project name
     if (projectData.name) {
       setLabel(projectId, projectData.name)
     }
   } catch (error: any) {
-    toast.error(error.data?.statusMessage || "Failed to load project")
+    toast.error(getApiErrorMessage(error, "Failed to load project"))
     navigateTo("/projects")
   } finally {
     isLoading.value = false
@@ -206,20 +209,18 @@ onUnmounted(() => {
 // Fetch shares
 const fetchShares = async () => {
   try {
-    const response = await getApiProjectsIdShares(projectId)
-    shares.value = response.data as unknown as ProjectShareWithRelations[]
+    shares.value = expectSuccessData(await getApiProjectsIdShares(projectId), "Failed to load shares")
   } catch (error: any) {
-    toast.error("Failed to load shares")
+    toast.error(getApiErrorMessage(error, "Failed to load shares"))
   }
 }
 
 // Fetch files
 const fetchFiles = async () => {
   try {
-    const response = await getApiProjectsIdFiles(projectId)
-    files.value = response.data as unknown as ProjectFileWithUploader[]
+    files.value = expectSuccessData(await getApiProjectsIdFiles(projectId), "Failed to load files")
   } catch (error: any) {
-    toast.error("Failed to load files")
+    toast.error(getApiErrorMessage(error, "Failed to load files"))
   }
 }
 
@@ -239,7 +240,7 @@ async function handleCreateScratchpad() {
     toast.success("Scratchpad created")
     navigateTo(`/editor?projectId=${projectId}&fileId=${newFile.id}`)
   } catch (error: any) {
-    toast.error(error.data?.statusMessage || "Failed to create scratchpad")
+    toast.error(getApiErrorMessage(error, "Failed to create scratchpad"))
   }
 }
 

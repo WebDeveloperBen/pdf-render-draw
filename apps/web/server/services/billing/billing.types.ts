@@ -1,4 +1,4 @@
-import type { PlanLimits, PlanFeatures } from "@shared/types/billing"
+import type { PlanLimits, PlanFeatures } from "#shared/types/billing"
 
 // ---- Subscription & Plan Types ----
 

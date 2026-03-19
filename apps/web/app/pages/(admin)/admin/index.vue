@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner"
-import { getApiAdminBillingOverview, getApiAdminStats } from "~/models/api"
+import { getApiAdminBillingOverview, getApiAdminStats, postApiAdminBillingSync } from "~/models/api"
 import type { GetApiAdminBillingOverview200, GetApiAdminStats200 } from "~/models/api"
+import { expectSuccessData, getApiErrorMessage } from "~/utils/customFetch"
 import {
   Activity,
   AlertCircle,
@@ -32,9 +33,9 @@ const fetchStats = async () => {
   error.value = null
   try {
     const response = await getApiAdminStats()
-    stats.value = response.data as GetApiAdminStats200
+    stats.value = expectSuccessData(response, "Failed to load stats")
   } catch (e: any) {
-    error.value = e.data?.message || "Failed to load stats"
+    error.value = getApiErrorMessage(e, "Failed to load stats")
   } finally {
     isLoading.value = false
   }
@@ -103,7 +104,7 @@ const fetchBillingOverview = async () => {
   isBillingLoading.value = true
   try {
     const response = await getApiAdminBillingOverview()
-    billingOverview.value = response.data as GetApiAdminBillingOverview200
+    billingOverview.value = expectSuccessData(response, "Failed to load billing overview")
   } catch {
     // Non-critical — dashboard still works without billing
   } finally {
@@ -156,17 +157,12 @@ const isSyncing = ref(false)
 const handleSync = async () => {
   isSyncing.value = true
   try {
-    const result = await $fetch<{ synced: number; created: number; updated: number; errors: number }>(
-      "/api/admin/billing/sync",
-      {
-        method: "POST",
-        body: { mode: "full" }
-      }
-    )
+    const response = await postApiAdminBillingSync({ mode: "full" })
+    const result = expectSuccessData(response, "Sync returned no result")
     toast.success(`Synced ${result.synced} subscriptions (${result.created} new, ${result.updated} updated)`)
     await fetchBillingOverview()
   } catch (e: any) {
-    toast.error(e.data?.message || "Sync failed")
+    toast.error(getApiErrorMessage(e, "Sync failed"))
   } finally {
     isSyncing.value = false
   }

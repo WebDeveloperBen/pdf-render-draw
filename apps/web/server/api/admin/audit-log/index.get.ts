@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { eq, and, or, like, gte, lte, desc, count, inArray, type SQL } from "drizzle-orm"
-import * as schema from "@shared/db/schema"
+import * as schema from "#shared/db/schema"
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

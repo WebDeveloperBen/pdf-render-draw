@@ -1,8 +1,8 @@
 import type { H3Event } from "h3"
 import { eq, count } from "drizzle-orm"
 import { db } from "../../utils/drizzle"
-import * as schema from "@shared/db/schema"
-import type { PlanFeatures } from "@shared/types/billing"
+import * as schema from "#shared/db/schema"
+import type { PlanFeatures } from "#shared/types/billing"
 import type { OrgBillingContext } from "./billing.types"
 
 // Re-export for consumers

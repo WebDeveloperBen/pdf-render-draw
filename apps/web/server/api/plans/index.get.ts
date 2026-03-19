@@ -1,3 +1,4 @@
+import { z } from "zod"
 import { and, eq, gt } from "drizzle-orm"
 import { useRuntimeConfig } from "#imports"
 import { parseFeaturesFromMetadata } from "../../services/billing/billing.helpers"
@@ -13,28 +14,7 @@ defineRouteMeta({
         content: {
           "application/json": {
             schema: {
-              type: "object",
-              properties: {
-                plans: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string" },
-                      name: { type: "string" },
-                      description: { type: "string", nullable: true },
-                      amount: { type: "number" },
-                      currency: { type: "string" },
-                      interval: { type: "string" },
-                      limits: { type: "object", nullable: true },
-                      features: { type: "object", nullable: true },
-                      displayOrder: { type: "number" },
-                      trialDays: { type: "number", nullable: true },
-                      stripePriceId: { type: "string" }
-                    }
-                  }
-                }
-              }
+              type: "object"
             }
           }
         }

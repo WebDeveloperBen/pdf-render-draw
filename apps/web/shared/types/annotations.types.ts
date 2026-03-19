@@ -93,7 +93,7 @@ export interface Count extends BaseAnnotation {
   width: number
   height: number
   number: number
-  label?: string
+  label?: string | null
 }
 
 // Union type for all annotations

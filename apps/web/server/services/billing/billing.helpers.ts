@@ -1,4 +1,4 @@
-import type { PlanLimits, PlanFeatures } from "@shared/types/billing"
+import type { PlanLimits, PlanFeatures } from "#shared/types/billing"
 
 export function parseLimitsFromMetadata(metadata: Record<string, string>): PlanLimits {
   const parseNum = (val: string | undefined): number => {
