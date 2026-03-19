@@ -1,31 +1,39 @@
 import { Resend } from "resend"
 import { render } from "@vue-email/render"
+import { useRuntimeConfig } from "#imports"
 import PasswordResetEmail from "./PasswordResetEmail.vue"
 import VerificationEmail from "./VerificationEmail.vue"
 import MagicLinkEmail from "./MagicLinkEmail.vue"
 import OrganizationInviteEmail from "./OrganizationInviteEmail.vue"
-import { getOptionalRuntimeConfig } from "../../utils/runtime-config"
 
 // Lazy-initialized Resend client
 let resendClient: Resend | null = null
 
+function getRuntimeConfig() {
+  try {
+    return useRuntimeConfig()
+  } catch {
+    return undefined
+  }
+}
+
 function getResendClient(): Resend {
   if (!resendClient) {
-    const config = getOptionalRuntimeConfig()
-    const resendApiKey = config?.resendApiKey || process.env.NUXT_RESEND_API_KEY || ""
+    const runtimeConfig = getRuntimeConfig()
+    const resendApiKey = runtimeConfig?.resendApiKey || process.env.NUXT_RESEND_API_KEY || ""
     resendClient = new Resend(resendApiKey)
   }
   return resendClient
 }
 
 function getFromEmail(): string {
-  const config = getOptionalRuntimeConfig()
-  return config?.emailFrom || process.env.EMAIL_FROM || "noreply@bens.digital"
+  const runtimeConfig = getRuntimeConfig()
+  return runtimeConfig?.emailFrom || process.env.EMAIL_FROM || "noreply@bens.digital"
 }
 
 function getEmailBranding() {
-  const config = getOptionalRuntimeConfig()
-  const appBranding = config?.public?.app
+  const runtimeConfig = getRuntimeConfig()
+  const appBranding = runtimeConfig?.public?.app
   return {
     appName: appBranding?.name || "MetreMate",
     brandColor: appBranding?.brandColor || "#f97316",

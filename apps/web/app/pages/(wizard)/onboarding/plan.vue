@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { WizardData } from "~/types/wizard"
+import type { OnboardingPlanId, WizardData } from "~/types/wizard"
 import { toast } from "vue-sonner"
 import {
   ArrowLeft,
@@ -21,12 +21,14 @@ definePageMeta({
 
 const wizardData = useState<WizardData>("wizard-data", () => ({}))
 const session = authClient.useSession()
+const runtimeConfig = useRuntimeConfig()
+const freeTrialPeriodInDays = runtimeConfig.public.sales.freeTrialPeriodInDays
 
-const selectedPlan = ref<"starter" | "professional" | "enterprise">("professional")
+const selectedPlan = ref<OnboardingPlanId>("professional")
 const isSubmitting = ref(false)
 
 type OnboardingPlan = {
-  id: "starter" | "professional" | "enterprise"
+  id: OnboardingPlanId
   name: string
   price: string
   period: string
@@ -39,40 +41,56 @@ type OnboardingPlan = {
 
 const plans: OnboardingPlan[] = [
   {
-    id: "starter",
-    name: "Starter",
-    price: "$29",
-    period: "/month",
-    description: "For individual contractors",
-    seats: "1 user included",
-    features: ["5 projects per month", "Basic measurements", "PDF export", "Email support"],
+    id: "free",
+    name: "Free",
+    price: "$0",
+    period: "",
+    description: "For trying the product without billing",
+    seats: "1 user",
+    features: ["1 project", "Basic measurements", "PDF export", "No card required"],
     popular: false
   },
   {
     id: "professional",
-    name: "Professional",
+    name: "Pro",
     price: "$79",
     period: "/month",
-    description: "For growing teams",
-    seats: "Multi-user collaboration",
+    description: "For individual professionals",
+    seats: "1 named user",
     features: [
       "Unlimited projects",
       "Advanced tools & annotations",
+      "Cloud sync & backups",
+      "Measurement presets",
+      "Priority support"
+    ],
+    popular: true
+  },
+  {
+    id: "team",
+    name: "Team",
+    price: "$79",
+    period: "/seat/month",
+    description: "For organisations collaborating in one workspace",
+    seats: "Billed per active team member",
+    features: [
+      "Everything in Pro",
+      "Shared organisation workspace",
       "Team collaboration",
       "Priority support",
       "Custom branding"
     ],
-    popular: true
+    popular: false
   },
   {
     id: "enterprise",
     name: "Enterprise",
     price: "Custom",
     period: "",
-    description: "For large organizations",
-    seats: "Unlimited seats",
+    description: "For large organisations",
+    seats: "Custom seat-based pricing",
     features: [
-      "Everything in Professional",
+      "Everything in Team",
       "Dedicated account manager",
       "Custom integrations",
       "SLA guarantee",
@@ -101,6 +119,8 @@ const handleComplete = async () => {
     // Redirect based on plan selection
     if (selectedPlan.value === "enterprise") {
       navigateTo("/support")
+    } else if (selectedPlan.value === "free") {
+      navigateTo("/")
     } else {
       // Trigger real Stripe checkout
       await checkout(selectedPlan.value)
@@ -136,7 +156,7 @@ const handleBack = () => {
           Choose your plan
         </h2>
         <p class="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
-          Start with a 14-day free trial, cancel anytime
+          Start with a {{ freeTrialPeriodInDays }}-day free trial, cancel anytime
         </p>
       </div>
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
@@ -146,7 +166,7 @@ const handleBack = () => {
     </div>
 
     <!-- Plans Grid -->
-    <div class="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 mt-4">
+    <div class="grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 mt-4 md:grid-cols-2 xl:grid-cols-4">
       <div v-for="plan in plans" :key="plan.id" class="relative">
         <!-- Popular Badge (overlaps card from above) -->
         <div v-if="plan.popular" class="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
@@ -281,7 +301,7 @@ const handleBack = () => {
 
           <div class="flex flex-col items-start sm:items-end gap-0.5">
             <p class="text-sm font-medium text-muted-foreground">
-              {{ selectedPlan === "enterprise" ? "Pricing" : "Starting at" }}
+              {{ selectedPlan === "enterprise" ? "Pricing" : selectedPlan === "team" ? "Billing" : "Starting at" }}
             </p>
             <div class="flex items-baseline gap-2">
               <span class="text-4xl font-bold">
@@ -306,7 +326,7 @@ const handleBack = () => {
               <ShieldCheck class="size-5 text-primary" />
             </div>
             <div>
-              <p class="text-sm font-semibold">14-day free trial</p>
+              <p class="text-sm font-semibold">{{ freeTrialPeriodInDays }}-day free trial</p>
               <p class="text-xs text-muted-foreground">Full access, no limits</p>
             </div>
           </div>
@@ -361,7 +381,7 @@ const handleBack = () => {
         <UiSpinner v-if="isSubmitting" class="size-5 mr-2" />
         <template v-else>
           <span class="font-bold text-lg">
-            {{ selectedPlan === "enterprise" ? "Contact Sales" : "Start Free Trial" }}
+                {{ selectedPlan === "enterprise" ? "Contact Sales" : selectedPlan === "free" ? "Continue on Free" : "Start Free Trial" }}
           </span>
           <ArrowRight class="size-6 ml-3 group-hover:translate-x-1 transition-transform" />
         </template>

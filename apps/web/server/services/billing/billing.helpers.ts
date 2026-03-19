@@ -10,8 +10,7 @@ export function parseLimitsFromMetadata(metadata: Record<string, string>): PlanL
   return {
     projects: parseNum(metadata.limit_projects),
     storageMb: parseNum(metadata.limit_storage_mb),
-    fileSizeMb: parseNum(metadata.limit_file_size_mb),
-    ...(metadata.limit_included_seats ? { includedSeats: parseInt(metadata.limit_included_seats, 10) } : {})
+    fileSizeMb: parseNum(metadata.limit_file_size_mb)
   }
 }
 

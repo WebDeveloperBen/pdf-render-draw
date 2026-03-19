@@ -1,3 +1,4 @@
+import { useRuntimeConfig } from "#imports"
 import { billingService } from "../../../services/billing/billing.service"
 
 defineRouteMeta({
@@ -46,7 +47,14 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
+  const runtimeConfig = useRuntimeConfig()
+  const freeTrialPeriodInDays = runtimeConfig.public.sales.freeTrialPeriodInDays
   const plans = await billingService.getPlans()
 
-  return { plans }
+  return {
+    plans: plans.map((plan) => ({
+      ...plan,
+      trialDays: freeTrialPeriodInDays
+    }))
+  }
 })

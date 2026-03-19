@@ -54,7 +54,7 @@ describe("parseLimitsFromMetadata", () => {
     })
   })
 
-  it("includes includedSeats when limit_included_seats is present", () => {
+  it("ignores legacy included seat metadata", () => {
     const result = parseLimitsFromMetadata({
       limit_projects: "unlimited",
       limit_storage_mb: "1000",
@@ -65,19 +65,8 @@ describe("parseLimitsFromMetadata", () => {
     expect(result).toEqual({
       projects: -1,
       storageMb: 1000,
-      fileSizeMb: 50,
-      includedSeats: 3
+      fileSizeMb: 50
     })
-  })
-
-  it("does not include includedSeats when key is absent", () => {
-    const result = parseLimitsFromMetadata({
-      limit_projects: "5",
-      limit_storage_mb: "100",
-      limit_file_size_mb: "25"
-    })
-
-    expect(result).not.toHaveProperty("includedSeats")
   })
 })
 

@@ -17,6 +17,9 @@ const devWatchIgnored = [
   "**/node_modules/**",
   "**/.wrangler/**"
 ]
+const freeTrialPeriodInDays = Number(
+  process.env.NUXT_PUBLIC_SALES_FREE_TRIAL_PERIOD_IN_DAYS ?? process.env.SALES_FREE_TRIAL_PERIOD_IN_DAYS ?? 7
+)
 const nitroUnenvAliases = {
   // `resend` references this optional dep even though the app uses
   // `@vue-email/render`, so Nitro still needs a harmless stub at build time.
@@ -69,6 +72,9 @@ export default defineNuxtConfig({
       secretKey: "",
       webhookSecret: ""
     },
+    sales: {
+      freeTrialPeriodInDays
+    },
     resendApiKey: "",
     emailFrom: process.env.EMAIL_FROM || "noreply@bens.digital",
     // Public (exposed to client)
@@ -91,6 +97,9 @@ export default defineNuxtConfig({
         github: !!process.env.GITHUB_CLIENT_ID
       },
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+      sales: {
+        freeTrialPeriodInDays
+      },
       logger: {
         client: {
           level: "info"

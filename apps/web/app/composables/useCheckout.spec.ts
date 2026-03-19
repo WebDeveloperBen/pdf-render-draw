@@ -66,7 +66,7 @@ describe("useCheckout", () => {
     mockState.activeOrgId = ""
 
     const { checkout } = useCheckout()
-    await checkout("Starter")
+    await checkout("Professional")
 
     expect(mockState.upgrade).not.toHaveBeenCalled()
     expect(mockState.toastError).toHaveBeenCalledWith("No active organization. Please select an organization first.")
@@ -76,11 +76,11 @@ describe("useCheckout", () => {
     mockState.upgrade.mockResolvedValue({ error: null })
 
     const { checkout } = useCheckout()
-    await checkout("Professional", { seats: 5, annual: true })
+    await checkout("Team", { seats: 5, annual: true })
 
     expect(mockState.upgrade).toHaveBeenCalledWith(
       expect.objectContaining({
-        plan: "professional",
+        plan: "team",
         referenceId: "org-123",
         customerType: "organization",
         seats: 5,
@@ -98,11 +98,11 @@ describe("useCheckout", () => {
     mockState.upgrade.mockResolvedValue({ error: null })
 
     const { checkout } = useCheckout()
-    await checkout("Starter")
+    await checkout("Professional")
 
     expect(mockState.upgrade).toHaveBeenCalledWith(
       expect.objectContaining({
-        plan: "starter",
+        plan: "professional",
         referenceId: "org-123",
         customerType: "organization",
         subscriptionId: "sub_existing_123"

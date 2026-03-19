@@ -236,8 +236,7 @@ const columns: ColumnDef<GetApiAdminSubscriptions200SubscriptionsItem>[] = [
         class="h-9 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <option value="">All plans</option>
-        <option value="Starter">Starter</option>
-        <option value="Professional">Professional</option>
+        <option value="Professional">Pro</option>
         <option value="Team">Team</option>
         <option value="Enterprise">Enterprise</option>
       </select>

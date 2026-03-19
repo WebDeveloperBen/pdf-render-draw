@@ -2,6 +2,7 @@ import { stripe } from "@better-auth/stripe"
 import Stripe from "stripe"
 import { eq, and, gt } from "drizzle-orm"
 import { nanoid } from "nanoid"
+import { useRuntimeConfig } from "#imports"
 import { db } from "../server/utils/drizzle"
 import * as schema from "../shared/db/schema"
 
@@ -19,6 +20,8 @@ export const stripePlugin = stripe({
     // Dynamic plans — loaded from the stripe_plan table on each subscription action.
     // Populate via admin "Sync from Stripe" or seed script.
     plans: async () => {
+      const runtimeConfig = useRuntimeConfig()
+      const freeTrialPeriodInDays = runtimeConfig.sales.freeTrialPeriodInDays
       const plans = await db.query.stripePlan.findMany({
         where: and(eq(schema.stripePlan.active, true), gt(schema.stripePlan.amount, 0))
       })
@@ -28,10 +31,9 @@ export const stripePlugin = stripe({
         priceId: plan.stripePriceId,
         annualDiscountPriceId: plan.annualDiscountPriceId ?? undefined,
         lookupKey: plan.lookupKey ?? undefined,
-        seatPriceId: plan.seatPriceId ?? undefined,
         limits: (plan.limits as Record<string, number>) ?? undefined,
         group: plan.group ?? undefined,
-        ...(plan.trialDays ? { freeTrial: { days: plan.trialDays } } : {})
+        ...(freeTrialPeriodInDays > 0 ? { freeTrial: { days: freeTrialPeriodInDays } } : {})
       }))
     },
     authorizeReference: async ({ user, referenceId }) => {

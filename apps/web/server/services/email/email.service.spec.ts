@@ -38,10 +38,6 @@ vi.mock("@vue-email/render", () => ({
   render: (...args: unknown[]) => mockState.render(...args)
 }))
 
-vi.mock("../../utils/runtime-config", () => ({
-  getOptionalRuntimeConfig: () => mockConfig
-}))
-
 async function loadService() {
   vi.resetModules()
   return await import("./email.service")
@@ -52,6 +48,8 @@ describe("email service", () => {
     mockState.send.mockReset()
     mockState.render.mockReset()
     mockState.Resend.mockClear()
+    process.env.NUXT_RESEND_API_KEY = mockConfig.resendApiKey
+    process.env.EMAIL_FROM = mockConfig.emailFrom
   })
 
   it("renders and sends the password reset email with branding", async () => {
@@ -68,12 +66,12 @@ describe("email service", () => {
     expect(mockState.render).toHaveBeenCalledWith(expect.anything(), {
       resetUrl: "https://example.test/reset",
       appName: "MetreMate",
-      brandColor: "#ff6600",
-      footerText: "Built for the trades"
+      brandColor: "#f97316",
+      footerText: "Professional PDF annotation tools"
     })
     expect(mockState.send).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: "noreply@example.test",
+        from: "noreply@bens.digital",
         to: "user@example.com",
         subject: "Reset your password",
         html: "<p>password reset</p>"

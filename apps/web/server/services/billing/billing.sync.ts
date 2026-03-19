@@ -95,24 +95,6 @@ function selectAnnualVariant(variants: PlanVariant[], primary: PlanVariant): Pla
   return annual
 }
 
-function parseSeatPriceIdFromMetadata(metadata: Record<string, unknown>): string | null {
-  const directValue = metadata.seat_price_id ?? metadata.seatPriceId
-  return typeof directValue === "string" && directValue.trim().length > 0 ? directValue : null
-}
-
-function resolveSeats(
-  items: Stripe.SubscriptionItem[],
-  planItem: Stripe.SubscriptionItem,
-  seatPriceId: string | null
-): number | null {
-  if (seatPriceId) {
-    const seatItem = items.find((item) => item.price.id === seatPriceId)
-    if (seatItem) return seatItem.quantity ?? 1
-  }
-
-  return planItem.quantity ?? null
-}
-
 async function resolveSubscriptionItem(items: Stripe.SubscriptionItem[]): Promise<ResolvedSubscriptionItem | null> {
   if (items.length === 0) return null
 
@@ -122,18 +104,16 @@ async function resolveSubscriptionItem(items: Stripe.SubscriptionItem[]): Promis
     const plan = plans.find((candidate) => {
       return (
         candidate.stripePriceId === item.price.id ||
-        candidate.annualDiscountPriceId === item.price.id ||
-        candidate.seatPriceId === item.price.id
+        candidate.annualDiscountPriceId === item.price.id
       )
     })
 
     if (!plan) continue
-    if (plan.seatPriceId && item.price.id === plan.seatPriceId) continue
 
     return {
       plan,
       planItem: item,
-      seats: resolveSeats(items, item, plan.seatPriceId ?? null)
+      seats: item.quantity ?? null
     }
   }
 
@@ -412,7 +392,6 @@ export const billingSyncService = {
           limits: existing?.limits ?? parsedLimits,
           trialDays: existing?.trialDays ?? null,
           group: existing?.group ?? null,
-          seatPriceId: existing?.seatPriceId ?? parseSeatPriceIdFromMetadata(mergedMetadata),
           createdAt: existing?.createdAt ?? new Date()
         })
         .onConflictDoUpdate({
@@ -424,11 +403,6 @@ export const billingSyncService = {
         .update(schema.stripePlan)
         .set({ limits: parsedLimits })
         .where(and(eq(schema.stripePlan.stripeProductId, productId), isNull(schema.stripePlan.limits)))
-
-      await db
-        .update(schema.stripePlan)
-        .set({ seatPriceId: parseSeatPriceIdFromMetadata(mergedMetadata) })
-        .where(and(eq(schema.stripePlan.stripeProductId, productId), isNull(schema.stripePlan.seatPriceId)))
     }
 
     const activeProductIds = new Set(plansByProduct.keys())

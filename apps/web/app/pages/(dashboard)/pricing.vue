@@ -23,6 +23,16 @@ type PricingPlan = {
   stripePriceId: string | null
 }
 
+function normalisePlanName(name: string) {
+  return name.trim().toLowerCase()
+}
+
+function displayPlanName(name: string) {
+  const normalised = normalisePlanName(name)
+  if (normalised === "professional") return "Pro"
+  return name
+}
+
 // Free tier is defined locally (no Stripe product)
 const freeTier: PricingPlan = {
   id: "free",
@@ -40,37 +50,39 @@ const freeTier: PricingPlan = {
 
 // Combine free tier + API plans
 const allPlans = computed<PricingPlan[]>(() => {
-  const apiPlans = (plansData.value?.data.plans ?? []).map<PricingPlan>((plan) => ({
-    id: plan.id ?? plan.stripePriceId ?? plan.name ?? "plan",
-    name: plan.name ?? "Plan",
-    description: plan.description ?? "",
-    amount: plan.amount ?? 0,
-    currency: plan.currency ?? "aud",
-    interval: plan.interval ?? "month",
-    limits: (plan.limits as unknown as PlanLimits) ?? FREE_TIER_LIMITS,
-    features: (plan.features as unknown as PlanFeatures) ?? FREE_TIER_FEATURES,
-    displayOrder: plan.displayOrder ?? 0,
-    trialDays: plan.trialDays ?? null,
-    stripePriceId: plan.stripePriceId ?? null
-  }))
+  const apiPlans = (plansData.value?.data.plans ?? [])
+    .filter((plan) => normalisePlanName(plan.name ?? "") !== "starter")
+    .map<PricingPlan>((plan) => ({
+      id: plan.id ?? plan.stripePriceId ?? plan.name ?? "plan",
+      name: plan.name ?? "Plan",
+      description: plan.description ?? "",
+      amount: plan.amount ?? 0,
+      currency: plan.currency ?? "aud",
+      interval: plan.interval ?? "month",
+      limits: (plan.limits as unknown as PlanLimits) ?? FREE_TIER_LIMITS,
+      features: (plan.features as unknown as PlanFeatures) ?? FREE_TIER_FEATURES,
+      displayOrder: plan.displayOrder ?? 0,
+      trialDays: plan.trialDays ?? null,
+      stripePriceId: plan.stripePriceId ?? null
+    }))
 
   return [freeTier, ...apiPlans]
 })
 
 function isCurrentPlan(plan: PricingPlan) {
-  const name = plan.name.toLowerCase()
+  const name = normalisePlanName(plan.name)
   return name === planName.value || (name === "free" && isFreeTier.value)
 }
 
 function ctaLabel(plan: PricingPlan) {
-  const name = plan.name.toLowerCase()
+  const name = normalisePlanName(plan.name)
   if (isCurrentPlan(plan)) return "Current Plan"
   if (name === "enterprise") return "Contact Sales"
-  return `Upgrade to ${plan.name}`
+  return `Upgrade to ${displayPlanName(plan.name)}`
 }
 
 function handleUpgrade(plan: PricingPlan) {
-  if (plan.name.toLowerCase() === "enterprise") {
+  if (normalisePlanName(plan.name) === "enterprise") {
     navigateTo("/support")
     return
   }
@@ -78,7 +90,8 @@ function handleUpgrade(plan: PricingPlan) {
 }
 
 function isHighlighted(plan: PricingPlan) {
-  return plan.name.toLowerCase() === "professional" || plan.name.toLowerCase() === "starter"
+  const name = normalisePlanName(plan.name)
+  return name === "professional" || name === "team"
 }
 
 function formatPrice(amount: number) {
@@ -116,12 +129,12 @@ const faqs = [
   {
     question: "Can I upgrade at any time?",
     answer:
-      "Yes! You can upgrade from Free to Starter, Professional, or Team at any time. Your existing projects and annotations will be preserved, and you'll immediately get access to all the features of your new plan."
+      "Yes. You can move from Free to Pro or Team at any time. Your existing projects and annotations stay intact, and your new features unlock immediately."
   },
   {
     question: "How does Team seat pricing work?",
     answer:
-      "The Team plan is designed for organisations that need shared access and collaboration features. If you need a custom seat-based setup, contact support and we'll help configure the right billing arrangement."
+      "Team is billed at a flat rate per active seat. If your organisation has five users on Team, you pay for five seats. There is no separate base fee or overage line item."
   },
   {
     question: "What happens to my projects if I downgrade?",
@@ -136,7 +149,7 @@ const faqs = [
   {
     question: "Can I switch between plans?",
     answer:
-      "Absolutely. You can switch between Starter, Professional, and Team plans at any time. Changes take effect immediately with prorated billing."
+      "Absolutely. You can switch between Pro and Team at any time. Changes take effect immediately with prorated billing."
   }
 ]
 
@@ -177,7 +190,7 @@ function toggleFaq(index: number) {
 
         <!-- Header -->
         <div class="flex flex-col space-y-1.5 p-6 pb-2">
-          <h3 class="text-xl font-semibold leading-none tracking-tight">{{ plan.name }}</h3>
+          <h3 class="text-xl font-semibold leading-none tracking-tight">{{ displayPlanName(plan.name) }}</h3>
           <p class="text-sm text-muted-foreground">{{ plan.description ?? "" }}</p>
         </div>
 
@@ -192,8 +205,8 @@ function toggleFaq(index: number) {
                 <span class="text-muted-foreground">/{{ plan.interval }}</span>
               </template>
             </div>
-            <p v-if="plan.name.toLowerCase() === 'team'" class="mt-1 text-xs text-muted-foreground">
-              Built for shared organisation access
+            <p v-if="normalisePlanName(plan.name) === 'team'" class="mt-1 text-xs text-muted-foreground">
+              Flat-rate seat billing for shared organisation access
             </p>
           </div>
 
@@ -267,12 +280,12 @@ function toggleFaq(index: number) {
               <th class="px-4 py-4 text-center font-medium">Free</th>
               <th class="px-4 py-4 text-center font-medium">
                 <span class="inline-flex items-center gap-1.5">
-                  Starter
+                  Pro
                   <UiBadge variant="default" size="sm">Popular</UiBadge>
                 </span>
               </th>
-              <th class="px-4 py-4 text-center font-medium">Professional</th>
-              <th class="px-4 py-4 pr-6 text-center font-medium">Team</th>
+              <th class="px-4 py-4 text-center font-medium">Team</th>
+              <th class="px-4 py-4 pr-6 text-center font-medium">Enterprise</th>
             </tr>
           </thead>
           <tbody class="divide-y">
@@ -280,9 +293,9 @@ function toggleFaq(index: number) {
             <tr class="bg-muted/10">
               <td class="py-4 pl-6 text-sm font-medium">Monthly price</td>
               <td class="px-4 py-4 text-center text-sm font-semibold">$0</td>
-              <td class="px-4 py-4 text-center text-sm font-semibold text-primary">$29</td>
-              <td class="px-4 py-4 text-center text-sm font-semibold">$79</td>
-              <td class="px-4 py-4 pr-6 text-center text-sm font-semibold">$79</td>
+              <td class="px-4 py-4 text-center text-sm font-semibold text-primary">$79</td>
+              <td class="px-4 py-4 text-center text-sm font-semibold">$79/seat</td>
+              <td class="px-4 py-4 pr-6 text-center text-sm font-semibold">Custom</td>
             </tr>
 
             <!-- Section: Usage Limits -->
@@ -297,24 +310,24 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Projects</td>
               <td class="px-4 py-3 text-center text-sm">1</td>
-              <td class="px-4 py-3 text-center text-sm">5</td>
+              <td class="px-4 py-3 text-center text-sm font-medium text-primary">Unlimited</td>
               <td class="px-4 py-3 text-center text-sm font-medium text-primary">Unlimited</td>
               <td class="px-4 py-3 pr-6 text-center text-sm font-medium text-primary">Unlimited</td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">File upload size</td>
               <td class="px-4 py-3 text-center text-sm">10 MB</td>
-              <td class="px-4 py-3 text-center text-sm">25 MB</td>
               <td class="px-4 py-3 text-center text-sm">50 MB</td>
-              <td class="px-4 py-3 pr-6 text-center text-sm">50 MB</td>
+              <td class="px-4 py-3 text-center text-sm">50 MB</td>
+              <td class="px-4 py-3 pr-6 text-center text-sm">Custom</td>
             </tr>
             <tr>
-              <td class="py-3 pl-6 text-sm">Team members</td>
+              <td class="py-3 pl-6 text-sm">Seat billing</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
-              <td class="px-4 py-3 text-center text-sm text-muted-foreground">1</td>
+              <td class="px-4 py-3 text-center text-sm">Per active seat</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">
-                3 included<br /><span class="text-xs text-muted-foreground">+$25/seat</span>
+                Custom contract<br /><span class="text-xs text-muted-foreground">Contact sales</span>
               </td>
             </tr>
 
@@ -330,7 +343,7 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Measurement tools</td>
               <td class="px-4 py-3 text-center text-sm">Basic</td>
-              <td class="px-4 py-3 text-center text-sm">Basic</td>
+              <td class="px-4 py-3 text-center text-sm">All tools</td>
               <td class="px-4 py-3 text-center text-sm">All tools</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">All tools</td>
             </tr>
@@ -340,7 +353,7 @@ function toggleFaq(index: number) {
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <X class="mx-auto size-4 text-muted-foreground/50" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 text-center">
                 <Check class="mx-auto size-4 text-primary" />
@@ -352,7 +365,7 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Export formats</td>
               <td class="px-4 py-3 text-center text-sm">PDF</td>
-              <td class="px-4 py-3 text-center text-sm">PDF</td>
+              <td class="px-4 py-3 text-center text-sm">PDF, PNG, SVG</td>
               <td class="px-4 py-3 text-center text-sm">PDF, PNG, SVG</td>
               <td class="px-4 py-3 pr-6 text-center text-sm">PDF, PNG, SVG</td>
             </tr>
@@ -372,7 +385,7 @@ function toggleFaq(index: number) {
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <X class="mx-auto size-4 text-muted-foreground/50" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 text-center">
                 <Check class="mx-auto size-4 text-primary" />
@@ -390,7 +403,7 @@ function toggleFaq(index: number) {
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <X class="mx-auto size-4 text-muted-foreground/50" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
                 <Check class="mx-auto size-4 text-primary" />
@@ -415,7 +428,7 @@ function toggleFaq(index: number) {
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <X class="mx-auto size-4 text-muted-foreground/50" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
                 <Check class="mx-auto size-4 text-primary" />
@@ -430,7 +443,7 @@ function toggleFaq(index: number) {
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <X class="mx-auto size-4 text-muted-foreground/50" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
                 <Check class="mx-auto size-4 text-primary" />
@@ -445,7 +458,7 @@ function toggleFaq(index: number) {
                 <X class="mx-auto size-4 text-muted-foreground/50" />
               </td>
               <td class="px-4 py-3 text-center">
-                <X class="mx-auto size-4 text-muted-foreground/50" />
+                <Check class="mx-auto size-4 text-primary" />
               </td>
               <td class="px-4 py-3 pr-6 text-center">
                 <Check class="mx-auto size-4 text-primary" />
@@ -464,16 +477,16 @@ function toggleFaq(index: number) {
             <tr>
               <td class="py-3 pl-6 text-sm">Support level</td>
               <td class="px-4 py-3 text-center text-sm">Community</td>
-              <td class="px-4 py-3 text-center text-sm">Email</td>
               <td class="px-4 py-3 text-center text-sm">Priority email</td>
-              <td class="px-4 py-3 pr-6 text-center text-sm">Priority email</td>
+              <td class="px-4 py-3 text-center text-sm">Priority email</td>
+              <td class="px-4 py-3 pr-6 text-center text-sm">Dedicated support</td>
             </tr>
             <tr>
               <td class="py-3 pl-6 text-sm">Response time</td>
               <td class="px-4 py-3 text-center text-sm text-muted-foreground">Best effort</td>
-              <td class="px-4 py-3 text-center text-sm">48 hours</td>
               <td class="px-4 py-3 text-center text-sm">24 hours</td>
-              <td class="px-4 py-3 pr-6 text-center text-sm">24 hours</td>
+              <td class="px-4 py-3 text-center text-sm">24 hours</td>
+              <td class="px-4 py-3 pr-6 text-center text-sm">SLA-backed</td>
             </tr>
           </tbody>
         </table>

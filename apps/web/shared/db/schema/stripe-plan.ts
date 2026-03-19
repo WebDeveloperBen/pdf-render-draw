@@ -5,7 +5,7 @@ import { pgTable, text, integer, boolean, jsonb, timestamp } from "drizzle-orm/p
  *
  * Synced fields (from Stripe): stripeProductId, stripePriceId, annualDiscountPriceId,
  * name, description, amount, currency, interval, active, metadata.
- * App-managed fields (set by admin): limits, trialDays, group, seatPriceId.
+ * App-managed fields (set by admin): limits, trialDays, group.
  *
  * The Better Auth Stripe plugin reads plans via a dynamic async function
  * that queries this table, so changes here take effect on the next subscription action.
@@ -31,7 +31,6 @@ export const stripePlan = pgTable("stripe_plan", {
   limits: jsonb("limits"), // e.g. { projects: 50, storage: 100 }
   trialDays: integer("trial_days"), // Free trial period in days (null = no trial)
   group: text("group"), // Plan grouping (e.g. "standard", "premium")
-  seatPriceId: text("seat_price_id"), // Better Auth per-seat billing price ID for organisation plans
 
   // ---- Metadata ----
   metadata: jsonb("metadata"), // Extra Stripe metadata

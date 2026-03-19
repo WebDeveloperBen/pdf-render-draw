@@ -1,9 +1,9 @@
 import * as schema from "@shared/db/schema"
+import { useRuntimeConfig } from "#imports"
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http"
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres"
 import { neon } from "@neondatabase/serverless"
 import pg from "pg"
-import { getOptionalRuntimeConfig } from "./runtime-config"
 
 /**
  * Database connection supporting both:
@@ -15,8 +15,16 @@ type DrizzleDB = ReturnType<typeof drizzleNeon<typeof schema>> | ReturnType<type
 
 let _db: DrizzleDB | null = null
 
+function getRuntimeConfig() {
+  try {
+    return useRuntimeConfig()
+  } catch {
+    return undefined
+  }
+}
+
 function createDb(): DrizzleDB {
-  const runtimeConfig = getOptionalRuntimeConfig()
+  const runtimeConfig = getRuntimeConfig()
   const connectionString = runtimeConfig?.databaseUrl || process.env.NUXT_DATABASE_URL || process.env.DATABASE_URL
 
   if (!connectionString) {

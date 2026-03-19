@@ -52,7 +52,6 @@ vi.mock("@shared/db/schema", () => ({
     stripeProductId: "stripeProductId",
     stripePriceId: "stripePriceId",
     annualDiscountPriceId: "annualDiscountPriceId",
-    seatPriceId: "seatPriceId",
     limits: "limits",
     active: "active"
   },
@@ -247,7 +246,7 @@ describe("billingSyncService.syncPlans", () => {
     await billingSyncService.syncPlans()
 
     expect(mockDbInsert).toHaveBeenCalled()
-    expect(mockDbUpdate).toHaveBeenCalledTimes(2)
+    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
   })
 
   it("populates limits from metadata for existing plan with null limits", async () => {
@@ -270,10 +269,10 @@ describe("billingSyncService.syncPlans", () => {
 
     await billingSyncService.syncPlans()
 
-    expect(mockDbUpdate).toHaveBeenCalledTimes(2)
+    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
   })
 
-  it("populates seatPriceId from metadata when the local plan has not been configured yet", async () => {
+  it("ignores legacy included seat metadata for per-seat plans", async () => {
     const price = mockStripePrice({
       product: mockStripeProduct({
         name: "Team",
@@ -281,8 +280,7 @@ describe("billingSyncService.syncPlans", () => {
           limit_projects: "unlimited",
           limit_storage_mb: "500",
           limit_file_size_mb: "50",
-          limit_included_seats: "3",
-          seat_price_id: "price_team_seat"
+          limit_included_seats: "3"
         }
       })
     })
@@ -295,7 +293,6 @@ describe("billingSyncService.syncPlans", () => {
     mockDbQuery.stripePlan.findFirst.mockResolvedValue({
       id: "existing-team-plan",
       stripePriceId: "price_test123",
-      seatPriceId: null,
       limits: null
     })
     mockDbQuery.stripePlan.findMany.mockResolvedValue([
@@ -304,7 +301,7 @@ describe("billingSyncService.syncPlans", () => {
 
     await billingSyncService.syncPlans()
 
-    expect(mockDbUpdate).toHaveBeenCalledTimes(2)
+    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
   })
 
   it("skips non-recurring prices", async () => {
@@ -450,32 +447,20 @@ describe("billingSyncService.upsertSubscription", () => {
     expect(mockDbQuery.organization.findFirst).toHaveBeenCalled()
   })
 
-  it("resolves the matching plan item and seat quantity from a multi-item subscription", async () => {
+  it("uses the Team plan item quantity as the seat count", async () => {
     const stripeSub = mockStripeSubscription({
       items: {
         object: "list",
         data: [
           {
-            id: "si_seat",
-            price: {
-              id: "price_team_seat",
-              product: mockStripeProduct({ name: "Team Seats" }),
-              lookup_key: "team-seat",
-              recurring: { interval: "month" }
-            },
-            quantity: 7,
-            current_period_start: Math.floor(Date.now() / 1000),
-            current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
-          },
-          {
-            id: "si_plan",
+            id: "si_team",
             price: {
               id: "price_team_base",
               product: mockStripeProduct({ name: "Team" }),
               lookup_key: "team",
               recurring: { interval: "month" }
             },
-            quantity: 1,
+            quantity: 7,
             current_period_start: Math.floor(Date.now() / 1000),
             current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
           }
@@ -490,8 +475,7 @@ describe("billingSyncService.upsertSubscription", () => {
         id: "plan-team",
         name: "Team",
         stripePriceId: "price_team_base",
-        annualDiscountPriceId: null,
-        seatPriceId: "price_team_seat"
+        annualDiscountPriceId: null
       }
     ])
 

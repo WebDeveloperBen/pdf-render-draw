@@ -6,7 +6,6 @@ export interface PlanLimits {
   projects: number // -1 = unlimited
   storageMb: number // -1 = unlimited
   fileSizeMb: number
-  includedSeats?: number // only on team/enterprise
 }
 
 /**

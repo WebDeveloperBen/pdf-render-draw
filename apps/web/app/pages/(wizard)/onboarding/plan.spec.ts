@@ -89,4 +89,42 @@ describe("Onboarding plan page", () => {
     expect(mockState.checkout).toHaveBeenCalledWith("professional")
     expect(mockState.toastSuccess).toHaveBeenCalledWith("Profile completed!")
   })
+
+  it("persists onboarding data and skips Stripe checkout for the free plan", async () => {
+    const wrapper = await mountSuspended(OnboardingPlanPage, {
+      global: {
+        stubs: {
+          UiButton: {
+            template: "<button @click=\"$emit('click')\"><slot /></button>"
+          },
+          UiCard: { template: "<div><slot /></div>" },
+          UiCardHeader: { template: "<div><slot /></div>" },
+          UiCardTitle: { template: "<div><slot /></div>" },
+          UiCardDescription: { template: "<div><slot /></div>" },
+          UiCardContent: { template: "<div><slot /></div>" },
+          UiBadge: { template: "<span><slot /></span>" },
+          UiSpinner: { template: "<span>Loading</span>" }
+        }
+      }
+    })
+
+    const freeCardButton = wrapper.findAll("button").find((button) => button.text().includes("Select Free"))
+    expect(freeCardButton).toBeTruthy()
+    await freeCardButton?.trigger("click")
+
+    const continueButton = wrapper.findAll("button").find((button) => button.text().includes("Continue on Free"))
+    expect(continueButton).toBeTruthy()
+    await continueButton?.trigger("click")
+
+    expect(mockState.fetch).toHaveBeenCalledWith("/api/user/onboarding", {
+      method: "POST",
+      body: expect.objectContaining({
+        companyName: "Acme Build",
+        role: "Estimator",
+        selectedPlan: "free"
+      })
+    })
+    expect(mockState.checkout).not.toHaveBeenCalled()
+    expect(mockState.navigateTo).toHaveBeenCalledWith("/")
+  })
 })

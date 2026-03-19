@@ -1,0 +1,1 @@
+ALTER TABLE "stripe_plan" DROP COLUMN "seat_price_id";

@@ -1,3 +1,5 @@
+export type OnboardingPlanId = "free" | "professional" | "team" | "enterprise"
+
 export interface WizardData {
   // Step 1: Personal
   phone?: string
@@ -13,7 +15,7 @@ export interface WizardData {
   referralSource?: string
 
   // Step 4: Plan
-  selectedPlan?: "starter" | "professional" | "enterprise"
+  selectedPlan?: OnboardingPlanId
 }
 
 export type WizardStep = "personal" | "company" | "usecase" | "plan"
