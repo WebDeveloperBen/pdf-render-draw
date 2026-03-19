@@ -19,8 +19,7 @@
         v-if="icon && iconPlacement == 'left'"
         class="flex w-0 translate-x-[0%] pr-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-[0%] group-hover:pr-2 group-hover:opacity-100"
       >
-        <Icon v-if="typeof icon === 'string'" :name="icon" class="size-4" />
-        <component :is="icon" v-else class="size-4" />
+        <component :is="icon" class="size-4" />
       </div>
     </slot>
     <slot name="loading">
@@ -34,8 +33,7 @@
         v-if="icon && iconPlacement == 'right'"
         class="flex w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-0 group-hover:pl-2 group-hover:opacity-100"
       >
-        <Icon v-if="typeof icon === 'string'" :name="icon" class="size-4" />
-        <component :is="icon" v-else class="size-4" />
+        <component :is="icon" class="size-4" />
       </div>
     </slot>
   </component>
@@ -130,9 +128,9 @@ export type ButtonProps = NuxtLinkProps & {
   /** Should the icon be displayed on the `left` or the `right`? */
   iconPlacement?: "left" | "right"
   /** The icon to display in the button */
-  icon?: string | Component
+  icon?: Component
   /** The icon to display when the button is loading */
-  loadingIcon?: string | Component
+  loadingIcon?: Component
 }
 </script>
 

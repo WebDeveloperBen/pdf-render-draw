@@ -1,12 +1,15 @@
 <script lang="ts" setup>
+import { Search } from "lucide-vue-next"
+import type { Component } from "vue"
+
 const props = withDefaults(
   defineProps<{
     title?: string
     description?: string
-    icon?: string
+    icon?: Component
   }>(),
   {
-    icon: "lucide:search",
+    icon: () => Search,
     title: "No results found",
     description: "Try changing your search query or adding a new record."
   }

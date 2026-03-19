@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ShieldCheck } from "lucide-vue-next"
+import { AlertCircle, ShieldCheck } from "lucide-vue-next"
 import { toast } from "vue-sonner"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
@@ -73,7 +73,7 @@ const submit = handleSubmit(async (values) => {
           <div v-if="!token" class="mt-8">
             <UiAlert
               variant="destructive"
-              icon="lucide:alert-circle"
+              :icon="AlertCircle"
               title="Invalid Link"
               description="This password reset link is invalid or has expired."
             />

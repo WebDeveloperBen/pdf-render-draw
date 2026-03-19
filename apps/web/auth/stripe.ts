@@ -77,6 +77,7 @@ export const stripePlugin = stripe({
           subscriptionId: sub.id,
           type: "payment",
           description: descriptions[event.type] || event.type,
+          stripeEventId: event.id,
           metadata: {
             stripeEventId: event.id,
             stripeInvoiceId: invoice.id,
@@ -86,6 +87,8 @@ export const stripePlugin = stripe({
             invoiceStatus: invoice.status
           },
           createdAt: new Date()
+        }).onConflictDoNothing({
+          target: schema.billingActivity.stripeEventId
         })
       }
     }

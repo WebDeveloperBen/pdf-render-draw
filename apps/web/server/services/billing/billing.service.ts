@@ -87,6 +87,22 @@ function computeAllowedActions(status: string, cancelAtPeriodEnd: boolean | null
   return actions
 }
 
+async function findPlanForSubscription(sub: Pick<typeof schema.subscription.$inferSelect, "plan" | "stripePriceId">) {
+  return (
+    (sub.stripePriceId
+      ? await db.query.stripePlan.findFirst({
+          where: or(
+            eq(schema.stripePlan.stripePriceId, sub.stripePriceId),
+            eq(schema.stripePlan.annualDiscountPriceId, sub.stripePriceId)
+          )
+        })
+      : null) ??
+    (await db.query.stripePlan.findFirst({
+      where: eq(schema.stripePlan.name, sub.plan)
+    }))
+  )
+}
+
 // ---- Service ----
 
 export const billingService = {
@@ -266,9 +282,7 @@ export const billingService = {
       .where(eq(schema.member.organizationId, sub.referenceId))
 
     // Get plan info from cache
-    const planInfo = await db.query.stripePlan.findFirst({
-      where: eq(schema.stripePlan.name, sub.plan)
-    })
+    const planInfo = await findPlanForSubscription(sub)
 
     // Get last billing activity for freshness
     const lastActivity = await db.query.billingActivity.findFirst({
@@ -284,6 +298,8 @@ export const billingService = {
 
     const org = sub.organization as typeof schema.organization.$inferSelect | null
 
+    const resolvedPlanName = planInfo?.name ?? sub.plan
+
     return {
       id: sub.id,
       stripeSubscriptionId: sub.stripeSubscriptionId,
@@ -292,8 +308,8 @@ export const billingService = {
       organizationSlug: org?.slug ?? "",
       organizationLogo: org?.logo ?? null,
       stripeCustomerId: sub.stripeCustomerId,
-      plan: sub.plan,
-      planTier: planTierFromName(sub.plan),
+      plan: resolvedPlanName,
+      planTier: planTierFromName(resolvedPlanName),
       status: sub.status,
       periodStart: sub.periodStart?.toISOString() ?? null,
       periodEnd: sub.periodEnd?.toISOString() ?? null,
@@ -319,7 +335,7 @@ export const billingService = {
       dataFreshness: computeDataFreshness(lastActivity?.createdAt ?? null),
       lastSyncedAt: lastActivity?.createdAt?.toISOString() ?? null,
       lastWebhookAt: lastWebhook?.createdAt?.toISOString() ?? null,
-      isEnterpriseManaged: planTierFromName(sub.plan) === "enterprise",
+      isEnterpriseManaged: planTierFromName(resolvedPlanName) === "enterprise",
       allowedActions: computeAllowedActions(sub.status, sub.cancelAtPeriodEnd, adminTier)
     }
   },
@@ -369,17 +385,20 @@ export const billingService = {
       }
     }
 
+    const planInfo = await findPlanForSubscription(sub)
+    const resolvedPlanName = planInfo?.name ?? sub.plan
+
     return {
       hasSubscription: true,
       subscription: {
         id: sub.id,
-        plan: sub.plan,
+        plan: resolvedPlanName,
         status: sub.status,
         periodEnd: sub.periodEnd?.toISOString() ?? null,
         cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
         billingInterval: sub.billingInterval
       },
-      planTier: planTierFromName(sub.plan),
+      planTier: planTierFromName(resolvedPlanName),
       billingHealth: computeBillingHealth(sub.status, sub.cancelAtPeriodEnd)
     }
   },

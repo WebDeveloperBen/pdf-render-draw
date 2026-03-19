@@ -1,5 +1,5 @@
 import type Stripe from "stripe"
-import { eq } from "drizzle-orm"
+import { and, eq, isNull, sql } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { db } from "../../utils/drizzle"
 import * as schema from "@shared/db/schema"
@@ -8,29 +8,76 @@ import { billingService } from "./billing.service"
 import { parseLimitsFromMetadata } from "./billing.helpers"
 import { getTestState } from "../../utils/test-state"
 
+const BILLING_SYNC_LOCK_NAMESPACE = 18451
+const BILLING_SYNC_LOCK_KEY = 1
+
+type SyncResult = {
+  synced: number
+  created: number
+  updated: number
+  errors: number
+  duration: number
+}
+
+type PlanVariant = {
+  price: Stripe.Price
+  product: Stripe.Product
+}
+
+function getExpandedProduct(price: Stripe.Price): Stripe.Product | null {
+  const product = price.product
+  if (!price.recurring || typeof product === "string" || !product || product.deleted) {
+    return null
+  }
+
+  return product
+}
+
+function sortPlanVariants(a: PlanVariant, b: PlanVariant): number {
+  const rank = (variant: PlanVariant) => {
+    if (variant.price.recurring?.interval === "month") return 0
+    if (variant.price.recurring?.interval === "year") return 1
+    return 2
+  }
+
+  return rank(a) - rank(b) || a.price.created - b.price.created || a.price.id.localeCompare(b.price.id)
+}
+
+function selectPrimaryVariant(variants: PlanVariant[]): PlanVariant {
+  return [...variants].sort(sortPlanVariants)[0]!
+}
+
+function selectAnnualVariant(variants: PlanVariant[], primary: PlanVariant): PlanVariant | null {
+  return (
+    variants.find(
+      ({ price }) => price.recurring?.interval === "year" && price.id !== primary.price.id
+    ) ?? null
+  )
+}
+
+async function acquireBillingSyncLock(): Promise<boolean> {
+  const result = await db.execute(sql`
+    select pg_try_advisory_lock(${BILLING_SYNC_LOCK_NAMESPACE}, ${BILLING_SYNC_LOCK_KEY}) as locked
+  `)
+
+  return Boolean(result.rows.at(0)?.locked)
+}
+
+async function releaseBillingSyncLock(): Promise<void> {
+  await db.execute(sql`
+    select pg_advisory_unlock(${BILLING_SYNC_LOCK_NAMESPACE}, ${BILLING_SYNC_LOCK_KEY})
+  `)
+}
+
 export const billingSyncService = {
   /**
    * Full sync: pull all subscriptions and plans from Stripe into local DB.
    * Synchronous — admin waits for the result.
    */
-  async fullSync(triggeredBy: string): Promise<{
-    synced: number
-    created: number
-    updated: number
-    errors: number
-    duration: number
-  }> {
+  async fullSync(triggeredBy: string): Promise<SyncResult> {
     const startTime = Date.now()
-
-    // Create sync log entry
-    const syncLogId = nanoid()
-    await db.insert(schema.billingSyncLog).values({
-      id: syncLogId,
-      type: "full",
-      status: "in_progress",
-      triggeredBy,
-      startedAt: new Date()
-    })
+    let syncLogId: string | null = null
+    let hasLock = false
 
     let synced = 0
     let created = 0
@@ -38,6 +85,20 @@ export const billingSyncService = {
     let errors = 0
 
     try {
+      hasLock = await acquireBillingSyncLock()
+      if (!hasLock) {
+        throw createError({ statusCode: 409, message: "Stripe sync already in progress" })
+      }
+
+      syncLogId = nanoid()
+      await db.insert(schema.billingSyncLog).values({
+        id: syncLogId,
+        type: "full",
+        status: "in_progress",
+        triggeredBy,
+        startedAt: new Date()
+      })
+
       const testState = getTestState()
       if (testState?.billing.fullSyncResult) {
         const duration = testState.billing.fullSyncResult.duration
@@ -57,10 +118,8 @@ export const billingSyncService = {
         return testState.billing.fullSyncResult
       }
 
-      // Sync plans/prices first
       await this.syncPlans()
 
-      // Paginate through all Stripe subscriptions
       let hasMore = true
       let startingAfter: string | undefined
 
@@ -94,7 +153,6 @@ export const billingSyncService = {
         }
       }
 
-      // Update sync log
       const duration = Date.now() - startTime
       await db
         .update(schema.billingSyncLog)
@@ -112,21 +170,31 @@ export const billingSyncService = {
       return { synced, created, updated, errors, duration }
     } catch (err) {
       const duration = Date.now() - startTime
-      await db
-        .update(schema.billingSyncLog)
-        .set({
-          status: "failed",
-          subscriptionsSynced: synced,
-          subscriptionsCreated: created,
-          subscriptionsUpdated: updated,
-          errors,
-          errorDetails: err instanceof Error ? err.message : String(err),
-          duration,
-          completedAt: new Date()
-        })
-        .where(eq(schema.billingSyncLog.id, syncLogId))
+      if (syncLogId) {
+        await db
+          .update(schema.billingSyncLog)
+          .set({
+            status: "failed",
+            subscriptionsSynced: synced,
+            subscriptionsCreated: created,
+            subscriptionsUpdated: updated,
+            errors,
+            errorDetails: err instanceof Error ? err.message : String(err),
+            duration,
+            completedAt: new Date()
+          })
+          .where(eq(schema.billingSyncLog.id, syncLogId))
+      }
 
       throw err
+    } finally {
+      if (hasLock) {
+        try {
+          await releaseBillingSyncLock()
+        } catch (err) {
+          console.error("[BillingSync] Failed to release advisory lock:", err)
+        }
+      }
     }
   },
 
@@ -153,7 +221,6 @@ export const billingSyncService = {
       await this.upsertSubscription(stripeSub)
     }
 
-    // Record activity
     await billingService.recordActivity({
       subscriptionId: localSub.id,
       type: "sync",
@@ -163,33 +230,67 @@ export const billingSyncService = {
     })
   },
 
+  async listAllActiveRecurringPrices(): Promise<PlanVariant[]> {
+    const variants: PlanVariant[] = []
+    let hasMore = true
+    let startingAfter: string | undefined
+
+    while (hasMore) {
+      const params: Stripe.PriceListParams = {
+        active: true,
+        expand: ["data.product"],
+        limit: 100
+      }
+      if (startingAfter) {
+        params.starting_after = startingAfter
+      }
+
+      const response = await stripeClient.prices.list(params)
+      for (const price of response.data) {
+        const product = getExpandedProduct(price)
+        if (!product) continue
+
+        variants.push({ price, product })
+      }
+
+      hasMore = response.has_more
+      const lastPrice = response.data.at(-1)
+      if (lastPrice) {
+        startingAfter = lastPrice.id
+      }
+    }
+
+    return variants
+  },
+
   /**
    * Sync Stripe products and prices into the local stripe_plan cache.
    *
-   * Only updates Stripe-sourced fields (name, description, amount, currency, interval, active, metadata).
-   * App-managed fields (limits, trialDays, annualDiscountPriceId, lookupKey, group) are preserved
-   * so admin-configured values aren't overwritten by a sync.
+   * One logical row is stored per Stripe product. Monthly pricing is stored in
+   * stripePriceId and the annual variant, if present, is stored in
+   * annualDiscountPriceId so the rest of the app does not see duplicate plans.
    */
   async syncPlans() {
-    // Fetch all active prices with product expanded
-    const prices = await stripeClient.prices.list({
-      active: true,
-      expand: ["data.product"],
-      limit: 100
-    })
+    const variants = await this.listAllActiveRecurringPrices()
+    const plansByProduct = new Map<string, PlanVariant[]>()
 
-    for (const price of prices.data) {
-      const product = price.product as Stripe.Product
-      if (!product || typeof product === "string" || product.deleted) continue
+    for (const variant of variants) {
+      const existing = plansByProduct.get(variant.product.id)
+      if (existing) existing.push(variant)
+      else plansByProduct.set(variant.product.id, [variant])
+    }
 
-      // Only sync recurring prices (subscriptions), skip one-off prices
-      if (!price.recurring) continue
+    for (const [productId, productVariants] of plansByProduct.entries()) {
+      const primaryVariant = selectPrimaryVariant(productVariants)
+      const annualVariant = selectAnnualVariant(productVariants, primaryVariant)
+      const { product, price } = primaryVariant
 
+      const mergedMetadata = { ...product.metadata, ...price.metadata } as Record<string, unknown>
+      const parsedLimits = parseLimitsFromMetadata(mergedMetadata as Record<string, string>)
       const existing = await db.query.stripePlan.findFirst({
-        where: eq(schema.stripePlan.stripePriceId, price.id)
+        where: eq(schema.stripePlan.stripeProductId, productId)
       })
 
-      // Stripe-sourced fields only — app-managed fields are NOT included here
       const stripeValues = {
         stripeProductId: product.id,
         stripePriceId: price.id,
@@ -197,49 +298,40 @@ export const billingSyncService = {
         description: product.description ?? null,
         amount: price.unit_amount ?? 0,
         currency: price.currency,
-        interval: price.recurring.interval,
+        interval: price.recurring?.interval ?? "month",
         active: product.active && price.active,
-        metadata: { ...product.metadata, ...price.metadata } as Record<string, unknown>,
+        annualDiscountPriceId: annualVariant?.price.id ?? null,
+        lookupKey: price.lookup_key ?? null,
+        metadata: mergedMetadata,
         lastSyncedAt: new Date()
       }
 
-      // Parse quantitative limits from Stripe metadata into the limits column
-      const parsedLimits = parseLimitsFromMetadata(stripeValues.metadata as Record<string, string>)
-
-      if (existing) {
-        // Update only Stripe-sourced fields, preserve app-managed fields
-        await db.update(schema.stripePlan).set(stripeValues).where(eq(schema.stripePlan.id, existing.id))
-
-        // Existing plan with no admin-set limits — populate from metadata
-        if (existing.limits === null) {
-          await db.update(schema.stripePlan).set({ limits: parsedLimits }).where(eq(schema.stripePlan.id, existing.id))
-        }
-      } else {
-        // New plan — create with Stripe fields, auto-populate limits from metadata
-        await db.insert(schema.stripePlan).values({
-          id: nanoid(),
+      await db
+        .insert(schema.stripePlan)
+        .values({
+          id: existing?.id ?? nanoid(),
           ...stripeValues,
-          // App-managed fields start as null — admin configures them after sync
-          annualDiscountPriceId: null,
-          lookupKey: price.lookup_key ?? null,
-          limits: parsedLimits,
-          trialDays: null,
-          group: null,
-          createdAt: new Date()
+          limits: existing?.limits ?? parsedLimits,
+          trialDays: existing?.trialDays ?? null,
+          group: existing?.group ?? null,
+          createdAt: existing?.createdAt ?? new Date()
         })
-      }
+        .onConflictDoUpdate({
+          target: schema.stripePlan.stripeProductId,
+          set: stripeValues
+        })
+
+      await db
+        .update(schema.stripePlan)
+        .set({ limits: parsedLimits })
+        .where(and(eq(schema.stripePlan.stripeProductId, productId), isNull(schema.stripePlan.limits)))
     }
 
-    // Also mark inactive prices — if a Stripe price is deactivated, update our record
+    const activeProductIds = new Set(plansByProduct.keys())
     const allLocalPlans = await db.query.stripePlan.findMany()
-    const activePriceIds = new Set(
-      prices.data
-        .filter((p) => p.recurring && typeof p.product !== "string" && !(p.product as Stripe.Product).deleted)
-        .map((p) => p.id)
-    )
 
     for (const localPlan of allLocalPlans) {
-      if (!activePriceIds.has(localPlan.stripePriceId) && localPlan.active) {
+      if (!activeProductIds.has(localPlan.stripeProductId) && localPlan.active) {
         await db
           .update(schema.stripePlan)
           .set({ active: false, lastSyncedAt: new Date() })
@@ -253,22 +345,20 @@ export const billingSyncService = {
    * Returns "created" or "updated".
    */
   async upsertSubscription(stripeSub: Stripe.Subscription): Promise<"created" | "updated"> {
-    // Resolve the customer/org reference
     const customerId = typeof stripeSub.customer === "string" ? stripeSub.customer : stripeSub.customer.id
 
-    // Find the org by stripeCustomerId
     const org = await db.query.organization.findFirst({
       where: eq(schema.organization.stripeCustomerId, customerId)
     })
 
-    const referenceId = org?.id ?? customerId // Fall back to customer ID if org not linked
+    const referenceId = org?.id ?? customerId
 
-    // Check for existing local subscription
     const existing = await db.query.subscription.findFirst({
       where: eq(schema.subscription.stripeSubscriptionId, stripeSub.id)
     })
 
     const item = stripeSub.items.data[0]
+    const priceId = item?.price?.id ?? null
     const plan = (item?.price?.product as Stripe.Product)?.name ?? item?.price?.lookup_key ?? "unknown"
 
     const values = {
@@ -276,8 +366,8 @@ export const billingSyncService = {
       referenceId,
       stripeCustomerId: customerId,
       stripeSubscriptionId: stripeSub.id,
+      stripePriceId: priceId,
       status: stripeSub.status,
-      // In Stripe SDK v20+, current_period is on the item level
       periodStart: item?.current_period_start ? new Date(item.current_period_start * 1000) : null,
       periodEnd: item?.current_period_end ? new Date(item.current_period_end * 1000) : null,
       cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
@@ -291,15 +381,17 @@ export const billingSyncService = {
       stripeScheduleId: typeof stripeSub.schedule === "string" ? stripeSub.schedule : (stripeSub.schedule?.id ?? null)
     }
 
-    if (existing) {
-      await db.update(schema.subscription).set(values).where(eq(schema.subscription.id, existing.id))
-      return "updated"
-    } else {
-      await db.insert(schema.subscription).values({
-        id: nanoid(),
+    await db
+      .insert(schema.subscription)
+      .values({
+        id: existing?.id ?? nanoid(),
         ...values
       })
-      return "created"
-    }
+      .onConflictDoUpdate({
+        target: schema.subscription.stripeSubscriptionId,
+        set: values
+      })
+
+    return existing ? "updated" : "created"
   }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Sparkles } from "lucide-vue-next"
+import { ArrowRight, Sparkles } from "lucide-vue-next"
 
 const { state } = useSidebar()
 const isCollapsed = computed(() => state.value === "collapsed")
@@ -57,7 +57,7 @@ const projectsLabel = computed(() => {
             size="sm"
             variant="default"
             class="w-full justify-center text-xs"
-            icon="lucide:arrow-right"
+            :icon="ArrowRight"
             icon-placement="right"
           >
             Upgrade

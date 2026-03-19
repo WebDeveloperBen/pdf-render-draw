@@ -1,15 +1,9 @@
 <template>
   <div data-slot="fancy-icon" :class="styles().base({ class: props.class, color, type, size, circle })">
     <slot :styles="styles().icon({ color, type, size, circle })">
-      <Icon
-        v-if="typeof icon === 'string'"
-        :name="icon"
-        data-slot="fancy-icon-icon"
-        :class="styles().icon({ color, type, size, circle })"
-      />
       <component
         :is="icon"
-        v-else-if="icon"
+        v-if="icon"
         data-slot="fancy-icon-icon"
         :class="styles().icon({ color, type, size, circle })"
       />
@@ -29,7 +23,7 @@ const props = withDefaults(
     /**
      * The icon to display.
      */
-    icon?: string | Component
+    icon?: Component
     /**
      * The color variant of the icon.
      */

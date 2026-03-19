@@ -8,7 +8,8 @@ const {
   mockStripePricesList,
   mockDbQuery,
   mockDbInsert,
-  mockDbUpdate
+  mockDbUpdate,
+  mockDbExecute
 } = vi.hoisted(() => ({
   mockStripeSubscriptionsList: vi.fn(),
   mockStripeSubscriptionsRetrieve: vi.fn(),
@@ -20,7 +21,8 @@ const {
     billingSyncLog: { findFirst: vi.fn() }
   },
   mockDbInsert: vi.fn(),
-  mockDbUpdate: vi.fn()
+  mockDbUpdate: vi.fn(),
+  mockDbExecute: vi.fn()
 }))
 
 vi.mock("@auth", () => ({
@@ -39,15 +41,24 @@ vi.mock("../../utils/drizzle", () => ({
   db: {
     query: mockDbQuery,
     insert: (...args: unknown[]) => mockDbInsert(...args),
-    update: (...args: unknown[]) => mockDbUpdate(...args)
+    update: (...args: unknown[]) => mockDbUpdate(...args),
+    execute: (...args: unknown[]) => mockDbExecute(...args)
   }
 }))
 
 vi.mock("@shared/db/schema", () => ({
-  stripePlan: { id: "id", stripePriceId: "stripePriceId", active: "active" },
+  stripePlan: {
+    id: "id",
+    stripeProductId: "stripeProductId",
+    stripePriceId: "stripePriceId",
+    annualDiscountPriceId: "annualDiscountPriceId",
+    limits: "limits",
+    active: "active"
+  },
   subscription: {
     id: "id",
     stripeSubscriptionId: "stripeSubscriptionId",
+    stripePriceId: "stripePriceId",
     referenceId: "referenceId",
     status: "status"
   },
@@ -76,6 +87,34 @@ vi.stubGlobal(
 )
 
 import { billingSyncService } from "./billing.sync"
+
+function resetQueryMocks() {
+  mockStripeSubscriptionsList.mockReset()
+  mockStripeSubscriptionsRetrieve.mockReset()
+  mockStripePricesList.mockReset()
+  mockDbInsert.mockReset()
+  mockDbUpdate.mockReset()
+  mockDbExecute.mockReset()
+  mockDbQuery.stripePlan.findFirst.mockReset()
+  mockDbQuery.stripePlan.findMany.mockReset()
+  mockDbQuery.subscription.findFirst.mockReset()
+  mockDbQuery.organization.findFirst.mockReset()
+  mockDbQuery.billingSyncLog.findFirst.mockReset()
+}
+
+function setupDbMocks() {
+  mockDbInsert.mockImplementation(() => ({
+    values: vi.fn().mockReturnValue({
+      onConflictDoUpdate: vi.fn().mockResolvedValue(undefined)
+    })
+  }))
+  mockDbUpdate.mockImplementation(() => ({
+    set: vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue(undefined)
+    })
+  }))
+  mockDbExecute.mockResolvedValue({ rows: [{ locked: true }] })
+}
 
 // Helper: create a mock Stripe product
 function mockStripeProduct(overrides: Partial<Stripe.Product> = {}): Stripe.Product {
@@ -142,6 +181,7 @@ function mockStripeSubscription(
         {
           id: "si_test123",
           price: {
+            id: "price_test123",
             product: mockStripeProduct(),
             lookup_key: null,
             recurring: { interval: "month" }
@@ -158,16 +198,8 @@ function mockStripeSubscription(
 
 describe("billingSyncService.syncPlans", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    // Default: return mock values chain for insert/update
-    mockDbInsert.mockReturnValue({
-      values: vi.fn().mockReturnValue(Promise.resolve())
-    })
-    mockDbUpdate.mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue(Promise.resolve())
-      })
-    })
+    resetQueryMocks()
+    setupDbMocks()
   })
 
   it("creates a new plan from Stripe price data", async () => {
@@ -206,13 +238,13 @@ describe("billingSyncService.syncPlans", () => {
       limits: { projects: 10, storageMb: 200, fileSizeMb: 30 } // admin override
     })
     mockDbQuery.stripePlan.findMany.mockResolvedValue([
-      { stripePriceId: "price_test123", active: true }
+      { stripeProductId: "prod_test123", stripePriceId: "price_test123", active: true }
     ])
 
     await billingSyncService.syncPlans()
 
-    // Should update stripe values but NOT overwrite existing limits
-    expect(mockDbUpdate).toHaveBeenCalled()
+    expect(mockDbInsert).toHaveBeenCalled()
+    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
   })
 
   it("populates limits from metadata for existing plan with null limits", async () => {
@@ -230,13 +262,12 @@ describe("billingSyncService.syncPlans", () => {
       limits: null
     })
     mockDbQuery.stripePlan.findMany.mockResolvedValue([
-      { stripePriceId: "price_test123", active: true }
+      { stripeProductId: "prod_test123", stripePriceId: "price_test123", active: true }
     ])
 
     await billingSyncService.syncPlans()
 
-    // Should call update twice: once for stripe values, once for limits
-    expect(mockDbUpdate).toHaveBeenCalledTimes(2)
+    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
   })
 
   it("skips non-recurring prices", async () => {
@@ -278,7 +309,7 @@ describe("billingSyncService.syncPlans", () => {
 
     // Local plan that should be marked inactive
     mockDbQuery.stripePlan.findMany.mockResolvedValue([
-      { id: "old-plan", stripePriceId: "price_old", active: true }
+      { id: "old-plan", stripeProductId: "prod_old", stripePriceId: "price_old", active: true }
     ])
 
     await billingSyncService.syncPlans()
@@ -289,15 +320,8 @@ describe("billingSyncService.syncPlans", () => {
 
 describe("billingSyncService.upsertSubscription", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    mockDbInsert.mockReturnValue({
-      values: vi.fn().mockReturnValue(Promise.resolve())
-    })
-    mockDbUpdate.mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue(Promise.resolve())
-      })
-    })
+    resetQueryMocks()
+    setupDbMocks()
   })
 
   it("creates a new subscription when none exists locally", async () => {
@@ -327,7 +351,7 @@ describe("billingSyncService.upsertSubscription", () => {
     const result = await billingSyncService.upsertSubscription(stripeSub)
 
     expect(result).toBe("updated")
-    expect(mockDbUpdate).toHaveBeenCalled()
+    expect(mockDbInsert).toHaveBeenCalled()
   })
 
   it("falls back to customer ID when no org found", async () => {
@@ -392,15 +416,8 @@ describe("billingSyncService.upsertSubscription", () => {
 
 describe("billingSyncService.fullSync", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    mockDbInsert.mockReturnValue({
-      values: vi.fn().mockReturnValue(Promise.resolve())
-    })
-    mockDbUpdate.mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue(Promise.resolve())
-      })
-    })
+    resetQueryMocks()
+    setupDbMocks()
   })
 
   it("syncs plans and subscriptions and returns counts", async () => {
@@ -510,15 +527,8 @@ describe("billingSyncService.fullSync", () => {
 
 describe("billingSyncService.refreshSubscription", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    mockDbInsert.mockReturnValue({
-      values: vi.fn().mockReturnValue(Promise.resolve())
-    })
-    mockDbUpdate.mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue(Promise.resolve())
-      })
-    })
+    resetQueryMocks()
+    setupDbMocks()
   })
 
   it("refreshes a single subscription from Stripe", async () => {
@@ -562,15 +572,8 @@ describe("billingSyncService.refreshSubscription", () => {
 
 describe("billingSyncService.syncPlans - edge cases", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    mockDbInsert.mockReturnValue({
-      values: vi.fn().mockReturnValue(Promise.resolve())
-    })
-    mockDbUpdate.mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue(Promise.resolve())
-      })
-    })
+    resetQueryMocks()
+    setupDbMocks()
   })
 
   it("skips prices where product is a string (not expanded)", async () => {
@@ -616,15 +619,8 @@ describe("billingSyncService.syncPlans - edge cases", () => {
 
 describe("billingSyncService.upsertSubscription - edge cases", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    mockDbInsert.mockReturnValue({
-      values: vi.fn().mockReturnValue(Promise.resolve())
-    })
-    mockDbUpdate.mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue(Promise.resolve())
-      })
-    })
+    resetQueryMocks()
+    setupDbMocks()
   })
 
   it("handles customer as object with id", async () => {

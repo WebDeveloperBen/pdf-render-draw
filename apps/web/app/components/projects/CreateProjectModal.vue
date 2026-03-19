@@ -4,6 +4,7 @@ import {
   ClipboardList,
   MapPin,
   FileUp,
+  FilePlus,
   StickyNote,
   Building2,
   Hammer,
@@ -27,6 +28,7 @@ import {
   ArrowRight,
   Check
 } from "lucide-vue-next"
+import { uploadBlankPdf } from "~/composables/useScratchpad"
 import type { ProjectWithRelations } from "#shared/types/projects.types"
 import { usePostApiProjects } from "@/models/api"
 import { toast } from "vue-sonner"
@@ -52,7 +54,7 @@ const steps: Array<{
 }> = [
   { id: "details", label: "Project Details", icon: ClipboardList, required: true },
   { id: "location", label: "Location & Client", icon: MapPin, required: false },
-  { id: "files", label: "Upload Files", icon: FileUp, required: true },
+  { id: "files", label: "Building Plans", icon: FileUp, required: false },
   { id: "notes", label: "Additional Info", icon: StickyNote, required: false }
 ]
 
@@ -95,6 +97,9 @@ const isUploading = ref(false)
 const isDragging = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
+// Scratchpad option — user can start with a blank page instead of uploading
+const useScratchpad = ref(false)
+
 // Field errors for inline validation
 const fieldErrors = ref<Record<string, string>>({})
 
@@ -105,11 +110,11 @@ const fieldErrors = ref<Record<string, string>>({})
 const stepStatus = computed(() => ({
   details: !!formData.value.name.trim(),
   location: true,
-  files: !!uploadedFile.value,
+  files: !!uploadedFile.value || useScratchpad.value,
   notes: true
 }))
 
-const canCreate = computed(() => stepStatus.value.details && stepStatus.value.files)
+const canCreate = computed(() => stepStatus.value.details)
 
 // ============================================
 // CATEGORIES & OPTIONS
@@ -148,13 +153,6 @@ function validateStep(stepId: StepId): boolean {
     }
     if (formData.value.name.trim().length < 3) {
       fieldErrors.value.name = "Name must be at least 3 characters"
-      return false
-    }
-  }
-
-  if (stepId === "files") {
-    if (!uploadedFile.value) {
-      toast.error("Please upload a PDF file")
       return false
     }
   }
@@ -298,13 +296,13 @@ async function handleSubmit() {
     return
   }
 
-  if (!uploadedFile.value) {
-    activeStep.value = "files"
-    toast.error("Please upload a PDF file")
-    return
-  }
-
   try {
+    // If scratchpad chosen but no file uploaded yet, generate the blank PDF now
+    let fileData = uploadedFile.value
+    if (!fileData && useScratchpad.value) {
+      fileData = await uploadBlankPdf()
+    }
+
     const response = await createProject({
       data: {
         name: formData.value.name,
@@ -320,14 +318,14 @@ async function handleSubmit() {
         priority: formData.value.priority as "low" | "normal" | "high" | "urgent",
         tags: formData.value.tags,
         notes: formData.value.notes || null,
-        pdfUrl: uploadedFile.value.pdfUrl,
-        pdfFileName: uploadedFile.value.fileName,
-        pdfFileSize: uploadedFile.value.fileSize,
-        pageCount: uploadedFile.value.pageCount
+        // File fields — use defaults when no file provided
+        pdfUrl: fileData?.pdfUrl ?? "",
+        pdfFileName: fileData?.fileName ?? "",
+        pdfFileSize: fileData?.fileSize ?? 0,
+        pageCount: fileData?.pageCount ?? 0
       }
     })
 
-    // Response is the data directly from Orval mutation
     if (!response) {
       throw new Error("Failed to create project")
     }
@@ -339,6 +337,7 @@ async function handleSubmit() {
     toast.error(error.data?.statusMessage || "Failed to create project")
   }
 }
+
 
 // ============================================
 // MODAL LIFECYCLE
@@ -362,6 +361,7 @@ function resetForm() {
     notes: ""
   }
   uploadedFile.value = null
+  useScratchpad.value = false
   fieldErrors.value = {}
   isUploading.value = false
   isDragging.value = false
@@ -434,7 +434,7 @@ watch(isOpen, (open) => {
                 <p class="text-sm text-muted-foreground">
                   <template v-if="activeStep === 'details'">Basic project information</template>
                   <template v-else-if="activeStep === 'location'">Job site and client details</template>
-                  <template v-else-if="activeStep === 'files'">Upload building plans and documents</template>
+                  <template v-else-if="activeStep === 'files'">Upload a building plan or start with a blank page</template>
                   <template v-else>Additional notes and organisation</template>
                 </p>
               </div>
@@ -449,7 +449,7 @@ watch(isOpen, (open) => {
                 <!-- Project Name -->
                 <div class="space-y-2">
                   <UiLabel for="project-name" class="text-sm font-medium">
-                    Project Name <span class="text-destructive">*</span>
+                    <span>Project Name <span class="text-destructive">*</span></span>
                   </UiLabel>
                   <UiInput
                     id="project-name"
@@ -574,58 +574,91 @@ watch(isOpen, (open) => {
 
               <!-- FILES STEP -->
               <div v-else-if="activeStep === 'files'" class="flex-1 flex flex-col min-h-0">
-                <div
-                  v-if="!uploadedFile"
-                  class="flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center transition-all cursor-pointer min-h-100"
-                  :class="
-                    isDragging
-                      ? 'border-primary bg-primary/5 scale-[1.01]'
-                      : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
-                  "
-                  @click="fileInputRef?.click()"
-                  @dragover="handleDragOver"
-                  @dragleave="handleDragLeave"
-                  @drop="handleDrop"
-                >
-                  <input
-                    ref="fileInputRef"
-                    type="file"
-                    accept="application/pdf"
-                    class="hidden"
-                    @change="handleFileSelect"
-                  />
-
-                  <div v-if="isUploading" class="space-y-4">
-                    <div class="size-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                      <Loader2 class="size-10 text-primary animate-spin" />
+                <!-- Scratchpad chosen -->
+                <div v-if="useScratchpad && !uploadedFile" class="flex-1 flex flex-col items-center justify-center text-center min-h-100">
+                  <div class="space-y-4">
+                    <div class="size-24 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                      <FilePlus class="size-12 text-primary" />
                     </div>
                     <div>
-                      <p class="text-lg font-medium">Uploading your file...</p>
-                      <p class="text-sm text-muted-foreground mt-1">This may take a moment</p>
+                      <p class="text-xl font-semibold">Starting with a blank page</p>
+                      <p class="text-muted-foreground mt-2">A scratchpad will be created when you finish setting up the project</p>
                     </div>
-                  </div>
-
-                  <div v-else class="space-y-6">
-                    <div class="size-24 mx-auto rounded-full bg-muted flex items-center justify-center">
-                      <UploadCloud class="size-12 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p class="text-xl font-semibold">Drop your PDF here</p>
-                      <p class="text-muted-foreground mt-2">or click anywhere to browse your files</p>
-                    </div>
-                    <div class="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                      <span class="flex items-center gap-2">
-                        <FileText class="size-4" />
-                        PDF files only
-                      </span>
-                      <span class="flex items-center gap-2">
-                        <HardDrive class="size-4" />
-                        Max 50MB
-                      </span>
-                    </div>
+                    <UiButton variant="outline" @click="useScratchpad = false">
+                      Upload a PDF instead
+                    </UiButton>
                   </div>
                 </div>
 
+                <!-- No file yet — upload drop zone -->
+                <div
+                  v-else-if="!uploadedFile"
+                  class="flex-1 flex flex-col min-h-100"
+                >
+                  <div
+                    class="flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center transition-all cursor-pointer"
+                    :class="
+                      isDragging
+                        ? 'border-primary bg-primary/5 scale-[1.01]'
+                        : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
+                    "
+                    @click="fileInputRef?.click()"
+                    @dragover="handleDragOver"
+                    @dragleave="handleDragLeave"
+                    @drop="handleDrop"
+                  >
+                    <input
+                      ref="fileInputRef"
+                      type="file"
+                      accept="application/pdf"
+                      class="hidden"
+                      @change="handleFileSelect"
+                    />
+
+                    <div v-if="isUploading" class="space-y-4">
+                      <div class="size-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                        <Loader2 class="size-10 text-primary animate-spin" />
+                      </div>
+                      <div>
+                        <p class="text-lg font-medium">Uploading your file...</p>
+                        <p class="text-sm text-muted-foreground mt-1">This may take a moment</p>
+                      </div>
+                    </div>
+
+                    <div v-else class="space-y-6">
+                      <div class="size-24 mx-auto rounded-full bg-muted flex items-center justify-center">
+                        <UploadCloud class="size-12 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p class="text-xl font-semibold">Drop your PDF here</p>
+                        <p class="text-muted-foreground mt-2">or click anywhere to browse your files</p>
+                      </div>
+                      <div class="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+                        <span class="flex items-center gap-2">
+                          <FileText class="size-4" />
+                          PDF files only
+                        </span>
+                        <span class="flex items-center gap-2">
+                          <HardDrive class="size-4" />
+                          Max 50MB
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-center gap-3 mt-4">
+                    <span class="text-sm text-muted-foreground">Don't have a PDF?</span>
+                    <button
+                      type="button"
+                      class="text-sm font-medium text-primary hover:underline"
+                      @click="useScratchpad = true"
+                    >
+                      Start with a blank page
+                    </button>
+                  </div>
+                </div>
+
+                <!-- File uploaded -->
                 <div v-else class="flex-1 flex flex-col min-h-100">
                   <div class="flex-1 border rounded-xl p-8 bg-muted/30 flex items-center justify-center">
                     <div class="flex items-start gap-6 max-w-xl">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { X } from "lucide-vue-next"
-import type { PDFDocumentProxy } from "pdfjs-dist"
+import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist"
 import { DIMENSIONS } from "@/constants/dimensions"
 
 const props = defineProps<{
@@ -62,6 +62,7 @@ function handleScroll() {
 const canvasRefs = shallowRef<Map<number, HTMLCanvasElement>>(new Map())
 const renderedThumbnails = shallowRef<Map<number, ImageData>>(new Map())
 const currentlyRendering = shallowRef<Set<number>>(new Set())
+const activeRenderTasks = shallowRef<Map<number, RenderTask>>(new Map())
 
 // LRU cache configuration
 const MAX_CACHED_THUMBNAILS = DIMENSIONS.MAX_CACHED_THUMBNAILS
@@ -180,16 +181,28 @@ watchThrottled(
   { throttle: 150, immediate: true }
 )
 
-// Clear cache when PDF changes
+// Cancel all renders and clear cache when PDF changes
 watch(
   () => viewportStore.getDocumentProxy,
   () => {
+    // Cancel all in-flight render tasks
+    for (const task of activeRenderTasks.value.values()) {
+      task.cancel()
+    }
+    activeRenderTasks.value.clear()
     renderedThumbnails.value.clear()
     currentlyRendering.value.clear()
   }
 )
 
 async function renderThumbnail(pdf: PDFDocumentProxy, pageNum: number, canvas: HTMLCanvasElement) {
+  // Cancel any in-flight render for this page
+  const existing = activeRenderTasks.value.get(pageNum)
+  if (existing) {
+    existing.cancel()
+    activeRenderTasks.value.delete(pageNum)
+  }
+
   try {
     const page = await pdf.getPage(pageNum)
 
@@ -207,12 +220,19 @@ async function renderThumbnail(pdf: PDFDocumentProxy, pageNum: number, canvas: H
     const context = canvas.getContext("2d", { willReadFrequently: true })
     if (!context) return
 
-    await page.render({
+    const renderTask = page.render({
       canvasContext: context,
       viewport: scaledViewport,
       canvas: canvas
-    }).promise
-  } catch (error) {
+    })
+
+    activeRenderTasks.value.set(pageNum, renderTask)
+    await renderTask.promise
+    activeRenderTasks.value.delete(pageNum)
+  } catch (error: any) {
+    activeRenderTasks.value.delete(pageNum)
+    // Silently ignore cancellations — they're expected
+    if (error?.name === "RenderingCancelledException") return
     console.error(`Failed to render thumbnail for page ${pageNum}:`, error)
   }
 }

@@ -7,6 +7,8 @@ const paramsSchema = z.object({
 })
 
 const bodySchema = z.object({
+  pdfFileName: z.string().min(1).max(255).optional(),
+  pageCount: z.number().int().min(0).optional(),
   annotationCount: z.number().int().min(0).optional(),
   lastViewedAt: z.coerce.date().optional()
 })
@@ -16,7 +18,7 @@ defineRouteMeta({
   openAPI: {
     tags: ["Project Files"],
     summary: "Update Project File",
-    description: "Update a file in a project (annotation count, last viewed)",
+    description: "Update a file in a project (name, page count, annotation count, last viewed)",
     parameters: [
       {
         name: "id",
@@ -40,6 +42,15 @@ defineRouteMeta({
           schema: {
             type: "object",
             properties: {
+              pdfFileName: {
+                type: "string",
+                description: "Display name for the file"
+              },
+              pageCount: {
+                type: "integer",
+                minimum: 0,
+                description: "Number of pages in the PDF"
+              },
               annotationCount: {
                 type: "integer",
                 minimum: 0,
@@ -152,6 +163,12 @@ export default defineEventHandler(async (event) => {
 
   // Build update object
   const updateData: Partial<typeof existingFile> = {}
+  if (body.pdfFileName !== undefined) {
+    updateData.pdfFileName = body.pdfFileName
+  }
+  if (body.pageCount !== undefined) {
+    updateData.pageCount = body.pageCount
+  }
   if (body.annotationCount !== undefined) {
     updateData.annotationCount = body.annotationCount
   }

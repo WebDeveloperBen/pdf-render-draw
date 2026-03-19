@@ -15,6 +15,7 @@ export const billingActivity = pgTable("billing_activity", {
   type: text("type").notNull(), // "lifecycle" | "admin_action" | "sync" | "payment"
   description: text("description").notNull(),
   actorId: text("actor_id"), // Admin user ID for admin actions
+  stripeEventId: text("stripe_event_id").unique(),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull()
 })

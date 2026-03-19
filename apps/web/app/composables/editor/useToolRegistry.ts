@@ -110,6 +110,17 @@ export function getCompleteToolbarTools() {
 }
 
 /**
+ * Clear all registered tools.
+ * Called when the AnnotationLayer unmounts so that on the next mount
+ * tools re-register with fresh handler closures instead of being
+ * skipped by the duplicate-registration guard.
+ */
+export function clearRegistry() {
+  toolRegistry.value.clear()
+  triggerRef(toolRegistry)
+}
+
+/**
  * Check if a tool is registered
  */
 export function isToolRegistered(type: ToolType): boolean {
@@ -123,6 +134,7 @@ export function useToolRegistry() {
   return {
     registerTool,
     unregisterTool,
+    clearRegistry,
     getTool,
     getAllTools,
     getToolbarTools,

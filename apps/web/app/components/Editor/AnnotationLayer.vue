@@ -40,6 +40,13 @@ const svgStyle = computed(() => {
   }
 })
 
+const toolRegistry = useToolRegistry()
+
+// Clear stale tool registrations so tools re-register with fresh handler closures.
+// Without this, client-side navigation keeps the old (dead) handlers from the
+// previous AnnotationLayer instance because registerTool() skips duplicates.
+toolRegistry.clearRegistry()
+
 // Initialize all tools (they register themselves when first called AND provide injection context)
 useCountTool()!
 useMeasureTool()!
@@ -51,7 +58,6 @@ useFillTool()!
 
 const selectionMarquee = useEditorMarquee()
 const interactionMode = useInteractionMode()
-const toolRegistry = useToolRegistry()
 
 // Initialise snap provider (sets up reactive watches)
 const { extractPageContent, clearContentCache, clearIndicator } = useSnapProvider()

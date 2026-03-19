@@ -6,7 +6,7 @@ import { z } from "zod"
 import type { PlatformAdminTier, PlatformAdminListItem } from "@shared/auth/plugins/platform-admin.client"
 import type { FormBuilder } from "~/components/ui/FormBuilder/FormBuilder.vue"
 import type { ColumnDef } from "@tanstack/vue-table"
-import { Edit, Shield, Trash2, UserPlus } from "lucide-vue-next"
+import { AlertCircle, Edit, Info, Shield, Trash2, UserPlus } from "lucide-vue-next"
 
 definePageMeta({
   layout: "admin",
@@ -327,7 +327,7 @@ onMounted(() => {
     </div>
 
     <!-- Info Alert -->
-    <UiAlert variant="info" icon="lucide:info" title="Platform Admin Tiers">
+    <UiAlert variant="info" :icon="Info" title="Platform Admin Tiers">
       <template #description>
         <ul class="list-disc list-inside space-y-1 text-sm">
           <li><strong>Owner:</strong> Full control, only one exists, can manage all platform admins</li>
@@ -339,7 +339,7 @@ onMounted(() => {
     </UiAlert>
 
     <!-- Error state -->
-    <UiAlert v-if="error" variant="destructive" icon="lucide:alert-circle" title="Error" :description="error" />
+    <UiAlert v-if="error" variant="destructive" :icon="AlertCircle" title="Error" :description="error" />
 
     <!-- Loading State -->
     <UiCard v-if="isLoading">

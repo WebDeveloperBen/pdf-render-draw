@@ -160,7 +160,7 @@ function toggleFaq(index: number) {
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <div
         v-for="plan in allPlans"
-        :key="plan.name"
+        :key="plan.id"
         :class="[
           'relative flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm',
           isHighlighted(plan) ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary' : 'border-border'

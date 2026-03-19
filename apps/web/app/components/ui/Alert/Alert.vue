@@ -1,15 +1,9 @@
 <template>
   <div v-if="shown" data-slot="alert" :class="alertStyles().base({ variant, filled, class: props.class })">
     <slot :props="props" name="icon">
-      <Icon
-        v-if="typeof icon === 'string'"
-        :name="icon"
-        data-slot="alert-icon"
-        :class="alertStyles().icon({ variant, filled, class: props.iconClass })"
-      />
       <component
         :is="icon"
-        v-else-if="icon"
+        v-if="icon"
         data-slot="alert-icon"
         :class="alertStyles().icon({ variant, filled, class: props.iconClass })"
       />
@@ -49,7 +43,7 @@ export type AlertProps = {
   /** The description that is passed to the `AlertDescription` component */
   description?: string
   /** The icon that should be displayed*/
-  icon?: string | Component
+  icon?: Component
 }
 
 export const alertStyles = tv({

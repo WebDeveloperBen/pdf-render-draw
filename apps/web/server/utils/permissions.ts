@@ -1,5 +1,5 @@
 import { toWebRequest, type H3Event } from "h3"
-import { eq, and, inArray } from "drizzle-orm"
+import { eq, and, inArray, or } from "drizzle-orm"
 import { auth } from "@auth"
 import type { statements } from "@shared/auth/access-control"
 import { type PlatformAdminTier, TIER_LEVELS, hasTier } from "@shared/auth/plugins/platform-admin"
@@ -119,15 +119,21 @@ async function resolveBillingContext(orgId: string | null): Promise<OrgBillingCo
     }
   }
 
-  const plan = await db.query.stripePlan.findFirst({
-    where: eq(stripePlan.name, orgSub.plan)
-  })
+  const plan =
+    (orgSub.stripePriceId
+      ? await db.query.stripePlan.findFirst({
+          where: or(eq(stripePlan.stripePriceId, orgSub.stripePriceId), eq(stripePlan.annualDiscountPriceId, orgSub.stripePriceId))
+        })
+      : null) ??
+    (await db.query.stripePlan.findFirst({
+      where: eq(stripePlan.name, orgSub.plan)
+    }))
 
   const metadata = (plan?.metadata ?? {}) as Record<string, string>
 
   return {
     orgId,
-    planName: orgSub.plan.toLowerCase(),
+    planName: (plan?.name ?? orgSub.plan).toLowerCase(),
     limits: plan?.limits ? (plan.limits as PlanLimits) : FREE_TIER_LIMITS,
     features: parseFeaturesFromMetadata(metadata),
     subscriptionStatus: orgSub.status

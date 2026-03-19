@@ -56,14 +56,18 @@ function getR2Bucket(): R2StorageClient {
   try {
     const env = (globalThis as Record<string, unknown>).__env__ as unknown as Cloudflare.Env | undefined
     if (env?.R2_BUCKET && typeof env.R2_BUCKET.put === "function") return env.R2_BUCKET as unknown as R2StorageClient
-  } catch {}
+  } catch {
+    // globalThis.__env__ may not exist in all runtimes
+  }
 
   // Try event.context.cloudflare.env (nitro-cloudflare-dev plugin)
   try {
     const event = useEvent()
     const env = event.context.cloudflare?.env as unknown as Cloudflare.Env | undefined
     if (env?.R2_BUCKET) return env.R2_BUCKET as unknown as R2StorageClient
-  } catch {}
+  } catch {
+    // useEvent() throws outside request context
+  }
 
   throw new Error(
     "[R2] No R2 binding available. Ensure wrangler.toml has r2_buckets configured and nitro-cloudflare-dev is loaded."
@@ -150,12 +154,14 @@ export async function uploadPdf(pdfBuffer: ArrayBuffer | Uint8Array, fileName: s
   const pdfUrl = await uploadToR2(pdfBuffer, pdfPath, "application/pdf")
   const fileSize = pdfBuffer instanceof Uint8Array ? pdfBuffer.length : pdfBuffer.byteLength
 
+  const pageCount = await countPdfPages(pdfBuffer)
+
   return {
     pdfUrl,
     thumbnailUrl: "",
     fileName: sanitizedName,
     fileSize,
-    pageCount: 0
+    pageCount
   }
 }
 
@@ -174,4 +180,17 @@ export async function existsInR2(path: string): Promise<boolean> {
   const client = getR2Bucket()
   const result = await client.head(path)
   return result !== null
+}
+
+/**
+ * Count pages in a PDF using pdf-lib.
+ */
+async function countPdfPages(buffer: ArrayBuffer | Uint8Array): Promise<number> {
+  try {
+    const { PDFDocument } = await import("pdf-lib")
+    const doc = await PDFDocument.load(buffer, { ignoreEncryption: true })
+    return doc.getPageCount()
+  } catch {
+    return 0
+  }
 }
